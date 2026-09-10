@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>9AU Portfolio • Dashboard</title>
+    <!-- Favicon & Apple Touch Icon -->
+    <link rel="icon" type="image/png" href="profile.png">
+    <link rel="apple-touch-icon" href="profile.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
     <style>
         /* Import fonts */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
@@ -34,6 +40,7 @@
             padding: 0 24px;
         }
 
+        /* Navbar */
         nav {
             background: rgba(15, 20, 18, 0.95);
             backdrop-filter: blur(20px);
@@ -42,30 +49,58 @@
             top: 0;
             z-index: 100;
         }
-
         .nav-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 0;
+            padding: 16px 0;
         }
-
         .logo {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 26px;
             font-weight: 600;
             letter-spacing: -1px;
         }
-
         .logo span {
             color: var(--accent);
         }
+        .nav-right {
+            display: flex;
+            align-items: center;
+        }
+        .pill {
+            background: #1a2521;
+            padding: 6px 16px;
+            border-radius: 9999px;
+            font-size: 13px;
+            color: #64748b;
+        }
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-left: 16px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .profile-icon:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 8px rgba(0,0,0,0.3);
+        }
+        @media (max-width: 640px) {
+            .profile-icon {
+                width: 32px;
+                height: 32px;
+                margin-left: 12px;
+            }
+        }
 
+        /* Hero */
         .hero {
             padding: 80px 0 60px;
             text-align: center;
         }
-
         .hero h1 {
             font-size: 56px;
             font-weight: 700;
@@ -75,7 +110,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
         .hero p {
             font-size: 20px;
             color: #64748b;
@@ -83,6 +117,7 @@
             margin: 0 auto 40px;
         }
 
+        /* Section title */
         .section-title {
             font-size: 14px;
             font-weight: 600;
@@ -93,13 +128,13 @@
             padding-left: 4px;
         }
 
+        /* Cards Grid */
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 24px;
             padding-bottom: 80px;
         }
-
         .card {
             background: var(--card);
             border: 1px solid rgba(255,255,255,0.07);
@@ -110,13 +145,11 @@
             overflow: hidden;
             cursor: pointer;
         }
-
         .card:hover {
             transform: translateY(-12px);
             border-color: var(--accent);
             box-shadow: 0 0 25px rgba(0, 255, 157, 0.1);
         }
-
         .icon-wrapper {
             width: 64px;
             height: 64px;
@@ -128,26 +161,22 @@
             margin-bottom: 24px;
             transition: transform 0.4s ease;
         }
-
         .card:hover .icon-wrapper {
             transform: rotate(8deg) scale(1.05);
             background: rgba(0, 255, 157, 0.15);
         }
-
         .card h3 {
             font-size: 21px;
             font-weight: 600;
             margin-bottom: 12px;
             color: #f8fafc;
         }
-
         .card p {
             color: #94a3b8;
             font-size: 15px;
             margin-bottom: 24px;
             min-height: 60px;
         }
-
         .btn {
             background: var(--accent);
             color: #0a0f0e;
@@ -163,51 +192,45 @@
             align-items: center;
             gap: 8px;
         }
-
         .btn:hover {
             background: #00cc7a;
             transform: translateY(-1px);
         }
-
         .card-number {
             font-size: 13px;
             font-weight: 500;
             color: #475569;
         }
 
-        /* Floating animation for icons */
+        /* Floating animations */
         .floating {
             animation: float 6s ease-in-out infinite;
         }
-
         @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50%      { transform: translateY(-12px); }
+            0%,100% { transform: translateY(0); }
+            50%    { transform: translateY(-12px); }
         }
 
-        /* Floating animation for text */
         .floating-text {
             display: inline-block;
             animation: float-text 5s ease-in-out infinite;
         }
-
         @keyframes float-text {
-            0%, 100% { transform: translateY(0); }
-            50%      { transform: translateY(-8px); }
+            0%,100% { transform: translateY(0); }
+            50%    { transform: translateY(-8px); }
         }
 
-        /* Delay helpers for cards */
+        /* Delays */
         .card.delay-0 .floating-text { animation-delay: 0s; }
         .card.delay-1 .floating-text { animation-delay: 0.6s; }
         .card.delay-2 .floating-text { animation-delay: 1.2s; }
         .card.delay-3 .floating-text { animation-delay: 1.8s; }
         .card.delay-4 .floating-text { animation-delay: 2.4s; }
         .card.delay-5 .floating-text { animation-delay: 3s; }
-
-        /* Delay for hero and section */
-        .hero h1.floating-text { animation-delay: 0s; }
-        .hero p.floating-text  { animation-delay: 0.5s; }
+        .hero h1.floating-text   { animation-delay: 0s; }
+        .hero p.floating-text    { animation-delay: 0.5s; }
         .section-title.floating-text { animation-delay: 1s; }
+
     </style>
 </head>
 <body>
@@ -216,8 +239,10 @@
         <div class="container">
             <div class="nav-content">
                 <div class="logo">9AU<span>Portfolio</span></div>
-                <div style="background: #1a2521; padding: 6px 16px; border-radius: 9999px; font-size: 13px; color: #64748b;">
-                    MT5 • Forex
+                <div class="nav-right">
+                    <div class="pill">MT5 • Forex</div>
+                    <!-- Profile Icon -->
+                    <img src="profile.png" alt="Profile" class="profile-icon">
                 </div>
             </div>
         </div>
@@ -226,108 +251,95 @@
     <!-- Hero -->
     <div class="container">
         <div class="hero">
-            <h1 class="floating-text">ระบบบริหารพอร์ต<br>ลงทุน ETF & Forex</h1>
-            <p class="floating-text">รวมทุกเครื่องมือจัดการไฟล์ Version Control/ Strategy Report Tester [Upload/Download] ระบบจัดการ Portfolio</p>
+            <h1 class="floating-text">ระบบบริหารพอร์ต<br>การลงทุนอัจฉริยะ</h1>
+            <p class="floating-text">รวมทุกเครื่องมือสำหรับการเทรด Forex ด้วย MT5 และระบบจัดการพอร์ตโฟลิโอ</p>
         </div>
     </div>
 
     <!-- Cards -->
     <div class="container">
         <div class="section-title floating-text">เลือกหัวข้อที่ต้องการดู</div>
-        
         <div class="cards-grid">
             <!-- Card 1 -->
             <div class="card delay-0" onclick="openLink('https://au1uzv8.github.io/9AU-PORTFOLIO/MyAssets.html')">
                 <div class="icon-wrapper floating">
-                    <!-- SVG Icon -->
-                    <svg width="32" height="32" fill="none" stroke="#00ff9d" stroke-width="2.25"
-                         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <svg width="32" height="32" fill="none" stroke="#00ff9d" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                         <path d="M3 3v18h18"/><path d="M18 17l-6-6-4 4-2-2"/>
                     </svg>
                 </div>
                 <h3 class="floating-text">ภาพรวมพอร์ตการลงทุน</h3>
                 <p class="floating-text">ระบบบริหารพอร์ตการลงทุน &amp; MT5 Forex Monitor แบบเรียลไทม์</p>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
                     <span class="card-number floating-text">01</span>
                     <span class="btn floating-text">เปิดเว็บไซต์</span>
                 </div>
             </div>
-
             <!-- Card 2 -->
             <div class="card delay-1" onclick="openLink('https://au1uzv8.github.io/9AU-PORTFOLIO/9AU_FOREX_EA.html')">
                 <div class="icon-wrapper floating" style="animation-delay:1.2s">
-                    <svg width="32" height="32" fill="none" stroke="#00ff9d" stroke-width="2.25"
-                         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <svg width="32" height="32" fill="none" stroke="#00ff9d" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                         <path d="M21 21V3"/><path d="M3 21h18"/><path d="M12 17l-4-4 4-4 4 4"/>
                     </svg>
                 </div>
                 <h3 class="floating-text">Performance Comparison</h3>
                 <p class="floating-text">Dashboard เปรียบเทียบเชิงประสิทธิภาพของกลยุทธ์การเทรด</p>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
                     <span class="card-number floating-text">02</span>
                     <span class="btn floating-text">เปิดเว็บไซต์</span>
                 </div>
             </div>
-
             <!-- Card 3 -->
             <div class="card delay-2" onclick="openLink('https://au1uzv8.github.io/9AU-PORTFOLIO/9AU_Logic_&_System_Memory.html')">
                 <div class="icon-wrapper floating" style="animation-delay:2.4s">
-                    <svg width="32" height="32" fill="none" stroke="#00ff9d" stroke-width="2.25"
-                         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <svg width="32" height="32" fill="none" stroke="#00ff9d" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                         <path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                     </svg>
                 </div>
                 <h3 class="floating-text">Memory &amp; Skill System</h3>
                 <p class="floating-text">ระบบหน่วยความจำและทักษะสำหรับสร้าง EA ด้วย MQL5</p>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
                     <span class="card-number floating-text">03</span>
                     <span class="btn floating-text">เปิดเว็บไซต์</span>
                 </div>
             </div>
-
             <!-- Card 4 -->
             <div class="card delay-3" onclick="openLink('https://au1uzv8.github.io/9AU-PORTFOLIO/9AU_Analysis_Introvert_Type.html')">
                 <div class="icon-wrapper floating" style="animation-delay:0.6s">
-                    <svg width="32" height="32" fill="none" stroke="#ff00aa" stroke-width="2.25"
-                         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <svg width="32" height="32" fill="none" stroke="#ff00aa" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
                     </svg>
                 </div>
                 <h3 class="floating-text">About</h3>
                 <p class="floating-text">ข้อมูลเกี่ยวกับผู้พัฒนาและแนวทางการวิเคราะห์</p>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
                     <span class="card-number floating-text">04</span>
                     <span class="btn floating-text">เปิดเว็บไซต์</span>
                 </div>
             </div>
-
             <!-- Card 5 -->
             <div class="card delay-4" onclick="openLink('https://au1uzv8.github.io/9AU-PORTFOLIO/9AU_File-Manager.html')">
                 <div class="icon-wrapper floating" style="animation-delay:1.8s">
-                    <svg width="32" height="32" fill="none" stroke="#00ff9d" stroke-width="2.25"
-                         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <svg width="32" height="32" fill="none" stroke="#00ff9d" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
                     </svg>
                 </div>
                 <h3 class="floating-text">File Manager &amp; Version Control</h3>
                 <p class="floating-text">ระบบจัดการไฟล์ Version Control และ Strategy Report Tester</p>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
                     <span class="card-number floating-text">05</span>
                     <span class="btn floating-text">เปิดเว็บไซต์</span>
                 </div>
             </div>
-
             <!-- Card 6 -->
             <div class="card delay-5" onclick="openLink('https://au1uzv8.github.io/9AU-PORTFOLIO/Future.html')">
                 <div class="icon-wrapper floating" style="animation-delay:3s">
-                    <svg width="32" height="32" fill="none" stroke="#ff00aa" stroke-width="2.25"
-                         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <svg width="32" height="32" fill="none" stroke="#ff00aa" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                         <path d="M5 12h14"/><path d="M12 5v14"/>
                     </svg>
                 </div>
                 <h3 class="floating-text">Preparation for the Future</h3>
                 <p class="floating-text">แผนพัฒนาและวิสัยทัศน์ในอนาคตของระบบ</p>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
                     <span class="card-number floating-text">06</span>
                     <span class="btn floating-text">เปิดเว็บไซต์</span>
                 </div>
@@ -336,18 +348,17 @@
     </div>
 
     <script>
-        (function() {
+        (function(){
             'use strict';
-            window.openLink = function(url) {
+            window.openLink = function(url){
                 window.open(url, '_blank');
             };
-            // Neon glow on hover
-            document.querySelectorAll('.card').forEach(card => {
-                card.addEventListener('mouseenter', () => {
-                    card.style.boxShadow = '0 0 30px rgba(0, 255, 157, 0.15)';
+            document.querySelectorAll('.card').forEach(card=>{
+                card.addEventListener('mouseenter',()=>{
+                    card.style.boxShadow='0 0 30px rgba(0,255,157,0.15)';
                 });
-                card.addEventListener('mouseleave', () => {
-                    card.style.boxShadow = '';
+                card.addEventListener('mouseleave',()=>{
+                    card.style.boxShadow='';
                 });
             });
         })();
