@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9AU FOREX EA · File Dashboard</title>
+<style>
+  :root{
+    --bg:#0d1117; --surface:#161b22; --surface-2:#1c2128; --border:#30363d;
+    --text:#c9d1d9; --muted:#8b949e; --accent:#58a6ff; --accent-2:#79c0ff;
+    --green:#3fb950; --orange:#d29922; --red:#f85149; --purple:#a371f7;
+    --radius:10px; font-size:15px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",Tahoma,sans-serif;line-height:1.5;}
+  a{color:var(--accent);text-decoration:none;}
+  header.top{padding:18px 20px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#131820,#0d1117);position:sticky;top:0;z-index:20;}
+  .top-inner{max-width:1200px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .logo{font-size:26px;}
+  .brand h1{font-size:18px;margin:0;}
+  .brand small{color:var(--muted);display:block;font-size:12px;}
+  .repo-link{font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:6px 10px;border-radius:8px;}
+  .repo-link a{color:var(--accent-2);}
+
+  nav.tabs{max-width:1200px;margin:14px auto 0;display:flex;gap:8px;padding:0 20px;flex-wrap:wrap;}
+  .tab-btn{background:var(--surface);border:1px solid var(--border);color:var(--muted);padding:10px 16px;border-radius:8px 8px 0 0;cursor:pointer;font-size:14px;font-weight:600;transition:.15s;}
+  .tab-btn:hover{color:var(--text);}
+  .tab-btn.active{color:var(--bg);background:var(--accent);border-color:var(--accent);}
+
+  main{max-width:1200px;margin:0 auto;padding:18px 20px 60px;}
+  section.view{display:none;}
+  section.view.active{display:block;}
+
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
+  .stat-card .num{font-size:22px;font-weight:700;color:var(--accent-2);}
+  .stat-card .label{font-size:12px;color:var(--muted);margin-top:4px;}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;background:var(--surface);padding:12px;border-radius:var(--radius);border:1px solid var(--border);}
+  .toolbar input[type=text], .toolbar select{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:8px;font-size:14px;}
+  .toolbar input[type=text]{flex:1;min-width:180px;}
+  .chip-group{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface-2);color:var(--muted);font-size:12px;cursor:pointer;}
+  .chip.active{background:var(--accent);color:#04121f;border-color:var(--accent);font-weight:700;}
+
+  .type-section{margin-bottom:26px;}
+  .type-title{font-size:16px;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .cat-block{margin-bottom:16px;}
+  .cat-head{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;display:flex;justify-content:space-between;}
+
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);font-size:13.5px;}
+  th{background:var(--surface-2);color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:#1a212b;}
+  td.actions{white-space:nowrap;display:flex;gap:6px;flex-wrap:wrap;}
+  .file-name{font-weight:600;word-break:break-all;}
+
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;margin-left:6px;white-space:nowrap;}
+  .badge-version{background:#1f2937;color:var(--accent-2);border:1px solid var(--border);}
+  .badge-new{background:rgba(210,153,34,.15);color:var(--orange);border:1px solid var(--orange);}
+  .badge-latest{background:rgba(63,185,80,.15);color:var(--green);border:1px solid var(--green);}
+  .badge-history{background:rgba(139,148,158,.15);color:var(--muted);border:1px solid var(--border);}
+  .badge-pending{background:rgba(163,113,247,.15);color:var(--purple);border:1px solid var(--purple);}
+
+  .btn{border:1px solid var(--border);background:var(--surface-2);color:var(--text);padding:7px 12px;border-radius:8px;font-size:12.5px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:4px;}
+  .btn:hover{border-color:var(--accent);}
+  .btn-primary{background:var(--accent);color:#04121f;border-color:var(--accent);}
+  .btn-primary:hover{background:var(--accent-2);}
+  .btn-sm{padding:6px 10px;font-size:12px;}
+  .btn-danger{color:var(--red);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  .empty-state{padding:40px 20px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius);}
+
+  /* Upload helper */
+  .upload-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;}
+  @media(max-width:900px){.upload-grid{grid-template-columns:1fr;}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
+  .card h3{margin-top:0;font-size:15px;}
+  .form-row{margin-bottom:12px;display:flex;flex-direction:column;gap:6px;}
+  .form-row label{font-size:12.5px;color:var(--muted);font-weight:600;}
+  .form-row input,.form-row select{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:9px 10px;border-radius:8px;font-size:14px;width:100%;}
+  .hint{font-size:12px;color:var(--muted);}
+  .path-box{background:var(--surface-2);border:1px dashed var(--accent);border-radius:8px;padding:10px;font-family:monospace;font-size:12.5px;word-break:break-all;margin-top:8px;}
+  .steps{margin:0;padding-left:18px;font-size:13.5px;color:var(--text);}
+  .steps li{margin-bottom:6px;}
+  .info-box{background:rgba(88,166,255,.08);border:1px solid var(--accent);border-radius:8px;padding:12px;font-size:13px;margin-bottom:16px;}
+
+  /* Responsive table -> card */
+  @media(max-width:720px){
+    table thead{display:none;}
+    table, table tbody, table tr, table td{display:block;width:100%;}
+    table tr{border-bottom:1px solid var(--border);padding:10px 0;}
+    table td{border:none;padding:4px 0;}
+    table td::before{content:attr(data-label);font-size:11px;color:var(--muted);display:block;text-transform:uppercase;}
+    td.actions{padding-top:8px;}
+  }
+
+  /* Modal */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;}
+  .overlay[hidden]{display:none;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-width:560px;width:100%;max-height:85vh;overflow-y:auto;padding:20px;}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .modal-head h3{margin:0;font-size:16px;}
+  .close-x{cursor:pointer;background:none;border:none;color:var(--muted);font-size:20px;}
+
+  /* Toast */
+  #toast-container{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:8px;z-index:200;}
+  .toast{background:var(--surface);border:1px solid var(--accent);color:var(--text);padding:12px 16px;border-radius:8px;font-size:13.5px;box-shadow:0 4px 14px rgba(0,0,0,.4);animation:slideIn .2s ease;}
+  .toast.error{border-color:var(--red);}
+  @keyframes slideIn{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:20px;border-top:1px solid var(--border);}
+  .pending-table-wrap{margin-top:16px;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <span class="logo">📁</span>
+      <div><h1>9AU FOREX EA — File Dashboard</h1><small>File Manager (Guided Static Mode)</small></div>
+    </div>
+    <div class="repo-link">Repo: <a id="repoLink" href="#" target="_blank" rel="noopener noreferrer">-</a> · Branch: <span id="branchName">-</span></div>
+  </div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-view="dashboard">🏠 Dashboard</button>
+    <button class="tab-btn" data-view="history">🔎 Search / History</button>
+    <button class="tab-btn" data-view="upload">⬆️ Upload Helper</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- DASHBOARD -->
+  <section class="view active" id="view-dashboard">
+    <div class="stats-row" id="statsRow"></div>
+    <div class="toolbar">
+      <input type="text" id="dashSearch" placeholder="🔍 ค้นหาชื่อไฟล์...">
+      <div class="chip-group" id="dashTypeChips"></div>
+      <div class="chip-group" id="dashCatChips"></div>
+      <button class="btn" id="refreshBtn">🔄 รีเฟรชข้อมูล</button>
+    </div>
+    <div id="dashboardContent"></div>
+  </section>
+
+  <!-- HISTORY / SEARCH -->
+  <section class="view" id="view-history">
+    <div class="toolbar">
+      <input type="text" id="histSearch" placeholder="🔍 ค้นหาไฟล์ทั้งหมด (ทุกเวอร์ชัน)...">
+      <select id="histTypeFilter">
+        <option value="ALL">ทุกประเภท</option>
+        <option value="EA">Expert Advisor (EA)</option>
+        <option value="REPORT">Strategy Tester Report</option>
+        <option value="DOC">Plain Text Files</option>
+      </select>
+      <select id="histStatusFilter">
+        <option value="ALL">ทุกสถานะ</option>
+        <option value="LATEST">เฉพาะไฟล์ล่าสุด</option>
+        <option value="HISTORY">เฉพาะเวอร์ชันเก่า</option>
+      </select>
+      <select id="histSort">
+        <option value="name">เรียงตามชื่อ</option>
+        <option value="version">เรียงตามเวอร์ชัน (มาก→น้อย)</option>
+        <option value="date">เรียงตามวันที่</option>
+      </select>
+    </div>
+    <div id="historyContent"></div>
+  </section>
+
+  <!-- UPLOAD HELPER -->
+  <section class="view" id="view-upload">
+    <div class="info-box">
+      ℹ️ โหมดนี้ <b>ไม่ใช้ GitHub Token</b> — ระบบจะช่วยบอกตำแหน่งโฟลเดอร์ที่ถูกต้องและสร้างข้อมูล metadata ให้
+      จากนั้นคุณนำไฟล์ไปวางตาม path ที่แนะนำ แล้ว <b>Commit + Push ผ่าน GitHub Desktop ตามปกติ</b>
+    </div>
+    <div class="upload-grid">
+      <div class="card">
+        <h3>1️⃣ วิเคราะห์ไฟล์ใหม่</h3>
+        <div class="form-row">
+          <label>ประเภทไฟล์ (Type)</label>
+          <select id="upType">
+            <option value="EA">Expert Advisor (.mq5)</option>
+            <option value="REPORT">Strategy Tester Report (.xlsx)</option>
+            <option value="DOC">Plain Text (.yaml/.md/.txt)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>หมวดหมู่ (Category)</label>
+          <select id="upCategory"></select>
+        </div>
+        <div class="form-row" id="upCustomCatRow" style="display:none;">
+          <label>ระบุหมวดหมู่ใหม่</label>
+          <input type="text" id="upCustomCat" placeholder="เช่น 12 EA NEW GROUP">
+        </div>
+        <div class="form-row">
+          <label>เลือกไฟล์ (อ่านแค่ชื่อไฟล์ ไม่มีการอัปโหลดจริง)</label>
+          <input type="file" id="upFileInput" accept=".mq5,.xlsx,.yaml,.yml,.md,.txt">
+        </div>
+        <div class="form-row">
+          <label>หรือระบุชื่อไฟล์ด้วยตนเอง</label>
+          <input type="text" id="upManualName" placeholder="เช่น 9AU_GOLD_COMBINE_M5_CAP450_V19_12.mq5">
+        </div>
+        <button class="btn btn-primary" id="analyzeBtn">🔍 วิเคราะห์ไฟล์</button>
+
+        <div id="analyzeResult" style="margin-top:16px;"></div>
+      </div>
+
+      <div class="card">
+        <h3>2️⃣ ขั้นตอนที่ต้องทำ (GitHub Desktop)</h3>
+        <ol class="steps">
+          <li>วิเคราะห์ไฟล์ทางด้านซ้าย เพื่อดู path ที่ระบบแนะนำ</li>
+          <li>เปิดโฟลเดอร์ repo <code>9AU-FOREX-EA</code> ในเครื่อง</li>
+          <li>สร้างโฟลเดอร์ตาม path ที่แนะนำ (ถ้ายังไม่มี) แล้ววางไฟล์ลงไป</li>
+          <li>เปิด GitHub Desktop → ตรวจสอบไฟล์ที่เปลี่ยนแปลง → Commit → Push origin</li>
+          <li>กลับมาที่แท็บนี้ กด "เพิ่มเข้ารายการ" เพื่อดู preview ผลลัพธ์ในหน้า Dashboard</li>
+        </ol>
+        <p class="hint">💡 รายการที่เพิ่มในหน้านี้เป็นการ "พรีวิว" ในเบราว์เซอร์เท่านั้น (จะรีเซ็ตเมื่อปิดหน้าเว็บ) เพื่อดูผลลัพธ์ก่อนอัปเดตไฟล์ <code>files.json</code> จริงใน repo</p>
+        <button class="btn" id="exportJsonBtn">📤 Export files.json (ทั้งหมด ณ ปัจจุบัน)</button>
+      </div>
+    </div>
+
+    <div class="pending-table-wrap">
+      <h3>รายการที่เพิ่มไว้ในรอบนี้ (Session Preview)</h3>
+      <div id="pendingContent"><div class="empty-state">ยังไม่มีรายการที่เพิ่มในรอบนี้</div></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>9AU FOREX EA File Dashboard · Guided Static Mode · ข้อมูลทำงานภายใน session เบราว์เซอร์เท่านั้น ไม่มีการบันทึกถาวรฝั่ง client</footer>
+
+<div id="toast-container"></div>
+
+<div class="overlay" id="modalOverlay" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Title</h3>
+      <button class="close-x" id="modalClose">✕</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ================= CONFIG ================= */
+  const CONFIG = { owner:'Au1uzv8', repo:'9AU-FOREX-EA', branch:'main' };
+
+  const TYPE_META = {
+    EA:     { label:'Expert Advisor (EA)',        folder:'EA',      icon:'⚙️' },
+    REPORT: { label:'Strategy Tester Report',     folder:'Reports', icon:'📊' },
+    DOC:    { label:'Plain Text Files',           folder:'Docs',    icon:'📄' }
+  };
+
+  const CATEGORY_OPTIONS = {
+    EA: ['7 EA COMBINE','11 EA SOLO'],
+    REPORT: ['7 EA COMBINE','11 EA SOLO'],
+    DOC: ['Context Summary']
+  };
+
+  /* ================= SOURCE DATA ================= */
+  const EA_FILES = {
+    '7 EA COMBINE': [
+      '9AU_3PAIRS_COMBINE_M15_CAP300_v2_8',
+      '9AU_AUDCAD_COMBINE_M15_CAP300_v6_13',
+      '9AU_GBPJPY_COMBINE_M5_CAP300_v1_4',
+      '9AU_GOLD_COMBINE_M5_CAP450_V19_11',
+      '9AU_NDAQ100_COMBINE_M5_CAP300_v1_2_1',
+      '9AU_OIL_WTI_COMBINE_M5_CAP300_v4_63',
+      '9AU_USDJPY_COMBINE_M5_CAP300_v1_4'
+    ],
+    '11 EA SOLO': [
+      '9AU_3PAIRS_BB_RSI_ADX_M15_CAP300_V2_3',
+      '9AU_AUDCAD_MEAN_BB_RSI_M15_CAP300_V6_3',
+      '9AU_BTC_ADAPTIVE_REGIME_M5_CAP450_V3_4',
+      '9AU_ETH_ADAPTIVE_REGIME_M5_CAP300_V3_2',
+      '9AU_GBPJPY_SNIPER_M5_CAP300_V1_0',
+      '9AU_GOLD_ADAPTIVE_REGIME_M5_CAP450_V19.3',
+      '9AU_NASDAQ100_TREND_M5_CAP300_V4_0',
+      '9AU_OIL_WTI_TREND_M5_CAP300_V4_61',
+      '9AU_PLATINUM_TREND_M5_CAP300_V1_5',
+      '9AU_SILVER_RESERVE_M5_CAP675_V2_7',
+      '9AU_USDJPY_SNIPER_M5_CAP300_V1_0'
+    ]
+  };
+
+  const DOC_FILES = [
+    'KB_INDEX_STARTER.yaml',
+    'TEMPLATE-Checkpoint.md',
+    '2026-05-17_Trade Conditions.md',
+    '2026-06-09_MQL5_SKILL.md',
+    '2026-07-04_Context_Summary_9AU_FOREX_EA.md',
+    '2026-07-05_Context_Summary_Port_Combine_Session.md',
+    '2026-07-11_EXPORT-EA.md',
+    '2026-07-15_9AU_COMBINE_PORTFOLIO_6EA_ContextSummary.md',
+    '2026-07-15_9AU_GOLD_ADAPTIVE_REGIME_M5_CAP450_Context_Summary.md',
+    '2026-07-15_Context_Summary_AI_Agent_MT5_Integration.md',
+    '2026-07-15_Context_Summary_Portfolio_Management_Beta_Alpha_v2.md',
+    '2026-07-15_Context_Summary_Scenario4_Decision.md',
+    '2026-07-15_Prompt_6EA_Combine_Update_Prompts.md',
+    '2026-07-15_โครงสร้าง Session Summary ที่ดี.md',
+    '2026-07-16_9AU_USDJPY_SNIPER_M5_CAP300_Context_Summary.md',
+    '2026-07-17_9AU_GBPJPY_SNIPER_M5_CAP300_Context_Summary.md',
+    '2026-07-21_9AU_OIL_WTI_TREND_M5_CAP300_Context_Summary.md',
+    '2026-07-22_9AU_AUDCAD_MEAN_M15_CAP300_Context_Summary.md',
+    '2026-07-24_9AU_3PAIRS_BB_RSI_ADX_M15_CAP300_Context_Summary.md',
+    '2026-07-24_9AU_BTC_ADAPTIVE_REGIME_M5_CAP300_Context_Summary.md',
+    '2026-07-25_9AU_NASDAQ100_TREND_M5_CAP300_ContextSummary.md',
+    '2026-08-01_9AU_SILVER_RESERVE_M5_CAP675_V2_7_UPDATE.md',
+    '2026-08-02_9AU_GOLD_COMBINE_M5_CAP450_V19_8_Context_Summary.md',
+    '2026-08-03_Context_Summary_Combine_7EA_2Terminal_Audit.md',
+    '2026-08-18_Context_Summary_Gold_V19_9_to_V19_11_FINAL.md',
+    '2026-08-22_9AU_GOLD_M1_BOS_FIBO_M1_CAP300_Context_Summary.md',
+    '2026-08-26_James_Memory_Backup.md',
+    '2026-08-30_Revise_James_Memory.md',
+    '2026-08-30_SESSION LIFECYCLE.md'
+  ];
+
+  /* ================= HELPERS ================= */
+  function esc(str){
+    return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function categorySlug(cat){ return cat.trim().replace(/\s+/g,'-'); }
+  function splitExt(fileName){
+    const idx = fileName.lastIndexOf('.');
+    return { name: idx>=0 ? fileName.slice(0,idx) : fileName, ext: idx>=0 ? fileName.slice(idx) : '' };
+  }
+  function buildPath(type, category, fileName){
+    return `files/${TYPE_META[type].folder}/${categorySlug(category)}/${fileName}`;
+  }
+  function rawUrl(path){
+    const encoded = path.split('/').map(encodeURIComponent).join('/');
+    return `https://raw.githubusercontent.com/${CONFIG.owner}/${CONFIG.repo}/${CONFIG.branch}/${encoded}`;
+  }
+  // Running-number version parser e.g. _V19_11 -> major19 minor11 (11 > 8, not decimal compare)
+  function parseVersion(nameNoExt){
+    const m = nameNoExt.match(/_[Vv](\d+)(?:[._](\d+))?(?:[._](\d+))?$/);
+    if(!m) return { label:null, num:0, base:nameNoExt.toLowerCase() };
+    const major=+m[1]||0, minor=m[2]!==undefined?+m[2]:0, patch=m[3]!==undefined?+m[3]:0;
+    const num = major*1000000 + minor*1000 + patch;
+    let label = 'V'+major;
+    if(m[2]!==undefined) label += '.'+minor;
+    if(m[3]!==undefined) label += '.'+patch;
+    return { label, num, base: nameNoExt.slice(0, m.index).toLowerCase() };
+  }
+  function parseDocSeries(fileName){
+    const m = fileName.match(/^(\d{4}-\d{2}-\d{2})_(.+)$/);
+    if(m){
+      return { dateStr:m[1], base:m[2].toLowerCase().replace(/\.[a-z0-9]+$/i,'') };
+    }
+    return { dateStr:null, base:fileName.toLowerCase() };
+  }
+
+  let RAW_ID = 0;
+  function makeEntry(type, category, fileName, opts){
+    opts = opts || {};
+    const { ext } = splitExt(fileName);
+    const nameNoExt = splitExt(fileName).name;
+    let seriesKey, versionLabel, versionNum, dateModified=null;
+    if(type==='DOC'){
+      const d = parseDocSeries(fileName);
+      seriesKey = `DOC|${category}|${d.base}`;
+      dateModified = d.dateStr;
+      versionLabel = d.dateStr || '—';
+      versionNum = d.dateStr ? new Date(d.dateStr).getTime() : 0;
+    } else {
+      const v = parseVersion(nameNoExt);
+      seriesKey = `${type}|${category}|${v.base}`;
+      versionLabel = v.label || '—';
+      versionNum = v.num;
+    }
+    return {
+      id: 'f'+(++RAW_ID),
+      type, category, fileName, extension: ext,
+      path: buildPath(type, category, fileName),
+      seriesKey, versionLabel, versionNum, dateModified,
+      isLatest: false,
+      pending: !!opts.pending
+    };
+  }
+
+  function computeLatest(list){
+    const groups = {};
+    list.forEach(item=>{ (groups[item.seriesKey] = groups[item.seriesKey]||[]).push(item); });
+    Object.values(groups).forEach(group=>{
+      group.sort((a,b)=> b.versionNum - a.versionNum);
+      group.forEach((item,idx)=> item.isLatest = idx===0);
+    });
+  }
+
+  function buildInitialDataset(){
+    const list = [];
+    Object.entries(EA_FILES).forEach(([cat, files])=>{
+      files.forEach(base=>{
+        list.push(makeEntry('EA', cat, base+'.mq5'));
+        list.push(makeEntry('REPORT', cat, base+'.xlsx'));
+      });
+    });
+    DOC_FILES.forEach(f=> list.push(makeEntry('DOC','Context Summary', f)));
+    computeLatest(list);
+    return list;
+  }
+
+  /* ================= STATE ================= */
+  let DATA = buildInitialDataset();
+  const state = {
+    dashSearch:'', dashType:'ALL', dashCategory:'ALL',
+    histSearch:'', histType:'ALL', histStatus:'ALL', histSort:'name',
+    lastAnalyzed:null
+  };
+
+  /* ================= DOM refs ================= */
+  const els = {
+    tabs: document.querySelectorAll('.tab-btn'),
+    views: document.querySelectorAll('.view'),
+    repoLink: document.getElementById('repoLink'),
+    branchName: document.getElementById('branchName'),
+    statsRow: document.getElementById('statsRow'),
+    dashSearch: document.getElementById('dashSearch'),
+    dashTypeChips: document.getElementById('dashTypeChips'),
+    dashCatChips: document.getElementById('dashCatChips'),
+    dashboardContent: document.getElementById('dashboardContent'),
+    refreshBtn: document.getElementById('refreshBtn'),
+    histSearch: document.getElementById('histSearch'),
+    histTypeFilter: document.getElementById('histTypeFilter'),
+    histStatusFilter: document.getElementById('histStatusFilter'),
+    histSort: document.getElementById('histSort'),
+    historyContent: document.getElementById('historyContent'),
+    upType: document.getElementById('upType'),
+    upCategory: document.getElementById('upCategory'),
+    upCustomCatRow: document.getElementById('upCustomCatRow'),
+    upCustomCat: document.getElementById('upCustomCat'),
+    upFileInput: document.getElementById('upFileInput'),
+    upManualName: document.getElementById('upManualName'),
+    analyzeBtn: document.getElementById('analyzeBtn'),
+    analyzeResult: document.getElementById('analyzeResult'),
+    exportJsonBtn: document.getElementById('exportJsonBtn'),
+    pendingContent: document.getElementById('pendingContent'),
+    modalOverlay: document.getElementById('modalOverlay'),
+    modalTitle: document.getElementById('modalTitle'),
+    modalBody: document.getElementById('modalBody'),
+    modalClose: document.getElementById('modalClose'),
+    toastContainer: document.getElementById('toast-container')
+  };
+
+  els.repoLink.textContent = `${CONFIG.owner}/${CONFIG.repo}`;
+  els.repoLink.href = `https://github.com/${CONFIG.owner}/${CONFIG.repo}`;
+  els.branchName.textContent = CONFIG.branch;
+
+  /* ================= TOAST ================= */
+  function toast(msg, isError){
+    const div = document.createElement('div');
+    div.className = 'toast' + (isError?' error':'');
+    div.textContent = msg;
+    els.toastContainer.appendChild(div);
+    setTimeout(()=> div.remove(), 3200);
+  }
+
+  /* ================= MODAL ================= */
+  function openModal(title, bodyHtml){
+    els.modalTitle.textContent = title;
+    els.modalBody.innerHTML = bodyHtml;
+    els.modalOverlay.hidden = false;
+  }
+  function closeModal(){ els.modalOverlay.hidden = true; els.modalBody.innerHTML=''; }
+  els.modalClose.addEventListener('click', closeModal);
+  els.modalOverlay.addEventListener('click', e=>{ if(e.target===els.modalOverlay) closeModal(); });
+
+  /* ================= TAB SWITCH ================= */
+  els.tabs.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      els.tabs.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const view = btn.dataset.view;
+      els.views.forEach(v=> v.classList.toggle('active', v.id === 'view-'+view));
+      if(view==='dashboard') renderDashboard();
+      if(view==='history') renderHistory();
+    });
+  });
+
+  /* ================= COPY HELPER (safe fallback) ================= */
+  function copyText(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(()=> toast('คัดลอกแล้ว: ' + text))
+        .catch(()=> fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  }
+  function fallbackCopy(text){
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast('คัดลอกแล้ว: ' + text); }
+    catch(e){ toast('ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาคัดลอกด้วยตนเอง', true); }
+    ta.remove();
+  }
+
+  /* ================= DASHBOARD RENDER ================= */
+  function isNewDoc(item){
+    if(!item.dateModified) return false;
+    const diff = (Date.now() - new Date(item.dateModified).getTime()) / 86400000;
+    return diff >= 0 && diff <= 7;
+  }
+
+  function renderStats(){
+    const totalFiles = DATA.length;
+    const totalSeries = new Set(DATA.map(d=>d.seriesKey)).size;
+    const totalLatest = DATA.filter(d=>d.isLatest).length;
+    const pendingCount = DATA.filter(d=>d.pending).length;
+    els.statsRow.innerHTML = `
+      <div class="stat-card"><div class="num">${totalLatest}</div><div class="label">ไฟล์ล่าสุด (แสดงหน้าหลัก)</div></div>
+      <div class="stat-card"><div class="num">${totalFiles}</div><div class="label">ไฟล์ทั้งหมด (รวมเวอร์ชันเก่า)</div></div>
+      <div class="stat-card"><div class="num">${totalSeries}</div><div class="label">จำนวนชุดไฟล์ (Series)</div></div>
+      <div class="stat-card"><div class="num">${pendingCount}</div><div class="label">รายการรอ Push (Session)</div></div>
+    `;
+  }
+
+  function renderChips(){
+    const types = ['ALL','EA','REPORT','DOC'];
+    els.dashTypeChips.innerHTML = types.map(t=>{
+      const label = t==='ALL' ? 'ทุกประเภท' : TYPE_META[t].icon+' '+TYPE_META[t].label;
+      return `<span class="chip ${state.dashType===t?'active':''}" data-type="${t}">${label}</span>`;
+    }).join('');
+    const cats = ['ALL', ...new Set(DATA.filter(d=> state.dashType==='ALL'||d.type===state.dashType).map(d=>d.category))];
+    els.dashCatChips.innerHTML = cats.map(c=>{
+      const label = c==='ALL' ? 'ทุกหมวดหมู่' : c;
+      return `<span class="chip ${state.dashCategory===c?'active':''}" data-cat="${esc(c)}">${label}</span>`;
+    }).join('');
+
+    els.dashTypeChips.querySelectorAll('.chip').forEach(chip=>{
+      chip.addEventListener('click', ()=>{ state.dashType = chip.dataset.type; state.dashCategory='ALL'; renderDashboard(); });
+    });
+    els.dashCatChips.querySelectorAll('.chip').forEach(chip=>{
+      chip.addEventListener('click', ()=>{ state.dashCategory = chip.dataset.cat; renderDashboard(); });
+    });
+  }
+
+  function rowActionsHtml(item){
+    const dlDisabled = item.pending ? 'aria-disabled="true" onclick="return false;" title="ยังไม่ได้ Push ขึ้น GitHub จริง"' : '';
+    const dlHref = item.pending ? 'javascript:void(0)' : rawUrl(item.path);
+    return `
+      <a class="btn btn-sm ${item.pending?'':'btn-primary'}" ${item.pending?'':`href="${dlHref}" target="_blank" rel="noopener noreferrer" download`} ${dlDisabled}>⬇ ดาวน์โหลด</a>
+      <button class="btn btn-sm" data-action="history" data-key="${esc(item.seriesKey)}">🕘 ประวัติ</button>
+      <button class="btn btn-sm" data-action="path" data-path="${esc(item.path)}">📁 Path</button>
+      <button class="btn btn-sm" data-action="edit" data-id="${item.id}">✏️ แก้ไข</button>
+      <button class="btn btn-sm btn-danger" data-action="delete" data-id="${item.id}">🗑 ลบ</button>
+    `;
+  }
+
+  function renderCategoryBlock(type, cat, rows){
+    const trs = rows.map(item=>`
+      <tr data-id="${item.id}">
+        <td data-label="ชื่อไฟล์">
+          <span class="file-name">${esc(item.fileName)}</span>
+          ${item.pending?'<span class="badge badge-pending">PENDING</span>':''}
+          ${!item.pending && isNewDoc(item)?'<span class="badge badge-new">NEW</span>':''}
+        </td>
+        <td data-label="เวอร์ชัน / วันที่"><span class="badge badge-version">${esc(item.versionLabel)}</span></td>
+        <td data-label="นามสกุล">${item.extension}</td>
+        <td data-label="การจัดการ" class="actions">${rowActionsHtml(item)}</td>
+      </tr>`).join('');
+    return `
+      <div class="cat-block">
+        <div class="cat-head"><span>${esc(cat)}</span><span>${rows.length} ไฟล์</span></div>
+        <table>
+          <thead><tr><th>ชื่อไฟล์</th><th>เวอร์ชัน</th><th>นามสกุล</th><th>การจัดการ</th></tr></thead>
+          <tbody>${trs}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function renderDashboard(){
+    renderStats();
+    renderChips();
+    const search = state.dashSearch.toLowerCase();
+    let html = '';
+    Object.keys(TYPE_META).forEach(type=>{
+      if(state.dashType!=='ALL' && state.dashType!==type) return;
+      const items = DATA.filter(d=> d.type===type && d.isLatest);
+      const categories = [...new Set(items.map(i=>i.category))];
+      let typeHtml = '';
+      categories.forEach(cat=>{
+        if(state.dashCategory!=='ALL' && state.dashCategory!==cat) return;
+        const rows = items.filter(i=> i.category===cat && i.fileName.toLowerCase().includes(search));
+        if(!rows.length) return;
+        typeHtml += renderCategoryBlock(type, cat, rows);
+      });
+      if(typeHtml){
+        html += `<div class="type-section"><h2 class="type-title">${TYPE_META[type].icon} ${TYPE_META[type].label}</h2>${typeHtml}</div>`;
+      }
+    });
+    els.dashboardContent.innerHTML = html || `<div class="empty-state">ไม่พบไฟล์ที่ตรงกับตัวกรอง 🔍</div>`;
+    bindRowActions(els.dashboardContent);
+  }
+
+  /* ================= HISTORY VIEW ================= */
+  function renderHistory(){
+    const search = state.histSearch.toLowerCase();
+    let rows = DATA.filter(d=>{
+      if(state.histType!=='ALL' && d.type!==state.histType) return false;
+      if(state.histStatus==='LATEST' && !d.isLatest) return false;
+      if(state.histStatus==='HISTORY' && d.isLatest) return false;
+      if(!d.fileName.toLowerCase().includes(search)) return false;
+      return true;
+    });
+    if(state.histSort==='name') rows.sort((a,b)=> a.fileName.localeCompare(b.fileName));
+    if(state.histSort==='version') rows.sort((a,b)=> b.versionNum - a.versionNum);
+    if(state.histSort==='date') rows.sort((a,b)=> (b.dateModified||'').localeCompare(a.dateModified||''));
+
+    if(!rows.length){
+      els.historyContent.innerHTML = `<div class="empty-state">ไม่พบไฟล์ 🔍</div>`;
+      return;
+    }
+    const trs = rows.map(item=>`
+      <tr data-id="${item.id}">
+        <td data-label="ประเภท">${TYPE_META[item.type].icon} ${TYPE_META[item.type].label}</td>
+        <td data-label="หมวดหมู่">${esc(item.category)}</td>
+        <td data-label="ชื่อไฟล์"><span class="file-name">${esc(item.fileName)}</span></td>
+        <td data-label="เวอร์ชัน/วันที่"><span class="badge badge-version">${esc(item.versionLabel)}</span></td>
+        <td data-label="สถานะ">${item.pending?'<span class="badge badge-pending">PENDING</span>':(item.isLatest?'<span class="badge badge-latest">LATEST</span>':'<span class="badge badge-history">HISTORY</span>')}</td>
+        <td data-label="การจัดการ" class="actions">${rowActionsHtml(item)}</td>
+      </tr>`).join('');
+    els.historyContent.innerHTML = `
+      <table>
+        <thead><tr><th>ประเภท</th><th>หมวดหมู่</th><th>ชื่อไฟล์</th><th>เวอร์ชัน</th><th>สถานะ</th><th>การจัดการ</th></tr></thead>
+        <tbody>${trs}</tbody>
+      </table>`;
+    bindRowActions(els.historyContent);
+  }
+
+  /* ================= ROW ACTIONS (history/path/edit/delete) ================= */
+  function bindRowActions(container){
+    container.querySelectorAll('[data-action="history"]').forEach(btn=>{
+      btn.addEventListener('click', ()=> showSeriesHistory(decodeURIComponent(btn.dataset.key)));
+    });
+    container.querySelectorAll('[data-action="path"]').forEach(btn=>{
+      btn.addEventListener('click', ()=> showPathModal(btn.dataset.path));
+    });
+    container.querySelectorAll('[data-action="edit"]').forEach(btn=>{
+      btn.addEventListener('click', ()=> showEditModal(btn.dataset.id));
+    });
+    container.querySelectorAll('[data-action="delete"]').forEach(btn=>{
+      btn.addEventListener('click', ()=> confirmDelete(btn.dataset.id));
+    });
+  }
+
+  function showSeriesHistory(seriesKey){
+    const group = DATA.filter(d=>d.seriesKey===seriesKey).sort((a,b)=> b.versionNum-a.versionNum);
+    const rows = group.map(item=>`
+      <tr>
+        <td>${esc(item.fileName)}</td>
+        <td><span class="badge badge-version">${esc(item.versionLabel)}</span></td>
+        <td>${item.pending?'<span class="badge badge-pending">PENDING</span>':(item.isLatest?'<span class="badge badge-latest">LATEST</span>':'<span class="badge badge-history">HISTORY</span>')}</td>
+        <td>${item.pending?'-':`<a class="btn btn-sm btn-primary" href="${rawUrl(item.path)}" target="_blank" rel="noopener noreferrer" download>⬇</a>`}</td>
+      </tr>`).join('');
+    openModal('🕘 ประวัติเวอร์ชันของไฟล์ชุดนี้', `
+      <table><thead><tr><th>ชื่อไฟล์</th><th>เวอร์ชัน</th><th>สถานะ</th><th></th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    `);
+  }
+
+  function showPathModal(path){
+    const url = rawUrl(path);
+    openModal('📁 ตำแหน่งไฟล์ในโครงสร้าง Repo', `
+      <p>วางไฟล์นี้ตาม path ด้านล่างในเครื่อง แล้ว Commit + Push ผ่าน GitHub Desktop:</p>
+      <div class="path-box">${esc(path)}</div>
+      <div class="form-row" style="margin-top:12px;">
+        <label>Raw URL (สำหรับดาวน์โหลด/แชร์)</label>
+        <input type="text" readonly value="${esc(url)}" onclick="this.select()">
+      </div>
+      <button class="btn btn-primary" id="copyPathBtn">📋 คัดลอก Path</button>
+    `);
+    document.getElementById('copyPathBtn').addEventListener('click', ()=> copyText(path));
+  }
+
+  function showEditModal(id){
+    const item = DATA.find(d=>d.id===id);
+    if(!item) return;
+    openModal('✏️ แก้ไขข้อมูลไฟล์ (Session เท่านั้น)', `
+      <div class="info-box">การแก้ไขนี้จะแสดงผลเฉพาะหน้าเว็บของคุณในรอบนี้ ไม่กระทบไฟล์จริงบน GitHub — หากต้องการแก้ไขจริง กรุณาแก้ไขผ่าน GitHub Desktop และปรับปรุง files.json ภายหลัง</div>
+      <div class="form-row"><label>ชื่อไฟล์</label><input type="text" id="editFileName" value="${esc(item.fileName)}"></div>
+      <div class="form-row"><label>หมวดหมู่</label><input type="text" id="editCategory" value="${esc(item.category)}"></div>
+      <button class="btn btn-primary" id="saveEditBtn">💾 บันทึก (Session)</button>
+    `);
+    document.getElementById('saveEditBtn').addEventListener('click', ()=>{
+      const newName = document.getElementById('editFileName').value.trim();
+      const newCat = document.getElementById('editCategory').value.trim();
+      if(!newName || !newCat){ toast('กรุณากรอกข้อมูลให้ครบ', true); return; }
+      const updated = makeEntry(item.type, newCat, newName, { pending: item.pending });
+      updated.id = item.id;
+      DATA = DATA.map(d=> d.id===id ? updated : d);
+      computeLatest(DATA);
+      closeModal(); toast('อัปเดตข้อมูลแล้ว (Session)');
+      renderDashboard(); renderHistory();
+    });
+  }
+
+  function confirmDelete(id){
+    const item = DATA.find(d=>d.id===id);
+    if(!item) return;
+    openModal('🗑 ยืนยันการลบ', `
+      <p>ต้องการลบ <b>${esc(item.fileName)}</b> ออกจากรายการที่แสดงในหน้าเว็บนี้ (Session) ใช่หรือไม่?</p>
+      <div class="info-box">การลบนี้ไม่ได้ลบไฟล์จริงบน GitHub หากต้องการลบไฟล์จริง กรุณาลบผ่าน GitHub Desktop</div>
+      <button class="btn btn-danger" id="confirmDelBtn">ยืนยันลบ</button>
+      <button class="btn" id="cancelDelBtn">ยกเลิก</button>
+    `);
+    document.getElementById('confirmDelBtn').addEventListener('click', ()=>{
+      DATA = DATA.filter(d=>d.id!==id);
+      computeLatest(DATA);
+      closeModal(); toast('ลบออกจากรายการแล้ว (Session)');
+      renderDashboard(); renderHistory(); renderPendingList();
+    });
+    document.getElementById('cancelDelBtn').addEventListener('click', closeModal);
+  }
+
+  /* ================= UPLOAD HELPER ================= */
+  function refreshCategoryOptions(){
+    const type = els.upType.value;
+    const opts = CATEGORY_OPTIONS[type] || [];
+    els.upCategory.innerHTML = opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')
+      + `<option value="__custom__">อื่นๆ (ระบุเอง)</option>`;
+    els.upCustomCatRow.style.display = 'none';
+  }
+  els.upType.addEventListener('change', refreshCategoryOptions);
+  els.upCategory.addEventListener('change', ()=>{
+    els.upCustomCatRow.style.display = els.upCategory.value==='__custom__' ? 'flex' : 'none';
+  });
+  refreshCategoryOptions();
+
+  function getSelectedCategory(){
+    return els.upCategory.value==='__custom__' ? els.upCustomCat.value.trim() : els.upCategory.value;
+  }
+  function getFileName(){
+    if(els.upFileInput.files && els.upFileInput.files[0]) return els.upFileInput.files[0].name;
+    return els.upManualName.value.trim();
+  }
+
+  els.analyzeBtn.addEventListener('click', ()=>{
+    const type = els.upType.value;
+    const category = getSelectedCategory();
+    const fileName = getFileName();
+    if(!category){ toast('กรุณาระบุหมวดหมู่', true); return; }
+    if(!fileName){ toast('กรุณาเลือกไฟล์หรือระบุชื่อไฟล์', true); return; }
+
+    const entry = makeEntry(type, category, fileName, { pending:true });
+    const existingGroup = DATA.filter(d=>d.seriesKey===entry.seriesKey && !d.pending)
+      .sort((a,b)=> b.versionNum-a.versionNum);
+    const currentLatest = existingGroup[0];
+
+    let compareHtml = '';
+    if(currentLatest){
+      if(entry.versionNum > currentLatest.versionNum){
+        compareHtml = `<p style="color:var(--green)">✅ ไฟล์นี้จะกลายเป็น "ไฟล์ล่าสุด" แทนที่ <b>${esc(currentLatest.fileName)}</b> (เวอร์ชัน ${esc(currentLatest.versionLabel)}) ในหน้า Dashboard</p>`;
+      } else {
+        compareHtml = `<p style="color:var(--orange)">⚠️ เวอร์ชันนี้ไม่ใหม่กว่าไฟล์ปัจจุบัน (<b>${esc(currentLatest.fileName)}</b> เวอร์ชัน ${esc(currentLatest.versionLabel)}) ระบบจะไม่ตั้งเป็นไฟล์ล่าสุด</p>`;
+      }
+    } else {
+      compareHtml = `<p style="color:var(--accent-2)">🆕 นี่คือชุดไฟล์ใหม่ ยังไม่มีไฟล์ในชุดนี้มาก่อน</p>`;
+    }
+
+    state.lastAnalyzed = entry;
+    els.analyzeResult.innerHTML = `
+      <div class="card" style="background:var(--surface-2);">
+        <p><b>ชื่อไฟล์:</b> ${esc(entry.fileName)}</p>
+        <p><b>เวอร์ชันที่ตรวจพบ:</b> <span class="badge badge-version">${esc(entry.versionLabel)}</span></p>
+        <p><b>Path ที่แนะนำ:</b></p>
+        <div class="path-box">${esc(entry.path)}</div>
+        ${compareHtml}
+        <button class="btn btn-primary" id="addPendingBtn" style="margin-top:10px;">➕ เพิ่มเข้ารายการรอ Push (Preview)</button>
+        <button class="btn" id="copyAnalyzePathBtn" style="margin-top:10px;">📋 คัดลอก Path</button>
+      </div>`;
+    document.getElementById('copyAnalyzePathBtn').addEventListener('click', ()=> copyText(entry.path));
+    document.getElementById('addPendingBtn').addEventListener('click', ()=>{
+      DATA.push(entry);
+      computeLatest(DATA);
+      toast('เพิ่มรายการ Preview แล้ว — ดูผลได้ในหน้า Dashboard');
+      renderPendingList();
+      renderDashboard();
+    });
+  });
+
+  function renderPendingList(){
+    const pending = DATA.filter(d=>d.pending);
+    if(!pending.length){
+      els.pendingContent.innerHTML = `<div class="empty-state">ยังไม่มีรายการที่เพิ่มในรอบนี้</div>`;
+      return;
+    }
+    const rows = pending.map(item=>`
+      <tr data-id="${item.id}">
+        <td data-label="ชื่อไฟล์">${esc(item.fileName)} <span class="badge badge-pending">PENDING</span></td>
+        <td data-label="Path">${esc(item.path)}</td>
+        <td data-label="การจัดการ" class="actions">
+          <button class="btn btn-sm" data-action="path" data-path="${esc(item.path)}">📁 Path</button>
+          <button class="btn btn-sm btn-danger" data-action="delete" data-id="${item.id}">🗑 ลบออก</button>
+        </td>
+      </tr>`).join('');
+    els.pendingContent.innerHTML = `
+      <table><thead><tr><th>ชื่อไฟล์</th><th>Path</th><th>การจัดการ</th></tr></thead>
+      <tbody>${rows}</tbody></table>`;
+    bindRowActions(els.pendingContent);
+  }
+
+  /* ================= EXPORT files.json ================= */
+  els.exportJsonBtn.addEventListener('click', ()=>{
+    const exportData = DATA.map(({id, isLatest, pending, ...rest})=> rest);
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'files.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast('ดาวน์โหลด files.json แล้ว — นำไปวางที่ /dashboard/files.json ใน repo');
+  });
+
+  /* ================= SEARCH/FILTER BINDINGS ================= */
+  els.dashSearch.addEventListener('input', e=>{ state.dashSearch = e.target.value; renderDashboard(); });
+  els.refreshBtn.addEventListener('click', ()=>{ toast('รีเฟรชข้อมูล (โหมด Guided Static: ใช้ข้อมูลจากหน่วยความจำปัจจุบัน)'); renderDashboard(); });
+
+  els.histSearch.addEventListener('input', e=>{ state.histSearch = e.target.value; renderHistory(); });
+  els.histTypeFilter.addEventListener('change', e=>{ state.histType = e.target.value; renderHistory(); });
+  els.histStatusFilter.addEventListener('change', e=>{ state.histStatus = e.target.value; renderHistory(); });
+  els.histSort.addEventListener('change', e=>{ state.histSort = e.target.value; renderHistory(); });
+
+  /* ================= INIT ================= */
+  renderDashboard();
+  renderPendingList();
+
+})();
+</script>
+</body>
+</html>
