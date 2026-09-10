@@ -1,0 +1,358 @@
+html<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personality Profile - Dark Theme</title>
+  <style>
+    :root {
+      --gap: 16px;
+      --border-radius-sm: 4px;
+      --border-radius-md: 6px;
+      --border-radius-lg: 10px;
+
+      /* Dark Theme Color Palette */
+      --color-background-body: #0d1117;
+      --color-background-primary: #161b22;
+      --color-background-secondary: #21262d;
+      --color-background-tertiary: #30363d;
+
+      --color-border-primary: #30363d;
+      --color-border-secondary: #3b434d;
+      --color-border-tertiary: #252c35;
+
+      --color-text-primary: #f0f6fc;
+      --color-text-secondary: #8b949e;
+      --color-text-tertiary: #6e7681;
+
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Thai", Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px 16px;
+      background-color: var(--color-background-body);
+      color: var(--color-text-primary);
+      font-family: var(--font-family);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--gap);
+      margin-bottom: var(--gap);
+    }
+
+    .card {
+      background: var(--color-background-primary);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 1.15rem 1.25rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: var(--color-border-primary);
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #7ee787;
+      margin: 0 0 6px;
+    }
+
+    .card .section-label {
+      color: var(--color-text-tertiary);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin: 0 0 10px;
+    }
+
+    .body {
+      font-size: 13.5px;
+      color: var(--color-text-secondary);
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: var(--border-radius-md);
+      margin: 0 4px 6px 0;
+      border: 1px solid transparent;
+    }
+
+    /* Dark Mode Tag Styles */
+    .tag-b { 
+      background: rgba(56, 139, 253, 0.15); 
+      color: #79c0ff; 
+      border-color: rgba(56, 139, 253, 0.3);
+    }
+    .tag-t { 
+      background: rgba(46, 160, 67, 0.15); 
+      color: #56d364; 
+      border-color: rgba(46, 160, 67, 0.3);
+    }
+    .tag-a { 
+      background: rgba(210, 153, 34, 0.15); 
+      color: #e3b341; 
+      border-color: rgba(210, 153, 34, 0.3);
+    }
+    .tag-r { 
+      background: rgba(248, 81, 73, 0.15); 
+      color: #ff7b72; 
+      border-color: rgba(248, 81, 73, 0.3);
+    }
+    .tag-p { 
+      background: rgba(163, 113, 247, 0.15); 
+      color: #d2a8ff; 
+      border-color: rgba(163, 113, 247, 0.3);
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--color-border-primary);
+      margin: 1.5rem 0;
+    }
+
+    .ref-row {
+      font-size: 12.5px;
+      color: var(--color-text-secondary);
+      border-left: 2px solid var(--color-border-secondary);
+      padding-left: 12px;
+      margin: 10px 0;
+      line-height: 1.6;
+    }
+
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0;
+    }
+
+    .score-label {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      min-width: 170px;
+    }
+
+    .score-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      min-width: 35px;
+      text-align: right;
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 6px;
+      background: var(--color-background-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @media (max-width: 540px) {
+      .score-row {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .score-label {
+        min-width: auto;
+        flex: 1;
+      }
+      .bar-track {
+        order: 3;
+        flex-basis: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2 class="sr-only">การวิเคราะห์บุคลิกภาพ Introvert — ชาย อายุ 55 ปี Gen X, Strategy Trader</h2>
+
+  <div style="padding: 0.5rem 0;">
+    <p class="section-label">ผลการประเมิน / Personality Profile</p>
+    <p style="font-size: 24px; font-weight: 600; color: var(--color-text-primary); margin: 0 0 4px; letter-spacing: -0.02em;">
+      Introvert — High Autonomous Type
+    </p>
+    <p style="font-size: 13.5px; color: var(--color-text-secondary); margin: 0 0 1.5rem;">
+      ชาย, 55 ปี, Gen X (1971), Early Retired, Strategy Trader / EA Developer
+    </p>
+
+    <div class="score-row">
+      <span class="score-label">Introversion intensity</span>
+      <div class="bar-track"><div class="bar-fill" style="width:82%; background:#818cf8;"></div></div>
+      <span class="score-value">82%</span>
+    </div>
+    <div class="score-row">
+      <span class="score-label">Openness to experience</span>
+      <div class="bar-track"><div class="bar-fill" style="width:71%; background:#34d399;"></div></div>
+      <span class="score-value">71%</span>
+    </div>
+    <div class="score-row">
+      <span class="score-label">Cognitive autonomy</span>
+      <div class="bar-track"><div class="bar-fill" style="width:88%; background:#38bdf8;"></div></div>
+      <span class="score-value">88%</span>
+    </div>
+    <div class="score-row" style="margin-bottom:1.5rem;">
+      <span class="score-label">Agreeableness (selective)</span>
+      <div class="bar-track"><div class="bar-fill" style="width:55%; background:#fbbf24;"></div></div>
+      <span class="score-value">55%</span>
+    </div>
+
+    <hr class="divider">
+
+    <div class="grid2">
+      <div class="card">
+        <p class="section-label">1. การชาร์จพลังงาน</p>
+        <p class="card-title">Energy Recharge</p>
+        <p class="body">ระบบประสาท Introvert ตอบสนองต่อสิ่งเร้าสูงกว่าปกติ (Aron, 1996) ทำให้การพบปะผู้คนดึงพลังงานออก ไม่ใช่เติม</p>
+        <div style="margin-top:12px;">
+          <span class="badge tag-b">อยู่คนเดียวหลังประชุม</span>
+          <span class="badge tag-b">งานโฟกัสยาว (deep work)</span>
+          <span class="badge tag-b">ไม่รับสายโดยไม่แจ้งล่วงหน้า</span>
+        </div>
+        <p class="body" style="margin-top:10px; font-size: 12.5px; opacity: 0.85;">ตัวอย่าง: หลังนัด Zoom เสร็จ จะปิดจอ 1–2 ชม. ก่อนกลับมาทำงาน — นี่คือกลไกปกติ ไม่ใช่ความเครียด</p>
+      </div>
+
+      <div class="card">
+        <p class="section-label">2. รูปแบบการสื่อสาร & การทำงาน</p>
+        <p class="card-title">Communication & Work Style</p>
+        <p class="body">ชอบข้อความ async มากกว่าการโทร เลือกสื่อที่กรองสัญญาณรบกวนได้ (Line, Telegram, Notion) หลีกเลี่ยง real-time noise</p>
+        <div style="margin-top:12px;">
+          <span class="badge tag-t">คิดก่อนพูด</span>
+          <span class="badge tag-t">ข้อความสั้น ตรงประเด็น</span>
+          <span class="badge tag-t">ไม่ชอบประชุมไม่มีวาระ</span>
+        </div>
+        <p class="body" style="margin-top:10px; font-size: 12.5px; opacity: 0.85;">ตัวอย่าง: ส่ง message ตอบกลับในชั่วโมงถัดไปแทนการตอบทันที เพราะต้องการประมวลผลก่อน</p>
+      </div>
+
+      <div class="card">
+        <p class="section-label">3. การเข้าสังคม</p>
+        <p class="card-title">Social Interaction</p>
+        <p class="body">ไม่ได้ต่อต้านการเข้าสังคม แต่เลือกเชิงคุณภาพ (depth over breadth) ความสัมพันธ์แบบ 1:1 หรือกลุ่มเล็กที่มีเนื้อหาเป็นที่ชื่นชอบ</p>
+        <div style="margin-top:12px;">
+          <span class="badge tag-p">ชอบคุยลึกกับคน 1–2 คน</span>
+          <span class="badge tag-p">หลีกเลี่ยง small talk</span>
+          <span class="badge tag-p">online community (Discord, Twitter)</span>
+        </div>
+        <p class="body" style="margin-top:10px; font-size: 12.5px; opacity: 0.85;">ตัวอย่าง: ใช้ Twitter/X อ่านและ engage เชิงเนื้อหา แต่ไม่ใช้ Instagram ที่เน้น social performance</p>
+      </div>
+
+      <div class="card">
+        <p class="section-label">4. จุดแข็งที่โดดเด่น</p>
+        <p class="card-title">Core Strengths</p>
+        <p class="body">งานวิจัย Big Five พบ Introvert มีความสามารถสูงใน sustained attention, pattern recognition และ independent judgment — ตรงกับ EA Developer โดยตรง</p>
+        <div style="margin-top:12px;">
+          <span class="badge tag-t">Deep focus / flow state</span>
+          <span class="badge tag-t">วิเคราะห์ข้อมูลซับซ้อน</span>
+          <span class="badge tag-t">ตัดสินใจโดยไม่ถูก peer pressure</span>
+          <span class="badge tag-t">ความอดทนสูงในการ backtest</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="section-label">5. ความท้าทาย & แนวทางรับมือ</p>
+        <p class="card-title">Challenges & Mitigation</p>
+        <p class="body">ความเสี่ยงหลักของ High Autonomous Introvert ที่ early retired คือ social atrophy — วงสังคมหดลงจนเกิด blind spot ในการรับข้อมูลใหม่</p>
+        <div style="margin-top:12px;">
+          <span class="badge tag-a">ความเสี่ยง: echo chamber</span>
+          <span class="badge tag-a">ความเสี่ยง: over-isolation</span>
+        </div>
+        <p class="body" style="margin-top:10px; font-size: 12.5px; opacity: 0.85;">แนวทาง: community เชิง interest-based (Discord trading group) ทดแทนการเข้าสังคมทั่วไป — ให้ทั้ง stimulation และ boundaries ในคราวเดียว</p>
+      </div>
+
+      <div class="card">
+        <p class="section-label">6. ความเข้าใจผิดที่พบบ่อย</p>
+        <p class="card-title">Common Misconceptions</p>
+        <p class="body" style="margin-bottom:8px;"><strong style="font-weight:600; color:var(--color-text-primary);">เข้าใจผิด:</strong> Introvert = ขี้อาย, ไม่มีความสุข, ต่อต้านสังคม</p>
+        <p class="body"><strong style="font-weight:600; color:var(--color-text-primary);">ข้อเท็จจริง:</strong> Introversion เป็น trait ทางระบบประสาท ไม่ใช่ disorder — Cain (2012) และ Eysenck (1967) ชี้ว่าแตกต่างที่ arousal threshold ไม่ใช่ความสุขหรือทักษะสังคม</p>
+        <div style="margin-top:12px;">
+          <span class="badge tag-r">เงียบ ≠ ไม่มีความคิด</span>
+          <span class="badge tag-r">คนเดียว ≠ โดดเดี่ยว</span>
+          <span class="badge tag-r">ไม่พูดมาก ≠ ไม่มีความสัมพันธ์</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <p class="section-label">เอกสารอ้างอิง & น้ำหนักการประเมิน</p>
+
+    <div class="ref-row">
+      <strong style="color:var(--color-text-primary);">Eysenck, H.J. (1967)</strong> — Biological Basis of Personality. Model: Cortical arousal theory. น้ำหนัก: สูง — เป็น foundation ของการแยก Introvert/Extravert ทางวิทยาศาสตร์
+    </div>
+    <div class="ref-row">
+      <strong style="color:var(--color-text-primary);">McCrae & Costa (1992)</strong> — Revised NEO Personality Inventory (NEO-PI-R). Model: Big Five (OCEAN). น้ำหนัก: สูงมาก — มาตรฐานทองในการวัด Introversion เชิง HR และคลินิก
+    </div>
+    <div class="ref-row">
+      <strong style="color:var(--color-text-primary);">Aron, E.N. (1996)</strong> — Sensory Processing Sensitivity (SPS). น้ำหนัก: กลาง-สูง — อธิบาย over-stimulation ในที่เสียงดังและสังคมขนาดใหญ่ได้ชัดมาก
+    </div>
+    <div class="ref-row">
+      <strong style="color:var(--color-text-primary);">Cain, S. (2012)</strong> — Quiet: The Power of Introverts in a World That Can't Stop Talking. น้ำหนัก: กลาง — popularization ของงานวิจัย ไม่ใช่ primary research แต่ synthesis มีคุณภาพ
+    </div>
+    <div class="ref-row">
+      <strong style="color:var(--color-text-primary);">Jung, C.G. (1921)</strong> — Psychological Types. น้ำหนัก: ต่ำ-กลาง — origin ของคำ แต่ไม่มี empirical basis ในมาตรฐานปัจจุบัน ใช้เป็น conceptual framework เท่านั้น
+    </div>
+
+    <hr class="divider">
+
+    <p class="section-label">วิธีถ่วงน้ำหนักในการประเมินครั้งนี้</p>
+    <p class="body">
+      ใช้ behavioral indicator เป็นหลัก (แอปที่เลือก, อาชีพ, สภาพแวดล้อม, รูปแบบความสัมพันธ์) ร่วมกับ NEO-PI-R facets ได้แก่ E1 Warmth, E2 Gregariousness, E3 Assertiveness, E4 Activity, E5 Excitement-seeking, E6 Positive emotions — ถ่วงน้ำหนัก E2, E4, E5 สูงสุดเพราะ behavioral evidence ชัดเจนที่สุดในโปรไฟล์นี้ ส่วน SPS ของ Aron เพิ่มน้ำหนักจากพฤติกรรมหลีกเลี่ยงเสียงดังและ information overload
+    </p>
+  </div>
+</div>
+
+<script>
+  // Self-contained execution scope
+  (function () {
+    'use strict';
+    // Initialization logic if needed
+  })();
+</script>
+</body>
+</html>
