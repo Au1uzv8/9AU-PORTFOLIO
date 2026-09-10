@@ -1,0 +1,308 @@
+{
+  "generated": "2026-08-02",
+  "summary": {
+    "total_ea": 11,
+    "house_money_count": 5,
+    "compound_count": 6,
+    "period_30m_count": 8,
+    "period_9m_count": 3
+  },
+  "ea": [
+    {
+      "name": "9AU_3PAIRS_COMBINE_M15_CAP300",
+      "symbol": "3PAIRS-M15",
+      "magic": 515252,
+      "period_months": 30,
+      "period_label": "30M",
+      "mode": "Compound",
+      "status": "Active",
+      "pf": 15.12,
+      "sharpe": 7.87,
+      "dd": 6.18,
+      "rf": 5.35,
+      "winrate": 83.33,
+      "payoff": 2.12,
+      "net_profit": 33.98,
+      "filename": "9AU_3PAIRS_COMBINE_M15_CAP300_v2_8.mq5",
+      "port_group": "Beta-pool",
+      "combine_capital": 600,
+      "port_members": [
+        "OIL-WTI",
+        "USDJPY",
+        "AUDCAD"
+      ],
+      "patterns": [
+        "Mean Reversion",
+        "Grid"
+      ],
+      "is_adaptive_regime": false,
+      "own_capital": 300
+    },
+    {
+      "name": "9AU_OIL_WTI_COMBINE_M5_CAP300",
+      "symbol": "OIL-WTI-M5",
+      "magic": 919293,
+      "period_months": 9,
+      "period_label": "9M",
+      "mode": "Compound",
+      "status": "Active",
+      "pf": 12.0,
+      "sharpe": 3.56,
+      "dd": 7.58,
+      "rf": 1.25,
+      "winrate": 92.31,
+      "payoff": 2.41,
+      "net_profit": 10.45,
+      "filename": "9AU_OIL_WTI_COMBINE_M5_CAP300_v4_63.mq5",
+      "port_group": "Beta-pool",
+      "combine_capital": 600,
+      "port_members": [
+        "USDJPY",
+        "3PAIRS",
+        "AUDCAD"
+      ],
+      "patterns": [
+        "Trend Following",
+        "Grid"
+      ],
+      "is_adaptive_regime": false,
+      "own_capital": 300
+    },
+    {
+      "name": "9AU_ETH_ADAPTIVE_REGIME_M5_CAP300",
+      "symbol": "ETHEREUM-M5",
+      "magic": 919296,
+      "period_months": 30,
+      "period_label": "30M",
+      "mode": "Compound",
+      "status": "Active",
+      "pf": 1.69,
+      "sharpe": 1.28,
+      "dd": 8.5,
+      "rf": 1.13,
+      "winrate": 9.8,
+      "payoff": 1.15,
+      "net_profit": 11.74,
+      "patterns": [
+        "Trend Following"
+      ],
+      "is_adaptive_regime": true,
+      "own_capital": 300
+    },
+    {
+      "name": "9AU_GBPJPY_COMBINE_M5_CAP300",
+      "symbol": "GBPJPY-M5",
+      "magic": 515254,
+      "period_months": 30,
+      "period_label": "30M",
+      "mode": "Compound",
+      "status": "Active",
+      "pf": 1.57,
+      "sharpe": 2.4,
+      "dd": 9.98,
+      "rf": 3.62,
+      "winrate": 20.34,
+      "payoff": 1.14,
+      "net_profit": 44.78,
+      "filename": "9AU_GBPJPY_COMBINE_M5_CAP300_v1_4.mq5",
+      "port_group": "Alpha-pool",
+      "combine_capital": 750,
+      "port_members": [
+        "NDAQ100",
+        "GOLD"
+      ],
+      "patterns": [
+        "Grid",
+        "Martingale"
+      ],
+      "is_adaptive_regime": false,
+      "own_capital": 300
+    },
+    {
+      "name": "9AU_AUDCAD_COMBINE_M15_CAP300",
+      "symbol": "AUDCAD-M15",
+      "magic": 515251,
+      "period_months": 30,
+      "period_label": "30M",
+      "mode": "Compound",
+      "status": "Active",
+      "pf": 1.84,
+      "sharpe": 1.96,
+      "dd": 12.29,
+      "rf": 2.74,
+      "winrate": 65.52,
+      "payoff": 0.66,
+      "net_profit": 38.37,
+      "filename": "9AU_AUDCAD_COMBINE_M15_CAP300_v6_13.mq5",
+      "port_group": "Beta-pool",
+      "combine_capital": 600,
+      "port_members": [
+        "OIL-WTI",
+        "USDJPY",
+        "3PAIRS"
+      ],
+      "patterns": [
+        "Mean Reversion"
+      ],
+      "is_adaptive_regime": false,
+      "own_capital": 300
+    },
+    {
+      "name": "9AU_USDJPY_COMBINE_M5_CAP300",
+      "symbol": "USDJPY-M5",
+      "magic": 515253,
+      "period_months": 30,
+      "period_label": "30M",
+      "mode": "Compound",
+      "status": "Active",
+      "pf": 1.54,
+      "sharpe": 1.88,
+      "dd": 14.19,
+      "rf": 2.11,
+      "winrate": 27.48,
+      "payoff": 1.08,
+      "net_profit": 46.98,
+      "filename": "9AU_USDJPY_COMBINE_M5_CAP300_v1_4.mq5",
+      "port_group": "Beta-pool",
+      "combine_capital": 600,
+      "port_members": [
+        "OIL-WTI",
+        "3PAIRS",
+        "AUDCAD"
+      ],
+      "patterns": [
+        "Grid"
+      ],
+      "is_adaptive_regime": false,
+      "own_capital": 300
+    },
+    {
+      "name": "9AU_GOLD_COMBINE_M5_CAP450",
+      "symbol": "GOLD-M5",
+      "magic": 919291,
+      "period_months": 30,
+      "period_label": "30M",
+      "mode": "House Money",
+      "status": "Active",
+      "pf": 1.28,
+      "sharpe": 1.99,
+      "dd": 24.75,
+      "rf": 2.39,
+      "winrate": 67.43,
+      "payoff": 3.44,
+      "net_profit": 320.05,
+      "filename": "9AU_GOLD_COMBINE_M5_CAP450_V19_4.mq5",
+      "patterns": [
+        "Grid",
+        "Hedging"
+      ],
+      "is_adaptive_regime": true,
+      "own_capital": 450,
+      "port_group": "Alpha-pool",
+      "combine_capital": 750,
+      "port_members": [
+        "NDAQ100",
+        "GBPJPY"
+      ]
+    },
+    {
+      "name": "9AU_NDAQ100_COMBINE_M5_CAP300",
+      "symbol": "NDAQ100-M5",
+      "magic": 919294,
+      "period_months": 9,
+      "period_label": "9M",
+      "mode": "Compound",
+      "status": "Active",
+      "pf": 1.6,
+      "sharpe": 3.87,
+      "dd": 24.87,
+      "rf": 1.11,
+      "winrate": 42.86,
+      "payoff": 3.39,
+      "net_profit": 31.61,
+      "filename": "9AU_NDAQ100_COMBINE_M5_CAP300_v1_2.mq5",
+      "port_group": "Alpha-pool",
+      "combine_capital": 750,
+      "port_members": [
+        "GBPJPY",
+        "GOLD"
+      ],
+      "patterns": [
+        "Trend Following",
+        "Grid"
+      ],
+      "is_adaptive_regime": false,
+      "own_capital": 300
+    },
+    {
+      "name": "9AU_Platinum_TREND_M5_CAP300",
+      "symbol": "PLATINUM-M5",
+      "magic": 919292,
+      "period_months": 9,
+      "period_label": "9M",
+      "mode": "House Money",
+      "status": "Active",
+      "pf": 2.23,
+      "sharpe": 3.13,
+      "dd": 29.83,
+      "rf": 2.05,
+      "winrate": 53.12,
+      "payoff": 4.8,
+      "patterns": [
+        "Trend Following",
+        "Grid"
+      ],
+      "is_adaptive_regime": false,
+      "own_capital": 300
+    },
+    {
+      "name": "9AU_SILVER_RESERVE_M5_CAP450",
+      "symbol": "SILVER1-M5",
+      "magic": 919290,
+      "period_months": 30,
+      "period_label": "30M",
+      "mode": "House Money",
+      "status": "Active",
+      "pf": 2.03,
+      "sharpe": 1.68,
+      "dd": 35.84,
+      "rf": 1.78,
+      "winrate": 65.92,
+      "payoff": 6.3,
+      "net_profit": 2067.22,
+      "filename": "9AU_SILVER_RESERVE_M5_CAP450.mq5",
+      "patterns": [
+        "Grid",
+        "Martingale",
+        "Reserve-Capital"
+      ],
+      "is_adaptive_regime": false,
+      "base_capital": 450,
+      "reserve_capital": 225,
+      "own_capital": 675
+    },
+    {
+      "name": "9AU_BTC_COMBINE_M5_CAP300",
+      "symbol": "BITCOIN-M5",
+      "magic": 919295,
+      "period_months": 30,
+      "period_label": "30M",
+      "mode": "House Money",
+      "status": "Active",
+      "pf": 2.46,
+      "sharpe": 0.81,
+      "dd": 37.03,
+      "rf": 1.79,
+      "winrate": 40.48,
+      "payoff": 3.9,
+      "net_profit": 215.48,
+      "filename": "9AU_BTC_COMBINE_M5_CAP300.mq5",
+      "patterns": [
+        "Grid",
+        "Hedging"
+      ],
+      "is_adaptive_regime": true,
+      "own_capital": 300
+    }
+  ]
+}

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9AU FOREX EA — Portfolio Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root{
+    --bg:#0B0E14;
+    --panel:#131720;
+    --panel-hover:#171C27;
+    --border:#232938;
+    --text:#E8EAED;
+    --muted:#7A8699;
+    --amber:#D4A94A;
+    --amber-dim:rgba(212,169,74,0.12);
+    --teal:#3FA796;
+    --teal-dim:rgba(63,167,150,0.12);
+    --purple:#8A5CF5;
+    --purple-dim:rgba(138,92,245,0.15);
+    --mono:'IBM Plex Mono', monospace;
+    --sans:'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+  header{
+    padding:28px 24px 20px;
+    border-bottom:1px solid var(--border);
+  }
+  .title-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+    max-width:1200px;
+    margin:0 auto;
+  }
+  h1{
+    font-family:var(--mono);
+    font-size:20px;
+    font-weight:600;
+    letter-spacing:0.5px;
+    margin:0;
+  }
+  h1 span{color:var(--muted);font-weight:400;}
+  .updated{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--muted);
+  }
+  .ticker{
+    max-width:1200px;
+    margin:16px auto 0;
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-size:13px;
+  }
+  .ticker-item{color:var(--muted);}
+  .ticker-item b{color:var(--text);font-weight:600;}
+  .ticker-item.hm b{color:var(--amber);}
+  .ticker-item.cp b{color:var(--teal);}
+  .ticker-item.period b{color:var(--purple);}
+
+  .controls{
+    max-width:1200px;
+    margin:20px auto 0;
+    padding:0 24px;
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .filter-group{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .pattern-filters{
+    max-width:1200px;
+    margin:8px auto 0;
+    padding:0 24px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .pattern-chip{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    color:var(--muted);
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:6px 10px;
+    cursor:pointer;
+  }
+  .pattern-chip input{accent-color:var(--teal); cursor:pointer;}
+  .summary{max-width:1200px;margin:16px auto 0;padding:0 24px;}
+  .seg{
+    display:flex;
+    border:1px solid var(--border);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .seg button{
+    background:var(--panel);
+    color:var(--muted);
+    border:none;
+    padding:8px 14px;
+    font-family:var(--sans);
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    border-right:1px solid var(--border);
+  }
+  .seg button:last-child{border-right:none;}
+  .seg button.active{background:var(--text);color:var(--bg);}
+  .seg button:hover:not(.active){color:var(--text);}
+
+  .metric-tabs {
+    max-width:1200px;
+    margin:24px auto 0;
+    padding:0 24px;
+    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:10px;
+  }
+  .metric-tab-btn {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    padding: 14px 10px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+  .metric-tab-btn:hover { background: var(--panel-hover); color: var(--text); }
+  .metric-tab-btn.active {
+    background: var(--teal-dim);
+    border-color: var(--teal);
+    color: var(--teal);
+    box-shadow: 0 0 12px rgba(63,167,150,0.15);
+  }
+  @media (max-width: 800px) {
+    .metric-tabs { grid-template-columns: repeat(2, 1fr); }
+    .metric-tabs button:last-child { grid-column: span 2; }
+  }
+
+  input[type="search"], select{
+    background:var(--panel);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:8px 12px;
+    border-radius:8px;
+    font-family:var(--sans);
+    font-size:13px;
+    outline:none;
+  }
+  input[type="search"]{min-width:180px;}
+  input[type="search"]::placeholder{color:var(--muted);}
+
+  main{
+    max-width:1200px;
+    margin:24px auto 60px;
+    padding:0 24px;
+  }
+  .section-title{
+    font-family:var(--mono);
+    font-size:16px;
+    font-weight:600;
+    margin:32px 0 16px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--border);
+    color:var(--text);
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:16px;
+  }
+  @media (max-width:900px){ .grid{grid-template-columns:repeat(2, 1fr);} }
+  @media (max-width:640px){ .grid{grid-template-columns:1fr;} .title-row{flex-direction:column;} }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-left:4px solid var(--muted);
+    border-radius:10px;
+    padding:16px 18px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    position: relative;
+  }
+  .card.hm{border-left-color:var(--amber);}
+  .card.cp{border-left-color:var(--teal);}
+
+  .rank-badge-card {
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    background: #1B212D;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-top{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+  .symbol{ font-family:var(--mono); font-size:18px; font-weight:600; }
+  .ea-name{ font-size:11px; color:var(--muted); margin-top:2px; word-break:break-all; }
+  
+  .badge-container { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .badge{
+    font-family:var(--sans); font-size:10px; font-weight:600; padding:3px 8px; border-radius:100px; white-space:nowrap; text-transform:uppercase; letter-spacing:0.3px; display:inline-block;
+  }
+  .badge.hm{background:var(--amber-dim);color:var(--amber);}
+  .badge.cp{background:var(--teal-dim);color:var(--teal);}
+  .badge.period{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(138,92,245,0.3);}
+  .badge.cap{background:rgba(63,167,150,0.15);color:var(--teal);border:1px solid rgba(63,167,150,0.25);}
+  .badge.pattern{background:rgba(212,169,74,0.12);color:var(--amber);border:1px solid rgba(212,169,74,0.25);}
+  .badge.status{ background:transparent; border:1px solid var(--border); color:var(--muted); }
+
+  .chart-container { position: relative; width: 100%; height: 180px; margin: 12px 0; }
+
+  .focused-stat {
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .focused-stat span { color: var(--muted); font-size: 11px; }
+  .focused-stat b { color: var(--text); font-weight: 600; }
+
+  .net-profit{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px solid var(--border);
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+  }
+  .net-profit-label{font-size:11px;color:var(--muted);}
+  .net-profit-value{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);}
+
+  .comparison-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 32px;
+  }
+  .comparison-layout { display: flex; gap: 24px; align-items: center; }
+  .global-chart-wrap { flex: 1; max-height: 400px; position: relative; }
+  .rank-list-wrap { width: 350px; font-family: var(--mono); font-size: 13px; }
+  .rank-item { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .rank-item:last-child { border-bottom: none; }
+  .rank-index { color: var(--muted); width: 24px; }
+  .rank-name { flex: 1; font-weight: 500; }
+  .rank-val { font-weight: 600; }
+
+  @media (max-width: 850px) {
+    .comparison-layout { flex-direction: column; }
+    .rank-list-wrap { width: 100%; }
+  }
+
+  footer{
+    text-align:center;
+    padding:20px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted);
+    border-top:1px solid var(--border);
+    margin-top:60px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <h1>9AU FOREX EA <span>/ Portfolio Dashboard</span></h1>
+    <div class="updated" id="updated"></div>
+  </div>
+  <div class="ticker" id="ticker"></div>
+</header>
+
+<div class="controls">
+  <div class="seg" id="modeFilter">
+    <button data-mode="all" class="active">All</button>
+    <button data-mode="House Money">House Money</button>
+    <button data-mode="Compound">Compound</button>
+  </div>
+
+  <div class="filter-group">
+    <select id="periodFilter">
+      <option value="all">Period: All</option>
+      <option value="30">30 Months</option>
+      <option value="9">9 Months</option>
+    </select>
+    <select id="portFilter">
+      <option value="all">Port: All</option>
+      <option value="Beta-pool">Beta-pool</option>
+      <option value="Alpha-pool">Alpha-pool</option>
+    </select>
+    <select id="regimeFilter">
+      <option value="all">Regime: All</option>
+      <option value="Adaptive Regime">Adaptive Regime</option>
+      <option value="Static">Static</option>
+    </select>
+  </div>
+  
+  <input type="search" id="search" placeholder="ค้นหา Symbol...">
+</div>
+
+<div class="pattern-filters" id="patternFilters">
+  <label class="pattern-chip"><input type="checkbox" value="Grid"> Grid</label>
+  <label class="pattern-chip"><input type="checkbox" value="Hedging"> Hedging</label>
+  <label class="pattern-chip"><input type="checkbox" value="Mean Reversion"> Mean Reversion</label>
+  <label class="pattern-chip"><input type="checkbox" value="Martingale"> Martingale</label>
+  <label class="pattern-chip"><input type="checkbox" value="Reserve-Capital"> Reserve-Capital</label>
+  <label class="pattern-chip"><input type="checkbox" value="Trend Following"> Trend Following</label>
+</div>
+
+<div class="metric-tabs" id="metricTabs">
+  <button data-metric="dd" class="metric-tab-btn active">1. Equity DD Maximal (%)</button>
+  <button data-metric="rf" class="metric-tab-btn">2. Recovery Factor</button>
+  <button data-metric="pf" class="metric-tab-btn">3. Profit Factor</button>
+  <button data-metric="payoff" class="metric-tab-btn">4. Expected Payoff</button>
+  <button data-metric="sharpe" class="metric-tab-btn">5. Sharpe Ratio</button>
+</div>
+
+<main>
+  <div class="summary" id="summary"></div>
+  
+  <div class="section-title" id="gridTitle">ราย EA</div>
+  <div class="grid" id="grid"></div>
+
+  <div class="section-title">สรุปรวมและอันดับทั้งหมด</div>
+  <div class="comparison-section">
+    <div class="comparison-layout">
+      <div class="global-chart-wrap">
+        <canvas id="globalRadarChart"></canvas>
+      </div>
+      <div class="rank-list-wrap">
+        <div style="font-weight:600; padding-bottom:12px; border-bottom:1px solid var(--border); color:var(--muted)" id="rankListTitle">RANKING</div>
+        <div id="rankList"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  9AU FOREX EA — Portfolio Dashboard
+</footer>
+
+<script id="ea-data" type="application/json">
+{
+  "generated": "2026-08-02",
+  "ea": [
+    {"name": "9AU_3PAIRS_COMBINE_M15_CAP300", "symbol": "3PAIRS-M15", "magic": 515252, "period_months": 30, "period_label": "30M", "mode": "Compound", "status": "Active", "pf": 15.12, "sharpe": 7.87, "dd": 6.18, "rf": 5.35, "winrate": 83.33, "payoff": 2.12, "net_profit": 33.98, "filename": "9AU_3PAIRS_COMBINE_M15_CAP300_v2_8.mq5", "port_group": "Beta-pool", "combine_capital": 600, "port_members": ["OIL-WTI", "USDJPY", "AUDCAD"], "patterns": ["Mean Reversion", "Grid"], "is_adaptive_regime": false, "own_capital": 300},
+    {"name": "9AU_OIL_WTI_COMBINE_M5_CAP300", "symbol": "OIL-WTI-M5", "magic": 919293, "period_months": 9, "period_label": "9M", "mode": "Compound", "status": "Active", "pf": 12.0, "sharpe": 3.56, "dd": 7.58, "rf": 1.25, "winrate": 92.31, "payoff": 2.41, "net_profit": 10.45, "filename": "9AU_OIL_WTI_COMBINE_M5_CAP300_v4_63.mq5", "port_group": "Beta-pool", "combine_capital": 600, "port_members": ["USDJPY", "3PAIRS", "AUDCAD"], "patterns": ["Trend Following", "Grid"], "is_adaptive_regime": false, "own_capital": 300},
+    {"name": "9AU_ETH_ADAPTIVE_REGIME_M5_CAP300", "symbol": "ETHEREUM-M5", "magic": 919296, "period_months": 30, "period_label": "30M", "mode": "Compound", "status": "Active", "pf": 1.69, "sharpe": 1.28, "dd": 8.5, "rf": 1.13, "winrate": 9.8, "payoff": 1.15, "net_profit": 11.74, "patterns": ["Trend Following"], "is_adaptive_regime": true, "own_capital": 300},
+    {"name": "9AU_GBPJPY_COMBINE_M5_CAP300", "symbol": "GBPJPY-M5", "magic": 515254, "period_months": 30, "period_label": "30M", "mode": "Compound", "status": "Active", "pf": 1.57, "sharpe": 2.4, "dd": 9.98, "rf": 3.62, "winrate": 20.34, "payoff": 1.14, "net_profit": 44.78, "filename": "9AU_GBPJPY_COMBINE_M5_CAP300_v1_4.mq5", "port_group": "Alpha-pool", "combine_capital": 750, "port_members": ["NDAQ100", "GOLD"], "patterns": ["Grid", "Martingale"], "is_adaptive_regime": false, "own_capital": 300},
+    {"name": "9AU_AUDCAD_COMBINE_M15_CAP300", "symbol": "AUDCAD-M15", "magic": 515251, "period_months": 30, "period_label": "30M", "mode": "Compound", "status": "Active", "pf": 1.84, "sharpe": 1.96, "dd": 12.29, "rf": 2.74, "winrate": 65.52, "payoff": 0.66, "net_profit": 38.37, "filename": "9AU_AUDCAD_COMBINE_M15_CAP300_v6_13.mq5", "port_group": "Beta-pool", "combine_capital": 600, "port_members": ["OIL-WTI", "USDJPY", "3PAIRS"], "patterns": ["Mean Reversion"], "is_adaptive_regime": false, "own_capital": 300},
+    {"name": "9AU_USDJPY_COMBINE_M5_CAP300", "symbol": "USDJPY-M5", "magic": 515253, "period_months": 30, "period_label": "30M", "mode": "Compound", "status": "Active", "pf": 1.54, "sharpe": 1.88, "dd": 14.19, "rf": 2.11, "winrate": 27.48, "payoff": 1.08, "net_profit": 46.98, "filename": "9AU_USDJPY_COMBINE_M5_CAP300_v1_4.mq5", "port_group": "Beta-pool", "combine_capital": 600, "port_members": ["OIL-WTI", "3PAIRS", "AUDCAD"], "patterns": ["Grid"], "is_adaptive_regime": false, "own_capital": 300},
+    {"name": "9AU_GOLD_COMBINE_M5_CAP450", "symbol": "GOLD-M5", "magic": 919291, "period_months": 30, "period_label": "30M", "mode": "House Money", "status": "Active", "pf": 1.28, "sharpe": 1.99, "dd": 24.75, "rf": 2.39, "winrate": 67.43, "payoff": 3.44, "net_profit": 320.05, "filename": "9AU_GOLD_COMBINE_M5_CAP450_V19_4.mq5", "patterns": ["Grid", "Hedging"], "is_adaptive_regime": true, "own_capital": 450, "port_group": "Alpha-pool", "combine_capital": 750, "port_members": ["NDAQ100", "GBPJPY"]},
+    {"name": "9AU_NDAQ100_COMBINE_M5_CAP300", "symbol": "NDAQ100-M5", "magic": 919294, "period_months": 9, "period_label": "9M", "mode": "Compound", "status": "Active", "pf": 1.6, "sharpe": 3.87, "dd": 24.87, "rf": 1.11, "winrate": 42.86, "payoff": 3.39, "net_profit": 31.61, "filename": "9AU_NDAQ100_COMBINE_M5_CAP300_v1_2.mq5", "port_group": "Alpha-pool", "combine_capital": 750, "port_members": ["GBPJPY", "GOLD"], "patterns": ["Trend Following", "Grid"], "is_adaptive_regime": false, "own_capital": 300},
+    {"name": "9AU_Platinum_TREND_M5_CAP300", "symbol": "PLATINUM-M5", "magic": 919292, "period_months": 9, "period_label": "9M", "mode": "House Money", "status": "Active", "pf": 2.23, "sharpe": 3.13, "dd": 29.83, "rf": 2.05, "winrate": 53.12, "payoff": 4.8, "patterns": ["Trend Following", "Grid"], "is_adaptive_regime": false, "own_capital": 300},
+    {"name": "9AU_SILVER_RESERVE_M5_CAP450", "symbol": "SILVER1-M5", "magic": 919290, "period_months": 30, "period_label": "30M", "mode": "House Money", "status": "Active", "pf": 2.03, "sharpe": 1.68, "dd": 35.84, "rf": 1.78, "winrate": 65.92, "payoff": 6.3, "net_profit": 2067.22, "filename": "9AU_SILVER_RESERVE_M5_CAP450.mq5", "patterns": ["Grid", "Martingale", "Reserve-Capital"], "is_adaptive_regime": false, "base_capital": 450, "reserve_capital": 225, "own_capital": 675},
+    {"name": "9AU_BTC_COMBINE_M5_CAP300", "symbol": "BITCOIN-M5", "magic": 919295, "period_months": 30, "period_label": "30M", "mode": "House Money", "status": "Active", "pf": 2.46, "sharpe": 0.81, "dd": 37.03, "rf": 1.79, "winrate": 40.48, "payoff": 3.9, "net_profit": 215.48, "filename": "9AU_BTC_COMBINE_M5_CAP300.mq5", "patterns": ["Grid", "Hedging"], "is_adaptive_regime": true, "own_capital": 300}
+  ]
+}
+</script>
+
+<script>
+const DATA = JSON.parse(document.getElementById('ea-data').textContent);
+const eaList = DATA.ea;
+
+const bounds = {
+  sharpe: { min: Math.min(...eaList.map(e => e.sharpe || 0)), max: Math.max(...eaList.map(e => e.sharpe || 0)) },
+  pf: { min: Math.min(...eaList.map(e => e.pf || 0)), max: Math.max(...eaList.map(e => e.pf || 0)) },
+  rf: { min: Math.min(...eaList.map(e => e.rf || 0)), max: Math.max(...eaList.map(e => e.rf || 0)) },
+  winrate: { min: Math.min(...eaList.map(e => e.winrate || 0)), max: Math.max(...eaList.map(e => e.winrate || 0)) },
+  dd: { min: Math.min(...eaList.map(e => e.dd || 0)), max: Math.max(...eaList.map(e => e.dd || 0)) }
+};
+
+function normalize(val, type) {
+  const { min, max } = bounds[type];
+  if (max === min) return 0.5;
+  let normalized = ((val || 0) - min) / (max - min);
+  if (type === 'dd') normalized = 1 - normalized;
+  return normalized;
+}
+
+let activeCharts = [];
+let globalRadarChart = null;
+
+function modeClass(mode){ return mode === 'House Money' ? 'hm' : 'cp'; }
+function modeColor(mode){ return mode === 'House Money' ? '#D4A94A' : '#3FA796'; }
+
+const tabNames = {
+  dd: 'Equity DD Maximal (%)',
+  rf: 'Recovery Factor',
+  pf: 'Profit Factor',
+  payoff: 'Expected Payoff',
+  sharpe: 'Sharpe Ratio'
+};
+
+function getMetricValueString(e, metric) {
+  const val = e[metric] || 0;
+  if (metric === 'dd') return val.toFixed(2) + '%';
+  if (metric === 'rf') return val.toFixed(2);
+  if (metric === 'pf') return val.toFixed(2);
+  if (metric === 'payoff') return '$' + val.toFixed(2);
+  if (metric === 'sharpe') return val.toFixed(2);
+  return '';
+}
+
+function renderTicker(){
+  const hm = eaList.filter(e => e.mode === 'House Money').length;
+  const cp = eaList.filter(e => e.mode === 'Compound').length;
+  const p30 = eaList.filter(e => e.period_months === 30).length;
+  const p9 = eaList.filter(e => e.period_months === 9).length;
+
+  document.getElementById('ticker').innerHTML = `
+    <span class="ticker-item">EA ทั้งหมด <b>${eaList.length}</b></span>
+    <span class="ticker-item hm">House Money <b>${hm}</b></span>
+    <span class="ticker-item cp">Compound <b>${cp}</b></span>
+    <span class="ticker-item period">30 Months <b>${p30}</b></span>
+    <span class="ticker-item period">9 Months <b>${p9}</b></span>
+  `;
+  document.getElementById('updated').textContent = 'Updated ' + DATA.generated;
+}
+
+function renderCardsAndCharts(list, activeMetric){
+  const grid = document.getElementById('grid');
+  activeCharts.forEach(c => c.destroy());
+  activeCharts = [];
+
+  const sortDirection = activeMetric === 'dd' ? 'น้อยที่สุดขึ้นก่อน' : 'ดีที่สุดขึ้นก่อน';
+  document.getElementById('gridTitle').textContent = `ราย EA (Sorted by ${tabNames[activeMetric]} — ${sortDirection})`;
+
+  if(!list.length){
+    grid.innerHTML = '<div class="card"><div class="ea-name">No EA matches the current filters.</div></div>';
+    return;
+  }
+
+  grid.innerHTML = list.map((e, idx) => {
+    const mc = modeClass(e.mode);
+    const statusBadge = e.status !== 'Active' ? `<span class="badge status">${e.status}</span>` : '';
+    const patterns = (e.patterns || []).join(' · ');
+    const regimeLabel = e.is_adaptive_regime ? 'Adaptive' : 'Static';
+    const capitalBadge = e.port_group ? `<span class="badge cap">[CAP ${e.own_capital || 0}] → [COMBINE ${e.combine_capital || 0}]</span>` : '';
+    const patternBadge = patterns ? `<span class="badge pattern">${patterns} · ${regimeLabel}</span>` : '';
+    
+    const focusedValue = getMetricValueString(e, activeMetric);
+    
+    return `
+      <div class="card ${mc}">
+        <div class="rank-badge-card">#${idx + 1}</div>
+        <div>
+          <div class="card-top" style="padding-left: 18px;">
+            <div>
+              <div class="symbol">${e.symbol}</div>
+              <div class="ea-name">${e.name}</div>
+            </div>
+            <div class="badge-container">
+              <span class="badge ${mc}">${e.mode}</span>
+              <span class="badge period">${e.period_label}</span>
+              ${statusBadge}
+            </div>
+          </div>
+          <div class="badge-container" style="margin-top:6px;">
+            ${capitalBadge}
+            ${patternBadge}
+          </div>
+        </div>
+        
+        <div class="chart-container">
+          <canvas id="chart-${idx}"></canvas>
+        </div>
+
+        <div class="focused-stat">
+          <span>Focused Metric: ${tabNames[activeMetric]}</span>
+          <b>${focusedValue}</b>
+        </div>
+
+        <div class="net-profit">
+          <span class="net-profit-label">Net Profit</span>
+          <span class="net-profit-value">${(e.net_profit || 0).toFixed(2)}%</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  list.forEach((e, idx) => {
+    const ctx = document.getElementById(`chart-${idx}`).getContext('2d');
+    const color = modeColor(e.mode);
+    
+    const chart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ['Sharpe', 'PF', 'RF', 'Win Rate', 'Low DD'],
+        datasets: [{
+          data: [
+            normalize(e.sharpe, 'sharpe'),
+            normalize(e.pf, 'pf'),
+            normalize(e.rf, 'rf'),
+            normalize(e.winrate, 'winrate'),
+            normalize(e.dd, 'dd')
+          ],
+          backgroundColor: color + '22',
+          borderColor: color,
+          borderWidth: 2,
+          pointBackgroundColor: color,
+          pointRadius: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          r: {
+            grid: { color: '#232938' },
+            angleLines: { color: '#232938' },
+            pointLabels: { color: '#7A8699', font: { family: 'IBM Plex Mono', size: 10 } },
+            ticks: { display: false },
+            min: 0,
+            max: 1
+          }
+        }
+      }
+    });
+    activeCharts.push(chart);
+  });
+}
+
+function renderGlobalComparisonAndRanking(list, activeMetric){
+  const rankListTitle = document.getElementById('rankListTitle');
+  rankListTitle.textContent = `RANKING BY ${tabNames[activeMetric].toUpperCase()}`;
+
+  const rankList = document.getElementById('rankList');
+  rankList.innerHTML = list.map((e, idx) => {
+    return `
+      <div class="rank-item">
+        <span class="rank-index">${idx + 1}</span>
+        <span class="rank-name" style="color:${modeColor(e.mode)}">${e.symbol} <small style="color:var(--muted)">(${e.period_label})</small></span>
+        <span class="rank-val">${getMetricValueString(e, activeMetric)}</span>
+      </div>
+    `;
+  }).join('');
+
+  if (globalRadarChart) globalRadarChart.destroy();
+  const ctx = document.getElementById('globalRadarChart').getContext('2d');
+  
+  const displayLimit = Math.min(list.length, 5);
+  const datasets = list.slice(0, displayLimit).map((e, idx) => {
+    const baseColor = modeColor(e.mode);
+    return {
+      label: e.symbol,
+      data: [
+        normalize(e.sharpe, 'sharpe'),
+        normalize(e.pf, 'pf'),
+        normalize(e.rf, 'rf'),
+        normalize(e.winrate, 'winrate'),
+        normalize(e.dd, 'dd')
+      ],
+      backgroundColor: 'transparent',
+      borderColor: baseColor,
+      borderWidth: idx === 0 ? 3 : 1.5,
+      pointBackgroundColor: baseColor,
+      pointRadius: idx === 0 ? 3 : 1
+    };
+  });
+
+  globalRadarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['Sharpe', 'PF', 'RF', 'Win Rate', 'Low DD'],
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { color: '#E8EAED', font: { family: 'IBM Plex Mono', size: 11 } }
+        }
+      },
+      scales: {
+        r: {
+          grid: { color: '#232938' },
+          angleLines: { color: '#232938' },
+          pointLabels: { color: '#E8EAED', font: { family: 'Inter', size: 12, weight: '600' } },
+          ticks: { display: false },
+          min: 0,
+          max: 1
+        }
+      }
+    }
+  });
+}
+
+function applyFiltersAndRender(){
+  const mode = document.querySelector('#modeFilter button.active').dataset.mode;
+  const period = document.getElementById('periodFilter').value;
+  const port = document.getElementById('portFilter').value;
+  const regime = document.getElementById('regimeFilter').value;
+  const query = document.getElementById('search').value.trim().toLowerCase();
+  const selectedPatterns = Array.from(document.querySelectorAll('#patternFilters input:checked')).map(cb => cb.value);
+  const activeMetric = document.querySelector('#metricTabs button.active').dataset.metric;
+
+  let list = eaList.filter(e => mode === 'all' || e.mode === mode);
+
+  if(period !== 'all'){
+    list = list.filter(e => e.period_months === parseInt(period));
+  }
+  if(port !== 'all'){
+    list = list.filter(e => e.port_group === port);
+  }
+  if(regime !== 'all'){
+    list = list.filter(e => (e.is_adaptive_regime ? 'Adaptive Regime' : 'Static') === regime);
+  }
+  if(selectedPatterns.length){
+    list = list.filter(e => {
+      const patterns = e.patterns || [];
+      return selectedPatterns.some(p => patterns.includes(p));
+    });
+  }
+  if(query){
+    list = list.filter(e => e.symbol.toLowerCase().includes(query) || e.name.toLowerCase().includes(query));
+  }
+  
+  if (activeMetric === 'dd') {
+    list = [...list].sort((a,b) => (a.dd || 0) - (b.dd || 0));
+  } else {
+    list = [...list].sort((a,b) => (b[activeMetric] || 0) - (a[activeMetric] || 0));
+  }
+  
+  renderCardsAndCharts(list, activeMetric);
+  renderGlobalComparisonAndRanking(list, activeMetric);
+}
+
+document.querySelectorAll('#metricTabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#metricTabs button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFiltersAndRender();
+  });
+});
+
+document.querySelectorAll('#modeFilter button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#modeFilter button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFiltersAndRender();
+  });
+});
+
+document.getElementById('periodFilter').addEventListener('change', applyFiltersAndRender);
+document.getElementById('portFilter').addEventListener('change', applyFiltersAndRender);
+document.getElementById('regimeFilter').addEventListener('change', applyFiltersAndRender);
+document.getElementById('search').addEventListener('input', applyFiltersAndRender);
+document.querySelectorAll('#patternFilters input').forEach(cb => cb.addEventListener('change', applyFiltersAndRender));
+
+renderTicker();
+applyFiltersAndRender();
+</script>
+
+</body>
+</html>
