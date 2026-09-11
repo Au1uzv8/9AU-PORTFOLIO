@@ -4,12 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>9AU Portfolio • Dashboard</title>
-  <!-- Favicon & Apple Touch Icon -->
+
+  <!-- Favicon & Touch Icon สำหรับ iOS / Safari -->
   <link rel="icon" type="image/png" href="profile.png">
   <link rel="apple-touch-icon" href="profile.png">
+
+  <!-- Manifest สำหรับ Android / Chrome -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Theme Color แถบด้านบนของมือถือ -->
+  <meta name="theme-color" content="#00ff9d">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#00ff9d">
   <style>
     /* Import fonts */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
@@ -183,8 +189,8 @@
   <!-- Hero -->
   <div class="container">
         <div class="hero">
-            <h1 class="floating-text">ระบบบริหารพอร์ต<br>ลงทุน ETF & FOREX</h1>
-            <p class="floating-text">รวมทุกเครื่องมือจัดการไฟล์ Version Control/ Strategy Report Tester [Upload/Download] และระบบจัดการพอร์ตโฟลิโอ</p>
+            <h1 class="floating-text">พอร์ตลงทุน<br>ETF & FOREX</h1>
+            <p class="floating-text">รวบรวมทุกเครื่องมือ จัดการไฟล์ Version Control/Strategy Report Tester [Upload/Download] และระบบจัดการ Portfolio</p>
         </div>
   </div>
 
@@ -199,7 +205,7 @@
           </svg>
         </div>
         <h3 class="floating-text">ภาพรวมพอร์ตการลงทุน</h3>
-        <p class="floating-text">ระบบบริหารพอร์ตการลงทุน &amp; MT5 Forex Monitor แบบเรียลไทม์</p>
+        <p class="floating-text">ระบบบริหารพอร์ตการลงทุน &amp; US ETF/STOCK & MT5 Forex Monitor แบบเรียลไทม์</p>
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span class="card-number floating-text">01</span>
           <span class="btn floating-text">เปิดเว็บไซต์</span>
@@ -277,24 +283,6 @@
     (function(){
       'use strict';
       // dynamic manifest for PWA icon support on mobile
-      const manifest = {
-        name: "9AU Portfolio Dashboard",
-        short_name: "9AU Portfolio",
-        icons: [
-          { src: "profile.png", sizes: "192x192", type: "image/png" },
-          { src: "profile.png", sizes: "512x512", type: "image/png" }
-        ],
-        start_url: ".",
-        display: "standalone",
-        background_color: "#0a0f0e",
-        theme_color: "#00ff9d"
-      };
-      const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("link");
-      link.rel = "manifest";
-      link.href = url;
-      document.head.appendChild(link);
 
       // openLink and hover glow
       window.openLink = function(u){ window.open(u, "_blank"); };

@@ -13,6 +13,7 @@
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -152,7 +153,7 @@
         </div>
         <div class="flex items-center gap-3 w-full md:w-auto justify-end">
           <button onclick="openModal('modalAccount')" class="px-3 py-2 rounded-xl bg-[#21262d] border border-[#30363d] text-gray-300 hover:text-white text-xs font-semibold transition">
-            ⚙️ จัดการบัญชี
+            ⚙️ จัดการยอดบัญชี Group-1
           </button>
         </div>
       </div>
@@ -194,15 +195,20 @@
           </h2>
           <span class="text-xs font-num text-gray-400">Dime! Broker</span>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="card-dark rounded-2xl p-4 card-hover transition">
+            <div class="text-xs text-gray-400 mb-1 font-medium">รวมต้นทุนซื้อ (netTHB รวม)</div>
+            <div class="text-xl font-bold text-white font-num" id="valItem4CostTHB">0.00 ฿</div>
+            <div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem4CostUSD">0.00</span> USD</div>
+          </div>
           <div class="card-dark rounded-2xl p-4 card-hover transition">
             <div class="text-xs text-gray-400 mb-1 font-medium">4.1 มูลค่าลงทุนปัจจุบัน (Market Value)</div>
             <div class="text-xl font-bold text-white font-num" id="valItem4MarketTHB">0.00 ฿</div>
             <div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem4MarketUSD">0.00</span> USD</div>
           </div>
           <div class="card-dark rounded-2xl p-4 card-hover transition">
-            <div class="text-xs text-gray-400 mb-1 font-medium flex items-center justify-between">
-              <span>4.2 กำไร / ขาดทุน ทั้งหมด (Unrealized P/L)</span>
+            <div class="text-xs text-gray-400 mb-1 flex items-center justify-between">
+              <span>4.2 กำไร / ขาดทุน ทั้งหมด</span>
               <span id="badgeItem4PnlPct" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 font-num">0.00%</span>
             </div>
             <div class="text-xl font-bold font-num" id="valItem4PnlTHB">0.00 ฿</div>
@@ -220,15 +226,20 @@
           </h2>
           <span class="text-xs font-num text-gray-400">XM Broker (Direct Range from IMPORTMT5)</span>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
           <div class="card-dark rounded-2xl p-4 card-hover transition">
-            <div class="text-xs text-gray-400 mb-1 font-medium">5.1 มูลค่าพอร์ต FOREX รวม (Equity USD/THB)</div>
+            <div class="text-xs text-gray-400 mb-1 font-medium">รวม Balance THB (เงินทุนเริ่มต้น)</div>
+            <div class="text-xl font-bold text-white font-num" id="valItem5BalanceTHB">0.00 ฿</div>
+            <div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem5BalanceUSD">0.00</span> USD</div>
+          </div>
+          <div class="card-dark rounded-2xl p-4 card-hover transition">
+            <div class="text-xs text-gray-400 mb-1 font-medium">5.1 มูลค่าพอร์ต FOREX รวม (Equity)</div>
             <div class="text-xl font-bold text-white font-num" id="valItem5EquityTHB">0.00 ฿</div>
             <div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem5EquityUSD">0.00</span> USD</div>
           </div>
           <div class="card-dark rounded-2xl p-4 card-hover transition">
-            <div class="text-xs text-gray-400 mb-1 font-medium flex items-center justify-between">
-              <span>5.2 กำไร / ขาดทุน FOREX รวม (Total P/L)</span>
+            <div class="text-xs text-gray-400 mb-1 flex items-center justify-between">
+              <span>5.2 กำไร / ขาดทุน FOREX รวม</span>
               <span id="badgeItem5PnlPct" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 font-num">0.00%</span>
             </div>
             <div class="text-xl font-bold font-num" id="valItem5PnlTHB">0.00 ฿</div>
@@ -240,36 +251,49 @@
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 font-num">
           <div class="card-dark rounded-xl p-3 border-l-4 border-l-blue-500">
             <div class="flex items-center justify-between">
-              <span class="text-[11px] text-gray-300 font-sans font-semibold">Terminal-01</span>
-              <span id="valT1Sinc" class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 font-sans">sinc: 2026-08-01</span>
+              <span class="text-[11px] text-gray-300 font-sans font-semibold" id="labelT1Title">Terminal-01</span>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 font-sans">sinc: 2026-08-01</span>
             </div>
             <div class="text-sm font-bold text-white mt-1" id="valT1Equity">$0.00</div>
             <div class="text-[10px] mt-0.5" id="valT1Pnl">$0.00</div>
           </div>
           <div class="card-dark rounded-xl p-3 border-l-4 border-l-purple-500">
             <div class="flex items-center justify-between">
-              <span class="text-[11px] text-gray-300 font-sans font-semibold">Terminal-02</span>
-              <span id="valT2Sinc" class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-300 font-sans">sinc: 2026-08-01</span>
+              <span class="text-[11px] text-gray-300 font-sans font-semibold" id="labelT2Title">Terminal-02</span>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-300 font-sans">sinc: 2026-08-01</span>
             </div>
             <div class="text-sm font-bold text-white mt-1" id="valT2Equity">$0.00</div>
             <div class="text-[10px] mt-0.5" id="valT2Pnl">$0.00</div>
           </div>
           <div class="card-dark rounded-xl p-3 border-l-4 border-l-amber-500">
             <div class="flex items-center justify-between">
-              <span class="text-[11px] text-gray-300 font-sans font-semibold">Terminal-03</span>
-              <span id="valT3Sinc" class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 font-sans">sinc: 2026-08-01</span>
+              <span class="text-[11px] text-gray-300 font-sans font-semibold" id="labelT3Title">Terminal-03</span>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 font-sans">sinc: 2026-08-01</span>
             </div>
             <div class="text-sm font-bold text-white mt-1" id="valT3Equity">$0.00</div>
             <div class="text-[10px] mt-0.5" id="valT3Pnl">$0.00</div>
           </div>
           <div class="card-dark rounded-xl p-3 border-l-4 border-l-emerald-500">
             <div class="flex items-center justify-between">
-              <span class="text-[11px] text-gray-300 font-sans font-semibold">Terminal-04</span>
-              <span id="valT4Sinc" class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-sans">sinc: 2026-08-01</span>
+              <span class="text-[11px] text-gray-300 font-sans font-semibold" id="labelT4Title">Terminal-04</span>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-sans">sinc: 2026-08-01</span>
             </div>
             <div class="text-sm font-bold text-white mt-1" id="valT4Equity">$0.00</div>
             <div class="text-[10px] mt-0.5" id="valT4Pnl">$0.00</div>
           </div>
+        </div>
+      </div>
+
+      <!-- กราฟการเติบโต MT5 FOREX (Growth by Terminal USD) -->
+      <div class="card-dark rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-1">กราฟการเติบโต MT5 FOREX (Growth by Terminal USD)</h2>
+            <p class="text-[11px] text-gray-500">เปรียบเทียบ Equity แต่ละ Terminal ตามเวลา</p>
+          </div>
+        </div>
+        <div class="relative h-60 w-full">
+          <canvas id="chartForexGrowth"></canvas>
         </div>
       </div>
 
@@ -342,6 +366,9 @@
             <button onclick="openTradeModal()" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold">
               + บันทึกรายการใหม่
             </button>
+            <button onclick="exportToPDF('viewTrades', 'Report_US_Stocks_ETF')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">
+              PDF
+            </button>
             <button onclick="exportTradesCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">
               CSV
             </button>
@@ -371,23 +398,51 @@
 
     <!-- VIEW 3: FOREX (MT5 Auto Sync Monitor) -->
     <div id="viewForex" class="hidden space-y-4">
-      <div class="card-dark rounded-2xl p-4 flex justify-between items-center">
-        <div>
-          <h2 class="text-sm font-bold text-white font-brand">สถานะ MT5 Forex Monitor</h2>
-          <p class="text-xs text-gray-400">ดึงข้อมูลอัตโนมัติจากชีต IMPORTMT5 (XM Broker)</p>
+      
+      <!-- Summary Card สรุปทุก Terminal เหมือนหน้า ETF -->
+      <div class="card-dark rounded-2xl p-4 border border-indigo-500/30 bg-[#161b22]">
+        <div class="text-xs font-bold text-indigo-400 mb-3 uppercase tracking-wider">📊 สรุปพอร์ต FOREX MT5 รวมทุก TERMINAL (USD)</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
+            <div class="text-[11px] text-gray-400">Total Balance (เงินทุนรวม)</div>
+            <div class="text-lg font-bold text-white font-num mt-1">$ <span id="forexSummaryTotalBalanceUSD">0.00</span></div>
+          </div>
+          <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
+            <div class="text-[11px] text-gray-400">Total Equity (มูลค่าพอร์ตรวม)</div>
+            <div class="text-lg font-bold text-white font-num mt-1">$ <span id="forexSummaryTotalEquityUSD">0.00</span></div>
+          </div>
+          <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
+            <div class="text-[11px] text-gray-400">Total Profit/Loss (กำไร/ขาดทุน รวม)</div>
+            <div class="text-lg font-bold font-num mt-1" id="forexSummaryTotalPnlUSD">$ 0.00</div>
+          </div>
         </div>
-        <button onclick="loadDashboardData()" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold">
-          🔄 ซิงค์ข้อมูลล่าสุด
-        </button>
       </div>
 
       <div class="card-dark rounded-2xl overflow-hidden">
+        <div class="p-4 border-b border-[#30363d] flex flex-col md:flex-row gap-3 items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-white font-brand">สถานะ MT5 Forex Monitor (ดึงสดจากชีต IMPORTMT5)</h2>
+            <p class="text-xs text-gray-400">รายละเอียดบัญชีและ EA เชื่อมต่ออัตโนมัติ</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="loadDashboardData()" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold">
+              🔄 ซิงค์ข้อมูลล่าสุด
+            </button>
+            <button onclick="exportToPDF('viewForex', 'Report_FOREX_MT5')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">
+              PDF
+            </button>
+            <button onclick="exportForexCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">
+              CSV
+            </button>
+          </div>
+        </div>
+
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs font-num">
             <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d] font-sans">
               <tr>
                 <th class="py-3 px-4">Terminal</th>
-                <th class="py-3 px-3">รายละเอียดบัญชี</th>
+                <th class="py-3 px-3">รายละเอียดบัญชี (Dynamic)</th>
                 <th class="py-3 px-3 text-right">Balance ($ USD)</th>
                 <th class="py-3 px-3 text-right">Equity ($ USD)</th>
                 <th class="py-3 px-3 text-right">Profit/Loss ($ USD)</th>
@@ -403,7 +458,7 @@
 
     <!-- VIEW 4: CASHFLOW HISTORY -->
     <div id="viewCashflow" class="hidden space-y-4">
-      <div class="card-dark rounded-2xl p-4 flex justify-between items-center">
+      <div class="card-dark rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-center justify-between">
         <div>
           <h2 class="text-sm font-bold text-white font-brand">ประวัติกระแสเงินสด (Cashflow)</h2>
           <p class="text-xs text-gray-400">บันทึกเงินสดรับ-จ่าย และโอนย้ายสภาพคล่อง</p>
@@ -411,6 +466,9 @@
         <div class="flex items-center gap-2">
           <button onclick="openCashflowModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold">
             + บันทึกรายการใหม่
+          </button>
+          <button onclick="exportToPDF('viewCashflow', 'Report_Cashflow')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">
+            PDF
           </button>
           <button onclick="exportCashflowCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">
             CSV
@@ -515,7 +573,7 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 7. MODAL ฟอร์ม กระแสเงินสด -->
+  <!-- 7. MODAL ฟอร์ม กระแสเงินสด (Dynamic Filter Category) -->
   <!-- ========================================== -->
   <div id="modalCashflow" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="card-dark rounded-2xl w-full max-w-md border border-[#30363d] overflow-hidden flex flex-col">
@@ -566,17 +624,17 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 8. MODAL จัดการ ACCOUNTS -->
+  <!-- 8. MODAL จัดการ ACCOUNTS (กรองเฉพาะ Group-1 สภาพคล่อง) -->
   <!-- ========================================== -->
   <div id="modalAccount" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="card-dark rounded-2xl w-full max-w-md border border-[#30363d] overflow-hidden flex flex-col">
       <div class="p-4 border-b border-[#30363d] flex items-center justify-between">
-        <h3 class="text-sm font-bold text-white font-brand">จัดการยอดบัญชี Group-1</h3>
+        <h3 class="text-sm font-bold text-white font-brand">จัดการยอดบัญชี Group-1 (สภาพคล่อง)</h3>
         <button onclick="closeModal('modalAccount')" class="text-gray-400 hover:text-white">&times;</button>
       </div>
       <div class="p-5 space-y-4 text-xs">
         <div>
-          <label class="block text-gray-400 mb-1">เลือกบัญชี</label>
+          <label class="block text-gray-400 mb-1">เลือกบัญชี Group-1</label>
           <select id="accSelect" onchange="onAccountSelectChange()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></select>
         </div>
         <div>
@@ -594,7 +652,7 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 9. JavaScript Engine (With Fast JSONP Timeout) -->
+  <!-- 9. JavaScript Engine -->
   <!-- ========================================== -->
   <script>
     const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw_P74pybIzkQ0SSa0RuO8lFgjbgDh5KSerIoL9NcNR1IVAOJ0Jyz3Vb4-khVlsEfNN/exec';
@@ -603,6 +661,7 @@
     let enteredPin   = '';
     let appData      = null;
     let chartTrend   = null;
+    let chartForex   = null;
 
     let selectedSide     = 'BUY';
     let selectedCashType = 'out';
@@ -613,7 +672,6 @@
       const script = document.createElement('script');
       let isHandled = false;
 
-      // Timeout 12 วินาที ป้องกันหน้าเว็บค้าง
       const timeoutId = setTimeout(() => {
         if (!isHandled) {
           isHandled = true;
@@ -734,7 +792,7 @@
     function renderDashboard() {
       if (!appData) return;
       const sum = appData.summary || {};
-      const fx  = sum.fxRate || 32.92;
+      const fx  = sum.fxRate || 33.14;
 
       document.getElementById('headerFxRate').innerText = fx.toFixed(2);
 
@@ -749,6 +807,8 @@
       document.getElementById('valItem3Emergency').innerText = formatNum(sum.emergencyTHB) + ' ฿';
 
       // Group 2
+      document.getElementById('valItem4CostTHB').innerText = formatNum(sum.usTotalNetTHBCost) + ' ฿';
+      document.getElementById('valItem4CostUSD').innerText = formatNum(sum.usCostUSD);
       document.getElementById('valItem4MarketTHB').innerText = formatNum(sum.usInvestTHB) + ' ฿';
       document.getElementById('valItem4MarketUSD').innerText = formatNum(sum.usInvestUSD);
       
@@ -763,6 +823,8 @@
       usBadge.className = `text-[10px] font-bold px-1.5 py-0.5 rounded font-num ${sum.usPnlPct >= 0 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}`;
 
       // Group 3
+      document.getElementById('valItem5BalanceTHB').innerText = formatNum(sum.forexBalanceTHB) + ' ฿';
+      document.getElementById('valItem5BalanceUSD').innerText = formatNum(sum.forexBalanceUSD);
       document.getElementById('valItem5EquityTHB').innerText = formatNum(sum.forexEquityTHB) + ' ฿';
       document.getElementById('valItem5EquityUSD').innerText = formatNum(sum.forexEquityUSD);
       
@@ -779,18 +841,50 @@
       // 4 Terminals
       const terms = sum.terminals || {};
       ['Terminal-01','Terminal-02','Terminal-03','Terminal-04'].forEach((tName, i) => {
-        const t = terms[tName] || { equity: 0, pnl: 0, sinc: '2026-08-01' };
+        const t = terms[tName] || { terminalTitle: tName, equityUSD: 0, pnlUSD: 0, sinc: '2026-08-01' };
         const idx = i + 1;
-        document.getElementById(`valT${idx}Equity`).innerText = '$' + formatNum(t.equity);
+        document.getElementById(`labelT${idx}Title`).innerText = t.terminalTitle || tName;
+        document.getElementById(`valT${idx}Equity`).innerText = '$' + formatNum(t.equityUSD);
         const pnlEl = document.getElementById(`valT${idx}Pnl`);
-        pnlEl.innerText = (t.pnl >= 0 ? '+' : '') + '$' + formatNum(t.pnl);
-        pnlEl.className = `text-[10px] mt-0.5 ${t.pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-        
-        const sincEl = document.getElementById(`valT${idx}Sinc`);
-        if (sincEl) sincEl.innerText = 'sinc: ' + (t.sinc || '2026-08-01');
+        pnlEl.innerText = (t.pnlUSD >= 0 ? '+' : '') + '$' + formatNum(t.pnlUSD);
+        pnlEl.className = `text-[10px] mt-0.5 ${t.pnlUSD >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
       });
 
+      renderForexGrowthChart();
       renderNetWorthTrendChart();
+    }
+
+    function renderForexGrowthChart() {
+      const ctx = document.getElementById('chartForexGrowth').getContext('2d');
+      const terms = appData.summary.terminals || {};
+
+      const t1 = terms['Terminal-01'] ? terms['Terminal-01'].equityUSD : 450;
+      const t2 = terms['Terminal-02'] ? terms['Terminal-02'].equityUSD : 700;
+      const t3 = terms['Terminal-03'] ? terms['Terminal-03'].equityUSD : 1160;
+      const t4 = terms['Terminal-04'] ? terms['Terminal-04'].equityUSD : 747;
+
+      if (chartForex) chartForex.destroy();
+
+      chartForex = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['เริ่มพอร์ต (2026-08-01)', 'ปัจจุบัน'],
+          datasets: [
+            { label: 'Terminal A (01)', data: [380, t1], borderColor: '#3b82f6', tension: 0.2 },
+            { label: 'Terminal B (02)', data: [580, t2], borderColor: '#a855f7', tension: 0.2 },
+            { label: 'Terminal C (03)', data: [1050, t3], borderColor: '#f59e0b', tension: 0.2 },
+            { label: 'Terminal D (04)', data: [690, t4], borderColor: '#10b981', tension: 0.2 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#8b949e', font: { family: 'JetBrains Mono', size: 10 } } } },
+          scales: {
+            x: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono' } } },
+            y: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono' }, callback: v => '$' + v } }
+          }
+        }
+      });
     }
 
     function renderNetWorthTrendChart() {
@@ -892,7 +986,7 @@
             <td class="py-3 px-3 text-right text-gray-200">${formatNum(t.shares, 4)}</td>
             <td class="py-3 px-3 text-right text-gray-300">$${formatNum(t.price, 2)}</td>
             <td class="py-3 px-3 text-right text-gray-400">$${formatNum(t.totalFee, 2)}</td>
-            <td class="py-3 px-3 text-right text-gray-400">${formatNum(t.fxRate, 2)}</td>
+            <td class="py-3 px-3 text-right text-gray-300 font-semibold">${formatNum(t.fxRate, 2)}</td>
             <td class="py-3 px-3 text-right font-semibold text-white">$${formatNum(t.netUSD, 2)}</td>
             <td class="py-3 px-4 text-center">
               <button onclick="deleteTradeItem('${t.id}')" class="text-rose-400 hover:text-white">ลบ</button>
@@ -906,21 +1000,31 @@
     /* RENDER FOREX MONITOR TABLE */
     function renderForexMonitorTable() {
       if (!appData) return;
-      const tBody = document.getElementById('forexTableBody');
-      const terms = appData.summary.terminals || {};
+      const sum = appData.summary || {};
+      const terms = sum.terminals || {};
 
+      document.getElementById('forexSummaryTotalBalanceUSD').innerText = formatNum(sum.forexBalanceUSD, 2);
+      document.getElementById('forexSummaryTotalEquityUSD').innerText = formatNum(sum.forexEquityUSD, 2);
+
+      const pnlEl = document.getElementById('forexSummaryTotalPnlUSD');
+      const pnlU = sum.forexPnlUSD || 0;
+      const pnlP = sum.forexPnlPct || 0;
+      pnlEl.innerText = (pnlU >= 0 ? '+' : '') + `$${formatNum(pnlU, 2)} (${formatNum(pnlP, 2)}%)`;
+      pnlEl.className = `text-lg font-bold font-num mt-1 ${pnlU >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+
+      const tBody = document.getElementById('forexTableBody');
       let html = '';
       ['Terminal-01','Terminal-02','Terminal-03','Terminal-04'].forEach(tKey => {
-        const t = terms[tKey] || { name: tKey, balance: 0, equity: 0, pnl: 0, growth: 0, sinc: '2026-08-01' };
-        const isGain = t.pnl >= 0;
+        const t = terms[tKey] || { terminalTitle: tKey, terminalDetail: tKey, balanceUSD: 0, equityUSD: 0, pnlUSD: 0, growth: 0, sinc: '2026-08-01' };
+        const isGain = t.pnlUSD >= 0;
         html += `
           <tr class="hover:bg-[#1c2128]">
-            <td class="py-3 px-4 font-bold text-indigo-400">${tKey}</td>
-            <td class="py-3 px-3 text-gray-300 font-sans">${t.name}</td>
-            <td class="py-3 px-3 text-right text-gray-300">$${formatNum(t.balance, 2)}</td>
-            <td class="py-3 px-3 text-right font-bold text-white">$${formatNum(t.equity, 2)}</td>
+            <td class="py-3 px-4 font-bold text-indigo-400">${t.terminalTitle || tKey}</td>
+            <td class="py-3 px-3 text-gray-300 font-sans">${t.terminalDetail || '-'}</td>
+            <td class="py-3 px-3 text-right text-gray-300">$${formatNum(t.balanceUSD, 2)}</td>
+            <td class="py-3 px-3 text-right font-bold text-white">$${formatNum(t.equityUSD, 2)}</td>
             <td class="py-3 px-3 text-right font-semibold ${isGain ? 'text-emerald-400' : 'text-rose-400'}">
-              ${isGain ? '+' : ''}$${formatNum(t.pnl, 2)}
+              ${isGain ? '+' : ''}$${formatNum(t.pnlUSD, 2)}
             </td>
             <td class="py-3 px-4 text-right">
               <span class="px-2 py-0.5 rounded text-[11px] font-bold ${isGain ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">
@@ -995,6 +1099,21 @@
         btnIn.className  = "py-2.5 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold transition";
         btnOut.className = "py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition";
       }
+      updateCashCategoryDropdown(type);
+    }
+
+    /* ผูกหมวดหมู่ให้เปลี่ยนตามทิศทางเงินทันที */
+    function updateCashCategoryDropdown(type) {
+      const catSel = document.getElementById('cashCategory');
+      if (!catSel) return;
+      const inOptions = [
+        'โอนเข้าลงทุน', 'เงินเดือน / รายได้', 'ถอนกำไรจากพอร์ต', 'เงินปันผล / ดอกเบี้ย', 'เงินคืน / รายรับอื่นๆ'
+      ];
+      const outOptions = [
+        'โอนออก', 'ค่าใช้จ่ายทั่วไป', 'ออมเงิน', 'ถอนเงินสด', 'ค่าธรรมเนียม / อื่นๆ'
+      ];
+      const targetList = (type === 'in') ? inOptions : outOptions;
+      catSel.innerHTML = targetList.map(c => `<option value="${c}">${c}</option>`).join('');
     }
 
     function openTradeModal() {
@@ -1087,15 +1206,21 @@
       if (!appData) return;
       const grpSel = document.getElementById('tradeGroup');
       if (grpSel) grpSel.innerHTML = (appData.groups || []).map(g => `<option value="${g.nameTh}">${g.nameTh}</option>`).join('');
-      const catSel = document.getElementById('cashCategory');
-      if (catSel) catSel.innerHTML = (appData.categories || []).map(c => `<option value="${c.nameTh}">${c.nameTh}</option>`).join('');
+      
       const accSel = document.getElementById('cashAccount');
-      if (accSel) accSel.innerHTML = (appData.accounts || []).map(a => `<option value="${a.name}">${a.name} (${a.currency})</option>`).join('');
+      if (accSel) {
+        // บัญชีสำหรับ Cashflow แสดงเฉพาะบัญชีสภาพคล่อง Group-1
+        const cashAccounts = (appData.accounts || []).filter(a => a.currency === 'THB' && a.id !== 'A4' && a.id !== 'A5');
+        accSel.innerHTML = cashAccounts.map(a => `<option value="${a.name}">${a.name} (${a.currency})</option>`).join('');
+      }
+      updateCashCategoryDropdown(selectedCashType);
     }
 
+    /* กรอง Dropdown แสดงเฉพาะบัญชีสภาพคล่อง Group-1 (A1, A2, A3) */
     function populateAccountSelect() {
       const sel = document.getElementById('accSelect');
-      sel.innerHTML = (appData.accounts || []).map(a => `<option value="${a.id}">${a.name} (${a.currency})</option>`).join('');
+      const g1Accounts = (appData.accounts || []).filter(a => a.id === 'A1' || a.id === 'A2' || a.id === 'A3' || (a.currency === 'THB' && a.id !== 'A4' && a.id !== 'A5'));
+      sel.innerHTML = g1Accounts.map(a => `<option value="${a.id}">${a.name} (${a.currency})</option>`).join('');
       onAccountSelectChange();
     }
 
@@ -1134,14 +1259,39 @@
       return num.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
     }
 
+    /* ส่งออก PDF ทุกหน้าจอ */
+    function exportToPDF(elementId, fileName) {
+      const element = document.getElementById(elementId);
+      const opt = {
+        margin:       [10, 10, 10, 10],
+        filename:     `${fileName}_${new Date().toISOString().slice(0,10)}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#0d1117' },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+      html2pdf().set(opt).from(element).save();
+    }
+
     function exportTradesCSV() {
       if (!appData || !appData.trades) return;
-      const headers = ['id','date','side','ticker','shares','price','totalFee','fxRate','netUSD'];
+      const headers = ['id','date','side','ticker','shares','price','commission','vat','secFee','tafFee','totalFee','fxRate','netUSD','netTHB'];
       let csv = headers.join(',') + '\n';
       appData.trades.forEach(t => {
         csv += headers.map(h => `"${String(t[h] || '').replace(/"/g, '""')}"`).join(',') + '\n';
       });
       downloadFile(csv, `TRADES_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv');
+    }
+
+    function exportForexCSV() {
+      if (!appData || !appData.summary || !appData.summary.terminals) return;
+      const terms = appData.summary.terminals;
+      const headers = ['Terminal','Detail','BalanceUSD','EquityUSD','ProfitLossUSD','GrowthPct','Since'];
+      let csv = headers.join(',') + '\n';
+      Object.keys(terms).forEach(k => {
+        const t = terms[k];
+        csv += `"${t.terminalTitle}","${t.terminalDetail}","${t.balanceUSD}","${t.equityUSD}","${t.pnlUSD}","${t.growth}%","${t.sinc}"\n`;
+      });
+      downloadFile(csv, `FOREX_MT5_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv');
     }
 
     function exportCashflowCSV() {
