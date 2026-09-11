@@ -18,7 +18,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <style>
     /* Import fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
 
     :root {
       --bg: #0a0f0e;
@@ -146,30 +146,35 @@
       font-size:13px; font-weight:500; color:#475569;
     }
 
-    /* Floating */
-    .floating { animation:float 6s ease-in-out infinite; }
-    @keyframes float {
-      0%,100% { transform:translateY(0); }
-      50%     { transform:translateY(-12px); }
+    /* Floating Animations (ปรับความเร็วและระยะขยับขึ้น) */
+    .floating { 
+      animation: float 2.8s ease-in-out infinite; 
     }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%     { transform: translateY(-14px); }
+    }
+
     .floating-text {
-      display:inline-block;
-      animation:float-text 5s ease-in-out infinite;
+      display: inline-block;
+      animation: float-text 2.6s ease-in-out infinite;
     }
     @keyframes float-text {
-      0%,100% { transform:translateY(0); }
-      50%     { transform:translateY(-8px); }
+      0%,100% { transform: translateY(0); }
+      50%     { transform: translateY(-10px); }
     }
-    /* Delays */
-    .card.delay-0 .floating-text { animation-delay:0s; }
-    .card.delay-1 .floating-text { animation-delay:.6s; }
-    .card.delay-2 .floating-text { animation-delay:1.2s; }
-    .card.delay-3 .floating-text { animation-delay:1.8s; }
-    .card.delay-4 .floating-text { animation-delay:2.4s; }
-    .card.delay-5 .floating-text { animation-delay:3s; }
-    .hero h1.floating-text   { animation-delay:0s; }
-    .hero p.floating-text    { animation-delay:.5s; }
-    .section-title.floating-text { animation-delay:1s; }
+
+    /* Delays (ลดเวลาดีเลย์ให้เข้ากับความเร็วใหม่ เกิดเป็น wave สวยงาม) */
+    .card.delay-0 .floating-text { animation-delay: 0s; }
+    .card.delay-1 .floating-text { animation-delay: .3s; }
+    .card.delay-2 .floating-text { animation-delay: .6s; }
+    .card.delay-3 .floating-text { animation-delay: .9s; }
+    .card.delay-4 .floating-text { animation-delay: 1.2s; }
+    .card.delay-5 .floating-text { animation-delay: 1.5s; }
+    
+    .hero h1.floating-text       { animation-delay: 0s; }
+    .hero p.floating-text        { animation-delay: .25s; }
+    .section-title.floating-text { animation-delay: .5s; }
   </style>
 </head>
 <body>
@@ -188,10 +193,10 @@
 
   <!-- Hero -->
   <div class="container">
-        <div class="hero">
-            <h1 class="floating-text">พอร์ตลงทุน<br>ETF & FOREX</h1>
-            <p class="floating-text">รวบรวมทุกเครื่องมือ จัดการไฟล์ Version Control/Strategy Report Tester [Upload/Download] และระบบจัดการ Portfolio</p>
-        </div>
+    <div class="hero">
+      <h1 class="floating-text">พอร์ตลงทุน<br>ETF & FOREX</h1>
+      <p class="floating-text">รวบรวมทุกเครื่องมือ จัดการไฟล์ Version Control/Strategy Report Tester [Upload/Download] และระบบจัดการ Portfolio</p>
+    </div>
   </div>
 
   <!-- Cards -->
@@ -211,8 +216,9 @@
           <span class="btn floating-text">เปิดเว็บไซต์</span>
         </div>
       </div>
+
       <div class="card delay-1" onclick="openLink('https://au1uzv8.github.io/9AU-PORTFOLIO/9AU_FOREX_EA.html')">
-        <div class="icon-wrapper floating" style="animation-delay:.6s">
+        <div class="icon-wrapper floating" style="animation-delay:.3s">
           <svg width="32" height="32" fill="none" stroke="#00ff9d" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <path d="M21 21V3"/><path d="M3 21h18"/><path d="M12 17l-4-4 4-4 4 4"/>
           </svg>
@@ -224,8 +230,9 @@
           <span class="btn floating-text">เปิดเว็บไซต์</span>
         </div>
       </div>
+
       <div class="card delay-2" onclick="openLink('https://au1uzv8.github.io/9AU-PORTFOLIO/9AU_Logic_&_System_Memory.html')">
-        <div class="icon-wrapper floating" style="animation-delay:1.2s">
+        <div class="icon-wrapper floating" style="animation-delay:.6s">
           <svg width="32" height="32" fill="none" stroke="#00ff9d" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
           </svg>
@@ -237,8 +244,9 @@
           <span class="btn floating-text">เปิดเว็บไซต์</span>
         </div>
       </div>
+
       <div class="card delay-3" onclick="openLink('https://au1uzv8.github.io/9AU-PORTFOLIO/9AU_Analysis_Introvert_Type.html')">
-        <div class="icon-wrapper floating" style="animation-delay:1.8s">
+        <div class="icon-wrapper floating" style="animation-delay:.9s">
           <svg width="32" height="32" fill="none" stroke="#ff00aa" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
           </svg>
@@ -250,8 +258,9 @@
           <span class="btn floating-text">เปิดเว็บไซต์</span>
         </div>
       </div>
+
       <div class="card delay-4" onclick="openLink('https://au1uzv8.github.io/9AU-PORTFOLIO/9AU_File-Manager.html')">
-        <div class="icon-wrapper floating" style="animation-delay:2.4s">
+        <div class="icon-wrapper floating" style="animation-delay:1.2s">
           <svg width="32" height="32" fill="none" stroke="#00ff9d" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>
           </svg>
@@ -263,8 +272,9 @@
           <span class="btn floating-text">เปิดเว็บไซต์</span>
         </div>
       </div>
+
       <div class="card delay-5" onclick="openLink('https://au1uzv8.github.io/9AU-PORTFOLIO/Future.html')">
-        <div class="icon-wrapper floating" style="animation-delay:3s">
+        <div class="icon-wrapper floating" style="animation-delay:1.5s">
           <svg width="32" height="32" fill="none" stroke="#ff00aa" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <path d="M5 12h14"/><path d="M12 5v14"/>
           </svg>
@@ -282,8 +292,6 @@
   <script>
     (function(){
       'use strict';
-      // dynamic manifest for PWA icon support on mobile
-
       // openLink and hover glow
       window.openLink = function(u){ window.open(u, "_blank"); };
       document.querySelectorAll('.card').forEach(card=>{
