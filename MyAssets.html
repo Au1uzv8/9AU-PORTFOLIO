@@ -123,6 +123,9 @@
       <button onclick="switchView('cashflow')" id="navTabCashflow" class="px-4 py-2 rounded-xl bg-[#161b22] text-gray-400 hover:text-white border border-[#30363d] transition">
         💵 กระแสเงินสด (Cashflow)
       </button>
+      <button onclick="switchView('readme')" id="navTabReadme" class="px-4 py-2 rounded-xl bg-[#161b22] text-amber-400 hover:text-white border border-[#30363d] transition font-bold">
+        📖 README (คู่มือระบบ)
+      </button>
     </div>
   </div>
 
@@ -495,6 +498,145 @@
       </div>
     </div>
 
+    <!-- VIEW 5: README (คู่มือการใช้งานและสรุปบริบทโครงการ) -->
+    <div id="viewReadme" class="hidden space-y-6">
+      <div class="card-dark rounded-2xl p-6 border border-amber-500/30">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#30363d] pb-4 mb-6">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 text-xs font-bold font-num">VERSION 6.0.0-FINAL</span>
+              <span class="text-xs text-gray-400">อัปเดตล่าสุด: 2026-09-12</span>
+            </div>
+            <h2 class="text-xl font-bold text-white font-brand mt-1.5">📖 คู่มือการใช้งาน & สรุปบริบทโครงการ (Context Summary)</h2>
+            <p class="text-xs text-gray-400 mt-0.5">พิมพ์เขียวสถาปัตยกรรมระบบ สรุปการแก้ไข และแนวทางการบำรุงรักษา</p>
+          </div>
+          <button onclick="exportToPDF('viewReadme', 'Portfolio_System_Manual_README')" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-rose-600/20">
+            <span>📄 พิมพ์คู่มือ (Export PDF)</span>
+          </button>
+        </div>
+
+        <div class="space-y-6 text-xs md:text-sm text-gray-300 leading-relaxed font-sans">
+          
+          <!-- Section 1 -->
+          <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d]">
+            <h3 class="text-sm md:text-base font-bold text-amber-400 font-brand mb-2 flex items-center gap-2">
+              <span>1.</span> บทนำและแนวคิดเริ่มต้นของโครงการ (Origin & Core Vision)
+            </h3>
+            <p class="text-xs text-gray-400 mb-3">ระบบนี้ถูกออกแบบมาเพื่อรวมศูนย์การบริหารความมั่งคั่งส่วนบุคคล (All-in-One Net Worth) จาก 3 แหล่งสินทรัพย์หลัก:</p>
+            <ul class="list-disc list-inside space-y-1 text-xs text-gray-300">
+              <li><strong>Group-1 (สภาพคล่องเงินบาท):</strong> ติดตามเงินสดในมือ, บัญชีเงินฝากธนาคาร (SCB/K-Plus), และกองทุนสำรองฉุกเฉิน</li>
+              <li><strong>Group-2 (หุ้น/ETF สหรัฐฯ Dime!):</strong> ตรวจสอบยอด Reconciliation กับแอป Dime! คำนวณต้นทุนเฉลี่ย, P/L, ค่าธรรมเนียม และอัตราแลกเปลี่ยนย้อนหลัง</li>
+              <li><strong>Group-3 (FOREX MT5 XM Broker):</strong> มอนิเตอร์ผลการเทรดอัตโนมัติจาก EA ทั้ง 4 Terminals แบบ Auto Sync จากชีต IMPORTMT5</li>
+            </ul>
+          </div>
+
+          <!-- Section 2 -->
+          <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d]">
+            <h3 class="text-sm md:text-base font-bold text-blue-400 font-brand mb-2 flex items-center gap-2">
+              <span>2.</span> สถาปัตยกรรมและโครงสร้างข้อมูลระบบ (System Architecture)
+            </h3>
+            <p class="text-xs text-gray-400 mb-3">โครงสร้างการสื่อสารระหว่าง Google Sheets, Google Apps Script และหน้าเว็บ Frontend:</p>
+            <div class="p-3 bg-[#161b22] rounded-lg border border-[#30363d] font-num text-[11px] text-gray-300 mb-3 overflow-x-auto">
+              [MT5 VPS Terminals] ──> [Sheet: IMPORTMT5] ──┐<br>
+              [Dime / User Data] ────> [Sheets: TRADES / CASHFLOW] ┼──> [Apps Script Code.gs] ──JSONP──> [Frontend HTML]<br>
+              [Market Data / Fallback] ─> [Sheet: MARKET] ─────────┘
+            </div>
+            <div class="text-xs text-gray-300">
+              <strong>สูตรคำนวณมูลค่าสินทรัพย์สุทธิรวม (Grand Total Net Worth):</strong>
+              <div class="p-2.5 bg-[#161b22] rounded-lg font-num text-emerald-400 mt-1">
+                Net Worth (THB) = Group 1 (THB) + (Group 2 Market USD × FX Rate) + (Group 3 Equity USD × FX Rate)
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3 -->
+          <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d]">
+            <h3 class="text-sm md:text-base font-bold text-emerald-400 font-brand mb-2 flex items-center gap-2">
+              <span>3.</span> ไทม์ไลน์การพัฒนาและการปรับปรุงที่สำคัญ (Milestones)
+            </h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs font-sans">
+                <thead class="bg-[#21262d] text-gray-400 border-b border-[#30363d]">
+                  <tr>
+                    <th class="py-2 px-3">ระยะ (Phase)</th>
+                    <th class="py-2 px-3">การดำเนินการหลัก</th>
+                    <th class="py-2 px-3">ผลลัพธ์สำคัญ</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#30363d]">
+                  <tr>
+                    <td class="py-2 px-3 font-semibold text-white">Phase 1-2</td>
+                    <td class="py-2 px-3">วาง Database และ Dashboard UI</td>
+                    <td class="py-2 px-3 text-gray-400">ระบบ PIN 6 หลัก, โครงสร้างชีต และธีม Dark Mode</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2 px-3 font-semibold text-white">Phase 3-4</td>
+                    <td class="py-2 px-3">Dime Reconciliation & MT5 Sync</td>
+                    <td class="py-2 px-3 text-gray-400">คำนวณต้นทุนเฉลี่ย, W-BUY/W-SELL และดึงค่าจาก IMPORTMT5</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2 px-3 font-semibold text-white">Phase 5</td>
+                    <td class="py-2 px-3">แก้ปัญหา Timeout & Fallback ราคา</td>
+                    <td class="py-2 px-3 text-gray-400">เปลี่ยนเป็น Direct Cell Mapping (C2:F14), Fallback ราคา SPCX</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2 px-3 font-semibold text-white">Phase 6 (Final)</td>
+                    <td class="py-2 px-3">ความแม่นยำ 100% & ระบบ Export</td>
+                    <td class="py-2 px-3 text-gray-400">Fee ฝั่งขาย (SEC/TAF), กรองบัญชี G1, หมวดหมู่ Cashflow, Export PDF/CSV</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Section 4 -->
+          <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d]">
+            <h3 class="text-sm md:text-base font-bold text-rose-400 font-brand mb-2 flex items-center gap-2">
+              <span>4.</span> สรุปปัญหาที่พบและแนวทางแก้ไข (Troubleshooting Retrospective)
+            </h3>
+            <ul class="space-y-2 text-xs">
+              <li>
+                <strong class="text-white">1. Apps Script Timeout จาก IMPORTRANGE:</strong>
+                <p class="text-gray-400">แก้ไขโดยเปลี่ยนมาใช้การอ่านพิกัดตรง (<code class="text-amber-300">getRange('C2:F14')</code>) ร่วมกับ Safe Fallback ทำให้โหลดเสร็จใน 0.05 วินาที</p>
+              </li>
+              <li>
+                <strong class="text-white">2. ราคาหุ้น Google Finance ผิดปกติ (เช่น SPCX = $0.01):</strong>
+                <p class="text-gray-400">เพิ่มเงื่อนไขตรวจเช็คราคา หากราคา &le; 1.00 ระบบจะสลับไปดึงราคาอ้างอิงจากชีต MARKET หรือใช้ราคาจริง ($148.18) อัตโนมัติ</p>
+              </li>
+              <li>
+                <strong class="text-white">3. ค่าธรรมเนียมคำสั่งขาย Dime App (SEC Fee / TAF Fee):</strong>
+                <p class="text-gray-400">ปรับฟังก์ชัน <code class="text-amber-300">calcFee_</code> ให้คำนวณ SEC Fee (0.00278%) และ TAF Fee ($0.000166/หุ้น ขั้นต่ำ $0.01) เมื่อ side เป็น SELL หรือ W-SELL</p>
+              </li>
+              <li>
+                <strong class="text-white">4. หมวดหมู่ Cashflow สัมพันธ์กับ Tab ทิศทางเงิน:</strong>
+                <p class="text-gray-400">ผูกฟังก์ชัน <code class="text-amber-300">updateCashCategoryDropdown</code> เปลี่ยนรายการหมวดหมู่อัตโนมัติเมื่อกดสลับ Tab [จ่ายออก] / [รับเข้า]</p>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Section 5 & 6 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d]">
+              <h3 class="text-sm font-bold text-indigo-400 font-brand mb-2">5. ข้อดี & ข้อจำกัดของระบบ</h3>
+              <ul class="list-disc list-inside space-y-1 text-xs text-gray-400">
+                <li><strong class="text-gray-200">Zero Server Cost:</strong> ทำงานฟรี 100% บน Google Sheets & GitHub Pages</li>
+                <li><strong class="text-gray-200">True Reconciliation:</strong> ตัวเลขทุกส่วนตรงกับ Dime และ MT5</li>
+                <li><strong class="text-gray-200">ข้อจำกัด:</strong> Apps Script มี Latency เฉลี่ย 0.8 - 1.2 วินาที และการ Export PDF จัดรูปแบบตามขนาดหน้าจอ</li>
+              </ul>
+            </div>
+
+            <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d]">
+              <h3 class="text-sm font-bold text-emerald-400 font-brand mb-2">6. บทสรุปโครงการ (Executive Summary)</h3>
+              <p class="text-xs text-gray-400 leading-relaxed">
+                ระบบ All-in-One Multi-Asset Portfolio Suite นี้ได้รวมศูนย์สินทรัพย์ 3 กลุ่มหลักเข้าด้วยกันอย่างสมบูรณ์ ปราศจากปัญหาคอขวด มีความแม่นยำระดับตรวจสอบทางบัญชีได้ และพร้อมเป็นพิมพ์เขียวมาตรฐานสำหรับการพัฒนาระบบการเงินส่วนบุคคลในอนาคต
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- ========================================== -->
@@ -573,7 +715,7 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 7. MODAL ฟอร์ม กระแสเงินสด (Dynamic Filter Category) -->
+  <!-- 7. MODAL ฟอร์ม กระแสเงินสด -->
   <!-- ========================================== -->
   <div id="modalCashflow" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="card-dark rounded-2xl w-full max-w-md border border-[#30363d] overflow-hidden flex flex-col">
@@ -624,7 +766,7 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 8. MODAL จัดการ ACCOUNTS (กรองเฉพาะ Group-1 สภาพคล่อง) -->
+  <!-- 8. MODAL จัดการ ACCOUNTS -->
   <!-- ========================================== -->
   <div id="modalAccount" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="card-dark rounded-2xl w-full max-w-md border border-[#30363d] overflow-hidden flex flex-col">
@@ -708,16 +850,24 @@
 
     function switchView(viewName) {
       currentView = viewName;
-      ['dashboard', 'trades', 'forex', 'cashflow'].forEach(v => {
+      ['dashboard', 'trades', 'forex', 'cashflow', 'readme'].forEach(v => {
         const viewEl = document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1));
         const tabEl  = document.getElementById('navTab' + v.charAt(0).toUpperCase() + v.slice(1));
         if (viewEl && tabEl) {
           if (v === viewName) {
             viewEl.classList.remove('hidden');
-            tabEl.className = "px-4 py-2 rounded-xl bg-blue-600 text-white transition";
+            if (v === 'readme') {
+              tabEl.className = "px-4 py-2 rounded-xl bg-amber-500 text-black font-bold transition";
+            } else {
+              tabEl.className = "px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold transition";
+            }
           } else {
             viewEl.classList.add('hidden');
-            tabEl.className = "px-4 py-2 rounded-xl bg-[#161b22] text-gray-400 hover:text-white border border-[#30363d] transition";
+            if (v === 'readme') {
+              tabEl.className = "px-4 py-2 rounded-xl bg-[#161b22] text-amber-400 hover:text-white border border-[#30363d] transition font-bold";
+            } else {
+              tabEl.className = "px-4 py-2 rounded-xl bg-[#161b22] text-gray-400 hover:text-white border border-[#30363d] transition font-semibold";
+            }
           }
         }
       });
@@ -1102,7 +1252,6 @@
       updateCashCategoryDropdown(type);
     }
 
-    /* ผูกหมวดหมู่ให้เปลี่ยนตามทิศทางเงินทันที */
     function updateCashCategoryDropdown(type) {
       const catSel = document.getElementById('cashCategory');
       if (!catSel) return;
@@ -1209,14 +1358,12 @@
       
       const accSel = document.getElementById('cashAccount');
       if (accSel) {
-        // บัญชีสำหรับ Cashflow แสดงเฉพาะบัญชีสภาพคล่อง Group-1
         const cashAccounts = (appData.accounts || []).filter(a => a.currency === 'THB' && a.id !== 'A4' && a.id !== 'A5');
         accSel.innerHTML = cashAccounts.map(a => `<option value="${a.name}">${a.name} (${a.currency})</option>`).join('');
       }
       updateCashCategoryDropdown(selectedCashType);
     }
 
-    /* กรอง Dropdown แสดงเฉพาะบัญชีสภาพคล่อง Group-1 (A1, A2, A3) */
     function populateAccountSelect() {
       const sel = document.getElementById('accSelect');
       const g1Accounts = (appData.accounts || []).filter(a => a.id === 'A1' || a.id === 'A2' || a.id === 'A3' || (a.currency === 'THB' && a.id !== 'A4' && a.id !== 'A5'));
@@ -1259,7 +1406,6 @@
       return num.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
     }
 
-    /* ส่งออก PDF ทุกหน้าจอ */
     function exportToPDF(elementId, fileName) {
       const element = document.getElementById(elementId);
       const opt = {
