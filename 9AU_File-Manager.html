@@ -3,836 +3,1363 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>9AU FOREX EA ¬∑ File Dashboard</title>
+<title>9AU PORTFOLIO ? File Manager</title>
 <style>
+  /* ===== CSS VARIABLES ===== */
   :root{
-    --bg:#0d1117; --surface:#161b22; --surface-2:#1c2128; --border:#30363d;
-    --text:#c9d1d9; --muted:#8b949e; --accent:#58a6ff; --accent-2:#79c0ff;
-    --green:#3fb950; --orange:#d29922; --red:#f85149; --purple:#a371f7;
-    --radius:10px; font-size:15px;
+    --bg:#0d1117;--surface:#161b22;--surface-2:#1c2128;--surface-3:#21262d;
+    --border:#30363d;--border-2:#3d444d;
+    --text:#c9d1d9;--muted:#8b949e;--muted-2:#656d76;
+    --accent:#58a6ff;--accent-2:#79c0ff;--accent-dim:rgba(88,166,255,.12);
+    --green:#3fb950;--green-dim:rgba(63,185,80,.12);
+    --orange:#d29922;--orange-dim:rgba(210,153,34,.12);
+    --red:#f85149;--red-dim:rgba(248,81,73,.12);
+    --purple:#a371f7;--purple-dim:rgba(163,113,247,.12);
+    --cyan:#39d353;
+    --radius:10px;--radius-sm:7px;
   }
-  *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",Tahoma,sans-serif;line-height:1.5;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",Tahoma,sans-serif;
+    font-size:14px;line-height:1.6;
+  }
+  ::selection{background:var(--accent-dim);}
+  ::-webkit-scrollbar{width:6px;height:6px;}
+  ::-webkit-scrollbar-track{background:var(--surface);}
+  ::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:4px;}
   a{color:var(--accent);text-decoration:none;}
-  header.top{padding:18px 20px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#131820,#0d1117);position:sticky;top:0;z-index:20;}
-  .top-inner{max-width:1200px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;}
+  a:hover{text-decoration:underline;}
+  code{background:var(--surface-3);border:1px solid var(--border);
+    padding:1px 6px;border-radius:5px;font-size:12px;font-family:monospace;}
+
+  /* ===== HEADER ===== */
+  header.top{
+    padding:14px 20px;border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg,#131820 0%,#0d1117 100%);
+    position:sticky;top:0;z-index:30;
+  }
+  .top-inner{
+    max-width:1280px;margin:0 auto;
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;
+  }
   .brand{display:flex;align-items:center;gap:10px;}
-  .brand .logo{font-size:26px;}
-  .brand h1{font-size:18px;margin:0;}
-  .brand small{color:var(--muted);display:block;font-size:12px;}
-  .repo-link{font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:6px 10px;border-radius:8px;}
-  .repo-link a{color:var(--accent-2);}
+  .brand-logo{font-size:28px;line-height:1;}
+  .brand-text h1{font-size:17px;font-weight:700;letter-spacing:.01em;}
+  .brand-text small{color:var(--muted);font-size:11.5px;}
+  .header-meta{
+    display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px;
+  }
+  .meta-pill{
+    background:var(--surface-3);border:1px solid var(--border);
+    padding:5px 10px;border-radius:20px;color:var(--muted);
+    display:flex;align-items:center;gap:5px;
+  }
+  .meta-pill span{color:var(--accent-2);font-weight:600;}
+  .live-dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--green);box-shadow:0 0 6px var(--green);display:inline-block;
+  }
 
-  nav.tabs{max-width:1200px;margin:14px auto 0;display:flex;gap:8px;padding:0 20px;flex-wrap:wrap;}
-  .tab-btn{background:var(--surface);border:1px solid var(--border);color:var(--muted);padding:10px 16px;border-radius:8px 8px 0 0;cursor:pointer;font-size:14px;font-weight:600;transition:.15s;}
-  .tab-btn:hover{color:var(--text);}
-  .tab-btn.active{color:var(--bg);background:var(--accent);border-color:var(--accent);}
+  /* ===== TABS ===== */
+  .tab-wrap{
+    max-width:1280px;margin:0 auto;
+    padding:12px 20px 0;display:flex;gap:6px;flex-wrap:wrap;
+  }
+  .tab-btn{
+    background:var(--surface);border:1px solid var(--border);
+    color:var(--muted);padding:9px 16px;border-radius:8px 8px 0 0;
+    cursor:pointer;font-size:13.5px;font-weight:600;
+    transition:all .15s;display:flex;align-items:center;gap:6px;
+  }
+  .tab-btn:hover{color:var(--text);border-color:var(--border-2);}
+  .tab-btn.active{
+    color:#04121f;background:var(--accent);border-color:var(--accent);
+  }
+  .tab-count{
+    background:rgba(0,0,0,.2);border-radius:20px;
+    padding:1px 7px;font-size:11px;font-weight:700;
+  }
+  .tab-btn.active .tab-count{background:rgba(0,0,0,.25);}
 
-  main{max-width:1200px;margin:0 auto;padding:18px 20px 60px;}
+  /* ===== MAIN CONTENT ===== */
+  main{max-width:1280px;margin:0 auto;padding:18px 20px 80px;}
   section.view{display:none;}
   section.view.active{display:block;}
 
-  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
-  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
-  .stat-card .num{font-size:22px;font-weight:700;color:var(--accent-2);}
-  .stat-card .label{font-size:12px;color:var(--muted);margin-top:4px;}
+  /* ===== STAT CARDS ===== */
+  .stats-row{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:12px;margin-bottom:18px;
+  }
+  .stat-card{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:16px;position:relative;overflow:hidden;
+  }
+  .stat-card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:2px;
+    background:var(--accent);
+  }
+  .stat-card.green::before{background:var(--green);}
+  .stat-card.orange::before{background:var(--orange);}
+  .stat-card.purple::before{background:var(--purple);}
+  .stat-icon{font-size:22px;margin-bottom:6px;}
+  .stat-num{font-size:26px;font-weight:800;color:var(--accent-2);line-height:1;}
+  .stat-card.green .stat-num{color:var(--green);}
+  .stat-card.orange .stat-num{color:var(--orange);}
+  .stat-card.purple .stat-num{color:var(--purple);}
+  .stat-label{font-size:11.5px;color:var(--muted);margin-top:5px;}
 
-  .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;background:var(--surface);padding:12px;border-radius:var(--radius);border:1px solid var(--border);}
-  .toolbar input[type=text], .toolbar select{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:8px;font-size:14px;}
-  .toolbar input[type=text]{flex:1;min-width:180px;}
-  .chip-group{display:flex;gap:6px;flex-wrap:wrap;}
-  .chip{padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface-2);color:var(--muted);font-size:12px;cursor:pointer;}
+  /* ===== TOOLBAR ===== */
+  .toolbar{
+    display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;
+    background:var(--surface);padding:12px;
+    border-radius:var(--radius);border:1px solid var(--border);
+  }
+  .toolbar input[type=text],.toolbar select{
+    background:var(--surface-2);border:1px solid var(--border);
+    color:var(--text);padding:8px 12px;border-radius:var(--radius-sm);
+    font-size:13.5px;outline:none;transition:.15s;
+  }
+  .toolbar input[type=text]:focus,.toolbar select:focus{border-color:var(--accent);}
+  .toolbar input[type=text]{flex:1;min-width:200px;}
+  .toolbar select{min-width:170px;}
+  .chip-group{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .chip{
+    padding:6px 13px;border-radius:20px;border:1px solid var(--border);
+    background:var(--surface-2);color:var(--muted);
+    font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;
+  }
+  .chip:hover{border-color:var(--accent);color:var(--text);}
   .chip.active{background:var(--accent);color:#04121f;border-color:var(--accent);font-weight:700;}
+  .chip-ea.active{background:var(--purple);border-color:var(--purple);color:#fff;}
+  .chip-report.active{background:var(--green);border-color:var(--green);color:#04121f;}
+  .chip-doc.active{background:var(--orange);border-color:var(--orange);color:#04121f;}
 
-  .type-section{margin-bottom:26px;}
-  .type-title{font-size:16px;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-  .cat-block{margin-bottom:16px;}
-  .cat-head{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;display:flex;justify-content:space-between;}
+  /* ===== TYPE SECTION ===== */
+  .type-section{margin-bottom:28px;}
+  .type-header{
+    display:flex;align-items:center;gap:10px;
+    padding:12px 0 10px;border-bottom:2px solid var(--border);margin-bottom:14px;
+  }
+  .type-header h2{font-size:16px;font-weight:700;}
+  .type-header .count-pill{
+    background:var(--surface-2);border:1px solid var(--border);
+    padding:3px 10px;border-radius:20px;font-size:12px;color:var(--muted);
+  }
+  .cat-block{margin-bottom:18px;}
+  .cat-header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:6px 0;margin-bottom:8px;border-bottom:1px dashed var(--border);
+  }
+  .cat-title{font-size:12.5px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+  .cat-count{font-size:12px;color:var(--muted-2);}
 
-  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
-  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);font-size:13.5px;}
-  th{background:var(--surface-2);color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;}
+  /* ===== TABLE ===== */
+  .table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
+  table{width:100%;border-collapse:collapse;background:var(--surface);}
+  th{
+    padding:10px 14px;text-align:left;background:var(--surface-2);
+    color:var(--muted);font-size:11px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.04em;
+    border-bottom:1px solid var(--border);white-space:nowrap;
+  }
+  td{
+    padding:10px 14px;border-bottom:1px solid var(--border);
+    font-size:13.5px;vertical-align:middle;
+  }
   tr:last-child td{border-bottom:none;}
-  tr:hover td{background:#1a212b;}
-  td.actions{white-space:nowrap;display:flex;gap:6px;flex-wrap:wrap;}
-  .file-name{font-weight:600;word-break:break-all;}
+  tbody tr:hover td{background:var(--surface-2);}
+  .file-name{font-weight:600;word-break:break-all;line-height:1.4;}
+  td.actions{white-space:nowrap;}
+  .actions-inner{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
 
-  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;margin-left:6px;white-space:nowrap;}
-  .badge-version{background:#1f2937;color:var(--accent-2);border:1px solid var(--border);}
-  .badge-new{background:rgba(210,153,34,.15);color:var(--orange);border:1px solid var(--orange);}
-  .badge-latest{background:rgba(63,185,80,.15);color:var(--green);border:1px solid var(--green);}
-  .badge-history{background:rgba(139,148,158,.15);color:var(--muted);border:1px solid var(--border);}
-  .badge-pending{background:rgba(163,113,247,.15);color:var(--purple);border:1px solid var(--purple);}
+  /* ===== BADGES ===== */
+  .badge{
+    display:inline-flex;align-items:center;gap:3px;
+    padding:2px 8px;border-radius:20px;
+    font-size:11px;font-weight:700;white-space:nowrap;
+  }
+  .bv{background:var(--surface-3);color:var(--accent-2);border:1px solid var(--border);}
+  .bn{background:var(--orange-dim);color:var(--orange);border:1px solid var(--orange);}
+  .bl{background:var(--green-dim);color:var(--green);border:1px solid var(--green);}
+  .bh{background:var(--surface-3);color:var(--muted);border:1px solid var(--border);}
+  .bp{background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple);}
+  .bext{background:var(--surface-3);color:var(--muted-2);border:1px solid var(--border);font-family:monospace;}
 
-  .btn{border:1px solid var(--border);background:var(--surface-2);color:var(--text);padding:7px 12px;border-radius:8px;font-size:12.5px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:4px;}
-  .btn:hover{border-color:var(--accent);}
+  /* ===== BUTTONS ===== */
+  .btn{
+    border:1px solid var(--border);background:var(--surface-2);color:var(--text);
+    padding:7px 12px;border-radius:var(--radius-sm);font-size:12.5px;
+    cursor:pointer;font-weight:600;
+    display:inline-flex;align-items:center;gap:5px;
+    transition:all .15s;white-space:nowrap;
+  }
+  .btn:hover:not(:disabled){border-color:var(--accent-2);color:var(--accent-2);}
   .btn-primary{background:var(--accent);color:#04121f;border-color:var(--accent);}
-  .btn-primary:hover{background:var(--accent-2);}
-  .btn-sm{padding:6px 10px;font-size:12px;}
-  .btn-danger{color:var(--red);}
-  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-primary:hover:not(:disabled){background:var(--accent-2);border-color:var(--accent-2);color:#04121f;}
+  .btn-green{background:var(--green-dim);color:var(--green);border-color:var(--green);}
+  .btn-orange{background:var(--orange-dim);color:var(--orange);border-color:var(--orange);}
+  .btn-danger{background:var(--red-dim);color:var(--red);border-color:var(--red);}
+  .btn-sm{padding:5px 9px;font-size:12px;}
+  .btn:disabled{opacity:.35;cursor:not-allowed;}
 
-  .empty-state{padding:40px 20px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius);}
+  /* ===== EMPTY STATE ===== */
+  .empty-state{
+    padding:48px 20px;text-align:center;color:var(--muted);
+    background:var(--surface);border:1px dashed var(--border);
+    border-radius:var(--radius);
+  }
+  .empty-icon{font-size:36px;margin-bottom:10px;}
+  .empty-text{font-size:14px;}
 
-  /* Upload helper */
-  .upload-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;}
+  /* ===== UPLOAD HELPER ===== */
+  .upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
   @media(max-width:900px){.upload-grid{grid-template-columns:1fr;}}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
-  .card h3{margin-top:0;font-size:15px;}
-  .form-row{margin-bottom:12px;display:flex;flex-direction:column;gap:6px;}
-  .form-row label{font-size:12.5px;color:var(--muted);font-weight:600;}
-  .form-row input,.form-row select{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:9px 10px;border-radius:8px;font-size:14px;width:100%;}
-  .hint{font-size:12px;color:var(--muted);}
-  .path-box{background:var(--surface-2);border:1px dashed var(--accent);border-radius:8px;padding:10px;font-family:monospace;font-size:12.5px;word-break:break-all;margin-top:8px;}
-  .steps{margin:0;padding-left:18px;font-size:13.5px;color:var(--text);}
-  .steps li{margin-bottom:6px;}
-  .info-box{background:rgba(88,166,255,.08);border:1px solid var(--accent);border-radius:8px;padding:12px;font-size:13px;margin-bottom:16px;}
+  .card{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:18px;
+  }
+  .card h3{
+    font-size:15px;font-weight:700;margin-bottom:16px;
+    padding-bottom:10px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:7px;
+  }
+  .form-row{margin-bottom:12px;display:flex;flex-direction:column;gap:5px;}
+  .form-row label{
+    font-size:12px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;letter-spacing:.03em;
+  }
+  .form-row input,.form-row select{
+    background:var(--surface-2);border:1px solid var(--border);
+    color:var(--text);padding:9px 12px;border-radius:var(--radius-sm);
+    font-size:13.5px;width:100%;outline:none;transition:.15s;
+  }
+  .form-row input:focus,.form-row select:focus{border-color:var(--accent);}
+  .form-row input[type=file]{padding:6px;}
+  .hint{font-size:12px;color:var(--muted);margin-top:3px;}
 
-  /* Responsive table -> card */
-  @media(max-width:720px){
+  .info-box{
+    background:var(--accent-dim);border:1px solid var(--accent);
+    border-radius:var(--radius-sm);padding:12px 14px;
+    font-size:13px;margin-bottom:16px;line-height:1.6;
+  }
+  .warn-box{
+    background:var(--orange-dim);border:1px solid var(--orange);
+    border-radius:var(--radius-sm);padding:12px 14px;
+    font-size:13px;margin-bottom:12px;
+  }
+  .success-box{
+    background:var(--green-dim);border:1px solid var(--green);
+    border-radius:var(--radius-sm);padding:12px 14px;
+    font-size:13px;margin-bottom:12px;
+  }
+  .path-box{
+    background:var(--surface-3);border:1px dashed var(--accent);
+    border-radius:var(--radius-sm);padding:10px 12px;
+    font-family:monospace;font-size:12.5px;word-break:break-all;
+    margin:8px 0;line-height:1.7;
+  }
+  .steps{padding-left:20px;}
+  .steps li{margin-bottom:7px;font-size:13.5px;line-height:1.6;}
+  .steps code{font-size:12px;}
+  .pending-section{margin-top:24px;}
+  .pending-section h3{font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+  .divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+
+  /* ===== MODAL ===== */
+  .overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.65);
+    display:flex;align-items:center;justify-content:center;
+    z-index:100;padding:16px;
+  }
+  .overlay[hidden]{display:none;}
+  .modal{
+    background:var(--surface);border:1px solid var(--border-2);
+    border-radius:var(--radius);max-width:580px;width:100%;
+    max-height:88vh;overflow-y:auto;
+    box-shadow:0 20px 60px rgba(0,0,0,.6);
+  }
+  .modal-head{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 20px;border-bottom:1px solid var(--border);
+    position:sticky;top:0;background:var(--surface);z-index:2;
+  }
+  .modal-head h3{font-size:16px;font-weight:700;}
+  .modal-body{padding:18px 20px;}
+  .close-x{
+    background:none;border:1px solid var(--border);color:var(--muted);
+    font-size:18px;line-height:1;width:30px;height:30px;
+    border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .close-x:hover{color:var(--text);border-color:var(--border-2);}
+  .history-row{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:10px 0;border-bottom:1px solid var(--border);
+  }
+  .history-row:last-child{border-bottom:none;}
+  .history-name{font-weight:600;font-size:13px;flex:1;word-break:break-all;}
+
+  /* ===== TOAST ===== */
+  #toast-container{
+    position:fixed;bottom:20px;right:20px;
+    display:flex;flex-direction:column;gap:8px;z-index:200;
+    pointer-events:none;
+  }
+  .toast{
+    background:var(--surface-3);border:1px solid var(--border-2);
+    color:var(--text);padding:12px 16px;border-radius:var(--radius-sm);
+    font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.5);
+    animation:slideUp .2s ease;max-width:320px;pointer-events:auto;
+  }
+  .toast.ok{border-left:3px solid var(--green);}
+  .toast.err{border-left:3px solid var(--red);}
+  .toast.info{border-left:3px solid var(--accent);}
+  @keyframes slideUp{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+  /* ===== RESPONSIVE TABLE  CARD ===== */
+  @media(max-width:700px){
+    .table-wrap{border:none;border-radius:0;}
     table thead{display:none;}
-    table, table tbody, table tr, table td{display:block;width:100%;}
-    table tr{border-bottom:1px solid var(--border);padding:10px 0;}
-    table td{border:none;padding:4px 0;}
-    table td::before{content:attr(data-label);font-size:11px;color:var(--muted);display:block;text-transform:uppercase;}
-    td.actions{padding-top:8px;}
+    table,table tbody,table tr,table td{display:block;width:100%;}
+    table tr{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);margin-bottom:10px;padding:10px;
+    }
+    table td{border:none;padding:4px 2px;}
+    table td::before{
+      content:attr(data-label);
+      font-size:10.5px;color:var(--muted);display:block;
+      text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;
+    }
+    td.actions{padding-top:10px;}
+  }
+  @media(max-width:500px){
+    .toolbar{flex-direction:column;}
+    .toolbar input[type=text]{min-width:unset;}
+    .stats-row{grid-template-columns:repeat(2,1fr);}
   }
 
-  /* Modal */
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;}
-  .overlay[hidden]{display:none;}
-  .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-width:560px;width:100%;max-height:85vh;overflow-y:auto;padding:20px;}
-  .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
-  .modal-head h3{margin:0;font-size:16px;}
-  .close-x{cursor:pointer;background:none;border:none;color:var(--muted);font-size:20px;}
-
-  /* Toast */
-  #toast-container{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:8px;z-index:200;}
-  .toast{background:var(--surface);border:1px solid var(--accent);color:var(--text);padding:12px 16px;border-radius:8px;font-size:13.5px;box-shadow:0 4px 14px rgba(0,0,0,.4);animation:slideIn .2s ease;}
-  .toast.error{border-color:var(--red);}
-  @keyframes slideIn{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
-
-  footer{text-align:center;color:var(--muted);font-size:12px;padding:20px;border-top:1px solid var(--border);}
-  .pending-table-wrap{margin-top:16px;}
+  footer{
+    text-align:center;color:var(--muted-2);font-size:12px;
+    padding:20px;border-top:1px solid var(--border);
+  }
 </style>
 </head>
 <body>
 
+<!-- ===== HEADER ===== -->
 <header class="top">
   <div class="top-inner">
     <div class="brand">
-      <span class="logo">üìÅ</span>
-      <div><h1>9AU FOREX EA ‚Äî File Dashboard</h1><small>File Manager (Guided Static Mode)</small></div>
+      <div class="brand-logo">??</div>
+      <div class="brand-text">
+        <h1>9AU PORTFOLIO ? File Manager</h1>
+        <small>Guided Static Mode ? ForexDoc File Repository</small>
+      </div>
     </div>
-    <div class="repo-link">Repo: <a id="repoLink" href="#" target="_blank" rel="noopener noreferrer">-</a> ¬∑ Branch: <span id="branchName">-</span></div>
+    <div class="header-meta">
+      <div class="meta-pill">
+        ?? Repo: <span><a id="hRepoLink" href="https://github.com/Au1uzv8/9AU-PORTFOLIO" target="_blank" rel="noopener noreferrer">Au1uzv8/9AU-PORTFOLIO</a></span>
+      </div>
+      <div class="meta-pill">
+        ?? Branch: <span id="hBranch">main</span>
+      </div>
+      <div class="meta-pill">
+        <span class="live-dot"></span> Static Mode
+      </div>
+    </div>
   </div>
-  <nav class="tabs">
-    <button class="tab-btn active" data-view="dashboard">üè† Dashboard</button>
-    <button class="tab-btn" data-view="history">üîé Search / History</button>
-    <button class="tab-btn" data-view="upload">‚¨ÜÔ∏è Upload Helper</button>
-  </nav>
+
+  <!-- TABS -->
+  <div class="tab-wrap">
+    <button class="tab-btn active" data-view="dashboard">
+      ?? Dashboard <span class="tab-count" id="tcDash">-</span>
+    </button>
+    <button class="tab-btn" data-view="history">
+      ?? Search / History <span class="tab-count" id="tcHist">-</span>
+    </button>
+    <button class="tab-btn" data-view="upload">
+      ?? Upload Helper
+    </button>
+  </div>
 </header>
 
 <main>
-
-  <!-- DASHBOARD -->
+  <!-- ===== VIEW: DASHBOARD ===== -->
   <section class="view active" id="view-dashboard">
     <div class="stats-row" id="statsRow"></div>
     <div class="toolbar">
-      <input type="text" id="dashSearch" placeholder="üîç ‡∏Ñ‡πâ‡∏ô‡∏´‡∏≤‡∏ä‡∏∑‡πà‡∏≠‡πÑ‡∏ü‡∏•‡πå...">
+      <input type="text" id="dashSearch" placeholder="?? §ÈπÀ“™◊ËÕ‰ø≈Ï...">
       <div class="chip-group" id="dashTypeChips"></div>
       <div class="chip-group" id="dashCatChips"></div>
-      <button class="btn" id="refreshBtn">üîÑ ‡∏£‡∏µ‡πÄ‡∏ü‡∏£‡∏ä‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏•</button>
+      <button class="btn" id="refreshBtn">?? √’‡ø√™</button>
     </div>
-    <div id="dashboardContent"></div>
+    <div id="dashContent"></div>
   </section>
 
-  <!-- HISTORY / SEARCH -->
+  <!-- ===== VIEW: SEARCH / HISTORY ===== -->
   <section class="view" id="view-history">
     <div class="toolbar">
-      <input type="text" id="histSearch" placeholder="üîç ‡∏Ñ‡πâ‡∏ô‡∏´‡∏≤‡πÑ‡∏ü‡∏•‡πå‡∏ó‡∏±‡πâ‡∏á‡∏´‡∏°‡∏î (‡∏ó‡∏∏‡∏Å‡πÄ‡∏ß‡∏≠‡∏£‡πå‡∏ä‡∏±‡∏ô)...">
-      <select id="histTypeFilter">
-        <option value="ALL">‡∏ó‡∏∏‡∏Å‡∏õ‡∏£‡∏∞‡πÄ‡∏†‡∏ó</option>
-        <option value="EA">Expert Advisor (EA)</option>
-        <option value="REPORT">Strategy Tester Report</option>
+      <input type="text" id="histSearch" placeholder="?? §ÈπÀ“∑ÿ°‰ø≈Ï ∑ÿ°‡«Õ√Ï™—π...">
+      <select id="histType">
+        <option value="ALL">∑ÿ°ª√–‡¿∑</option>
+        <option value="EA">Expert Advisor (.mq5)</option>
+        <option value="REPORT">Strategy Tester Report (.xlsx)</option>
         <option value="DOC">Plain Text Files</option>
       </select>
-      <select id="histStatusFilter">
-        <option value="ALL">‡∏ó‡∏∏‡∏Å‡∏™‡∏ñ‡∏≤‡∏ô‡∏∞</option>
-        <option value="LATEST">‡πÄ‡∏â‡∏û‡∏≤‡∏∞‡πÑ‡∏ü‡∏•‡πå‡∏•‡πà‡∏≤‡∏™‡∏∏‡∏î</option>
-        <option value="HISTORY">‡πÄ‡∏â‡∏û‡∏≤‡∏∞‡πÄ‡∏ß‡∏≠‡∏£‡πå‡∏ä‡∏±‡∏ô‡πÄ‡∏Å‡πà‡∏≤</option>
+      <select id="histCat">
+        <option value="ALL">∑ÿ°À¡«¥À¡ŸË</option>
+        <option value="7 EA COMBINE">7 EA COMBINE</option>
+        <option value="11 EA SOLO">11 EA SOLO</option>
+        <option value="Context Summary">Context Summary</option>
+      </select>
+      <select id="histStatus">
+        <option value="ALL">∑ÿ° ∂“π–</option>
+        <option value="LATEST">Latest ‡∑Ë“π—Èπ</option>
+        <option value="HISTORY">History ‡∑Ë“π—Èπ</option>
+        <option value="PENDING">Pending ‡∑Ë“π—Èπ</option>
       </select>
       <select id="histSort">
-        <option value="name">‡πÄ‡∏£‡∏µ‡∏¢‡∏á‡∏ï‡∏≤‡∏°‡∏ä‡∏∑‡πà‡∏≠</option>
-        <option value="version">‡πÄ‡∏£‡∏µ‡∏¢‡∏á‡∏ï‡∏≤‡∏°‡πÄ‡∏ß‡∏≠‡∏£‡πå‡∏ä‡∏±‡∏ô (‡∏°‡∏≤‡∏Å‚Üí‡∏ô‡πâ‡∏≠‡∏¢)</option>
-        <option value="date">‡πÄ‡∏£‡∏µ‡∏¢‡∏á‡∏ï‡∏≤‡∏°‡∏ß‡∏±‡∏ô‡∏ó‡∏µ‡πà</option>
+        <option value="name">‡√’¬ßµ“¡™◊ËÕ AZ</option>
+        <option value="ver_desc">‡√’¬ß‡«Õ√Ï™—π  ŸßµË”</option>
+        <option value="ver_asc">‡√’¬ß‡«Õ√Ï™—π µË” Ÿß</option>
+        <option value="date_desc">‡√’¬ß«—π∑’Ë „À¡Ë‡°Ë“</option>
       </select>
     </div>
-    <div id="historyContent"></div>
+    <div id="histCount" style="font-size:12.5px;color:var(--muted);margin-bottom:10px;"></div>
+    <div id="histContent"></div>
   </section>
 
-  <!-- UPLOAD HELPER -->
+  <!-- ===== VIEW: UPLOAD HELPER ===== -->
   <section class="view" id="view-upload">
     <div class="info-box">
-      ‚ÑπÔ∏è ‡πÇ‡∏´‡∏°‡∏î‡∏ô‡∏µ‡πâ <b>‡πÑ‡∏°‡πà‡πÉ‡∏ä‡πâ GitHub Token</b> ‚Äî ‡∏£‡∏∞‡∏ö‡∏ö‡∏à‡∏∞‡∏ä‡πà‡∏ß‡∏¢‡∏ö‡∏≠‡∏Å‡∏ï‡∏≥‡πÅ‡∏´‡∏ô‡πà‡∏á‡πÇ‡∏ü‡∏•‡πÄ‡∏î‡∏≠‡∏£‡πå‡∏ó‡∏µ‡πà‡∏ñ‡∏π‡∏Å‡∏ï‡πâ‡∏≠‡∏á‡πÅ‡∏•‡∏∞‡∏™‡∏£‡πâ‡∏≤‡∏á‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏• metadata ‡πÉ‡∏´‡πâ
-      ‡∏à‡∏≤‡∏Å‡∏ô‡∏±‡πâ‡∏ô‡∏Ñ‡∏∏‡∏ì‡∏ô‡∏≥‡πÑ‡∏ü‡∏•‡πå‡πÑ‡∏õ‡∏ß‡∏≤‡∏á‡∏ï‡∏≤‡∏° path ‡∏ó‡∏µ‡πà‡πÅ‡∏ô‡∏∞‡∏ô‡∏≥ ‡πÅ‡∏•‡πâ‡∏ß <b>Commit + Push ‡∏ú‡πà‡∏≤‡∏ô GitHub Desktop ‡∏ï‡∏≤‡∏°‡∏õ‡∏Å‡∏ï‡∏¥</b>
+      ?? <b>Guided Static Mode</b> ó √–∫∫π’È<b>‰¡ËµÈÕß„™È GitHub Token</b>
+      ∑”ÀπÈ“∑’Ë™Ë«¬«‘‡§√“–ÀÏ‰ø≈Ï ·π–π” path ∑’Ë∂Ÿ°µÈÕß ‡ª√’¬∫‡∑’¬∫‡«Õ√Ï™—π ·≈–· ¥ß preview °ËÕπ Push
+      <br>°“√ Push ‰ø≈Ï®√‘ß¬—ß§ß∑”ºË“π <b>GitHub Desktop µ“¡ª°µ‘</b> ‰¡Ë¡’°“√‡ª≈’Ë¬π·ª≈ß workflow ‡¥‘¡
     </div>
+
     <div class="upload-grid">
+      <!-- LEFT: Analyzer -->
       <div class="card">
-        <h3>1Ô∏è‚É£ ‡∏ß‡∏¥‡πÄ‡∏Ñ‡∏£‡∏≤‡∏∞‡∏´‡πå‡πÑ‡∏ü‡∏•‡πå‡πÉ‡∏´‡∏°‡πà</h3>
+        <h3>1?? «‘‡§√“–ÀÏ‰ø≈Ï„À¡Ë</h3>
         <div class="form-row">
-          <label>‡∏õ‡∏£‡∏∞‡πÄ‡∏†‡∏ó‡πÑ‡∏ü‡∏•‡πå (Type)</label>
+          <label>ª√–‡¿∑‰ø≈Ï (Type)</label>
           <select id="upType">
-            <option value="EA">Expert Advisor (.mq5)</option>
-            <option value="REPORT">Strategy Tester Report (.xlsx)</option>
-            <option value="DOC">Plain Text (.yaml/.md/.txt)</option>
+            <option value="EA">?? Expert Advisor (.mq5)</option>
+            <option value="REPORT">?? Strategy Tester Report (.xlsx)</option>
+            <option value="DOC">?? Plain Text Files (.yaml/.md/.txt)</option>
           </select>
         </div>
         <div class="form-row">
-          <label>‡∏´‡∏°‡∏ß‡∏î‡∏´‡∏°‡∏π‡πà (Category)</label>
-          <select id="upCategory"></select>
+          <label>À¡«¥À¡ŸË (Category)</label>
+          <select id="upCat"></select>
         </div>
-        <div class="form-row" id="upCustomCatRow" style="display:none;">
-          <label>‡∏£‡∏∞‡∏ö‡∏∏‡∏´‡∏°‡∏ß‡∏î‡∏´‡∏°‡∏π‡πà‡πÉ‡∏´‡∏°‡πà</label>
-          <input type="text" id="upCustomCat" placeholder="‡πÄ‡∏ä‡πà‡∏ô 12 EA NEW GROUP">
-        </div>
-        <div class="form-row">
-          <label>‡πÄ‡∏•‡∏∑‡∏≠‡∏Å‡πÑ‡∏ü‡∏•‡πå (‡∏≠‡πà‡∏≤‡∏ô‡πÅ‡∏Ñ‡πà‡∏ä‡∏∑‡πà‡∏≠‡πÑ‡∏ü‡∏•‡πå ‡πÑ‡∏°‡πà‡∏°‡∏µ‡∏Å‡∏≤‡∏£‡∏≠‡∏±‡∏õ‡πÇ‡∏´‡∏•‡∏î‡∏à‡∏£‡∏¥‡∏á)</label>
-          <input type="file" id="upFileInput" accept=".mq5,.xlsx,.yaml,.yml,.md,.txt">
+        <div id="upCustomCatRow" class="form-row" style="display:none;">
+          <label>√–∫ÿÀ¡«¥À¡ŸË„À¡Ë</label>
+          <input type="text" id="upCustomCat" placeholder="‡™Ëπ 12 EA HYBRID">
         </div>
         <div class="form-row">
-          <label>‡∏´‡∏£‡∏∑‡∏≠‡∏£‡∏∞‡∏ö‡∏∏‡∏ä‡∏∑‡πà‡∏≠‡πÑ‡∏ü‡∏•‡πå‡∏î‡πâ‡∏ß‡∏¢‡∏ï‡∏ô‡πÄ‡∏≠‡∏á</label>
-          <input type="text" id="upManualName" placeholder="‡πÄ‡∏ä‡πà‡∏ô 9AU_GOLD_COMBINE_M5_CAP450_V19_12.mq5">
+          <label>‡≈◊Õ°‰ø≈Ï (ÕË“π·§Ë™◊ËÕ ‰¡Ë upload ®√‘ß)</label>
+          <input type="file" id="upFile" accept=".mq5,.xlsx,.yaml,.yml,.md,.txt">
         </div>
-        <button class="btn btn-primary" id="analyzeBtn">üîç ‡∏ß‡∏¥‡πÄ‡∏Ñ‡∏£‡∏≤‡∏∞‡∏´‡πå‡πÑ‡∏ü‡∏•‡πå</button>
-
+        <div class="form-row">
+          <label>À√◊Õæ‘¡æÏ™◊ËÕ‰ø≈Ï¥È«¬µπ‡Õß</label>
+          <input type="text" id="upManual" placeholder="‡™Ëπ 9AU_GOLD_COMBINE_M5_CAP450_V19_12.mq5">
+        </div>
+        <button class="btn btn-primary" id="analyzeBtn">?? «‘‡§√“–ÀÏ‰ø≈Ï</button>
         <div id="analyzeResult" style="margin-top:16px;"></div>
       </div>
 
+      <!-- RIGHT: Steps -->
       <div class="card">
-        <h3>2Ô∏è‚É£ ‡∏Ç‡∏±‡πâ‡∏ô‡∏ï‡∏≠‡∏ô‡∏ó‡∏µ‡πà‡∏ï‡πâ‡∏≠‡∏á‡∏ó‡∏≥ (GitHub Desktop)</h3>
+        <h3>2?? ¢—ÈπµÕπ°“√∑”ß“π (GitHub Desktop)</h3>
         <ol class="steps">
-          <li>‡∏ß‡∏¥‡πÄ‡∏Ñ‡∏£‡∏≤‡∏∞‡∏´‡πå‡πÑ‡∏ü‡∏•‡πå‡∏ó‡∏≤‡∏á‡∏î‡πâ‡∏≤‡∏ô‡∏ã‡πâ‡∏≤‡∏¢ ‡πÄ‡∏û‡∏∑‡πà‡∏≠‡∏î‡∏π path ‡∏ó‡∏µ‡πà‡∏£‡∏∞‡∏ö‡∏ö‡πÅ‡∏ô‡∏∞‡∏ô‡∏≥</li>
-          <li>‡πÄ‡∏õ‡∏¥‡∏î‡πÇ‡∏ü‡∏•‡πÄ‡∏î‡∏≠‡∏£‡πå repo <code>9AU-FOREX-EA</code> ‡πÉ‡∏ô‡πÄ‡∏Ñ‡∏£‡∏∑‡πà‡∏≠‡∏á</li>
-          <li>‡∏™‡∏£‡πâ‡∏≤‡∏á‡πÇ‡∏ü‡∏•‡πÄ‡∏î‡∏≠‡∏£‡πå‡∏ï‡∏≤‡∏° path ‡∏ó‡∏µ‡πà‡πÅ‡∏ô‡∏∞‡∏ô‡∏≥ (‡∏ñ‡πâ‡∏≤‡∏¢‡∏±‡∏á‡πÑ‡∏°‡πà‡∏°‡∏µ) ‡πÅ‡∏•‡πâ‡∏ß‡∏ß‡∏≤‡∏á‡πÑ‡∏ü‡∏•‡πå‡∏•‡∏á‡πÑ‡∏õ</li>
-          <li>‡πÄ‡∏õ‡∏¥‡∏î GitHub Desktop ‚Üí ‡∏ï‡∏£‡∏ß‡∏à‡∏™‡∏≠‡∏ö‡πÑ‡∏ü‡∏•‡πå‡∏ó‡∏µ‡πà‡πÄ‡∏õ‡∏•‡∏µ‡πà‡∏¢‡∏ô‡πÅ‡∏õ‡∏•‡∏á ‚Üí Commit ‚Üí Push origin</li>
-          <li>‡∏Å‡∏•‡∏±‡∏ö‡∏°‡∏≤‡∏ó‡∏µ‡πà‡πÅ‡∏ó‡πá‡∏ö‡∏ô‡∏µ‡πâ ‡∏Å‡∏î "‡πÄ‡∏û‡∏¥‡πà‡∏°‡πÄ‡∏Ç‡πâ‡∏≤‡∏£‡∏≤‡∏¢‡∏Å‡∏≤‡∏£" ‡πÄ‡∏û‡∏∑‡πà‡∏≠‡∏î‡∏π preview ‡∏ú‡∏•‡∏•‡∏±‡∏û‡∏ò‡πå‡πÉ‡∏ô‡∏´‡∏ô‡πâ‡∏≤ Dashboard</li>
+          <li>«‘‡§√“–ÀÏ‰ø≈Ï∑“ß¥È“π´È“¬ ‡æ◊ËÕ¥Ÿ <b>path ∑’Ë∂Ÿ°µÈÕß</b></li>
+          <li>
+            ‡ª‘¥‚ø≈‡¥Õ√Ï repo <code>9AU-PORTFOLIO</code> „π‡§√◊ËÕß
+             ‡¢È“‚ø≈‡¥Õ√Ï <code>ForexDoc/</code>
+          </li>
+          <li> √È“ß‚ø≈‡¥Õ√Ïµ“¡ path ∑’Ë·π–π” (∂È“¬—ß‰¡Ë¡’)</li>
+          <li>«“ß‰ø≈Ï≈ß„π‚ø≈‡¥Õ√Ï∑’Ë∂Ÿ°µÈÕß</li>
+          <li>
+            ‡ª‘¥ <b>GitHub Desktop</b>
+             ‡ÀÁπ‰ø≈Ï„À¡Ë„π Changes
+             Commit  <b>Push origin</b>
+          </li>
+          <li>
+            °≈—∫¡“∑’ËÀπÈ“π’È °¥ªÿË¡
+            <b>"‡æ‘Ë¡ Preview"</b> ‡æ◊ËÕ¥Ÿº≈„πÀπÈ“ Dashboard ∑—π∑’
+          </li>
         </ol>
-        <p class="hint">üí° ‡∏£‡∏≤‡∏¢‡∏Å‡∏≤‡∏£‡∏ó‡∏µ‡πà‡πÄ‡∏û‡∏¥‡πà‡∏°‡πÉ‡∏ô‡∏´‡∏ô‡πâ‡∏≤‡∏ô‡∏µ‡πâ‡πÄ‡∏õ‡πá‡∏ô‡∏Å‡∏≤‡∏£ "‡∏û‡∏£‡∏µ‡∏ß‡∏¥‡∏ß" ‡πÉ‡∏ô‡πÄ‡∏ö‡∏£‡∏≤‡∏ß‡πå‡πÄ‡∏ã‡∏≠‡∏£‡πå‡πÄ‡∏ó‡πà‡∏≤‡∏ô‡∏±‡πâ‡∏ô (‡∏à‡∏∞‡∏£‡∏µ‡πÄ‡∏ã‡πá‡∏ï‡πÄ‡∏°‡∏∑‡πà‡∏≠‡∏õ‡∏¥‡∏î‡∏´‡∏ô‡πâ‡∏≤‡πÄ‡∏ß‡πá‡∏ö) ‡πÄ‡∏û‡∏∑‡πà‡∏≠‡∏î‡∏π‡∏ú‡∏•‡∏•‡∏±‡∏û‡∏ò‡πå‡∏Å‡πà‡∏≠‡∏ô‡∏≠‡∏±‡∏õ‡πÄ‡∏î‡∏ï‡πÑ‡∏ü‡∏•‡πå <code>files.json</code> ‡∏à‡∏£‡∏¥‡∏á‡πÉ‡∏ô repo</p>
-        <button class="btn" id="exportJsonBtn">üì§ Export files.json (‡∏ó‡∏±‡πâ‡∏á‡∏´‡∏°‡∏î ‡∏ì ‡∏õ‡∏±‡∏à‡∏à‡∏∏‡∏ö‡∏±‡∏ô)</button>
+        <hr class="divider">
+        <h3 style="font-size:14px;">3?? Õ—ª‡¥µ files.json</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">
+          À≈—ß Push ‰ø≈Ï·≈È« °¥ Export ‡æ◊ËÕ¥“«πÏ‚À≈¥ <code>files.json</code> ∑’ËÕ—ª‡¥µ·≈È«
+           «“ß∑’Ë <code>ForexDoc/files.json</code>  Commit + Push Õ’°§√—Èß
+        </p>
+        <button class="btn btn-green" id="exportJsonBtn">?? Export files.json</button>
       </div>
     </div>
 
-    <div class="pending-table-wrap">
-      <h3>‡∏£‡∏≤‡∏¢‡∏Å‡∏≤‡∏£‡∏ó‡∏µ‡πà‡πÄ‡∏û‡∏¥‡πà‡∏°‡πÑ‡∏ß‡πâ‡πÉ‡∏ô‡∏£‡∏≠‡∏ö‡∏ô‡∏µ‡πâ (Session Preview)</h3>
-      <div id="pendingContent"><div class="empty-state">‡∏¢‡∏±‡∏á‡πÑ‡∏°‡πà‡∏°‡∏µ‡∏£‡∏≤‡∏¢‡∏Å‡∏≤‡∏£‡∏ó‡∏µ‡πà‡πÄ‡∏û‡∏¥‡πà‡∏°‡πÉ‡∏ô‡∏£‡∏≠‡∏ö‡∏ô‡∏µ‡πâ</div></div>
+    <!-- PENDING LIST -->
+    <hr class="divider">
+    <div class="pending-section">
+      <h3>?? √“¬°“√√Õ Push (Session Preview) <span class="badge bp" id="pendingCount">0</span></h3>
+      <div class="warn-box" style="margin-bottom:14px;">
+        ?? √“¬°“√¥È“π≈Ë“ß· ¥ß‡©æ“– session π’È‡∑Ë“π—Èπ ó
+        √’‡ø√™ÀπÈ“‡«Á∫®–≈È“ß¢ÈÕ¡Ÿ≈π’È∑—ÈßÀ¡¥
+        °“√‡ª≈’Ë¬π·ª≈ß∂“«√µÈÕß∑”ºË“π GitHub Desktop ·≈–Õ—ª‡¥µ <code>ForexDoc/files.json</code>
+      </div>
+      <div id="pendingContent">
+        <div class="empty-state">
+          <div class="empty-icon">??</div>
+          <div class="empty-text">¬—ß‰¡Ë¡’√“¬°“√„π√Õ∫π’È</div>
+        </div>
+      </div>
     </div>
   </section>
-
 </main>
 
-<footer>9AU FOREX EA File Dashboard ¬∑ Guided Static Mode ¬∑ ‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏•‡∏ó‡∏≥‡∏á‡∏≤‡∏ô‡∏†‡∏≤‡∏¢‡πÉ‡∏ô session ‡πÄ‡∏ö‡∏£‡∏≤‡∏ß‡πå‡πÄ‡∏ã‡∏≠‡∏£‡πå‡πÄ‡∏ó‡πà‡∏≤‡∏ô‡∏±‡πâ‡∏ô ‡πÑ‡∏°‡πà‡∏°‡∏µ‡∏Å‡∏≤‡∏£‡∏ö‡∏±‡∏ô‡∏ó‡∏∂‡∏Å‡∏ñ‡∏≤‡∏ß‡∏£‡∏ù‡∏±‡πà‡∏á client</footer>
+<footer>
+  9AU PORTFOLIO ? File Manager ?
+  <a href="https://github.com/Au1uzv8/9AU-PORTFOLIO" target="_blank" rel="noopener noreferrer">github.com/Au1uzv8/9AU-PORTFOLIO</a> ?
+  Guided Static Mode ? ‰¡Ë¡’°“√∫—π∑÷°¢ÈÕ¡Ÿ≈∂“«√Ω—Ëß Client
+</footer>
 
 <div id="toast-container"></div>
 
+<!-- ===== MODAL ===== -->
 <div class="overlay" id="modalOverlay" hidden>
   <div class="modal">
     <div class="modal-head">
-      <h3 id="modalTitle">Title</h3>
-      <button class="close-x" id="modalClose">‚úï</button>
+      <h3 id="modalTitle"></h3>
+      <button class="close-x" id="modalClose">?</button>
     </div>
-    <div id="modalBody"></div>
+    <div class="modal-body" id="modalBody"></div>
   </div>
 </div>
 
 <script>
 (function(){
-  'use strict';
+'use strict';
 
-  /* ================= CONFIG ================= */
-  const CONFIG = { owner:'Au1uzv8', repo:'9AU-FOREX-EA', branch:'main' };
+/* ============================================================
+   CONFIG
+   ============================================================ */
+const CFG = {
+  owner  : 'Au1uzv8',
+  repo   : '9AU-PORTFOLIO',
+  branch : 'main',
+  baseDir: 'ForexDoc',     //  root folder  ”À√—∫‰ø≈Ï∑—ÈßÀ¡¥
+  pageUrl: 'https://au1uzv8.github.io/9AU-PORTFOLIO/9AU_File-Manager.html'
+};
 
-  const TYPE_META = {
-    EA:     { label:'Expert Advisor (EA)',        folder:'EA',      icon:'‚öôÔ∏è' },
-    REPORT: { label:'Strategy Tester Report',     folder:'Reports', icon:'üìä' },
-    DOC:    { label:'Plain Text Files',           folder:'Docs',    icon:'üìÑ' }
+const TYPE_META = {
+  EA    : { label:'Expert Advisor (EA)',      folder:'EA',      icon:'??', chipClass:'chip-ea' },
+  REPORT: { label:'Strategy Tester Report',   folder:'Reports', icon:'??', chipClass:'chip-report' },
+  DOC   : { label:'Plain Text Files',         folder:'Docs',    icon:'??', chipClass:'chip-doc' }
+};
+
+const CAT_OPTIONS = {
+  EA    : ['7 EA COMBINE','11 EA SOLO'],
+  REPORT: ['7 EA COMBINE','11 EA SOLO'],
+  DOC   : ['Context Summary']
+};
+
+/* ============================================================
+   SOURCE FILE DATA
+   ============================================================ */
+// EA base names (‰¡Ë¡’π“¡ °ÿ≈) ó „™È√Ë«¡°—π∑—Èß .mq5 ·≈– .xlsx
+const EA_DATA = {
+  '7 EA COMBINE': [
+    '9AU_3PAIRS_COMBINE_M15_CAP300_v2_8',
+    '9AU_AUDCAD_COMBINE_M15_CAP300_v6_13',
+    '9AU_GBPJPY_COMBINE_M5_CAP300_v1_4',
+    '9AU_GOLD_COMBINE_M5_CAP450_V19_11',
+    '9AU_NDAQ100_COMBINE_M5_CAP300_v1_2_1',
+    '9AU_OIL_WTI_COMBINE_M5_CAP300_v4_63',
+    '9AU_USDJPY_COMBINE_M5_CAP300_v1_4'
+  ],
+  '11 EA SOLO': [
+    '9AU_3PAIRS_BB_RSI_ADX_M15_CAP300_V2_3',
+    '9AU_AUDCAD_MEAN_BB_RSI_M15_CAP300_V6_3',
+    '9AU_BTC_ADAPTIVE_REGIME_M5_CAP450_V3_4',
+    '9AU_ETH_ADAPTIVE_REGIME_M5_CAP300_V3_2',
+    '9AU_GBPJPY_SNIPER_M5_CAP300_V1_0',
+    '9AU_GOLD_ADAPTIVE_REGIME_M5_CAP450_V19.3',
+    '9AU_NASDAQ100_TREND_M5_CAP300_V4_0',
+    '9AU_OIL_WTI_TREND_M5_CAP300_V4_61',
+    '9AU_PLATINUM_TREND_M5_CAP300_V1_5',
+    '9AU_SILVER_RESERVE_M5_CAP675_V2_7',
+    '9AU_USDJPY_SNIPER_M5_CAP300_V1_0'
+  ]
+};
+
+const DOC_DATA = [
+  'KB_INDEX_STARTER.yaml',
+  'TEMPLATE-Checkpoint.md',
+  '2026-05-17_Trade Conditions.md',
+  '2026-06-09_MQL5_SKILL.md',
+  '2026-07-04_Context_Summary_9AU_FOREX_EA.md',
+  '2026-07-05_Context_Summary_Port_Combine_Session.md',
+  '2026-07-11_EXPORT-EA.md',
+  '2026-07-15_9AU_COMBINE_PORTFOLIO_6EA_ContextSummary.md',
+  '2026-07-15_9AU_GOLD_ADAPTIVE_REGIME_M5_CAP450_Context_Summary.md',
+  '2026-07-15_Context_Summary_AI_Agent_MT5_Integration.md',
+  '2026-07-15_Context_Summary_Portfolio_Management_Beta_Alpha_v2.md',
+  '2026-07-15_Context_Summary_Scenario4_Decision.md',
+  '2026-07-15_Prompt_6EA_Combine_Update_Prompts.md',
+  '2026-07-15_‚§√ß √È“ß Session Summary ∑’Ë¥’.md',
+  '2026-07-16_9AU_USDJPY_SNIPER_M5_CAP300_Context_Summary.md',
+  '2026-07-17_9AU_GBPJPY_SNIPER_M5_CAP300_Context_Summary.md',
+  '2026-07-21_9AU_OIL_WTI_TREND_M5_CAP300_Context_Summary.md',
+  '2026-07-22_9AU_AUDCAD_MEAN_M15_CAP300_Context_Summary.md',
+  '2026-07-24_9AU_3PAIRS_BB_RSI_ADX_M15_CAP300_Context_Summary.md',
+  '2026-07-24_9AU_BTC_ADAPTIVE_REGIME_M5_CAP300_Context_Summary.md',
+  '2026-07-25_9AU_NASDAQ100_TREND_M5_CAP300_ContextSummary.md',
+  '2026-08-01_9AU_SILVER_RESERVE_M5_CAP675_V2_7_UPDATE.md',
+  '2026-08-02_9AU_GOLD_COMBINE_M5_CAP450_V19_8_Context_Summary.md',
+  '2026-08-03_Context_Summary_Combine_7EA_2Terminal_Audit.md',
+  '2026-08-18_Context_Summary_Gold_V19_9_to_V19_11_FINAL.md',
+  '2026-08-22_9AU_GOLD_M1_BOS_FIBO_M1_CAP300_Context_Summary.md',
+  '2026-08-26_James_Memory_Backup.md',
+  '2026-08-30_Revise_James_Memory.md',
+  '2026-08-30_SESSION LIFECYCLE.md'
+];
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+// HTML escape
+function esc(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// Category  slug („™È„π path)
+function catSlug(cat){ return String(cat).trim().replace(/\s+/g,'-'); }
+
+// Build file path ¿“¬„µÈ ForexDoc/
+function buildPath(type, category, fileName){
+  return `${CFG.baseDir}/${TYPE_META[type].folder}/${catSlug(category)}/${fileName}`;
+}
+
+// Build raw GitHub URL
+function rawUrl(path){
+  return `https://raw.githubusercontent.com/${CFG.owner}/${CFG.repo}/${CFG.branch}/`
+    + path.split('/').map(encodeURIComponent).join('/');
+}
+
+// ·¬°π“¡ °ÿ≈ÕÕ°®“°™◊ËÕ‰ø≈Ï
+function splitExt(fn){
+  const i = fn.lastIndexOf('.');
+  return { name: i>=0?fn.slice(0,i):fn, ext: i>=0?fn.slice(i):'' };
+}
+
+/* ============================================================
+   VERSION PARSER
+   Running Number: V19_11  {major:19, minor:11, patch:0}
+   ‡∑’¬∫‡ªÁπ num = major*1e6 + minor*1e3 + patch
+   ∑”„ÀÈ V19_11 (=19_011_000) > V19_8 (=19_008_000) ?
+   ============================================================ */
+function parseVersion(nameNoExt){
+  // √Õß√—∫∑—Èß _V19_11 | _v1_4 | _V19.3 | _v1_2_1
+  const m = nameNoExt.match(/_[Vv](\d+)(?:[._](\d+))?(?:[._](\d+))?(?:[._](\d+))?$/);
+  if(!m) return { label:null, num:0, base:nameNoExt.toLowerCase() };
+  const a=+m[1]||0, b=m[2]!=null?+m[2]:0, c=m[3]!=null?+m[3]:0, d=m[4]!=null?+m[4]:0;
+  const num = a*1e9 + b*1e6 + c*1e3 + d;
+  let label = 'V'+a;
+  if(m[2]!=null){ label += '.'+b; }
+  if(m[3]!=null){ label += '.'+c; }
+  if(m[4]!=null){ label += '.'+d; }
+  const base = nameNoExt.slice(0, m.index).toLowerCase();
+  return { label, num, base };
+}
+
+/* ============================================================
+   DOC SERIES KEY
+    ”À√—∫‰ø≈Ï∑’Ë¢÷ÈπµÈπ¥È«¬«—π∑’Ë  „™È«—π∑’Ë‡ªÁπ version (timestamp)
+   ============================================================ */
+function parseDoc(fileName){
+  const m = fileName.match(/^(\d{4}-\d{2}-\d{2})_(.+)$/);
+  if(m){ return { dateStr:m[1], seriesBase: m[2].replace(/\.[^.]+$/,'').toLowerCase() }; }
+  return { dateStr:null, seriesBase: fileName.replace(/\.[^.]+$/,'').toLowerCase() };
+}
+
+/* ============================================================
+   BUILD ENTRY OBJECT
+   ============================================================ */
+let _uid = 0;
+function makeEntry(type, category, fileName, opts){
+  opts = opts||{};
+  const {name:nameNoExt, ext} = splitExt(fileName);
+  let seriesKey, versionLabel, versionNum, dateModified=null;
+
+  if(type==='DOC'){
+    const d = parseDoc(fileName);
+    seriesKey   = `DOC|${category}|${d.seriesBase}`;
+    dateModified= d.dateStr;
+    versionLabel= d.dateStr || 'ó';
+    versionNum  = d.dateStr ? new Date(d.dateStr).getTime() : 0;
+  } else {
+    const v = parseVersion(nameNoExt);
+    seriesKey   = `${type}|${category}|${v.base}`;
+    versionLabel= v.label || 'ó';
+    versionNum  = v.num;
+  }
+
+  return {
+    id         : 'e'+(++_uid),
+    type, category, fileName,
+    extension  : ext,
+    path       : buildPath(type, category, fileName),
+    seriesKey,
+    versionLabel,
+    versionNum,
+    dateModified,
+    isLatest   : false,
+    pending    : !!opts.pending
   };
+}
 
-  const CATEGORY_OPTIONS = {
-    EA: ['7 EA COMBINE','11 EA SOLO'],
-    REPORT: ['7 EA COMBINE','11 EA SOLO'],
-    DOC: ['Context Summary']
-  };
+/* ============================================================
+   COMPUTE isLatest (‡√’¬°∑ÿ°§√—Èß∑’Ë DATA ‡ª≈’Ë¬π)
+   ============================================================ */
+function computeLatest(list){
+  const groups = {};
+  list.forEach(e=>{
+    if(!groups[e.seriesKey]) groups[e.seriesKey]=[];
+    groups[e.seriesKey].push(e);
+  });
+  Object.values(groups).forEach(g=>{
+    g.sort((a,b)=> b.versionNum - a.versionNum);
+    g.forEach((e,i)=> e.isLatest = (i===0));
+  });
+}
 
-  /* ================= SOURCE DATA ================= */
-  const EA_FILES = {
-    '7 EA COMBINE': [
-      '9AU_3PAIRS_COMBINE_M15_CAP300_v2_8',
-      '9AU_AUDCAD_COMBINE_M15_CAP300_v6_13',
-      '9AU_GBPJPY_COMBINE_M5_CAP300_v1_4',
-      '9AU_GOLD_COMBINE_M5_CAP450_V19_11',
-      '9AU_NDAQ100_COMBINE_M5_CAP300_v1_2_1',
-      '9AU_OIL_WTI_COMBINE_M5_CAP300_v4_63',
-      '9AU_USDJPY_COMBINE_M5_CAP300_v1_4'
-    ],
-    '11 EA SOLO': [
-      '9AU_3PAIRS_BB_RSI_ADX_M15_CAP300_V2_3',
-      '9AU_AUDCAD_MEAN_BB_RSI_M15_CAP300_V6_3',
-      '9AU_BTC_ADAPTIVE_REGIME_M5_CAP450_V3_4',
-      '9AU_ETH_ADAPTIVE_REGIME_M5_CAP300_V3_2',
-      '9AU_GBPJPY_SNIPER_M5_CAP300_V1_0',
-      '9AU_GOLD_ADAPTIVE_REGIME_M5_CAP450_V19.3',
-      '9AU_NASDAQ100_TREND_M5_CAP300_V4_0',
-      '9AU_OIL_WTI_TREND_M5_CAP300_V4_61',
-      '9AU_PLATINUM_TREND_M5_CAP300_V1_5',
-      '9AU_SILVER_RESERVE_M5_CAP675_V2_7',
-      '9AU_USDJPY_SNIPER_M5_CAP300_V1_0'
-    ]
-  };
-
-  const DOC_FILES = [
-    'KB_INDEX_STARTER.yaml',
-    'TEMPLATE-Checkpoint.md',
-    '2026-05-17_Trade Conditions.md',
-    '2026-06-09_MQL5_SKILL.md',
-    '2026-07-04_Context_Summary_9AU_FOREX_EA.md',
-    '2026-07-05_Context_Summary_Port_Combine_Session.md',
-    '2026-07-11_EXPORT-EA.md',
-    '2026-07-15_9AU_COMBINE_PORTFOLIO_6EA_ContextSummary.md',
-    '2026-07-15_9AU_GOLD_ADAPTIVE_REGIME_M5_CAP450_Context_Summary.md',
-    '2026-07-15_Context_Summary_AI_Agent_MT5_Integration.md',
-    '2026-07-15_Context_Summary_Portfolio_Management_Beta_Alpha_v2.md',
-    '2026-07-15_Context_Summary_Scenario4_Decision.md',
-    '2026-07-15_Prompt_6EA_Combine_Update_Prompts.md',
-    '2026-07-15_‡πÇ‡∏Ñ‡∏£‡∏á‡∏™‡∏£‡πâ‡∏≤‡∏á Session Summary ‡∏ó‡∏µ‡πà‡∏î‡∏µ.md',
-    '2026-07-16_9AU_USDJPY_SNIPER_M5_CAP300_Context_Summary.md',
-    '2026-07-17_9AU_GBPJPY_SNIPER_M5_CAP300_Context_Summary.md',
-    '2026-07-21_9AU_OIL_WTI_TREND_M5_CAP300_Context_Summary.md',
-    '2026-07-22_9AU_AUDCAD_MEAN_M15_CAP300_Context_Summary.md',
-    '2026-07-24_9AU_3PAIRS_BB_RSI_ADX_M15_CAP300_Context_Summary.md',
-    '2026-07-24_9AU_BTC_ADAPTIVE_REGIME_M5_CAP300_Context_Summary.md',
-    '2026-07-25_9AU_NASDAQ100_TREND_M5_CAP300_ContextSummary.md',
-    '2026-08-01_9AU_SILVER_RESERVE_M5_CAP675_V2_7_UPDATE.md',
-    '2026-08-02_9AU_GOLD_COMBINE_M5_CAP450_V19_8_Context_Summary.md',
-    '2026-08-03_Context_Summary_Combine_7EA_2Terminal_Audit.md',
-    '2026-08-18_Context_Summary_Gold_V19_9_to_V19_11_FINAL.md',
-    '2026-08-22_9AU_GOLD_M1_BOS_FIBO_M1_CAP300_Context_Summary.md',
-    '2026-08-26_James_Memory_Backup.md',
-    '2026-08-30_Revise_James_Memory.md',
-    '2026-08-30_SESSION LIFECYCLE.md'
-  ];
-
-  /* ================= HELPERS ================= */
-  function esc(str){
-    return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
-  function categorySlug(cat){ return cat.trim().replace(/\s+/g,'-'); }
-  function splitExt(fileName){
-    const idx = fileName.lastIndexOf('.');
-    return { name: idx>=0 ? fileName.slice(0,idx) : fileName, ext: idx>=0 ? fileName.slice(idx) : '' };
-  }
-  function buildPath(type, category, fileName){
-    return `files/${TYPE_META[type].folder}/${categorySlug(category)}/${fileName}`;
-  }
-  function rawUrl(path){
-    const encoded = path.split('/').map(encodeURIComponent).join('/');
-    return `https://raw.githubusercontent.com/${CONFIG.owner}/${CONFIG.repo}/${CONFIG.branch}/${encoded}`;
-  }
-  // Running-number version parser e.g. _V19_11 -> major19 minor11 (11 > 8, not decimal compare)
-  function parseVersion(nameNoExt){
-    const m = nameNoExt.match(/_[Vv](\d+)(?:[._](\d+))?(?:[._](\d+))?$/);
-    if(!m) return { label:null, num:0, base:nameNoExt.toLowerCase() };
-    const major=+m[1]||0, minor=m[2]!==undefined?+m[2]:0, patch=m[3]!==undefined?+m[3]:0;
-    const num = major*1000000 + minor*1000 + patch;
-    let label = 'V'+major;
-    if(m[2]!==undefined) label += '.'+minor;
-    if(m[3]!==undefined) label += '.'+patch;
-    return { label, num, base: nameNoExt.slice(0, m.index).toLowerCase() };
-  }
-  function parseDocSeries(fileName){
-    const m = fileName.match(/^(\d{4}-\d{2}-\d{2})_(.+)$/);
-    if(m){
-      return { dateStr:m[1], base:m[2].toLowerCase().replace(/\.[a-z0-9]+$/i,'') };
-    }
-    return { dateStr:null, base:fileName.toLowerCase() };
-  }
-
-  let RAW_ID = 0;
-  function makeEntry(type, category, fileName, opts){
-    opts = opts || {};
-    const { ext } = splitExt(fileName);
-    const nameNoExt = splitExt(fileName).name;
-    let seriesKey, versionLabel, versionNum, dateModified=null;
-    if(type==='DOC'){
-      const d = parseDocSeries(fileName);
-      seriesKey = `DOC|${category}|${d.base}`;
-      dateModified = d.dateStr;
-      versionLabel = d.dateStr || '‚Äî';
-      versionNum = d.dateStr ? new Date(d.dateStr).getTime() : 0;
-    } else {
-      const v = parseVersion(nameNoExt);
-      seriesKey = `${type}|${category}|${v.base}`;
-      versionLabel = v.label || '‚Äî';
-      versionNum = v.num;
-    }
-    return {
-      id: 'f'+(++RAW_ID),
-      type, category, fileName, extension: ext,
-      path: buildPath(type, category, fileName),
-      seriesKey, versionLabel, versionNum, dateModified,
-      isLatest: false,
-      pending: !!opts.pending
-    };
-  }
-
-  function computeLatest(list){
-    const groups = {};
-    list.forEach(item=>{ (groups[item.seriesKey] = groups[item.seriesKey]||[]).push(item); });
-    Object.values(groups).forEach(group=>{
-      group.sort((a,b)=> b.versionNum - a.versionNum);
-      group.forEach((item,idx)=> item.isLatest = idx===0);
-    });
-  }
-
-  function buildInitialDataset(){
-    const list = [];
-    Object.entries(EA_FILES).forEach(([cat, files])=>{
-      files.forEach(base=>{
-        list.push(makeEntry('EA', cat, base+'.mq5'));
-        list.push(makeEntry('REPORT', cat, base+'.xlsx'));
-      });
-    });
-    DOC_FILES.forEach(f=> list.push(makeEntry('DOC','Context Summary', f)));
-    computeLatest(list);
-    return list;
-  }
-
-  /* ================= STATE ================= */
-  let DATA = buildInitialDataset();
-  const state = {
-    dashSearch:'', dashType:'ALL', dashCategory:'ALL',
-    histSearch:'', histType:'ALL', histStatus:'ALL', histSort:'name',
-    lastAnalyzed:null
-  };
-
-  /* ================= DOM refs ================= */
-  const els = {
-    tabs: document.querySelectorAll('.tab-btn'),
-    views: document.querySelectorAll('.view'),
-    repoLink: document.getElementById('repoLink'),
-    branchName: document.getElementById('branchName'),
-    statsRow: document.getElementById('statsRow'),
-    dashSearch: document.getElementById('dashSearch'),
-    dashTypeChips: document.getElementById('dashTypeChips'),
-    dashCatChips: document.getElementById('dashCatChips'),
-    dashboardContent: document.getElementById('dashboardContent'),
-    refreshBtn: document.getElementById('refreshBtn'),
-    histSearch: document.getElementById('histSearch'),
-    histTypeFilter: document.getElementById('histTypeFilter'),
-    histStatusFilter: document.getElementById('histStatusFilter'),
-    histSort: document.getElementById('histSort'),
-    historyContent: document.getElementById('historyContent'),
-    upType: document.getElementById('upType'),
-    upCategory: document.getElementById('upCategory'),
-    upCustomCatRow: document.getElementById('upCustomCatRow'),
-    upCustomCat: document.getElementById('upCustomCat'),
-    upFileInput: document.getElementById('upFileInput'),
-    upManualName: document.getElementById('upManualName'),
-    analyzeBtn: document.getElementById('analyzeBtn'),
-    analyzeResult: document.getElementById('analyzeResult'),
-    exportJsonBtn: document.getElementById('exportJsonBtn'),
-    pendingContent: document.getElementById('pendingContent'),
-    modalOverlay: document.getElementById('modalOverlay'),
-    modalTitle: document.getElementById('modalTitle'),
-    modalBody: document.getElementById('modalBody'),
-    modalClose: document.getElementById('modalClose'),
-    toastContainer: document.getElementById('toast-container')
-  };
-
-  els.repoLink.textContent = `${CONFIG.owner}/${CONFIG.repo}`;
-  els.repoLink.href = `https://github.com/${CONFIG.owner}/${CONFIG.repo}`;
-  els.branchName.textContent = CONFIG.branch;
-
-  /* ================= TOAST ================= */
-  function toast(msg, isError){
-    const div = document.createElement('div');
-    div.className = 'toast' + (isError?' error':'');
-    div.textContent = msg;
-    els.toastContainer.appendChild(div);
-    setTimeout(()=> div.remove(), 3200);
-  }
-
-  /* ================= MODAL ================= */
-  function openModal(title, bodyHtml){
-    els.modalTitle.textContent = title;
-    els.modalBody.innerHTML = bodyHtml;
-    els.modalOverlay.hidden = false;
-  }
-  function closeModal(){ els.modalOverlay.hidden = true; els.modalBody.innerHTML=''; }
-  els.modalClose.addEventListener('click', closeModal);
-  els.modalOverlay.addEventListener('click', e=>{ if(e.target===els.modalOverlay) closeModal(); });
-
-  /* ================= TAB SWITCH ================= */
-  els.tabs.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      els.tabs.forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      const view = btn.dataset.view;
-      els.views.forEach(v=> v.classList.toggle('active', v.id === 'view-'+view));
-      if(view==='dashboard') renderDashboard();
-      if(view==='history') renderHistory();
+/* ============================================================
+   BUILD INITIAL DATASET (49 ‰ø≈Ï = 18 EA + 18 REPORT + 29 DOC)
+   ============================================================ */
+function buildDataset(){
+  const list=[];
+  Object.entries(EA_DATA).forEach(([cat,files])=>{
+    files.forEach(base=>{
+      list.push(makeEntry('EA',    cat, base+'.mq5'));
+      list.push(makeEntry('REPORT',cat, base+'.xlsx'));
     });
   });
+  DOC_DATA.forEach(fn=> list.push(makeEntry('DOC','Context Summary',fn)));
+  computeLatest(list);
+  return list;
+}
 
-  /* ================= COPY HELPER (safe fallback) ================= */
-  function copyText(text){
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(()=> toast('‡∏Ñ‡∏±‡∏î‡∏•‡∏≠‡∏Å‡πÅ‡∏•‡πâ‡∏ß: ' + text))
-        .catch(()=> fallbackCopy(text));
-    } else {
-      fallbackCopy(text);
-    }
-  }
-  function fallbackCopy(text){
-    const ta = document.createElement('textarea');
-    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
-    document.body.appendChild(ta); ta.select();
-    try{ document.execCommand('copy'); toast('‡∏Ñ‡∏±‡∏î‡∏•‡∏≠‡∏Å‡πÅ‡∏•‡πâ‡∏ß: ' + text); }
-    catch(e){ toast('‡πÑ‡∏°‡πà‡∏™‡∏≤‡∏°‡∏≤‡∏£‡∏ñ‡∏Ñ‡∏±‡∏î‡∏•‡∏≠‡∏Å‡∏≠‡∏±‡∏ï‡πÇ‡∏ô‡∏°‡∏±‡∏ï‡∏¥‡πÑ‡∏î‡πâ ‡∏Å‡∏£‡∏∏‡∏ì‡∏≤‡∏Ñ‡∏±‡∏î‡∏•‡∏≠‡∏Å‡∏î‡πâ‡∏ß‡∏¢‡∏ï‡∏ô‡πÄ‡∏≠‡∏á', true); }
-    ta.remove();
-  }
+/* ============================================================
+   STATE
+   ============================================================ */
+let DATA = buildDataset();
+const S = {
+  dashSearch:'', dashType:'ALL', dashCat:'ALL',
+  histSearch:'', histType:'ALL', histCat:'ALL', histStatus:'ALL', histSort:'name'
+};
 
-  /* ================= DASHBOARD RENDER ================= */
-  function isNewDoc(item){
-    if(!item.dateModified) return false;
-    const diff = (Date.now() - new Date(item.dateModified).getTime()) / 86400000;
-    return diff >= 0 && diff <= 7;
-  }
+/* ============================================================
+   DOM REFS
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const tabs       = document.querySelectorAll('.tab-btn');
+const views      = document.querySelectorAll('.view');
+const statsRow   = $('statsRow');
+const dashSearch = $('dashSearch');
+const dashTypeChips = $('dashTypeChips');
+const dashCatChips  = $('dashCatChips');
+const dashContent   = $('dashContent');
+const histSearch  = $('histSearch');
+const histType    = $('histType');
+const histCat     = $('histCat');
+const histStatus  = $('histStatus');
+const histSort    = $('histSort');
+const histCount   = $('histCount');
+const histContent = $('histContent');
+const analyzeBtn  = $('analyzeBtn');
+const analyzeResult = $('analyzeResult');
+const exportJsonBtn = $('exportJsonBtn');
+const pendingContent= $('pendingContent');
+const pendingCount  = $('pendingCount');
+const toastCon    = $('toast-container');
+const overlay     = $('modalOverlay');
+const modalTitle  = $('modalTitle');
+const modalBody   = $('modalBody');
 
-  function renderStats(){
-    const totalFiles = DATA.length;
-    const totalSeries = new Set(DATA.map(d=>d.seriesKey)).size;
-    const totalLatest = DATA.filter(d=>d.isLatest).length;
-    const pendingCount = DATA.filter(d=>d.pending).length;
-    els.statsRow.innerHTML = `
-      <div class="stat-card"><div class="num">${totalLatest}</div><div class="label">‡πÑ‡∏ü‡∏•‡πå‡∏•‡πà‡∏≤‡∏™‡∏∏‡∏î (‡πÅ‡∏™‡∏î‡∏á‡∏´‡∏ô‡πâ‡∏≤‡∏´‡∏•‡∏±‡∏Å)</div></div>
-      <div class="stat-card"><div class="num">${totalFiles}</div><div class="label">‡πÑ‡∏ü‡∏•‡πå‡∏ó‡∏±‡πâ‡∏á‡∏´‡∏°‡∏î (‡∏£‡∏ß‡∏°‡πÄ‡∏ß‡∏≠‡∏£‡πå‡∏ä‡∏±‡∏ô‡πÄ‡∏Å‡πà‡∏≤)</div></div>
-      <div class="stat-card"><div class="num">${totalSeries}</div><div class="label">‡∏à‡∏≥‡∏ô‡∏ß‡∏ô‡∏ä‡∏∏‡∏î‡πÑ‡∏ü‡∏•‡πå (Series)</div></div>
-      <div class="stat-card"><div class="num">${pendingCount}</div><div class="label">‡∏£‡∏≤‡∏¢‡∏Å‡∏≤‡∏£‡∏£‡∏≠ Push (Session)</div></div>
-    `;
-  }
+/* ============================================================
+   TOAST
+   ============================================================ */
+function toast(msg, type){
+  // type: 'ok' | 'err' | 'info'
+  type = type||'ok';
+  const d = document.createElement('div');
+  d.className = `toast ${type}`;
+  d.textContent = msg;
+  toastCon.appendChild(d);
+  setTimeout(()=>{ d.style.opacity='0'; d.style.transition='opacity .3s'; setTimeout(()=>d.remove(),300); }, 3000);
+}
 
-  function renderChips(){
-    const types = ['ALL','EA','REPORT','DOC'];
-    els.dashTypeChips.innerHTML = types.map(t=>{
-      const label = t==='ALL' ? '‡∏ó‡∏∏‡∏Å‡∏õ‡∏£‡∏∞‡πÄ‡∏†‡∏ó' : TYPE_META[t].icon+' '+TYPE_META[t].label;
-      return `<span class="chip ${state.dashType===t?'active':''}" data-type="${t}">${label}</span>`;
-    }).join('');
-    const cats = ['ALL', ...new Set(DATA.filter(d=> state.dashType==='ALL'||d.type===state.dashType).map(d=>d.category))];
-    els.dashCatChips.innerHTML = cats.map(c=>{
-      const label = c==='ALL' ? '‡∏ó‡∏∏‡∏Å‡∏´‡∏°‡∏ß‡∏î‡∏´‡∏°‡∏π‡πà' : c;
-      return `<span class="chip ${state.dashCategory===c?'active':''}" data-cat="${esc(c)}">${label}</span>`;
-    }).join('');
+/* ============================================================
+   MODAL
+   ============================================================ */
+function openModal(title, html){
+  modalTitle.textContent = title;
+  modalBody.innerHTML = html;
+  overlay.hidden = false;
+}
+function closeModal(){ overlay.hidden=true; modalBody.innerHTML=''; }
+$('modalClose').addEventListener('click', closeModal);
+overlay.addEventListener('click', e=>{ if(e.target===overlay) closeModal(); });
 
-    els.dashTypeChips.querySelectorAll('.chip').forEach(chip=>{
-      chip.addEventListener('click', ()=>{ state.dashType = chip.dataset.type; state.dashCategory='ALL'; renderDashboard(); });
-    });
-    els.dashCatChips.querySelectorAll('.chip').forEach(chip=>{
-      chip.addEventListener('click', ()=>{ state.dashCategory = chip.dataset.cat; renderDashboard(); });
-    });
-  }
+/* ============================================================
+   SAFE CLIPBOARD COPY
+   ============================================================ */
+function copyText(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text)
+      .then(()=> toast('?? §—¥≈Õ°·≈È«','ok'))
+      .catch(()=> fallbackCopy(text));
+  } else { fallbackCopy(text); }
+}
+function fallbackCopy(text){
+  const ta = document.createElement('textarea');
+  ta.value=text; ta.style.cssText='position:fixed;opacity:0;';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); toast('?? §—¥≈Õ°·≈È«','ok'); }
+  catch(){ toast('‰¡Ë “¡“√∂§—¥≈Õ°Õ—µ‚π¡—µ‘ °√ÿ≥“§—¥≈Õ°¥È«¬µπ‡Õß','err'); }
+  ta.remove();
+}
 
-  function rowActionsHtml(item){
-    const dlDisabled = item.pending ? 'aria-disabled="true" onclick="return false;" title="‡∏¢‡∏±‡∏á‡πÑ‡∏°‡πà‡πÑ‡∏î‡πâ Push ‡∏Ç‡∏∂‡πâ‡∏ô GitHub ‡∏à‡∏£‡∏¥‡∏á"' : '';
-    const dlHref = item.pending ? 'javascript:void(0)' : rawUrl(item.path);
-    return `
-      <a class="btn btn-sm ${item.pending?'':'btn-primary'}" ${item.pending?'':`href="${dlHref}" target="_blank" rel="noopener noreferrer" download`} ${dlDisabled}>‚¨á ‡∏î‡∏≤‡∏ß‡∏ô‡πå‡πÇ‡∏´‡∏•‡∏î</a>
-      <button class="btn btn-sm" data-action="history" data-key="${esc(item.seriesKey)}">üïò ‡∏õ‡∏£‡∏∞‡∏ß‡∏±‡∏ï‡∏¥</button>
-      <button class="btn btn-sm" data-action="path" data-path="${esc(item.path)}">üìÅ Path</button>
-      <button class="btn btn-sm" data-action="edit" data-id="${item.id}">‚úèÔ∏è ‡πÅ‡∏Å‡πâ‡πÑ‡∏Ç</button>
-      <button class="btn btn-sm btn-danger" data-action="delete" data-id="${item.id}">üóë ‡∏•‡∏ö</button>
-    `;
-  }
-
-  function renderCategoryBlock(type, cat, rows){
-    const trs = rows.map(item=>`
-      <tr data-id="${item.id}">
-        <td data-label="‡∏ä‡∏∑‡πà‡∏≠‡πÑ‡∏ü‡∏•‡πå">
-          <span class="file-name">${esc(item.fileName)}</span>
-          ${item.pending?'<span class="badge badge-pending">PENDING</span>':''}
-          ${!item.pending && isNewDoc(item)?'<span class="badge badge-new">NEW</span>':''}
-        </td>
-        <td data-label="‡πÄ‡∏ß‡∏≠‡∏£‡πå‡∏ä‡∏±‡∏ô / ‡∏ß‡∏±‡∏ô‡∏ó‡∏µ‡πà"><span class="badge badge-version">${esc(item.versionLabel)}</span></td>
-        <td data-label="‡∏ô‡∏≤‡∏°‡∏™‡∏Å‡∏∏‡∏•">${item.extension}</td>
-        <td data-label="‡∏Å‡∏≤‡∏£‡∏à‡∏±‡∏î‡∏Å‡∏≤‡∏£" class="actions">${rowActionsHtml(item)}</td>
-      </tr>`).join('');
-    return `
-      <div class="cat-block">
-        <div class="cat-head"><span>${esc(cat)}</span><span>${rows.length} ‡πÑ‡∏ü‡∏•‡πå</span></div>
-        <table>
-          <thead><tr><th>‡∏ä‡∏∑‡πà‡∏≠‡πÑ‡∏ü‡∏•‡πå</th><th>‡πÄ‡∏ß‡∏≠‡∏£‡πå‡∏ä‡∏±‡∏ô</th><th>‡∏ô‡∏≤‡∏°‡∏™‡∏Å‡∏∏‡∏•</th><th>‡∏Å‡∏≤‡∏£‡∏à‡∏±‡∏î‡∏Å‡∏≤‡∏£</th></tr></thead>
-          <tbody>${trs}</tbody>
-        </table>
-      </div>`;
-  }
-
-  function renderDashboard(){
-    renderStats();
-    renderChips();
-    const search = state.dashSearch.toLowerCase();
-    let html = '';
-    Object.keys(TYPE_META).forEach(type=>{
-      if(state.dashType!=='ALL' && state.dashType!==type) return;
-      const items = DATA.filter(d=> d.type===type && d.isLatest);
-      const categories = [...new Set(items.map(i=>i.category))];
-      let typeHtml = '';
-      categories.forEach(cat=>{
-        if(state.dashCategory!=='ALL' && state.dashCategory!==cat) return;
-        const rows = items.filter(i=> i.category===cat && i.fileName.toLowerCase().includes(search));
-        if(!rows.length) return;
-        typeHtml += renderCategoryBlock(type, cat, rows);
-      });
-      if(typeHtml){
-        html += `<div class="type-section"><h2 class="type-title">${TYPE_META[type].icon} ${TYPE_META[type].label}</h2>${typeHtml}</div>`;
-      }
-    });
-    els.dashboardContent.innerHTML = html || `<div class="empty-state">‡πÑ‡∏°‡πà‡∏û‡∏ö‡πÑ‡∏ü‡∏•‡πå‡∏ó‡∏µ‡πà‡∏ï‡∏£‡∏á‡∏Å‡∏±‡∏ö‡∏ï‡∏±‡∏ß‡∏Å‡∏£‡∏≠‡∏á üîç</div>`;
-    bindRowActions(els.dashboardContent);
-  }
-
-  /* ================= HISTORY VIEW ================= */
-  function renderHistory(){
-    const search = state.histSearch.toLowerCase();
-    let rows = DATA.filter(d=>{
-      if(state.histType!=='ALL' && d.type!==state.histType) return false;
-      if(state.histStatus==='LATEST' && !d.isLatest) return false;
-      if(state.histStatus==='HISTORY' && d.isLatest) return false;
-      if(!d.fileName.toLowerCase().includes(search)) return false;
-      return true;
-    });
-    if(state.histSort==='name') rows.sort((a,b)=> a.fileName.localeCompare(b.fileName));
-    if(state.histSort==='version') rows.sort((a,b)=> b.versionNum - a.versionNum);
-    if(state.histSort==='date') rows.sort((a,b)=> (b.dateModified||'').localeCompare(a.dateModified||''));
-
-    if(!rows.length){
-      els.historyContent.innerHTML = `<div class="empty-state">‡πÑ‡∏°‡πà‡∏û‡∏ö‡πÑ‡∏ü‡∏•‡πå üîç</div>`;
-      return;
-    }
-    const trs = rows.map(item=>`
-      <tr data-id="${item.id}">
-        <td data-label="‡∏õ‡∏£‡∏∞‡πÄ‡∏†‡∏ó">${TYPE_META[item.type].icon} ${TYPE_META[item.type].label}</td>
-        <td data-label="‡∏´‡∏°‡∏ß‡∏î‡∏´‡∏°‡∏π‡πà">${esc(item.category)}</td>
-        <td data-label="‡∏ä‡∏∑‡πà‡∏≠‡πÑ‡∏ü‡∏•‡πå"><span class="file-name">${esc(item.fileName)}</span></td>
-        <td data-label="‡πÄ‡∏ß‡∏≠‡∏£‡πå‡∏ä‡∏±‡∏ô/‡∏ß‡∏±‡∏ô‡∏ó‡∏µ‡πà"><span class="badge badge-version">${esc(item.versionLabel)}</span></td>
-        <td data-label="‡∏™‡∏ñ‡∏≤‡∏ô‡∏∞">${item.pending?'<span class="badge badge-pending">PENDING</span>':(item.isLatest?'<span class="badge badge-latest">LATEST</span>':'<span class="badge badge-history">HISTORY</span>')}</td>
-        <td data-label="‡∏Å‡∏≤‡∏£‡∏à‡∏±‡∏î‡∏Å‡∏≤‡∏£" class="actions">${rowActionsHtml(item)}</td>
-      </tr>`).join('');
-    els.historyContent.innerHTML = `
-      <table>
-        <thead><tr><th>‡∏õ‡∏£‡∏∞‡πÄ‡∏†‡∏ó</th><th>‡∏´‡∏°‡∏ß‡∏î‡∏´‡∏°‡∏π‡πà</th><th>‡∏ä‡∏∑‡πà‡∏≠‡πÑ‡∏ü‡∏•‡πå</th><th>‡πÄ‡∏ß‡∏≠‡∏£‡πå‡∏ä‡∏±‡∏ô</th><th>‡∏™‡∏ñ‡∏≤‡∏ô‡∏∞</th><th>‡∏Å‡∏≤‡∏£‡∏à‡∏±‡∏î‡∏Å‡∏≤‡∏£</th></tr></thead>
-        <tbody>${trs}</tbody>
-      </table>`;
-    bindRowActions(els.historyContent);
-  }
-
-  /* ================= ROW ACTIONS (history/path/edit/delete) ================= */
-  function bindRowActions(container){
-    container.querySelectorAll('[data-action="history"]').forEach(btn=>{
-      btn.addEventListener('click', ()=> showSeriesHistory(decodeURIComponent(btn.dataset.key)));
-    });
-    container.querySelectorAll('[data-action="path"]').forEach(btn=>{
-      btn.addEventListener('click', ()=> showPathModal(btn.dataset.path));
-    });
-    container.querySelectorAll('[data-action="edit"]').forEach(btn=>{
-      btn.addEventListener('click', ()=> showEditModal(btn.dataset.id));
-    });
-    container.querySelectorAll('[data-action="delete"]').forEach(btn=>{
-      btn.addEventListener('click', ()=> confirmDelete(btn.dataset.id));
-    });
-  }
-
-  function showSeriesHistory(seriesKey){
-    const group = DATA.filter(d=>d.seriesKey===seriesKey).sort((a,b)=> b.versionNum-a.versionNum);
-    const rows = group.map(item=>`
-      <tr>
-        <td>${esc(item.fileName)}</td>
-        <td><span class="badge badge-version">${esc(item.versionLabel)}</span></td>
-        <td>${item.pending?'<span class="badge badge-pending">PENDING</span>':(item.isLatest?'<span class="badge badge-latest">LATEST</span>':'<span class="badge badge-history">HISTORY</span>')}</td>
-        <td>${item.pending?'-':`<a class="btn btn-sm btn-primary" href="${rawUrl(item.path)}" target="_blank" rel="noopener noreferrer" download>‚¨á</a>`}</td>
-      </tr>`).join('');
-    openModal('üïò ‡∏õ‡∏£‡∏∞‡∏ß‡∏±‡∏ï‡∏¥‡πÄ‡∏ß‡∏≠‡∏£‡πå‡∏ä‡∏±‡∏ô‡∏Ç‡∏≠‡∏á‡πÑ‡∏ü‡∏•‡πå‡∏ä‡∏∏‡∏î‡∏ô‡∏µ‡πâ', `
-      <table><thead><tr><th>‡∏ä‡∏∑‡πà‡∏≠‡πÑ‡∏ü‡∏•‡πå</th><th>‡πÄ‡∏ß‡∏≠‡∏£‡πå‡∏ä‡∏±‡∏ô</th><th>‡∏™‡∏ñ‡∏≤‡∏ô‡∏∞</th><th></th></tr></thead>
-      <tbody>${rows}</tbody></table>
-    `);
-  }
-
-  function showPathModal(path){
-    const url = rawUrl(path);
-    openModal('üìÅ ‡∏ï‡∏≥‡πÅ‡∏´‡∏ô‡πà‡∏á‡πÑ‡∏ü‡∏•‡πå‡πÉ‡∏ô‡πÇ‡∏Ñ‡∏£‡∏á‡∏™‡∏£‡πâ‡∏≤‡∏á Repo', `
-      <p>‡∏ß‡∏≤‡∏á‡πÑ‡∏ü‡∏•‡πå‡∏ô‡∏µ‡πâ‡∏ï‡∏≤‡∏° path ‡∏î‡πâ‡∏≤‡∏ô‡∏•‡πà‡∏≤‡∏á‡πÉ‡∏ô‡πÄ‡∏Ñ‡∏£‡∏∑‡πà‡∏≠‡∏á ‡πÅ‡∏•‡πâ‡∏ß Commit + Push ‡∏ú‡πà‡∏≤‡∏ô GitHub Desktop:</p>
-      <div class="path-box">${esc(path)}</div>
-      <div class="form-row" style="margin-top:12px;">
-        <label>Raw URL (‡∏™‡∏≥‡∏´‡∏£‡∏±‡∏ö‡∏î‡∏≤‡∏ß‡∏ô‡πå‡πÇ‡∏´‡∏•‡∏î/‡πÅ‡∏ä‡∏£‡πå)</label>
-        <input type="text" readonly value="${esc(url)}" onclick="this.select()">
-      </div>
-      <button class="btn btn-primary" id="copyPathBtn">üìã ‡∏Ñ‡∏±‡∏î‡∏•‡∏≠‡∏Å Path</button>
-    `);
-    document.getElementById('copyPathBtn').addEventListener('click', ()=> copyText(path));
-  }
-
-  function showEditModal(id){
-    const item = DATA.find(d=>d.id===id);
-    if(!item) return;
-    openModal('‚úèÔ∏è ‡πÅ‡∏Å‡πâ‡πÑ‡∏Ç‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏•‡πÑ‡∏ü‡∏•‡πå (Session ‡πÄ‡∏ó‡πà‡∏≤‡∏ô‡∏±‡πâ‡∏ô)', `
-      <div class="info-box">‡∏Å‡∏≤‡∏£‡πÅ‡∏Å‡πâ‡πÑ‡∏Ç‡∏ô‡∏µ‡πâ‡∏à‡∏∞‡πÅ‡∏™‡∏î‡∏á‡∏ú‡∏•‡πÄ‡∏â‡∏û‡∏≤‡∏∞‡∏´‡∏ô‡πâ‡∏≤‡πÄ‡∏ß‡πá‡∏ö‡∏Ç‡∏≠‡∏á‡∏Ñ‡∏∏‡∏ì‡πÉ‡∏ô‡∏£‡∏≠‡∏ö‡∏ô‡∏µ‡πâ ‡πÑ‡∏°‡πà‡∏Å‡∏£‡∏∞‡∏ó‡∏ö‡πÑ‡∏ü‡∏•‡πå‡∏à‡∏£‡∏¥‡∏á‡∏ö‡∏ô GitHub ‚Äî ‡∏´‡∏≤‡∏Å‡∏ï‡πâ‡∏≠‡∏á‡∏Å‡∏≤‡∏£‡πÅ‡∏Å‡πâ‡πÑ‡∏Ç‡∏à‡∏£‡∏¥‡∏á ‡∏Å‡∏£‡∏∏‡∏ì‡∏≤‡πÅ‡∏Å‡πâ‡πÑ‡∏Ç‡∏ú‡πà‡∏≤‡∏ô GitHub Desktop ‡πÅ‡∏•‡∏∞‡∏õ‡∏£‡∏±‡∏ö‡∏õ‡∏£‡∏∏‡∏á files.json ‡∏†‡∏≤‡∏¢‡∏´‡∏•‡∏±‡∏á</div>
-      <div class="form-row"><label>‡∏ä‡∏∑‡πà‡∏≠‡πÑ‡∏ü‡∏•‡πå</label><input type="text" id="editFileName" value="${esc(item.fileName)}"></div>
-      <div class="form-row"><label>‡∏´‡∏°‡∏ß‡∏î‡∏´‡∏°‡∏π‡πà</label><input type="text" id="editCategory" value="${esc(item.category)}"></div>
-      <button class="btn btn-primary" id="saveEditBtn">üíæ ‡∏ö‡∏±‡∏ô‡∏ó‡∏∂‡∏Å (Session)</button>
-    `);
-    document.getElementById('saveEditBtn').addEventListener('click', ()=>{
-      const newName = document.getElementById('editFileName').value.trim();
-      const newCat = document.getElementById('editCategory').value.trim();
-      if(!newName || !newCat){ toast('‡∏Å‡∏£‡∏∏‡∏ì‡∏≤‡∏Å‡∏£‡∏≠‡∏Å‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏•‡πÉ‡∏´‡πâ‡∏Ñ‡∏£‡∏ö', true); return; }
-      const updated = makeEntry(item.type, newCat, newName, { pending: item.pending });
-      updated.id = item.id;
-      DATA = DATA.map(d=> d.id===id ? updated : d);
-      computeLatest(DATA);
-      closeModal(); toast('‡∏≠‡∏±‡∏õ‡πÄ‡∏î‡∏ï‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏•‡πÅ‡∏•‡πâ‡∏ß (Session)');
-      renderDashboard(); renderHistory();
-    });
-  }
-
-  function confirmDelete(id){
-    const item = DATA.find(d=>d.id===id);
-    if(!item) return;
-    openModal('üóë ‡∏¢‡∏∑‡∏ô‡∏¢‡∏±‡∏ô‡∏Å‡∏≤‡∏£‡∏•‡∏ö', `
-      <p>‡∏ï‡πâ‡∏≠‡∏á‡∏Å‡∏≤‡∏£‡∏•‡∏ö <b>${esc(item.fileName)}</b> ‡∏≠‡∏≠‡∏Å‡∏à‡∏≤‡∏Å‡∏£‡∏≤‡∏¢‡∏Å‡∏≤‡∏£‡∏ó‡∏µ‡πà‡πÅ‡∏™‡∏î‡∏á‡πÉ‡∏ô‡∏´‡∏ô‡πâ‡∏≤‡πÄ‡∏ß‡πá‡∏ö‡∏ô‡∏µ‡πâ (Session) ‡πÉ‡∏ä‡πà‡∏´‡∏£‡∏∑‡∏≠‡πÑ‡∏°‡πà?</p>
-      <div class="info-box">‡∏Å‡∏≤‡∏£‡∏•‡∏ö‡∏ô‡∏µ‡πâ‡πÑ‡∏°‡πà‡πÑ‡∏î‡πâ‡∏•‡∏ö‡πÑ‡∏ü‡∏•‡πå‡∏à‡∏£‡∏¥‡∏á‡∏ö‡∏ô GitHub ‡∏´‡∏≤‡∏Å‡∏ï‡πâ‡∏≠‡∏á‡∏Å‡∏≤‡∏£‡∏•‡∏ö‡πÑ‡∏ü‡∏•‡πå‡∏à‡∏£‡∏¥‡∏á ‡∏Å‡∏£‡∏∏‡∏ì‡∏≤‡∏•‡∏ö‡∏ú‡πà‡∏≤‡∏ô GitHub Desktop</div>
-      <button class="btn btn-danger" id="confirmDelBtn">‡∏¢‡∏∑‡∏ô‡∏¢‡∏±‡∏ô‡∏•‡∏ö</button>
-      <button class="btn" id="cancelDelBtn">‡∏¢‡∏Å‡πÄ‡∏•‡∏¥‡∏Å</button>
-    `);
-    document.getElementById('confirmDelBtn').addEventListener('click', ()=>{
-      DATA = DATA.filter(d=>d.id!==id);
-      computeLatest(DATA);
-      closeModal(); toast('‡∏•‡∏ö‡∏≠‡∏≠‡∏Å‡∏à‡∏≤‡∏Å‡∏£‡∏≤‡∏¢‡∏Å‡∏≤‡∏£‡πÅ‡∏•‡πâ‡∏ß (Session)');
-      renderDashboard(); renderHistory(); renderPendingList();
-    });
-    document.getElementById('cancelDelBtn').addEventListener('click', closeModal);
-  }
-
-  /* ================= UPLOAD HELPER ================= */
-  function refreshCategoryOptions(){
-    const type = els.upType.value;
-    const opts = CATEGORY_OPTIONS[type] || [];
-    els.upCategory.innerHTML = opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')
-      + `<option value="__custom__">‡∏≠‡∏∑‡πà‡∏ô‡πÜ (‡∏£‡∏∞‡∏ö‡∏∏‡πÄ‡∏≠‡∏á)</option>`;
-    els.upCustomCatRow.style.display = 'none';
-  }
-  els.upType.addEventListener('change', refreshCategoryOptions);
-  els.upCategory.addEventListener('change', ()=>{
-    els.upCustomCatRow.style.display = els.upCategory.value==='__custom__' ? 'flex' : 'none';
+/* ============================================================
+   TAB SWITCHING
+   ============================================================ */
+tabs.forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    tabs.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const v = btn.dataset.view;
+    views.forEach(s=> s.classList.toggle('active', s.id==='view-'+v));
+    if(v==='dashboard') renderDashboard();
+    if(v==='history')   renderHistory();
+    if(v==='upload')    renderPending();
   });
-  refreshCategoryOptions();
+});
 
-  function getSelectedCategory(){
-    return els.upCategory.value==='__custom__' ? els.upCustomCat.value.trim() : els.upCategory.value;
-  }
-  function getFileName(){
-    if(els.upFileInput.files && els.upFileInput.files[0]) return els.upFileInput.files[0].name;
-    return els.upManualName.value.trim();
-  }
-
-  els.analyzeBtn.addEventListener('click', ()=>{
-    const type = els.upType.value;
-    const category = getSelectedCategory();
-    const fileName = getFileName();
-    if(!category){ toast('‡∏Å‡∏£‡∏∏‡∏ì‡∏≤‡∏£‡∏∞‡∏ö‡∏∏‡∏´‡∏°‡∏ß‡∏î‡∏´‡∏°‡∏π‡πà', true); return; }
-    if(!fileName){ toast('‡∏Å‡∏£‡∏∏‡∏ì‡∏≤‡πÄ‡∏•‡∏∑‡∏≠‡∏Å‡πÑ‡∏ü‡∏•‡πå‡∏´‡∏£‡∏∑‡∏≠‡∏£‡∏∞‡∏ö‡∏∏‡∏ä‡∏∑‡πà‡∏≠‡πÑ‡∏ü‡∏•‡πå', true); return; }
-
-    const entry = makeEntry(type, category, fileName, { pending:true });
-    const existingGroup = DATA.filter(d=>d.seriesKey===entry.seriesKey && !d.pending)
-      .sort((a,b)=> b.versionNum-a.versionNum);
-    const currentLatest = existingGroup[0];
-
-    let compareHtml = '';
-    if(currentLatest){
-      if(entry.versionNum > currentLatest.versionNum){
-        compareHtml = `<p style="color:var(--green)">‚úÖ ‡πÑ‡∏ü‡∏•‡πå‡∏ô‡∏µ‡πâ‡∏à‡∏∞‡∏Å‡∏•‡∏≤‡∏¢‡πÄ‡∏õ‡πá‡∏ô "‡πÑ‡∏ü‡∏•‡πå‡∏•‡πà‡∏≤‡∏™‡∏∏‡∏î" ‡πÅ‡∏ó‡∏ô‡∏ó‡∏µ‡πà <b>${esc(currentLatest.fileName)}</b> (‡πÄ‡∏ß‡∏≠‡∏£‡πå‡∏ä‡∏±‡∏ô ${esc(currentLatest.versionLabel)}) ‡πÉ‡∏ô‡∏´‡∏ô‡πâ‡∏≤ Dashboard</p>`;
-      } else {
-        compareHtml = `<p style="color:var(--orange)">‚ö†Ô∏è ‡πÄ‡∏ß‡∏≠‡∏£‡πå‡∏ä‡∏±‡∏ô‡∏ô‡∏µ‡πâ‡πÑ‡∏°‡πà‡πÉ‡∏´‡∏°‡πà‡∏Å‡∏ß‡πà‡∏≤‡πÑ‡∏ü‡∏•‡πå‡∏õ‡∏±‡∏à‡∏à‡∏∏‡∏ö‡∏±‡∏ô (<b>${esc(currentLatest.fileName)}</b> ‡πÄ‡∏ß‡∏≠‡∏£‡πå‡∏ä‡∏±‡∏ô ${esc(currentLatest.versionLabel)}) ‡∏£‡∏∞‡∏ö‡∏ö‡∏à‡∏∞‡πÑ‡∏°‡πà‡∏ï‡∏±‡πâ‡∏á‡πÄ‡∏õ‡πá‡∏ô‡πÑ‡∏ü‡∏•‡πå‡∏•‡πà‡∏≤‡∏™‡∏∏‡∏î</p>`;
-      }
-    } else {
-      compareHtml = `<p style="color:var(--accent-2)">üÜï ‡∏ô‡∏µ‡πà‡∏Ñ‡∏∑‡∏≠‡∏ä‡∏∏‡∏î‡πÑ‡∏ü‡∏•‡πå‡πÉ‡∏´‡∏°‡πà ‡∏¢‡∏±‡∏á‡πÑ‡∏°‡πà‡∏°‡∏µ‡πÑ‡∏ü‡∏•‡πå‡πÉ‡∏ô‡∏ä‡∏∏‡∏î‡∏ô‡∏µ‡πâ‡∏°‡∏≤‡∏Å‡πà‡∏≠‡∏ô</p>`;
-    }
-
-    state.lastAnalyzed = entry;
-    els.analyzeResult.innerHTML = `
-      <div class="card" style="background:var(--surface-2);">
-        <p><b>‡∏ä‡∏∑‡πà‡∏≠‡πÑ‡∏ü‡∏•‡πå:</b> ${esc(entry.fileName)}</p>
-        <p><b>‡πÄ‡∏ß‡∏≠‡∏£‡πå‡∏ä‡∏±‡∏ô‡∏ó‡∏µ‡πà‡∏ï‡∏£‡∏ß‡∏à‡∏û‡∏ö:</b> <span class="badge badge-version">${esc(entry.versionLabel)}</span></p>
-        <p><b>Path ‡∏ó‡∏µ‡πà‡πÅ‡∏ô‡∏∞‡∏ô‡∏≥:</b></p>
-        <div class="path-box">${esc(entry.path)}</div>
-        ${compareHtml}
-        <button class="btn btn-primary" id="addPendingBtn" style="margin-top:10px;">‚ûï ‡πÄ‡∏û‡∏¥‡πà‡∏°‡πÄ‡∏Ç‡πâ‡∏≤‡∏£‡∏≤‡∏¢‡∏Å‡∏≤‡∏£‡∏£‡∏≠ Push (Preview)</button>
-        <button class="btn" id="copyAnalyzePathBtn" style="margin-top:10px;">üìã ‡∏Ñ‡∏±‡∏î‡∏•‡∏≠‡∏Å Path</button>
-      </div>`;
-    document.getElementById('copyAnalyzePathBtn').addEventListener('click', ()=> copyText(entry.path));
-    document.getElementById('addPendingBtn').addEventListener('click', ()=>{
-      DATA.push(entry);
-      computeLatest(DATA);
-      toast('‡πÄ‡∏û‡∏¥‡πà‡∏°‡∏£‡∏≤‡∏¢‡∏Å‡∏≤‡∏£ Preview ‡πÅ‡∏•‡πâ‡∏ß ‚Äî ‡∏î‡∏π‡∏ú‡∏•‡πÑ‡∏î‡πâ‡πÉ‡∏ô‡∏´‡∏ô‡πâ‡∏≤ Dashboard');
-      renderPendingList();
-      renderDashboard();
-    });
-  });
-
-  function renderPendingList(){
-    const pending = DATA.filter(d=>d.pending);
-    if(!pending.length){
-      els.pendingContent.innerHTML = `<div class="empty-state">‡∏¢‡∏±‡∏á‡πÑ‡∏°‡πà‡∏°‡∏µ‡∏£‡∏≤‡∏¢‡∏Å‡∏≤‡∏£‡∏ó‡∏µ‡πà‡πÄ‡∏û‡∏¥‡πà‡∏°‡πÉ‡∏ô‡∏£‡∏≠‡∏ö‡∏ô‡∏µ‡πâ</div>`;
-      return;
-    }
-    const rows = pending.map(item=>`
-      <tr data-id="${item.id}">
-        <td data-label="‡∏ä‡∏∑‡πà‡∏≠‡πÑ‡∏ü‡∏•‡πå">${esc(item.fileName)} <span class="badge badge-pending">PENDING</span></td>
-        <td data-label="Path">${esc(item.path)}</td>
-        <td data-label="‡∏Å‡∏≤‡∏£‡∏à‡∏±‡∏î‡∏Å‡∏≤‡∏£" class="actions">
-          <button class="btn btn-sm" data-action="path" data-path="${esc(item.path)}">üìÅ Path</button>
-          <button class="btn btn-sm btn-danger" data-action="delete" data-id="${item.id}">üóë ‡∏•‡∏ö‡∏≠‡∏≠‡∏Å</button>
-        </td>
-      </tr>`).join('');
-    els.pendingContent.innerHTML = `
-      <table><thead><tr><th>‡∏ä‡∏∑‡πà‡∏≠‡πÑ‡∏ü‡∏•‡πå</th><th>Path</th><th>‡∏Å‡∏≤‡∏£‡∏à‡∏±‡∏î‡∏Å‡∏≤‡∏£</th></tr></thead>
-      <tbody>${rows}</tbody></table>`;
-    bindRowActions(els.pendingContent);
-  }
-
-  /* ================= EXPORT files.json ================= */
-  els.exportJsonBtn.addEventListener('click', ()=>{
-    const exportData = DATA.map(({id, isLatest, pending, ...rest})=> rest);
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type:'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'files.json';
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
-    toast('‡∏î‡∏≤‡∏ß‡∏ô‡πå‡πÇ‡∏´‡∏•‡∏î files.json ‡πÅ‡∏•‡πâ‡∏ß ‚Äî ‡∏ô‡∏≥‡πÑ‡∏õ‡∏ß‡∏≤‡∏á‡∏ó‡∏µ‡πà /dashboard/files.json ‡πÉ‡∏ô repo');
-  });
-
-  /* ================= SEARCH/FILTER BINDINGS ================= */
-  els.dashSearch.addEventListener('input', e=>{ state.dashSearch = e.target.value; renderDashboard(); });
-  els.refreshBtn.addEventListener('click', ()=>{ toast('‡∏£‡∏µ‡πÄ‡∏ü‡∏£‡∏ä‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏• (‡πÇ‡∏´‡∏°‡∏î Guided Static: ‡πÉ‡∏ä‡πâ‡∏Ç‡πâ‡∏≠‡∏°‡∏π‡∏•‡∏à‡∏≤‡∏Å‡∏´‡∏ô‡πà‡∏ß‡∏¢‡∏Ñ‡∏ß‡∏≤‡∏°‡∏à‡∏≥‡∏õ‡∏±‡∏à‡∏à‡∏∏‡∏ö‡∏±‡∏ô)'); renderDashboard(); });
-
-  els.histSearch.addEventListener('input', e=>{ state.histSearch = e.target.value; renderHistory(); });
-  els.histTypeFilter.addEventListener('change', e=>{ state.histType = e.target.value; renderHistory(); });
-  els.histStatusFilter.addEventListener('change', e=>{ state.histStatus = e.target.value; renderHistory(); });
-  els.histSort.addEventListener('change', e=>{ state.histSort = e.target.value; renderHistory(); });
-
-  /* ================= INIT ================= */
-  renderDashboard();
-  renderPendingList();
-
+/* ============================================================
+   HELPERS: isNewBadge (Doc ? 7 «—πÀ≈—ß«—π∑’Ë≈Ë“ ÿ¥„π dataset)
+   ============================================================ */
+const latestDocDate = (()=>{
+  const dates = DATA.filter(d=>d.dateModified).map(d=>new Date(d.dateModified).getTime());
+  return dates.length ? Math.max(...dates) : Date.now();
 })();
+function isNew(item){
+  if(!item.dateModified) return false;
+  return (latestDocDate - new Date(item.dateModified).getTime()) <= 7*86400000;
+}
+
+/* ============================================================
+   ROW BUTTONS HTML
+   ============================================================ */
+function actBtns(item){
+  const dlUrl = rawUrl(item.path);
+  const dl = item.pending
+    ? `<button class="btn btn-sm" disabled title="¬—ß‰¡Ë Push ó ‰¡Ë “¡“√∂¥“«πÏ‚À≈¥‰¥È">? Download</button>`
+    : `<a class="btn btn-sm btn-primary" href="${esc(dlUrl)}" target="_blank" rel="noopener noreferrer" download>? Download</a>`;
+  return `
+    <div class="actions-inner">
+      ${dl}
+      <button class="btn btn-sm" data-action="hist"  data-key="${esc(item.seriesKey)}">??</button>
+      <button class="btn btn-sm" data-action="path"  data-path="${esc(item.path)}">??</button>
+      <button class="btn btn-sm" data-action="edit"  data-id="${item.id}">??</button>
+      <button class="btn btn-sm btn-danger" data-action="del" data-id="${item.id}">??</button>
+    </div>`;
+}
+
+/* ============================================================
+   BIND ROW ACTIONS
+   ============================================================ */
+function bindActions(el){
+  el.querySelectorAll('[data-action="hist"]').forEach(b=>
+    b.addEventListener('click',()=> showHistory(b.dataset.key)));
+  el.querySelectorAll('[data-action="path"]').forEach(b=>
+    b.addEventListener('click',()=> showPath(b.dataset.path)));
+  el.querySelectorAll('[data-action="edit"]').forEach(b=>
+    b.addEventListener('click',()=> showEdit(b.dataset.id)));
+  el.querySelectorAll('[data-action="del"]').forEach(b=>
+    b.addEventListener('click',()=> showDelete(b.dataset.id)));
+}
+
+/* ============================================================
+   MODAL: VERSION HISTORY
+   ============================================================ */
+function showHistory(key){
+  const grp = DATA.filter(d=>d.seriesKey===key).sort((a,b)=>b.versionNum-a.versionNum);
+  const rows = grp.map(item=>`
+    <div class="history-row">
+      <div class="history-name">${esc(item.fileName)}</div>
+      <span class="badge bv">${esc(item.versionLabel)}</span>
+      ${item.pending?'<span class="badge bp">PENDING</span>'
+        :(item.isLatest?'<span class="badge bl">LATEST</span>':'<span class="badge bh">HISTORY</span>')}
+      ${item.pending
+        ? '<button class="btn btn-sm" disabled>?</button>'
+        : `<a class="btn btn-sm btn-primary" href="${esc(rawUrl(item.path))}" target="_blank" rel="noopener noreferrer" download>?</a>`}
+    </div>`).join('');
+  openModal('?? ª√–«—µ‘‡«Õ√Ï™—π', rows||'<p style="color:var(--muted)">‰¡Ë¡’¢ÈÕ¡Ÿ≈</p>');
+}
+
+/* ============================================================
+   MODAL: PATH INFO
+   ============================================================ */
+function showPath(path){
+  const url = rawUrl(path);
+  openModal('?? µ”·ÀπËß‰ø≈Ï',`
+    <p style="margin-bottom:6px;color:var(--muted);font-size:12.5px;">Path „π Repo («“ß‰ø≈Ï∑’Ëπ’Ë)</p>
+    <div class="path-box">${esc(path)}</div>
+    <button class="btn btn-sm btn-primary" onclick="(${copyText.toString()})(${JSON.stringify(path)})">?? §—¥≈Õ° Path</button>
+    <hr class="divider">
+    <p style="margin-bottom:6px;color:var(--muted);font-size:12.5px;">Raw URL  ”À√—∫¥“«πÏ‚À≈¥</p>
+    <input type="text" readonly value="${esc(url)}" onclick="this.select()"
+      style="width:100%;background:var(--surface-3);border:1px solid var(--border);
+             color:var(--text);padding:8px 10px;border-radius:7px;font-size:12px;
+             font-family:monospace;">
+    <button class="btn btn-sm" style="margin-top:8px;" onclick="(${copyText.toString()})(${JSON.stringify(url)})">?? §—¥≈Õ° URL</button>
+  `);
+}
+
+/* ============================================================
+   MODAL: EDIT
+   ============================================================ */
+function showEdit(id){
+  const item = DATA.find(d=>d.id===id);
+  if(!item) return;
+  openModal('?? ·°È‰¢¢ÈÕ¡Ÿ≈ (Session ‡∑Ë“π—Èπ)',`
+    <div class="warn-box">°“√·°È‰¢π’È¡’º≈‡©æ“– session π’È‡∑Ë“π—Èπ ‰¡Ë°√–∑∫‰ø≈Ï®√‘ß∫π GitHub</div>
+    <div class="form-row">
+      <label>™◊ËÕ‰ø≈Ï</label>
+      <input type="text" id="editName" value="${esc(item.fileName)}">
+    </div>
+    <div class="form-row">
+      <label>À¡«¥À¡ŸË</label>
+      <input type="text" id="editCat" value="${esc(item.category)}">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn btn-primary" id="saveEditBtn">?? ∫—π∑÷°</button>
+      <button class="btn" onclick="closeModal && (${(()=>{ const f=document.getElementById('modalOverlay'); if(f) f.hidden=true; }).toString()})()">¬°‡≈‘°</button>
+    </div>
+  `);
+  $('saveEditBtn').addEventListener('click',()=>{
+    const newName = $('editName').value.trim();
+    const newCat  = $('editCat').value.trim();
+    if(!newName||!newCat){ toast('°√ÿ≥“°√Õ°¢ÈÕ¡Ÿ≈„ÀÈ§√∫','err'); return; }
+    const updated = makeEntry(item.type, newCat, newName, {pending:item.pending});
+    updated.id = item.id;
+    DATA = DATA.map(d=> d.id===id ? updated : d);
+    computeLatest(DATA);
+    closeModal();
+    toast('·°È‰¢¢ÈÕ¡Ÿ≈·≈È« (Session)','ok');
+    reRenderAll();
+  });
+}
+
+/* ============================================================
+   MODAL: DELETE
+   ============================================================ */
+function showDelete(id){
+  const item = DATA.find(d=>d.id===id);
+  if(!item) return;
+  openModal('?? ¬◊π¬—π°“√≈∫',`
+    <p>µÈÕß°“√≈∫‰ø≈Ï <b>${esc(item.fileName)}</b> ÕÕ°®“°√“¬°“√„™Ë‰À¡?</p>
+    <div class="warn-box" style="margin-top:10px;">
+      °“√≈∫π’È¡’º≈‡©æ“– session π’È‡∑Ë“π—Èπ
+      À“°µÈÕß°“√≈∫‰ø≈Ï®√‘ß∫π GitHub „ÀÈ≈∫ºË“π GitHub Desktop
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn btn-danger" id="confirmDel">¬◊π¬—π≈∫</button>
+      <button class="btn" id="cancelDel">¬°‡≈‘°</button>
+    </div>
+  `);
+  $('confirmDel').addEventListener('click',()=>{
+    DATA = DATA.filter(d=>d.id!==id);
+    computeLatest(DATA);
+    closeModal();
+    toast('≈∫ÕÕ°®“°√“¬°“√·≈È« (Session)','ok');
+    reRenderAll();
+  });
+  $('cancelDel').addEventListener('click', closeModal);
+}
+
+/* ============================================================
+   RENDER: STATS
+   ============================================================ */
+function renderStats(){
+  const total   = DATA.length;
+  const latest  = DATA.filter(d=>d.isLatest).length;
+  const series  = new Set(DATA.map(d=>d.seriesKey)).size;
+  const pending = DATA.filter(d=>d.pending).length;
+  statsRow.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon">??</div>
+      <div class="stat-num">${latest}</div>
+      <div class="stat-label">‰ø≈Ï≈Ë“ ÿ¥ (· ¥ßÀπÈ“À≈—°)</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-icon">??</div>
+      <div class="stat-num">${total}</div>
+      <div class="stat-label">‰ø≈Ï∑—ÈßÀ¡¥ (√«¡‡«Õ√Ï™—π‡°Ë“)</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-icon">??</div>
+      <div class="stat-num">${series}</div>
+      <div class="stat-label">™ÿ¥‰ø≈Ï (Series)</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon">?</div>
+      <div class="stat-num">${pending}</div>
+      <div class="stat-label">√Õ Push (Session)</div>
+    </div>
+  `;
+  // update tab counts
+  $('tcDash').textContent = latest;
+  $('tcHist').textContent = total;
+}
+
+/* ============================================================
+   RENDER: CHIPS (Dashboard filter)
+   ============================================================ */
+function renderChips(){
+  const types = ['ALL','EA','REPORT','DOC'];
+  dashTypeChips.innerHTML = types.map(t=>{
+    const label = t==='ALL' ? '∑ÿ°ª√–‡¿∑'
+      : `${TYPE_META[t].icon} ${TYPE_META[t].label}`;
+    const cls = t==='ALL' ? '' : TYPE_META[t].chipClass;
+    return `<span class="chip ${cls} ${S.dashType===t?'active':''}" data-t="${t}">${label}</span>`;
+  }).join('');
+
+  const filteredForCat = DATA.filter(d=> S.dashType==='ALL' || d.type===S.dashType);
+  const cats = ['ALL', ...new Set(filteredForCat.map(d=>d.category))];
+  dashCatChips.innerHTML = cats.map(c=>{
+    const label = c==='ALL' ? '∑ÿ°À¡«¥À¡ŸË' : c;
+    return `<span class="chip ${S.dashCat===c?'active':''}" data-c="${esc(c)}">${label}</span>`;
+  }).join('');
+
+  dashTypeChips.querySelectorAll('.chip').forEach(ch=>{
+    ch.addEventListener('click',()=>{
+      S.dashType=ch.dataset.t; S.dashCat='ALL'; renderDashboard();
+    });
+  });
+  dashCatChips.querySelectorAll('.chip').forEach(ch=>{
+    ch.addEventListener('click',()=>{ S.dashCat=ch.dataset.c; renderDashboard(); });
+  });
+}
+
+/* ============================================================
+   RENDER: DASHBOARD
+   ============================================================ */
+function renderDashboard(){
+  renderStats();
+  renderChips();
+  const q = S.dashSearch.toLowerCase();
+  let html = '';
+  let totalShown = 0;
+
+  Object.keys(TYPE_META).forEach(type=>{
+    if(S.dashType!=='ALL' && S.dashType!==type) return;
+    // · ¥ß‡©æ“– isLatest „πÀπÈ“À≈—°
+    const items = DATA.filter(d=>
+      d.type===type && d.isLatest &&
+      (S.dashCat==='ALL' || d.category===S.dashCat) &&
+      d.fileName.toLowerCase().includes(q)
+    );
+    if(!items.length) return;
+
+    const cats = [...new Set(items.map(i=>i.category))];
+    let catHtml = '';
+    cats.forEach(cat=>{
+      const rows = items.filter(i=>i.category===cat);
+      totalShown += rows.length;
+      const trs = rows.map(item=>`
+        <tr data-id="${item.id}">
+          <td data-label="™◊ËÕ‰ø≈Ï">
+            <div class="file-name">${esc(item.fileName)}</div>
+            ${item.pending ? '<span class="badge bp">PENDING</span>' : ''}
+            ${!item.pending && isNew(item) ? '<span class="badge bn">NEW</span>' : ''}
+          </td>
+          <td data-label="‡«Õ√Ï™—π"><span class="badge bv">${esc(item.versionLabel)}</span></td>
+          <td data-label="π“¡ °ÿ≈"><span class="badge bext">${esc(item.extension)}</span></td>
+          <td data-label="°“√®—¥°“√" class="actions">${actBtns(item)}</td>
+        </tr>`).join('');
+      catHtml += `
+        <div class="cat-block">
+          <div class="cat-header">
+            <span class="cat-title">${esc(cat)}</span>
+            <span class="cat-count">${rows.length} ‰ø≈Ï</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>™◊ËÕ‰ø≈Ï</th><th>‡«Õ√Ï™—π</th><th>π“¡ °ÿ≈</th><th>°“√®—¥°“√</th>
+              </tr></thead>
+              <tbody>${trs}</tbody>
+            </table>
+          </div>
+        </div>`;
+    });
+
+    html += `
+      <div class="type-section">
+        <div class="type-header">
+          <h2>${TYPE_META[type].icon} ${TYPE_META[type].label}</h2>
+          <span class="count-pill">${items.length} ‰ø≈Ï</span>
+        </div>
+        ${catHtml}
+      </div>`;
+  });
+
+  dashContent.innerHTML = html || `
+    <div class="empty-state">
+      <div class="empty-icon">??</div>
+      <div class="empty-text">‰¡Ëæ∫‰ø≈Ï∑’Ëµ√ß°—∫µ—«°√Õß</div>
+    </div>`;
+  bindActions(dashContent);
+}
+
+/* ============================================================
+   RENDER: HISTORY / SEARCH
+   ============================================================ */
+function renderHistory(){
+  const q = $('histSearch').value.toLowerCase();
+  let rows = DATA.filter(d=>{
+    if(S.histType!=='ALL'   && d.type!==S.histType) return false;
+    if(S.histCat!=='ALL'    && d.category!==S.histCat) return false;
+    if(S.histStatus==='LATEST'  && !d.isLatest) return false;
+    if(S.histStatus==='HISTORY' && d.isLatest) return false;
+    if(S.histStatus==='PENDING' && !d.pending) return false;
+    if(!d.fileName.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  // Sort
+  switch(S.histSort){
+    case 'ver_desc': rows.sort((a,b)=> b.versionNum-a.versionNum); break;
+    case 'ver_asc':  rows.sort((a,b)=> a.versionNum-b.versionNum); break;
+    case 'date_desc':rows.sort((a,b)=> (b.dateModified||'').localeCompare(a.dateModified||'')); break;
+    default:         rows.sort((a,b)=> a.fileName.localeCompare(b.fileName));
+  }
+
+  histCount.textContent = `· ¥ß ${rows.length} ®“° ${DATA.length} ‰ø≈Ï`;
+
+  if(!rows.length){
+    histContent.innerHTML = `<div class="empty-state"><div class="empty-icon">??</div><div class="empty-text">‰¡Ëæ∫‰ø≈Ï</div></div>`;
+    return;
+  }
+
+  const trs = rows.map(item=>`
+    <tr data-id="${item.id}">
+      <td data-label="ª√–‡¿∑">${TYPE_META[item.type].icon} <span style="font-size:12px;">${TYPE_META[item.type].label}</span></td>
+      <td data-label="À¡«¥À¡ŸË">${esc(item.category)}</td>
+      <td data-label="™◊ËÕ‰ø≈Ï"><div class="file-name">${esc(item.fileName)}</div></td>
+      <td data-label="‡«Õ√Ï™—π"><span class="badge bv">${esc(item.versionLabel)}</span></td>
+      <td data-label=" ∂“π–">
+        ${item.pending ? '<span class="badge bp">PENDING</span>'
+          : (item.isLatest ? '<span class="badge bl">LATEST</span>' : '<span class="badge bh">HISTORY</span>')}
+        ${!item.pending && isNew(item) ? '<span class="badge bn">NEW</span>' : ''}
+      </td>
+      <td data-label="°“√®—¥°“√" class="actions">${actBtns(item)}</td>
+    </tr>`).join('');
+
+  histContent.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>ª√–‡¿∑</th><th>À¡«¥À¡ŸË</th><th>™◊ËÕ‰ø≈Ï</th>
+          <th>‡«Õ√Ï™—π</th><th> ∂“π–</th><th>°“√®—¥°“√</th>
+        </tr></thead>
+        <tbody>${trs}</tbody>
+      </table>
+    </div>`;
+  bindActions(histContent);
+}
+
+/* ============================================================
+   RENDER: PENDING LIST
+   ============================================================ */
+function renderPending(){
+  const list = DATA.filter(d=>d.pending);
+  pendingCount.textContent = list.length;
+  if(!list.length){
+    pendingContent.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">??</div>
+        <div class="empty-text">¬—ß‰¡Ë¡’√“¬°“√„π√Õ∫π’È</div>
+      </div>`;
+    return;
+  }
+  const trs = list.map(item=>`
+    <tr data-id="${item.id}">
+      <td data-label="™◊ËÕ‰ø≈Ï">
+        <div class="file-name">${esc(item.fileName)}</div>
+        <span class="badge bp">PENDING</span>
+      </td>
+      <td data-label="Path" style="font-family:monospace;font-size:12px;">${esc(item.path)}</td>
+      <td data-label="°“√®—¥°“√" class="actions">
+        <div class="actions-inner">
+          <button class="btn btn-sm" data-action="path" data-path="${esc(item.path)}">?? Path</button>
+          <button class="btn btn-sm" data-action="edit" data-id="${item.id}">??</button>
+          <button class="btn btn-sm btn-danger" data-action="del" data-id="${item.id}">??</button>
+        </div>
+      </td>
+    </tr>`).join('');
+  pendingContent.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>™◊ËÕ‰ø≈Ï</th><th>Path ∑’Ë·π–π”</th><th>°“√®—¥°“√</th></tr></thead>
+        <tbody>${trs}</tbody>
+      </table>
+    </div>`;
+  bindActions(pendingContent);
+}
+
+/* ============================================================
+   UPLOAD HELPER: Category options
+   ============================================================ */
+const upType = $('upType');
+const upCat  = $('upCat');
+function refreshCatOpts(){
+  const type = upType.value;
+  const opts = CAT_OPTIONS[type]||[];
+  upCat.innerHTML = opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')
+    + `<option value="__new__">? √–∫ÿÀ¡«¥À¡ŸË„À¡Ë...</option>`;
+  $('upCustomCatRow').style.display = 'none';
+}
+upType.addEventListener('change', refreshCatOpts);
+upCat.addEventListener('change',()=>{
+  $('upCustomCatRow').style.display = upCat.value==='__new__' ? 'flex' : 'none';
+});
+refreshCatOpts();
+
+function getUpCat(){
+  return upCat.value==='__new__' ? $('upCustomCat').value.trim() : upCat.value;
+}
+function getUpFileName(){
+  const fi = $('upFile');
+  if(fi.files && fi.files[0]) return fi.files[0].name;
+  return $('upManual').value.trim();
+}
+
+/* ============================================================
+   UPLOAD HELPER: ANALYZE
+   ============================================================ */
+analyzeBtn.addEventListener('click',()=>{
+  const type = upType.value;
+  const cat  = getUpCat();
+  const fn   = getUpFileName();
+  if(!cat){ toast('°√ÿ≥“√–∫ÿÀ¡«¥À¡ŸË','err'); return; }
+  if(!fn){  toast('°√ÿ≥“‡≈◊Õ°‰ø≈ÏÀ√◊Õæ‘¡æÏ™◊ËÕ‰ø≈Ï','err'); return; }
+
+  const entry = makeEntry(type, cat, fn, {pending:true});
+  const sameGroup = DATA.filter(d=> d.seriesKey===entry.seriesKey && !d.pending)
+    .sort((a,b)=> b.versionNum-a.versionNum);
+  const current = sameGroup[0];
+
+  let compareHtml='';
+  if(current){
+    if(entry.versionNum > current.versionNum){
+      compareHtml = `<div class="success-box">
+        ? ‰ø≈Ï„À¡Ë°«Ë“ ó ®–¢÷Èπ‡ªÁπ <b>Latest</b> ·∑π∑’Ë<br>
+        <b>${esc(current.fileName)}</b> <span class="badge bv">${esc(current.versionLabel)}</span>
+         ‰ø≈Ï‡¥‘¡®–¬È“¬‰ªÀπÈ“ Search/History ‚¥¬Õ—µ‚π¡—µ‘
+      </div>`;
+    } else if(entry.versionNum === current.versionNum){
+      compareHtml = `<div class="warn-box">
+        ?? ‡«Õ√Ï™—π‡¥’¬«°—∫‰ø≈Ïª—®®ÿ∫—π <b>${esc(current.fileName)}</b>
+        ó ®–∂Ÿ°‡æ‘Ë¡‡ªÁπ√“¬°“√´È”„πÀπÈ“ History
+      </div>`;
+    } else {
+      compareHtml = `<div class="warn-box">
+        ?? ‡«Õ√Ï™—π‡°Ë“°«Ë“ª—®®ÿ∫—π <b>${esc(current.fileName)}</b>
+        <span class="badge bv">${esc(current.versionLabel)}</span>
+        ó ®–∂Ÿ°‡æ‘Ë¡‡ªÁπ History ‰¡Ë„™Ë Latest
+      </div>`;
+    }
+  } else {
+    compareHtml = `<div class="success-box">?? ™ÿ¥‰ø≈Ï„À¡Ë ó ¬—ß‰¡Ë¡’„π√–∫∫ ®–∂Ÿ°‡æ‘Ë¡‡ªÁπ Latest</div>`;
+  }
+
+  // Store pending entry for "add" button
+  window.__pendingEntry = entry;
+
+  analyzeResult.innerHTML = `
+    <div class="card" style="background:var(--surface-2);border-color:var(--accent);">
+      <p><b>™◊ËÕ‰ø≈Ï:</b> ${esc(fn)}</p>
+      <p><b>‡«Õ√Ï™—π∑’Ëµ√«®æ∫:</b> <span class="badge bv">${esc(entry.versionLabel)}</span></p>
+      <p style="margin-top:8px;color:var(--muted);font-size:12px;">Path ∑’Ë·π–π” («“ß‰ø≈Ï∑’Ëπ’Ë„π repo):</p>
+      <div class="path-box">${esc(entry.path)}</div>
+      ${compareHtml}
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="addPendingBtn">? ‡æ‘Ë¡ Preview (Session)</button>
+        <button class="btn" id="copyPathBtn">?? §—¥≈Õ° Path</button>
+      </div>
+    </div>`;
+
+  $('copyPathBtn').addEventListener('click',()=> copyText(entry.path));
+  $('addPendingBtn').addEventListener('click',()=>{
+    if(!window.__pendingEntry){ toast('«‘‡§√“–ÀÏ‰ø≈Ï°ËÕπ','err'); return; }
+    DATA.push(window.__pendingEntry);
+    computeLatest(DATA);
+    window.__pendingEntry = null;
+    $('addPendingBtn').disabled = true;
+    $('addPendingBtn').textContent = '? ‡æ‘Ë¡·≈È«';
+    toast('‡æ‘Ë¡ Preview ·≈È« ó ¥Ÿº≈‰¥È„π·∑Á∫ Dashboard','ok');
+    renderPending();
+    renderStats();
+  });
+});
+
+/* ============================================================
+   EXPORT files.json
+   ============================================================ */
+exportJsonBtn.addEventListener('click',()=>{
+  const exportData = DATA.map(({id,isLatest,pending,...rest})=> rest);
+  const json = JSON.stringify(exportData, null, 2);
+  const blob = new Blob([json],{type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download='files.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('¥“«πÏ‚À≈¥ files.json ·≈È«  «“ß∑’Ë ForexDoc/files.json ·≈È« Push ºË“π GitHub Desktop','info');
+});
+
+/* ============================================================
+   EVENT BINDINGS: Search & Filter
+   ============================================================ */
+dashSearch.addEventListener('input', e=>{S.dashSearch=e.target.value; renderDashboard();});
+$('refreshBtn').addEventListener('click',()=>{ toast('√’‡ø√™¢ÈÕ¡Ÿ≈ (Static Mode)','info'); renderDashboard(); });
+
+$('histSearch').addEventListener('input', e=>{S.histSearch=e.target.value; renderHistory();});
+$('histType').addEventListener('change',   e=>{S.histType=e.target.value;   renderHistory();});
+$('histCat').addEventListener('change',    e=>{S.histCat=e.target.value;    renderHistory();});
+$('histStatus').addEventListener('change', e=>{S.histStatus=e.target.value; renderHistory();});
+$('histSort').addEventListener('change',   e=>{S.histSort=e.target.value;   renderHistory();});
+
+/* ============================================================
+   RE-RENDER ALL VIEWS
+   ============================================================ */
+function reRenderAll(){
+  renderDashboard();
+  renderHistory();
+  renderPending();
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderDashboard();
+renderPending();
+
+})(); // end IIFE
 </script>
 </body>
 </html>
