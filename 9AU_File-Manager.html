@@ -1031,19 +1031,24 @@ $('analyzeBtn').addEventListener('click',function(){
   var cmp='';
   if(cur){
     if(entry.versionNum>cur.versionNum){
-      cmp='<div class="success-box">This file will become the NEW LATEST, replacing<br>'
+      cmp='<div class="success-box">This file will become the NEW LATEST, replacing
+'
         +'<strong>'+esc(cur.fileName)+'</strong> <span class="badge bv">'+esc(cur.versionLabel)+'</span>'
-        +'<br>Previous version will move to History automatically.</div>';
+        +'
+Previous version will move to History automatically.</div>';
     } else if(entry.versionNum===cur.versionNum){
       cmp='<div class="warn-box">Same version as current: <strong>'+esc(cur.fileName)+'</strong>'
-        +'<br>Will be added as a duplicate in History.</div>';
+        +'
+Will be added as a duplicate in History.</div>';
     } else {
       cmp='<div class="warn-box">Older than current: <strong>'+esc(cur.fileName)+'</strong>'
         +' <span class="badge bv">'+esc(cur.versionLabel)+'</span>'
-        +'<br>Will be added to History, not Latest.</div>';
+        +'
+Will be added to History, not Latest.</div>';
     }
   } else {
-    cmp='<div class="success-box">New file series - no existing files found.<br>Will be set as Latest.</div>';
+    cmp='<div class="success-box">New file series - no existing files found.
+Will be set as Latest.</div>';
   }
 
   _pendingEntry=entry;
