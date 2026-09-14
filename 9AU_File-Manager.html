@@ -299,10 +299,10 @@ footer{text-align:center;color:var(--muted-2);font-size:12px;padding:20px;border
   <section class="view active" id="view-dashboard">
     <div class="stats-row" id="statsRow"></div>
     <div class="toolbar">
-      <input type="text" id="dashSearch" placeholder="&#128269; &#1588;&#1604;&#1607;&#1588;&#1585;&#1588;&#1604;&#1610;&#1575;&#1608;&#1615;&#1604;&#1610;&#1604;...">
+      <input type="text" id="dashSearch" placeholder="&#128269; ค้นหาชื่อไฟล์...">
       <div class="chip-group" id="dashTypeChips"></div>
       <div class="chip-group" id="dashCatChips"></div>
-      <button class="btn" id="refreshBtn">&#128260; &#1619;&#1603;&#1600;&#1600;&#1604;&#1608;&#1577;</button>
+      <button class="btn" id="refreshBtn">&#128260; รีเฟรช</button>
     </div>
     <div id="dashContent"></div>
   </section>
@@ -310,30 +310,30 @@ footer{text-align:center;color:var(--muted-2);font-size:12px;padding:20px;border
   <!-- SEARCH / HISTORY -->
   <section class="view" id="view-history">
     <div class="toolbar">
-      <input type="text" id="histSearch" placeholder="&#1588;&#1604;&#1607;&#1588;&#1585;&#1588;&#1604;&#1610;&#1575;&#1608;&#1615;&#1604;&#1610;&#1604; &#1603;&#1585;&#1608;&#1604;&#1607;&#1576;&#1608;&#1585;&#1604;...">
+      <input type="text" id="histSearch" placeholder="ค้นหาชื่อไฟล์ (ทุกเวอร์ชัน)...">
       <select id="histType">
-        <option value="ALL">&#1607;&#1604;&#1607;&#1608;&#1612;&#1604;&#1585;&#1610;&#1578;&#1610;</option>
+        <option value="ALL">ทุกประเภท</option>
         <option value="EA">Expert Advisor (.mq5)</option>
         <option value="REPORT">Strategy Tester Report (.xlsx)</option>
         <option value="DOC">Plain Text Files</option>
       </select>
       <select id="histCat">
-        <option value="ALL">&#1607;&#1604;&#1607;&#1608;&#1612;&#1604;&#1607;&#1605;&#1608;&#1583;&#1607;&#1605;&#1608;</option>
+        <option value="ALL">ทุกหมวดหมู่</option>
         <option value="7 EA COMBINE">7 EA COMBINE</option>
         <option value="11 EA SOLO">11 EA SOLO</option>
         <option value="Context Summary">Context Summary</option>
       </select>
       <select id="histStatus">
-        <option value="ALL">&#1607;&#1604;&#1607;&#1608;&#1612;&#1604;&#1587;&#1604;&#1575;&#1606;&#1614;</option>
+        <option value="ALL">ทุกสถานะ</option>
         <option value="LATEST">Latest</option>
         <option value="HISTORY">History</option>
         <option value="PENDING">Pending</option>
       </select>
       <select id="histSort">
-        <option value="name">&#1619;&#1604;&#1610;&#1608;&#1604;&#1578;&#1575;&#1605;&#1588;&#1604;</option>
-        <option value="ver_desc">&#1619;&#1604;&#1610;&#1608;&#1604;&#1607;&#1604;&#1608;&#1585;&#1610;&#1608;&#1604;&#1609;</option>
-        <option value="ver_asc">&#1619;&#1604;&#1610;&#1608;&#1604;&#1607;&#1604;&#1608;&#1585;&#1610;&#1578;&#1604;&#1609;</option>
-        <option value="date_desc">&#1619;&#1604;&#1610;&#1608;&#1604;&#1608;&#1604;&#1604;&#1607;&#1610;</option>
+        <option value="name">เรียงตามชื่อ (A-Z)</option>
+        <option value="ver_desc">เวอร์ชันมาก → น้อย</option>
+        <option value="ver_asc">เวอร์ชันน้อย → มาก</option>
+        <option value="date_desc">วันที่ล่าสุดก่อน</option>
       </select>
     </div>
     <div id="histCount" style="font-size:12.5px;color:var(--muted);margin-bottom:10px;"></div>
@@ -344,16 +344,14 @@ footer{text-align:center;color:var(--muted-2);font-size:12px;padding:20px;border
   <section class="view" id="view-upload">
     <div class="info-box">
       <strong>Guided Static Mode</strong> &#8212;
-      &#1585;&#1614;&#1610;&#1610;&#1610;&#1575;&#1578; &#1610;&#1605;&#1610;&#1605;&#1610;&#1605;&#1610;&#1605;
-      &#1610;&#1575;&#1606;&#1580;&#1610;&#1614;&#1609;&#1610;&#1575;&#1578; &#1578;&#1604;&#1607;&#1609;
-      &#1577;&#1614;&#1610;&#1610;&#1610;&#1575;&#1578;&#1610;&#1609;&#1575;&#1578;
-      &#1610;&#1575;&#1606;&#1580; <strong>GitHub Desktop</strong>
+      ระบบนี้ช่วยตรวจสอบเวอร์ชันและสร้าง path ที่ถูกต้องให้ก่อน
+      จากนั้นจึงอัปโหลดไฟล์จริงด้วย <strong>GitHub Desktop</strong>
     </div>
     <div class="upload-grid">
       <div class="card">
-        <div class="card-title">1. &#1608;&#1616;&#1604;&#1585;&#1585;&#1585;&#1607;&#1616;&#1604;&#1610;&#1575;&#1608;&#1614;&#1578;</div>
+        <div class="card-title">1. วิเคราะห์ไฟล์</div>
         <div class="form-row">
-          <label>&#1578;&#1585;&#1614;&#1575;&#1607;&#1614; (Type)</label>
+          <label>ประเภท (TYPE)</label>
           <select id="upType">
             <option value="EA">Expert Advisor (.mq5)</option>
             <option value="REPORT">Strategy Tester Report (.xlsx)</option>
@@ -361,39 +359,39 @@ footer{text-align:center;color:var(--muted-2);font-size:12px;padding:20px;border
           </select>
         </div>
         <div class="form-row">
-          <label>&#1607;&#1605;&#1608;&#1583;&#1607;&#1605;&#1608; (Category)</label>
+          <label>หมวดหมู่ (CATEGORY)</label>
           <select id="upCat"></select>
         </div>
         <div id="upCustomCatRow" class="form-row" style="display:none;">
-          <label>&#1585;&#1614;&#1610;&#1610;&#1607;&#1605;&#1608;&#1583;&#1607;&#1605;&#1608;&#1614;&#1578;</label>
-          <input type="text" id="upCustomCat" placeholder="&#1578;&#1614;&#1609;&#1585;&#1614;&#1609; 12 EA HYBRID">
+          <label>ชื่อหมวดหมู่ใหม่</label>
+          <input type="text" id="upCustomCat" placeholder="เช่น 12 EA HYBRID">
         </div>
         <div class="form-row">
-          <label>&#1614;&#1604;&#1578;&#1614;&#1585;&#1610;&#1575;&#1608;</label>
+          <label>เลือกไฟล์</label>
           <input type="file" id="upFile" accept=".mq5,.xlsx,.yaml,.yml,.md,.txt">
         </div>
         <div class="form-row">
-          <label>&#1607;&#1585;&#1614;&#1610;&#1610;&#1585;&#1614;&#1610;&#1610;&#1588;&#1614;</label>
+          <label>หรือพิมพ์ชื่อไฟล์เอง</label>
           <input type="text" id="upManual" placeholder="9AU_GOLD_COMBINE_M5_CAP450_V19_12.mq5">
         </div>
-        <button class="btn btn-primary" id="analyzeBtn">&#1608;&#1616;&#1604;&#1585;&#1585;&#1585;&#1607;&#1616;&#1604;</button>
+        <button class="btn btn-primary" id="analyzeBtn">วิเคราะห์</button>
         <div id="analyzeResult" style="margin-top:16px;"></div>
       </div>
       <div class="card">
-        <div class="card-title">2. &#1582;&#1614;&#1610;&#1610;&#1578;&#1614;&#1609;&#1578;&#1614;&#1609; (GitHub Desktop)</div>
+        <div class="card-title">2. ขั้นตอนถัดไป (GitHub Desktop)</div>
         <ol class="steps">
-          <li>&#1608;&#1616;&#1604;&#1585;&#1585;&#1585;&#1607;&#1616;&#1604;&#1604;&#1600;&#1600;&#1600;&#1600;&#1585;&#1600;&#1600;&#1600;&#1600;&#1578;&#1614;&#1609;&#1578;&#1600;&#1614;&#1609; path &#1610;&#1575;&#1606;&#1580;&#1575;&#1606;&#1580;&#1575;&#1606;&#1580;</li>
-          <li>&#1578;&#1614;&#1610;&#1610;&#1607;&#1575;&#1578; repo <code>9AU-PORTFOLIO</code> &#1614;&#1609;&#1614;&#1609;&#1614;&#1609;&#1614;&#1609; <code>ForexDoc/</code></li>
-          <li>&#1587;&#1614;&#1585;&#1614;&#1609;&#1578;&#1610;&#1610;&#1588;&#1614;&#1608;&#1604;&#1583;&#1614;&#1585;&#1585;&#1585;&#1607;&#1585;&#1604;&#1610;&#1575;&#1578; path</li>
-          <li>&#1608;&#1575;&#1604;&#1610;&#1610;&#1604;&#1604;&#1575;&#1604;&#1604;&#1608;&#1616;&#1616;&#1604;&#1616;&#1578;&#1614;&#1609;</li>
-          <li>&#1578;&#1614;&#1610;&#1610; <strong>GitHub Desktop</strong> &#8594; Commit &#8594; <strong>Push origin</strong></li>
-          <li>&#1614;&#1609; <strong>"&#1578;&#1614;&#1610;&#1610;&#1614;&#1578;&#1614;&#1609;&#1607;&#1604;&#1578;"</strong></li>
+          <li>กดวิเคราะห์ไฟล์ เพื่อดู path ที่ระบบแนะนำ</li>
+          <li>เปิดโฟลเดอร์ repo <code>9AU-PORTFOLIO</code> แล้วเข้าไปที่ <code>ForexDoc/</code></li>
+          <li>สร้างโฟลเดอร์ย่อยให้ตรงกับ path</li>
+          <li>วางไฟล์ลงในโฟลเดอร์นั้น</li>
+          <li>เปิด <strong>GitHub Desktop</strong> &#8594; Commit &#8594; <strong>Push origin</strong></li>
+          <li>กลับมาที่หน้านี้แล้วกด <strong>"รีเฟรช"</strong></li>
         </ol>
         <hr class="divider">
         <div class="card-title" style="font-size:14px;margin-bottom:10px;">3. Export files.json</div>
         <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">
-          &#1607;&#1604;&#1587;&#1591; Push &#1610;&#1610;&#1610;&#1610;&#1588;&#1614;&#1614;&#1609; Export &#1578;&#1614;&#1609;&#1583;&#1575;&#1608;&#1585;&#1614;&#1609;&#1604;&#1608;&#1583; <code>files.json</code>
-          &#8594; &#1608;&#1575;&#1604;&#1578;&#1614;&#1609; <code>ForexDoc/files.json</code> &#8594; Commit + Push
+          หลัง Push เสร็จแล้ว กด Export เพื่อดาวน์โหลด <code>files.json</code>
+          &#8594; วางไว้ที่ <code>ForexDoc/files.json</code> &#8594; Commit + Push
         </p>
         <button class="btn btn-green" id="exportJsonBtn">Export files.json</button>
       </div>
@@ -404,13 +402,13 @@ footer{text-align:center;color:var(--muted-2);font-size:12px;padding:20px;border
         Session Preview <span class="badge bp" id="pendingCount">0</span>
       </div>
       <div class="warn-box">
-        &#9888; &#1585;&#1575;&#1610;&#1585;&#1585;&#1585;&#1585; session &#1610;&#1610;&#1610;&#1610;&#1610;&#1610;&#1610;&#1588;&#1614;&#1614;&#1609;&#1614;&#1609;&#1614;&#1609; &#8212;
-        &#1585;&#1614;&#1610;&#1610;&#1585;&#1614;&#1610;&#1610;&#1604;&#1607;&#1575;&#1578;&#1614;&#1609;&#1610;&#1610;&#1610;&#1610;&#1578;&#1614;&#1609;&#1607;&#1604;&#1578;
+        &#9888; รายการใน session นี้เป็นเพียงตัวอย่างชั่วคราว &#8212;
+        รีเฟรชหน้าเว็บแล้วข้อมูลจะหายไป
       </div>
       <div id="pendingContent">
         <div class="empty-state">
           <div class="empty-icon">&#128235;</div>
-          <div class="empty-text">&#1610;&#1610;&#1610;&#1585;&#1585;&#1585;&#1610;&#1585;&#1585;&#1585;&#1585;&#1610;&#1610;&#1610;&#1610;&#1610;&#1610;</div>
+          <div class="empty-text">ยังไม่มีรายการรอ Push ใน session นี้</div>
         </div>
       </div>
     </div>
@@ -540,10 +538,7 @@ function splitExt(fn){
   return { name: i>=0?fn.slice(0,i):fn, ext: i>=0?fn.slice(i):'' };
 }
 
-/* ── VERSION PARSER ──
-   Running Number: V19_11 -> num = 19*1e9 + 11*1e6
-   So V19_11 > V19_8 correctly (not decimal compare)
-*/
+/* ── VERSION PARSER ── */
 function parseVer(nameNoExt){
   var m=nameNoExt.match(/_[Vv](\d+)(?:[._](\d+))?(?:[._](\d+))?(?:[._](\d+))?$/);
   if(!m) return {label:null,num:0,base:nameNoExt.toLowerCase()};
@@ -689,7 +684,7 @@ tabs.forEach(function(btn){
   });
 });
 
-/* ── isNew badge (within 7 days of latest doc date) ── */
+/* ── isNew badge ── */
 var latestDocTs=(function(){
   var ts=DATA.filter(function(d){return d.dateModified;})
     .map(function(d){return new Date(d.dateModified).getTime();});
