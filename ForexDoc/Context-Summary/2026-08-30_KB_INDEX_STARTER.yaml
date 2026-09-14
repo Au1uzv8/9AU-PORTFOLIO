@@ -1,0 +1,96 @@
+# ============================================
+# KB_INDEX — 9AU EA Project Knowledge Base
+# Master Index สำหรับ search & filter
+# Version: 1.0 | Created: 2026-08-30
+# ============================================
+
+# ----------------------------
+# NAMING CONVENTION
+# ----------------------------
+# KB Entry  : KB-{DOMAIN}-{YYYYMMDD}-{SEQ}.md
+# Mission   : MSN-{SEQ}-{mission-name}.md
+# Checkpoint: CKP-MSN{seq}-{step}-{name}.md
+# Session   : SES-{YYYYMMDD}-{AM|PM}-summary.md
+# Memory    : James_Memory_Backup_{YYYY-MM-DD}.md
+# Blocker   : BLK-{SEQ} (inline ใน Mission file)
+#
+# Domain codes:
+#   GOLD    = Gold EA series
+#   NDAQ    = NASDAQ100 EA
+#   GBPJPY  = GBPJPY EA
+#   SILVER  = Silver EA
+#   OIL     = Oil EA
+#   COMBINE = Multi-EA portfolio
+#   SKILL   = SKILL.md entries
+#   SYS     = System / workflow
+# ----------------------------
+
+meta:
+  last_updated: "2026-08-30"
+  total_entries: 0
+  maintained_by: "James"
+  storage_root: "D:\\OneDrive\\1Drive-Documents\\MQL5\\$Context Summary\\"
+
+# ----------------------------
+# ACTIVE KB ENTRIES
+# ----------------------------
+entries: []
+
+# Template สำหรับแต่ละ entry:
+# - kb_id: "KB-GOLD-20260802-001"
+#   title: "Gold V19.8 FINAL — HardSL Root Cause Fix"
+#   domain: "GOLD"
+#   status: "active"          # active | deprecated | draft
+#   created: "2026-08-02"
+#   updated: "2026-08-06"
+#   tags: [compound, hardsl, dd, v19-series]
+#   summary: "ลด HardSLMultiplier 11.0→7.0 แก้ Root Cause DD ลึก — ทุก Metric ดีขึ้นพร้อมกัน"
+#   source_file: "2026-08-02_9AU_GOLD_COMBINE_M5_CAP450_V19_8_Context_Summary.md"
+#   related_kb: []
+#   supersedes: []
+
+# ----------------------------
+# ACTIVE MISSIONS
+# ----------------------------
+missions: []
+
+# Template:
+# - mission_id: "MSN-001"
+#   title: "Gold V19 Series — Compound Fix + Forward Test"
+#   status: "in_progress"     # not_started | in_progress | done | blocked
+#   created: "2026-08-02"
+#   target_completion: ""
+#   checkpoints:
+#     - id: "CKP-MSN001-01"
+#       name: "Compound Bug Fix (N/O)"
+#       status: "done"
+#     - id: "CKP-MSN001-02"
+#       name: "HardSL Root Cause + Final Config"
+#       status: "done"
+#     - id: "CKP-MSN001-03"
+#       name: "Walk-Forward + Spread Stress"
+#       status: "open"
+#   kb_outputs: ["KB-GOLD-20260802-001"]
+
+# ----------------------------
+# STALE REVIEW QUEUE
+# ----------------------------
+stale_queue: []
+# James จะเพิ่ม entry นี้เมื่อพิมพ์ /stale
+# format: {kb_id, last_updated, days_stale, priority}
+
+# ----------------------------
+# QUICK REFERENCE: Session Commands
+# ----------------------------
+session_commands:
+  "/start"           : "Load Context_Summary + confirm scope + restate today goal"
+  "/summary"         : "Generate session summary (Checkpoint Exit Criteria format)"
+  "/checkpoint done" : "Mark CKP complete + trigger /summary"
+  "/status"          : "Show Mission progress + active CKP + pending tasks"
+  "/stale"           : "List KB entries ที่ไม่ได้ update นานเกิน threshold"
+  "INDEX"            : "Display shortcut command registry ทั้งหมด"
+  "VERIFY"           : "Run 13-step EA Validation Protocol"
+  "EXPORT-EA"        : "Export .md + HTML ไปยัง Obsidian + GitHub Pages"
+  "COMBINE"          : "Portfolio combine mode (11 EA / 3 Ports)"
+  "ADAPTIVE"         : "Gold Adaptive Regime (dual-basket + Kill Switch)"
+  "MT5-MCP"          : "AI Agent tools: Hermes, OpenClaw, Continue.dev, MetaTrader MCP"
