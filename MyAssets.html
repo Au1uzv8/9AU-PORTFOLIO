@@ -16,1311 +16,942 @@
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Sarabun', sans-serif; background-color: #0d1117; color: #c9d1d9; }
-    .font-num { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum"; }
-    .font-brand { font-family: 'Chakra Petch', sans-serif; }
-    .card-dark { background-color: #161b22; border: 1px solid #30363d; }
-    .card-hover:hover { border-color: '#58a6ff'; }
-    .pulse-dot { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
+    body { font-family:'Sarabun',sans-serif; background-color:#0d1117; color:#c9d1d9; }
+    .font-num   { font-family:'JetBrains Mono',monospace; font-feature-settings:"tnum"; }
+    .font-brand { font-family:'Chakra Petch',sans-serif; }
+    .card-dark  { background-color:#161b22; border:1px solid #30363d; }
+    .card-hover:hover { border-color:#58a6ff; }
+    .pulse-dot  { animation:pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
   </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white pb-24">
 
-  <!-- PIN OVERLAY -->
-  <div id="pinOverlay" class="fixed inset-0 z-50 bg-[#0d1117] flex flex-col items-center justify-center p-4">
-    <div class="w-full max-w-xs text-center">
-      <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-500/40 mx-auto mb-4 shadow-2xl shadow-blue-500/20">
-        <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
-      </div>
-      <h2 class="text-xl font-bold text-white font-brand mb-1">PORTFOLIO ACCESS</h2>
-      <p class="text-xs text-gray-400 mb-6">กรุณากรอกรหัสความปลอดภัย 6 หลัก</p>
-      <div class="flex justify-center gap-3 mb-8">
-        <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-600 bg-transparent transition-all"></div>
-        <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-600 bg-transparent transition-all"></div>
-        <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-600 bg-transparent transition-all"></div>
-        <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-600 bg-transparent transition-all"></div>
-        <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-600 bg-transparent transition-all"></div>
-        <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-600 bg-transparent transition-all"></div>
-      </div>
-      <div id="pinError" class="text-xs text-rose-400 h-5 mb-4 font-medium"></div>
-      <div class="grid grid-cols-3 gap-3 font-num">
-        <button onclick="pressPin('1')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">1</button>
-        <button onclick="pressPin('2')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">2</button>
-        <button onclick="pressPin('3')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">3</button>
-        <button onclick="pressPin('4')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">4</button>
-        <button onclick="pressPin('5')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">5</button>
-        <button onclick="pressPin('6')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">6</button>
-        <button onclick="pressPin('7')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">7</button>
-        <button onclick="pressPin('8')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">8</button>
-        <button onclick="pressPin('9')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">9</button>
-        <button onclick="clearPin()" class="h-14 rounded-xl bg-transparent text-sm font-semibold text-gray-400 hover:text-white active:scale-95 transition">ล้าง</button>
-        <button onclick="pressPin('0')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">0</button>
-        <button onclick="deletePin()" class="h-14 rounded-xl bg-transparent text-sm font-semibold text-gray-400 hover:text-white active:scale-95 transition flex items-center justify-center">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"/></svg>
-        </button>
-      </div>
+<!-- PIN OVERLAY -->
+<div id="pinOverlay" class="fixed inset-0 z-50 bg-[#0d1117] flex flex-col items-center justify-center p-4">
+  <div class="w-full max-w-xs text-center">
+    <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-500/40 mx-auto mb-4 shadow-2xl shadow-blue-500/20">
+      <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
+    </div>
+    <h2 class="text-xl font-bold text-white font-brand mb-1">PORTFOLIO ACCESS</h2>
+    <p class="text-xs text-gray-400 mb-6">กรุณากรอกรหัสความปลอดภัย 6 หลัก</p>
+    <div class="flex justify-center gap-3 mb-8">
+      <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-600 bg-transparent transition-all"></div>
+      <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-600 bg-transparent transition-all"></div>
+      <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-600 bg-transparent transition-all"></div>
+      <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-600 bg-transparent transition-all"></div>
+      <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-600 bg-transparent transition-all"></div>
+      <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-600 bg-transparent transition-all"></div>
+    </div>
+    <div id="pinError" class="text-xs text-rose-400 h-5 mb-4 font-medium"></div>
+    <div class="grid grid-cols-3 gap-3 font-num">
+      <button onclick="pressPin('1')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">1</button>
+      <button onclick="pressPin('2')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">2</button>
+      <button onclick="pressPin('3')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">3</button>
+      <button onclick="pressPin('4')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">4</button>
+      <button onclick="pressPin('5')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">5</button>
+      <button onclick="pressPin('6')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">6</button>
+      <button onclick="pressPin('7')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">7</button>
+      <button onclick="pressPin('8')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">8</button>
+      <button onclick="pressPin('9')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">9</button>
+      <button onclick="clearPin()" class="h-14 rounded-xl bg-transparent text-sm font-semibold text-gray-400 hover:text-white active:scale-95 transition">ล้าง</button>
+      <button onclick="pressPin('0')" class="h-14 rounded-xl bg-[#161b22] border border-[#30363d] text-xl font-semibold text-white hover:bg-blue-600/20 active:scale-95 transition">0</button>
+      <button onclick="deletePin()" class="h-14 rounded-xl bg-transparent text-sm font-semibold text-gray-400 hover:text-white active:scale-95 transition flex items-center justify-center">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"/></svg>
+      </button>
     </div>
   </div>
+</div>
 
-  <!-- HEADER -->
-  <header class="border-b border-[#30363d] bg-[#161b22]/80 backdrop-blur sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-blue-500 shadow-md flex-shrink-0">
+<!-- HEADER -->
+<header class="border-b border-[#30363d] bg-[#161b22]/80 backdrop-blur sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-blue-500 shadow-md flex-shrink-0">
+        <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
+      </div>
+      <div>
+        <h1 class="text-sm md:text-base font-bold text-white font-brand tracking-wide">PORTFOLIO <span class="hidden sm:inline text-xs font-normal text-gray-400">| ระบบบริหารสินทรัพย์รวม</span></h1>
+        <div class="flex items-center gap-2 text-[11px] text-gray-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+          <span>USD/THB: <strong id="headerFxRate" class="font-num text-gray-200">--.--</strong></span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="triggerManualSnapshot()" class="px-2.5 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-emerald-400 hover:bg-[#30363d] font-semibold transition">📸 Snapshot</button>
+      <button onclick="loadDashboardData()" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      </button>
+      <button onclick="logout()" class="p-2 text-rose-400 hover:text-rose-300 rounded-lg border border-[#30363d] bg-[#21262d] transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- NAV TABS -->
+<div class="max-w-7xl mx-auto px-4 pt-4">
+  <div class="flex flex-wrap items-center gap-2 border-b border-[#30363d] pb-2 text-xs font-semibold">
+    <button onclick="switchView('dashboard')" id="navTabDashboard" class="px-4 py-2 rounded-xl bg-blue-600 text-white transition font-semibold">📊 ภาพรวมพอร์ต (Dashboard)</button>
+    <button onclick="switchView('trades')"    id="navTabTrades"    class="px-4 py-2 rounded-xl bg-[#161b22] text-gray-400 hover:text-white border border-[#30363d] transition">📈 หุ้น/ETF สหรัฐ (Dime Monitor)</button>
+    <button onclick="switchView('forex')"     id="navTabForex"     class="px-4 py-2 rounded-xl bg-[#161b22] text-gray-400 hover:text-white border border-[#30363d] transition">💱 FOREX MT5 (Auto Sync)</button>
+    <button onclick="switchView('cashflow')"  id="navTabCashflow"  class="px-4 py-2 rounded-xl bg-[#161b22] text-gray-400 hover:text-white border border-[#30363d] transition">💵 กระแสเงินสด (Cashflow)</button>
+    <button onclick="switchView('readme')"    id="navTabReadme"    class="px-4 py-2 rounded-xl bg-[#161b22] text-amber-400 hover:text-white border border-[#30363d] transition font-bold">📖 README (คู่มือระบบ)</button>
+  </div>
+</div>
+
+<main class="max-w-7xl mx-auto px-4 pt-4 flex-1 w-full space-y-6">
+
+  <div id="loadingBanner" class="hidden flex items-center justify-center gap-2 p-3 rounded-xl bg-blue-950/40 border border-blue-800/50 text-blue-300 text-xs font-medium">
+    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+    <span>กำลังประสานข้อมูลกับฐานข้อมูล...</span>
+  </div>
+
+  <!-- VIEW 1: DASHBOARD -->
+  <div id="viewDashboard" class="space-y-6">
+    <!-- Net Worth Card + PDF/CSV buttons -->
+    <div class="card-dark rounded-2xl p-5 border border-blue-500/30 bg-gradient-to-r from-blue-950/30 via-[#161b22] to-[#161b22] flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-4 w-full md:w-auto">
+        <div class="w-16 h-16 rounded-2xl overflow-hidden border-2 border-blue-400 shadow-xl flex-shrink-0">
           <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
         </div>
         <div>
-          <h1 class="text-sm md:text-base font-bold text-white font-brand tracking-wide flex items-center gap-2">
-            PORTFOLIO <span class="hidden sm:inline text-xs font-normal text-gray-400">| ระบบบริหารสินทรัพย์รวม</span>
-          </h1>
-          <div class="flex items-center gap-2 text-[11px] text-gray-400">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
-            <span>USD/THB: <strong id="headerFxRate" class="font-num text-gray-200">--.--</strong></span>
-          </div>
+          <div class="text-xs font-semibold text-blue-400 uppercase tracking-wider">6. สรุปรวมมูลค่าสินทรัพย์สุทธิทั้งหมด (Net Worth)</div>
+          <div class="text-2xl md:text-3xl font-extrabold text-white font-num tracking-tight" id="valGrandTotalTHB">0.00 ฿</div>
+          <div class="text-xs text-gray-400 font-num mt-0.5">≈ $ <span id="valGrandTotalUSD">0.00</span> USD</div>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="triggerManualSnapshot()" class="px-2.5 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-emerald-400 hover:bg-[#30363d] font-semibold transition">📸 Snapshot</button>
-        <button onclick="loadDashboardData()" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      <div class="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+        <button onclick="exportDashboardPDF()" id="btnDashPDF"
+          class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-rose-600/20">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          PDF
         </button>
-        <button onclick="logout()" class="p-2 text-rose-400 hover:text-rose-300 rounded-lg border border-[#30363d] bg-[#21262d] transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <button onclick="exportDashboardCSV()"
+          class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          CSV
         </button>
+        <button onclick="openModal('modalAccount')" class="px-3 py-2 rounded-xl bg-[#21262d] border border-[#30363d] text-gray-300 hover:text-white text-xs font-semibold transition">⚙️ จัดการยอดบัญชี Group-1</button>
       </div>
     </div>
-  </header>
 
-  <!-- NAV TABS -->
-  <div class="max-w-7xl mx-auto px-4 pt-4">
-    <div class="flex flex-wrap items-center gap-2 border-b border-[#30363d] pb-2 text-xs font-semibold">
-      <button onclick="switchView('dashboard')" id="navTabDashboard" class="px-4 py-2 rounded-xl bg-[#161b22] text-gray-400 hover:text-white border border-[#30363d] transition">📊 ภาพรวมพอร์ต (Dashboard)</button>
-      <button onclick="switchView('trades')" id="navTabTrades" class="px-4 py-2 rounded-xl bg-blue-600 text-white transition">📈 หุ้น/ETF สหรัฐ (Dime Monitor)</button>
-      <button onclick="switchView('forex')" id="navTabForex" class="px-4 py-2 rounded-xl bg-[#161b22] text-gray-400 hover:text-white border border-[#30363d] transition">💱 FOREX MT5 (Auto Sync)</button>
-      <button onclick="switchView('cashflow')" id="navTabCashflow" class="px-4 py-2 rounded-xl bg-[#161b22] text-gray-400 hover:text-white border border-[#30363d] transition">💵 กระแสเงินสด (Cashflow)</button>
-      <button onclick="switchView('readme')" id="navTabReadme" class="px-4 py-2 rounded-xl bg-[#161b22] text-amber-400 hover:text-white border border-[#30363d] transition font-bold">📖 README (คู่มือระบบ)</button>
+    <!-- Group 1 -->
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span>Group-1: บัญชีเงินสด & สภาพคล่อง (THB)</h2>
+        <span class="text-xs font-num text-gray-400">รวม: <strong class="text-emerald-300" id="valGroup1Total">0.00 ฿</strong></span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 font-medium">1. เงินสดคงเหลือ (Cash)</div><div class="text-xl font-bold text-white font-num" id="valItem1Cash">0.00 ฿</div></div>
+        <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 font-medium">2. บัญชีธนาคาร (Bank Accounts)</div><div class="text-xl font-bold text-white font-num" id="valItem2Bank">0.00 ฿</div></div>
+        <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 font-medium">3. เงินสำรองฉุกเฉิน (Emergency Fund)</div><div class="text-xl font-bold text-emerald-400 font-num" id="valItem3Emergency">0.00 ฿</div></div>
+      </div>
     </div>
+
+    <!-- Group 2 -->
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-400"></span>Group-2: บัญชีลงทุนสหรัฐ (US Stocks & ETF)</h2>
+        <span class="text-xs font-num text-gray-400">Dime! Broker</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 font-medium">รวมต้นทุนซื้อ (netTHB รวม)</div><div class="text-xl font-bold text-white font-num" id="valItem4CostTHB">0.00 ฿</div><div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem4CostUSD">0.00</span> USD</div></div>
+        <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 font-medium">4.1 มูลค่าลงทุนปัจจุบัน (Market Value)</div><div class="text-xl font-bold text-white font-num" id="valItem4MarketTHB">0.00 ฿</div><div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem4MarketUSD">0.00</span> USD</div></div>
+        <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 flex items-center justify-between"><span>4.2 กำไร / ขาดทุน ทั้งหมด</span><span id="badgeItem4PnlPct" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 font-num">0.00%</span></div><div class="text-xl font-bold font-num" id="valItem4PnlTHB">0.00 ฿</div><div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem4PnlUSD">0.00</span> USD</div></div>
+      </div>
+    </div>
+
+    <!-- Group 3 -->
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-400"></span>Group-3: บัญชีเงินตราต่างประเทศ (FOREX MT5 4 Terminals)</h2>
+        <span class="text-xs font-num text-gray-400">XM Broker (Direct Range from IMPORTMT5)</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+        <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 font-medium">รวม Balance THB (เงินทุนเริ่มต้น)</div><div class="text-xl font-bold text-white font-num" id="valItem5BalanceTHB">0.00 ฿</div><div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem5BalanceUSD">0.00</span> USD</div></div>
+        <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 font-medium">5.1 มูลค่าพอร์ต FOREX รวม (Equity)</div><div class="text-xl font-bold text-white font-num" id="valItem5EquityTHB">0.00 ฿</div><div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem5EquityUSD">0.00</span> USD</div></div>
+        <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 flex items-center justify-between"><span>5.2 กำไร / ขาดทุน FOREX รวม</span><span id="badgeItem5PnlPct" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 font-num">0.00%</span></div><div class="text-xl font-bold font-num" id="valItem5PnlTHB">0.00 ฿</div><div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem5PnlUSD">0.00</span> USD</div></div>
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 font-num">
+        <div class="card-dark rounded-xl p-3 border-l-4 border-l-blue-500"><span class="text-[11px] text-gray-300 font-sans font-semibold" id="labelT1Title">Terminal-01</span><div class="text-sm font-bold text-white mt-1" id="valT1Equity">$0.00</div><div class="text-[10px] mt-0.5" id="valT1Pnl">$0.00</div></div>
+        <div class="card-dark rounded-xl p-3 border-l-4 border-l-purple-500"><span class="text-[11px] text-gray-300 font-sans font-semibold" id="labelT2Title">Terminal-02</span><div class="text-sm font-bold text-white mt-1" id="valT2Equity">$0.00</div><div class="text-[10px] mt-0.5" id="valT2Pnl">$0.00</div></div>
+        <div class="card-dark rounded-xl p-3 border-l-4 border-l-amber-500"><span class="text-[11px] text-gray-300 font-sans font-semibold" id="labelT3Title">Terminal-03</span><div class="text-sm font-bold text-white mt-1" id="valT3Equity">$0.00</div><div class="text-[10px] mt-0.5" id="valT3Pnl">$0.00</div></div>
+        <div class="card-dark rounded-xl p-3 border-l-4 border-l-emerald-500"><span class="text-[11px] text-gray-300 font-sans font-semibold" id="labelT4Title">Terminal-04</span><div class="text-sm font-bold text-white mt-1" id="valT4Equity">$0.00</div><div class="text-[10px] mt-0.5" id="valT4Pnl">$0.00</div></div>
+      </div>
+    </div>
+
+    <div class="card-dark rounded-2xl p-5"><h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">กราฟการเติบโต MT5 FOREX (Growth by Terminal USD)</h2><div class="relative h-60 w-full"><canvas id="chartForexGrowth"></canvas></div></div>
+    <div class="card-dark rounded-2xl p-5 border border-blue-500/20">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-xs font-bold text-blue-400 uppercase tracking-wider">แนวโน้มพอร์ต US ETF/STOCK (Market Value vs Cost Basis — USD)</h2>
+        <span class="text-[10px] text-gray-500 font-num">ข้อมูลจาก Daily Snapshot (23:00 Auto)</span>
+      </div>
+      <div class="relative h-56 w-full"><canvas id="chartUSStockTrend"></canvas></div>
+    </div>
+    <div class="card-dark rounded-2xl p-5"><h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">แนวโน้มมูลค่าสินทรัพย์สุทธิรวม (Total Net Worth Trend THB)</h2><div class="relative h-56 w-full"><canvas id="chartNetWorthTrend"></canvas></div></div>
   </div>
 
-  <main class="max-w-7xl mx-auto px-4 pt-4 flex-1 w-full space-y-6">
-
-    <div id="loadingBanner" class="hidden flex items-center justify-center gap-2 p-3 rounded-xl bg-blue-950/40 border border-blue-800/50 text-blue-300 text-xs font-medium">
-      <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-      <span>กำลังประสานข้อมูลกับฐานข้อมูล...</span>
-    </div>
-
-    <!-- VIEW 1: DASHBOARD -->
-    <div id="viewDashboard" class="hidden space-y-6">
-      <div class="card-dark rounded-2xl p-5 border border-blue-500/30 bg-gradient-to-r from-blue-950/30 via-[#161b22] to-[#161b22] flex flex-col md:flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-4 w-full md:w-auto">
-          <div class="w-16 h-16 rounded-2xl overflow-hidden border-2 border-blue-400 shadow-xl flex-shrink-0">
-            <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
-          </div>
-          <div>
-            <div class="text-xs font-semibold text-blue-400 uppercase tracking-wider">6. สรุปรวมมูลค่าสินทรัพย์สุทธิทั้งหมด (Net Worth)</div>
-            <div class="text-2xl md:text-3xl font-extrabold text-white font-num tracking-tight" id="valGrandTotalTHB">0.00 ฿</div>
-            <div class="text-xs text-gray-400 font-num mt-0.5">≈ $ <span id="valGrandTotalUSD">0.00</span> USD</div>
-          </div>
-        </div>
-        <div class="flex items-center gap-3 w-full md:w-auto justify-end">
-          <button onclick="openModal('modalAccount')" class="px-3 py-2 rounded-xl bg-[#21262d] border border-[#30363d] text-gray-300 hover:text-white text-xs font-semibold transition">⚙️ จัดการยอดบัญชี Group-1</button>
-        </div>
-      </div>
-      <div>
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span>Group-1: บัญชีเงินสด & สภาพคล่อง (THB)</h2>
-          <span class="text-xs font-num text-gray-400">รวม: <strong class="text-emerald-300" id="valGroup1Total">0.00 ฿</strong></span>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 font-medium">1. เงินสดคงเหลือ (Cash)</div><div class="text-xl font-bold text-white font-num" id="valItem1Cash">0.00 ฿</div></div>
-          <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 font-medium">2. บัญชีธนาคาร (Bank Accounts)</div><div class="text-xl font-bold text-white font-num" id="valItem2Bank">0.00 ฿</div></div>
-          <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 font-medium">3. เงินสำรองฉุกเฉิน (Emergency Fund)</div><div class="text-xl font-bold text-emerald-400 font-num" id="valItem3Emergency">0.00 ฿</div></div>
-        </div>
-      </div>
-      <div>
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-400"></span>Group-2: บัญชีลงทุนสหรัฐ (US Stocks & ETF)</h2>
-          <span class="text-xs font-num text-gray-400">Dime! Broker</span>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 font-medium">รวมต้นทุนซื้อ (netTHB รวม)</div><div class="text-xl font-bold text-white font-num" id="valItem4CostTHB">0.00 ฿</div><div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem4CostUSD">0.00</span> USD</div></div>
-          <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 font-medium">4.1 มูลค่าลงทุนปัจจุบัน (Market Value)</div><div class="text-xl font-bold text-white font-num" id="valItem4MarketTHB">0.00 ฿</div><div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem4MarketUSD">0.00</span> USD</div></div>
-          <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 flex items-center justify-between"><span>4.2 กำไร / ขาดทุน ทั้งหมด</span><span id="badgeItem4PnlPct" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 font-num">0.00%</span></div><div class="text-xl font-bold font-num" id="valItem4PnlTHB">0.00 ฿</div><div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem4PnlUSD">0.00</span> USD</div></div>
-        </div>
-      </div>
-      <div>
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-400"></span>Group-3: บัญชีเงินตราต่างประเทศ (FOREX MT5 4 Terminals)</h2>
-          <span class="text-xs font-num text-gray-400">XM Broker (Direct Range from IMPORTMT5)</span>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-          <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 font-medium">รวม Balance THB (เงินทุนเริ่มต้น)</div><div class="text-xl font-bold text-white font-num" id="valItem5BalanceTHB">0.00 ฿</div><div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem5BalanceUSD">0.00</span> USD</div></div>
-          <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 font-medium">5.1 มูลค่าพอร์ต FOREX รวม (Equity)</div><div class="text-xl font-bold text-white font-num" id="valItem5EquityTHB">0.00 ฿</div><div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem5EquityUSD">0.00</span> USD</div></div>
-          <div class="card-dark rounded-2xl p-4 card-hover transition"><div class="text-xs text-gray-400 mb-1 flex items-center justify-between"><span>5.2 กำไร / ขาดทุน FOREX รวม</span><span id="badgeItem5PnlPct" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 font-num">0.00%</span></div><div class="text-xl font-bold font-num" id="valItem5PnlTHB">0.00 ฿</div><div class="text-xs text-gray-400 font-num mt-1">$ <span id="valItem5PnlUSD">0.00</span> USD</div></div>
-        </div>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 font-num">
-          <div class="card-dark rounded-xl p-3 border-l-4 border-l-blue-500"><span class="text-[11px] text-gray-300 font-sans font-semibold" id="labelT1Title">Terminal-01</span><div class="text-sm font-bold text-white mt-1" id="valT1Equity">$0.00</div><div class="text-[10px] mt-0.5" id="valT1Pnl">$0.00</div></div>
-          <div class="card-dark rounded-xl p-3 border-l-4 border-l-purple-500"><span class="text-[11px] text-gray-300 font-sans font-semibold" id="labelT2Title">Terminal-02</span><div class="text-sm font-bold text-white mt-1" id="valT2Equity">$0.00</div><div class="text-[10px] mt-0.5" id="valT2Pnl">$0.00</div></div>
-          <div class="card-dark rounded-xl p-3 border-l-4 border-l-amber-500"><span class="text-[11px] text-gray-300 font-sans font-semibold" id="labelT3Title">Terminal-03</span><div class="text-sm font-bold text-white mt-1" id="valT3Equity">$0.00</div><div class="text-[10px] mt-0.5" id="valT3Pnl">$0.00</div></div>
-          <div class="card-dark rounded-xl p-3 border-l-4 border-l-emerald-500"><span class="text-[11px] text-gray-300 font-sans font-semibold" id="labelT4Title">Terminal-04</span><div class="text-sm font-bold text-white mt-1" id="valT4Equity">$0.00</div><div class="text-[10px] mt-0.5" id="valT4Pnl">$0.00</div></div>
-        </div>
-      </div>
-      <div class="card-dark rounded-2xl p-5"><h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">กราฟการเติบโต MT5 FOREX (Growth by Terminal USD)</h2><div class="relative h-60 w-full"><canvas id="chartForexGrowth"></canvas></div></div>
-      <div class="card-dark rounded-2xl p-5 border border-blue-500/20">
-        <div class="flex items-center justify-between mb-2">
-          <h2 class="text-xs font-bold text-blue-400 uppercase tracking-wider">แนวโน้มพอร์ต US ETF/STOCK (Market Value vs Cost Basis — USD)</h2>
-          <span class="text-[10px] text-gray-500 font-num">ข้อมูลจาก Daily Snapshot (23:00 Auto)</span>
-        </div>
-        <div class="relative h-56 w-full"><canvas id="chartUSStockTrend"></canvas></div>
-      </div>
-      <div class="card-dark rounded-2xl p-5"><h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">แนวโน้มมูลค่าสินทรัพย์สุทธิรวม (Total Net Worth Trend THB)</h2><div class="relative h-56 w-full"><canvas id="chartNetWorthTrend"></canvas></div></div>
-    </div>
-
-    <!-- VIEW 2: TRADES -->
-    <div id="viewTrades" class="space-y-4">
-
-      <!-- Summary Card -->
-      <div class="card-dark rounded-2xl p-4 border border-blue-500/30 bg-[#161b22]">
-        <div class="text-xs font-bold text-blue-400 mb-3 uppercase tracking-wider">📊 สรุปพอร์ตหุ้น/ETF สหรัฐ (DIME APP RECONCILIATION - USD)</div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]"><div class="text-[11px] text-gray-400">ต้นทุนรวมทั้งหมด (Total Cost)</div><div class="text-lg font-bold text-white font-num mt-1">$ <span id="tradesTotalCostUSD">0.00</span></div></div>
-          <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]"><div class="text-[11px] text-gray-400">มูลค่าลงทุนปัจจุบัน (Market Value)</div><div class="text-lg font-bold text-white font-num mt-1">$ <span id="tradesTotalMarketUSD">0.00</span></div></div>
-          <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]"><div class="text-[11px] text-gray-400">กำไร / ขาดทุน รวม (Unrealized P/L)</div><div class="text-lg font-bold font-num mt-1" id="tradesTotalPnlUSD">$ 0.00</div></div>
-        </div>
-      </div>
-
-      <!-- ★ GROUP CHARTS: 3 กลุ่ม แยกกราฟ -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-        <!-- กราฟ 1: ดาวเทียม -->
-        <div class="card-dark rounded-2xl p-4 border border-violet-500/30">
-          <div class="flex items-center justify-between mb-2">
-            <div>
-              <span class="text-[10px] font-bold text-violet-400 uppercase tracking-wider">Group A</span>
-              <h3 class="text-xs font-bold text-white font-brand">ดาวเทียม (เน้นโตสูง)</h3>
-            </div>
-            <div class="text-right">
-              <div class="text-[10px] text-gray-400 font-num">Market / Cost</div>
-              <div class="text-xs font-bold font-num" id="summaryGroupSatellite">$0 / $0</div>
-            </div>
-          </div>
-          <div class="relative h-52 w-full">
-            <canvas id="chartGroupSatellite"></canvas>
-          </div>
-          <div class="mt-2 flex items-center justify-center gap-4 text-[10px] text-gray-400 font-num">
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-violet-400/60 inline-block"></span>Market Value</span>
-            <span class="flex items-center gap-1"><span class="w-3 border-t-2 border-dashed border-[#475569] inline-block"></span>Cost Basis</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-amber-400 inline-block"></span>P/L%</span>
-          </div>
-        </div>
-
-        <!-- กราฟ 2: ปันผลรายเดือน -->
-        <div class="card-dark rounded-2xl p-4 border border-emerald-500/30">
-          <div class="flex items-center justify-between mb-2">
-            <div>
-              <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Group B</span>
-              <h3 class="text-xs font-bold text-white font-brand">ปันผลรายเดือน</h3>
-            </div>
-            <div class="text-right">
-              <div class="text-[10px] text-gray-400 font-num">Market / Cost</div>
-              <div class="text-xs font-bold font-num" id="summaryGroupDividend">$0 / $0</div>
-            </div>
-          </div>
-          <div class="relative h-52 w-full">
-            <canvas id="chartGroupDividend"></canvas>
-          </div>
-          <div class="mt-2 flex items-center justify-center gap-4 text-[10px] text-gray-400 font-num">
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-emerald-400/60 inline-block"></span>Market Value</span>
-            <span class="flex items-center gap-1"><span class="w-3 border-t-2 border-dashed border-[#475569] inline-block"></span>Cost Basis</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-amber-400 inline-block"></span>P/L%</span>
-          </div>
-        </div>
-
-        <!-- กราฟ 3: เสถียร -->
-        <div class="card-dark rounded-2xl p-4 border border-blue-500/30">
-          <div class="flex items-center justify-between mb-2">
-            <div>
-              <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Group C</span>
-              <h3 class="text-xs font-bold text-white font-brand">เสถียร (หุ้นคุณภาพ)</h3>
-            </div>
-            <div class="text-right">
-              <div class="text-[10px] text-gray-400 font-num">Market / Cost</div>
-              <div class="text-xs font-bold font-num" id="summaryGroupStable">$0 / $0</div>
-            </div>
-          </div>
-          <div class="relative h-52 w-full">
-            <canvas id="chartGroupStable"></canvas>
-          </div>
-          <div class="mt-2 flex items-center justify-center gap-4 text-[10px] text-gray-400 font-num">
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-blue-400/60 inline-block"></span>Market Value</span>
-            <span class="flex items-center gap-1"><span class="w-3 border-t-2 border-dashed border-[#475569] inline-block"></span>Cost Basis</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-amber-400 inline-block"></span>P/L%</span>
-          </div>
-        </div>
-
-      </div>
-      <!-- END GROUP CHARTS -->
-
-      <!-- Holdings Table -->
-      <div class="card-dark rounded-2xl overflow-hidden">
-        <div class="p-4 border-b border-[#30363d] flex flex-wrap gap-2 justify-between items-center">
-          <div class="flex items-center gap-3">
-            <h3 class="text-xs font-bold text-white uppercase tracking-wider">พอร์ตสินทรัพย์ที่ถือครองปัจจุบัน (CURRENT HOLDINGS)</h3>
-            <button onclick="openWatchlistModal()" class="px-3.5 py-1 rounded-full bg-rose-600/20 text-rose-300 border border-rose-500/40 text-[11px] font-bold hover:bg-rose-600 hover:text-white transition shadow-sm">★ Watchlist (<span id="watchlistCount">0</span>)</button>
-          </div>
-          <span class="text-[11px] text-amber-400/80 font-medium">💡 ดับเบิลคลิก (Double Click) ที่แถวหุ้น เพื่อตั้งราคาเป้าหมาย & แจ้งเตือน Telegram</span>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs font-num">
-            <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d] font-sans">
-              <tr>
-                <th class="py-3 px-4">สัญลักษณ์ (Ticker)</th>
-                <th class="py-3 px-3 text-right">จำนวนหุ้น</th>
-                <th class="py-3 px-3 text-right">ต้นทุนเฉลี่ย ($)</th>
-                <th class="py-3 px-3 text-right">ราคาปัจจุบัน ($)</th>
-                <th class="py-3 px-3 text-right text-blue-300">ยอดสุทธิ ($ USD)</th>
-                <th class="py-3 px-3 text-right">มูลค่ารวม ($)</th>
-                <th class="py-3 px-3 text-right">กำไร/ขาดทุน ($)</th>
-                <th class="py-3 px-4 text-right">ผลตอบแทน (%)</th>
-              </tr>
-            </thead>
-            <tbody id="positionsTableBody" class="divide-y divide-[#30363d] cursor-pointer"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Trade History -->
-      <div class="card-dark rounded-2xl overflow-hidden">
-        <div class="p-4 border-b border-[#30363d] flex flex-col md:flex-row gap-3 items-center justify-between">
-          <h3 class="text-xs font-bold text-white uppercase tracking-wider">ประวัติการทำรายการ (TRADE LOGS)</h3>
-          <div class="flex items-center gap-2">
-            <input type="text" id="filterTradeTicker" placeholder="ค้นหา TICKER..." oninput="renderTradeHistoryTable()" class="bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-white uppercase focus:border-blue-500 focus:outline-none">
-            <button onclick="openTradeModal()" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold">+ บันทึกรายการใหม่</button>
-            <button onclick="exportToPDF('viewTrades', 'Report_US_Stocks_ETF')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">PDF</button>
-            <button onclick="exportTradesCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">CSV</button>
-          </div>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs font-num">
-            <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d] font-sans">
-              <tr>
-                <th class="py-3 px-4">วันที่</th><th class="py-3 px-3">ประเภท</th><th class="py-3 px-3">สัญลักษณ์</th>
-                <th class="py-3 px-3 text-right">จำนวน</th><th class="py-3 px-3 text-right">ราคาซื้อ ($)</th>
-                <th class="py-3 px-3 text-right">ค่าธรรมเนียม ($)</th><th class="py-3 px-3 text-right">อัตราแลกเปลี่ยน (FX)</th>
-                <th class="py-3 px-3 text-right">ยอดสุทธิ ($ USD)</th><th class="py-3 px-4 text-center">จัดการ</th>
-              </tr>
-            </thead>
-            <tbody id="tradesHistoryTableBody" class="divide-y divide-[#30363d]"></tbody>
-          </table>
-        </div>
+  <!-- VIEW 2: TRADES -->
+  <div id="viewTrades" class="hidden space-y-4">
+    <div class="card-dark rounded-2xl p-4 border border-blue-500/30 bg-[#161b22]">
+      <div class="text-xs font-bold text-blue-400 mb-3 uppercase tracking-wider">📊 สรุปพอร์ตหุ้น/ETF สหรัฐ (DIME APP RECONCILIATION - USD)</div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]"><div class="text-[11px] text-gray-400">ต้นทุนรวมทั้งหมด (Total Cost)</div><div class="text-lg font-bold text-white font-num mt-1">$ <span id="tradesTotalCostUSD">0.00</span></div></div>
+        <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]"><div class="text-[11px] text-gray-400">มูลค่าลงทุนปัจจุบัน (Market Value)</div><div class="text-lg font-bold text-white font-num mt-1">$ <span id="tradesTotalMarketUSD">0.00</span></div></div>
+        <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]"><div class="text-[11px] text-gray-400">กำไร / ขาดทุน รวม (Unrealized P/L)</div><div class="text-lg font-bold font-num mt-1" id="tradesTotalPnlUSD">$ 0.00</div></div>
       </div>
     </div>
 
-    <!-- VIEW 3: FOREX -->
-    <div id="viewForex" class="hidden space-y-4">
-      <div class="card-dark rounded-2xl p-4 border border-indigo-500/30 bg-[#161b22]">
-        <div class="text-xs font-bold text-indigo-400 mb-3 uppercase tracking-wider">📊 สรุปพอร์ต FOREX MT5 รวมทุก TERMINAL (USD)</div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]"><div class="text-[11px] text-gray-400">Total Balance</div><div class="text-lg font-bold text-white font-num mt-1">$ <span id="forexSummaryTotalBalanceUSD">0.00</span></div></div>
-          <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]"><div class="text-[11px] text-gray-400">Total Equity</div><div class="text-lg font-bold text-white font-num mt-1">$ <span id="forexSummaryTotalEquityUSD">0.00</span></div></div>
-          <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]"><div class="text-[11px] text-gray-400">Total Profit/Loss</div><div class="text-lg font-bold font-num mt-1" id="forexSummaryTotalPnlUSD">$ 0.00</div></div>
-        </div>
+    <!-- Group Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="card-dark rounded-2xl p-4 border border-violet-500/30">
+        <div class="flex items-center justify-between mb-2"><div><span class="text-[10px] font-bold text-violet-400 uppercase tracking-wider">Group A</span><h3 class="text-xs font-bold text-white font-brand">ดาวเทียม (เน้นโตสูง)</h3></div><div class="text-right"><div class="text-[10px] text-gray-400 font-num">Market / Cost</div><div class="text-xs font-bold font-num" id="summaryGroupSatellite">$0 / $0</div></div></div>
+        <div class="relative h-52 w-full"><canvas id="chartGroupSatellite"></canvas></div>
+        <div class="mt-2 flex items-center justify-center gap-4 text-[10px] text-gray-400 font-num"><span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-violet-400/60 inline-block"></span>Market</span><span class="flex items-center gap-1"><span class="w-3 border-t-2 border-dashed border-[#475569] inline-block"></span>Cost</span><span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-amber-400 inline-block"></span>P/L%</span></div>
       </div>
-      <div class="card-dark rounded-2xl overflow-hidden">
-        <div class="p-4 border-b border-[#30363d] flex flex-col md:flex-row gap-3 items-center justify-between">
-          <div><h2 class="text-sm font-bold text-white font-brand">สถานะ MT5 Forex Monitor (ดึงสดจากชีต IMPORTMT5)</h2><p class="text-xs text-gray-400">รายละเอียดบัญชีและ EA เชื่อมต่ออัตโนมัติ</p></div>
-          <div class="flex items-center gap-2">
-            <button onclick="loadDashboardData()" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold">🔄 ซิงค์ข้อมูลล่าสุด</button>
-            <button onclick="exportToPDF('viewForex', 'Report_FOREX_MT5')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">PDF</button>
-            <button onclick="exportForexCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">CSV</button>
-          </div>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs font-num">
-            <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d] font-sans">
-              <tr><th class="py-3 px-4">Terminal</th><th class="py-3 px-3">รายละเอียดบัญชี</th><th class="py-3 px-3 text-right">Balance ($)</th><th class="py-3 px-3 text-right">Equity ($)</th><th class="py-3 px-3 text-right">P/L ($)</th><th class="py-3 px-4 text-right">% Growth</th><th class="py-3 px-4 text-center">วันที่เริ่มเทรด</th></tr>
-            </thead>
-            <tbody id="forexTableBody" class="divide-y divide-[#30363d]"></tbody>
-          </table>
-        </div>
+      <div class="card-dark rounded-2xl p-4 border border-emerald-500/30">
+        <div class="flex items-center justify-between mb-2"><div><span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Group B</span><h3 class="text-xs font-bold text-white font-brand">ปันผลรายเดือน</h3></div><div class="text-right"><div class="text-[10px] text-gray-400 font-num">Market / Cost</div><div class="text-xs font-bold font-num" id="summaryGroupDividend">$0 / $0</div></div></div>
+        <div class="relative h-52 w-full"><canvas id="chartGroupDividend"></canvas></div>
+        <div class="mt-2 flex items-center justify-center gap-4 text-[10px] text-gray-400 font-num"><span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-emerald-400/60 inline-block"></span>Market</span><span class="flex items-center gap-1"><span class="w-3 border-t-2 border-dashed border-[#475569] inline-block"></span>Cost</span><span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-amber-400 inline-block"></span>P/L%</span></div>
+      </div>
+      <div class="card-dark rounded-2xl p-4 border border-blue-500/30">
+        <div class="flex items-center justify-between mb-2"><div><span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Group C</span><h3 class="text-xs font-bold text-white font-brand">เสถียร (หุ้นคุณภาพ)</h3></div><div class="text-right"><div class="text-[10px] text-gray-400 font-num">Market / Cost</div><div class="text-xs font-bold font-num" id="summaryGroupStable">$0 / $0</div></div></div>
+        <div class="relative h-52 w-full"><canvas id="chartGroupStable"></canvas></div>
+        <div class="mt-2 flex items-center justify-center gap-4 text-[10px] text-gray-400 font-num"><span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-blue-400/60 inline-block"></span>Market</span><span class="flex items-center gap-1"><span class="w-3 border-t-2 border-dashed border-[#475569] inline-block"></span>Cost</span><span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-amber-400 inline-block"></span>P/L%</span></div>
       </div>
     </div>
 
-    <!-- VIEW 4: CASHFLOW -->
-    <div id="viewCashflow" class="hidden space-y-4">
-      <div class="card-dark rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-center justify-between">
-        <div><h2 class="text-sm font-bold text-white font-brand">ประวัติกระแสเงินสด (Cashflow)</h2><p class="text-xs text-gray-400">บันทึกเงินสดรับ-จ่าย และโอนย้ายสภาพคล่อง</p></div>
-        <div class="flex items-center gap-2">
-          <button onclick="openCashflowModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold">+ บันทึกรายการใหม่</button>
-          <button onclick="exportToPDF('viewCashflow', 'Report_Cashflow')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">PDF</button>
-          <button onclick="exportCashflowCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">CSV</button>
-        </div>
+    <!-- Holdings Table -->
+    <div class="card-dark rounded-2xl overflow-hidden">
+      <div class="p-4 border-b border-[#30363d] flex flex-wrap gap-2 justify-between items-center">
+        <div class="flex items-center gap-3"><h3 class="text-xs font-bold text-white uppercase tracking-wider">พอร์ตสินทรัพย์ที่ถือครองปัจจุบัน (CURRENT HOLDINGS)</h3><button onclick="openWatchlistModal()" class="px-3.5 py-1 rounded-full bg-rose-600/20 text-rose-300 border border-rose-500/40 text-[11px] font-bold hover:bg-rose-600 hover:text-white transition">★ Watchlist (<span id="watchlistCount">0</span>)</button></div>
+        <span class="text-[11px] text-amber-400/80 font-medium">💡 ดับเบิลคลิกที่แถวหุ้น เพื่อตั้งราคาเป้าหมาย & แจ้งเตือน Telegram</span>
       </div>
-      <div class="card-dark rounded-2xl overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs font-num">
-            <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d] font-sans">
-              <tr><th class="py-3 px-4">วันที่</th><th class="py-3 px-3">ทิศทาง</th><th class="py-3 px-3">หมวดหมู่</th><th class="py-3 px-3">บัญชี</th><th class="py-3 px-3 text-right">จำนวนเงิน (THB)</th><th class="py-3 px-4">บันทึก</th><th class="py-3 px-4 text-center">จัดการ</th></tr>
-            </thead>
-            <tbody id="cashHistoryTableBody" class="divide-y divide-[#30363d]"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW 5: README -->
-    <div id="viewReadme" class="hidden space-y-6">
-      <div class="card-dark rounded-2xl p-6 border border-amber-500/30">
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#30363d] pb-4 mb-6">
-          <div>
-            <div class="flex items-center gap-2"><span class="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 text-xs font-bold font-num">VERSION 7.5.0</span><span class="text-xs text-gray-400">อัปเดตล่าสุด: 2026-09-15</span></div>
-            <h2 class="text-xl font-bold text-white font-brand mt-1.5">📖 คู่มือการใช้งาน & สรุปบริบทโครงการ</h2>
-          </div>
-          <button onclick="exportToPDF('viewReadme', 'Portfolio_System_Manual_README')" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">📄 Export PDF</button>
-        </div>
-        <div class="space-y-4 text-xs text-gray-300 font-sans">
-          <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d]">
-            <h3 class="text-sm font-bold text-emerald-400 font-brand mb-3">ไทม์ไลน์การพัฒนา (Milestones)</h3>
-            <table class="w-full text-xs">
-              <thead class="bg-[#21262d] text-gray-400 border-b border-[#30363d]"><tr><th class="py-2 px-3">Phase</th><th class="py-2 px-3">การดำเนินการ</th><th class="py-2 px-3">ผลลัพธ์</th></tr></thead>
-              <tbody class="divide-y divide-[#30363d]">
-                <tr><td class="py-2 px-3 font-semibold text-white">Phase 1-7</td><td class="py-2 px-3">Core System</td><td class="py-2 px-3 text-gray-400">PIN, Reconciliation, MT5, Watchlist, Telegram</td></tr>
-                <tr><td class="py-2 px-3 font-semibold text-white">Phase 8</td><td class="py-2 px-3">Performance Opt.</td><td class="py-2 px-3 text-gray-400">Sheet API calls 16→10, Settings Cache</td></tr>
-                <tr><td class="py-2 px-3 font-semibold text-white">Phase 9</td><td class="py-2 px-3">US ETF Trend & Auto Snapshot</td><td class="py-2 px-3 text-gray-400">กราฟ Market vs Cost USD, Daily Trigger 23:00</td></tr>
-                <tr><td class="py-2 px-3 font-semibold text-white">Phase 10</td><td class="py-2 px-3">Group Performance Charts</td><td class="py-2 px-3 text-gray-400">กราฟแยก 3 กลุ่ม: ดาวเทียม / ปันผล / เสถียร</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  <!-- MODALS -->
-  <div id="modalTrade" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="card-dark rounded-2xl w-full max-w-lg border border-[#30363d] overflow-hidden flex flex-col">
-      <div class="p-4 border-b border-[#30363d] flex items-center justify-between"><h3 class="text-sm font-bold text-white font-brand">บันทึกรายการลงทุนสหรัฐ</h3><button onclick="closeModal('modalTrade')" class="text-gray-400 hover:text-white">&times;</button></div>
-      <div class="p-5 space-y-4 text-xs">
-        <div><label class="block text-gray-400 mb-1.5 font-medium">ประเภทคำสั่ง</label>
-          <div class="grid grid-cols-4 gap-2 font-num font-semibold text-center">
-            <button type="button" onclick="setSide('BUY')" id="btnSideBUY" class="py-2.5 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold transition">BUY</button>
-            <button type="button" onclick="setSide('W-BUY')" id="btnSideWBUY" class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">W-BUY</button>
-            <button type="button" onclick="setSide('SELL')" id="btnSideSELL" class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">SELL</button>
-            <button type="button" onclick="setSide('W-SELL')" id="btnSideWSELL" class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">W-SELL</button>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div><label class="block text-gray-400 mb-1">วันที่</label><input type="date" id="tradeDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num focus:border-blue-500 focus:outline-none"></div>
-          <div><label class="block text-gray-400 mb-1">กลุ่มการลงทุน</label><select id="tradeGroup" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></select></div>
-        </div>
-        <div class="grid grid-cols-3 gap-3">
-          <div><label class="block text-gray-400 mb-1">Ticker</label><input type="text" id="tradeTicker" placeholder="เช่น TSLA" oninput="this.value=this.value.toUpperCase();" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num uppercase focus:border-blue-500 focus:outline-none"></div>
-          <div><label class="block text-gray-400 mb-1">จำนวนหุ้น</label><input type="number" step="any" id="tradeShares" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num focus:border-blue-500 focus:outline-none"></div>
-          <div><label class="block text-gray-400 mb-1">ราคาต่อหุ้น ($)</label><input type="number" step="any" id="tradePrice" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num focus:border-blue-500 focus:outline-none"></div>
-        </div>
-        <div><label class="block text-gray-400 mb-1">บันทึกช่วยจำ</label><input type="text" id="tradeNote" placeholder="รายละเอียดเพิ่มเติม" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></div>
-      </div>
-      <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
-        <button onclick="closeModal('modalTrade')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
-        <button onclick="submitTradeForm()" id="btnSaveTrade" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold">บันทึกข้อมูล</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="modalCashflow" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="card-dark rounded-2xl w-full max-w-md border border-[#30363d] overflow-hidden flex flex-col">
-      <div class="p-4 border-b border-[#30363d] flex items-center justify-between"><h3 class="text-sm font-bold text-white font-brand">บันทึกกระแสเงินสด</h3><button onclick="closeModal('modalCashflow')" class="text-gray-400 hover:text-white">&times;</button></div>
-      <div class="p-5 space-y-4 text-xs">
-        <div><label class="block text-gray-400 mb-1.5 font-medium">ทิศทางเงิน</label>
-          <div class="grid grid-cols-2 gap-2 font-semibold">
-            <button type="button" onclick="setCashType('out')" id="btnCashOut" class="py-2.5 rounded-xl border border-rose-500 bg-rose-500/20 text-rose-300 font-bold transition">โอนออก / จ่ายออก</button>
-            <button type="button" onclick="setCashType('in')" id="btnCashIn" class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">รับเข้า / โอนเข้าลงทุน</button>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div><label class="block text-gray-400 mb-1">วันที่</label><input type="date" id="cashDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num focus:border-blue-500 focus:outline-none"></div>
-          <div><label class="block text-gray-400 mb-1">หมวดหมู่</label><select id="cashCategory" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></select></div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div><label class="block text-gray-400 mb-1">บัญชีที่ใช้</label><select id="cashAccount" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></select></div>
-          <div><label class="block text-gray-400 mb-1">จำนวนเงิน (บาท)</label><input type="number" step="any" id="cashAmount" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num font-bold focus:border-blue-500 focus:outline-none"></div>
-        </div>
-        <div><label class="block text-gray-400 mb-1">บันทึกช่วยจำ</label><input type="text" id="cashNote" placeholder="รายละเอียดเพิ่มเติม" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></div>
-      </div>
-      <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
-        <button onclick="closeModal('modalCashflow')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
-        <button onclick="submitCashflowForm()" id="btnSaveCash" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">บันทึกเงินสด</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="modalAccount" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="card-dark rounded-2xl w-full max-w-md border border-[#30363d] overflow-hidden flex flex-col">
-      <div class="p-4 border-b border-[#30363d] flex items-center justify-between"><h3 class="text-sm font-bold text-white font-brand">จัดการยอดบัญชี Group-1</h3><button onclick="closeModal('modalAccount')" class="text-gray-400 hover:text-white">&times;</button></div>
-      <div class="p-5 space-y-4 text-xs">
-        <div><label class="block text-gray-400 mb-1">เลือกบัญชี</label><select id="accSelect" onchange="onAccountSelectChange()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></select></div>
-        <div><label class="block text-gray-400 mb-1">ยอดเงิน (THB)</label><input type="number" step="any" id="accBalance" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num font-bold focus:border-blue-500 focus:outline-none"></div>
-      </div>
-      <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
-        <button onclick="closeModal('modalAccount')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ปิด</button>
-        <button onclick="submitUpdateAccount()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold">อัปเดตยอด</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="modalAlert" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="card-dark rounded-2xl w-full max-w-lg border border-blue-500/40 overflow-hidden flex flex-col shadow-2xl">
-      <div class="p-4 border-b border-[#30363d] flex items-center justify-between bg-gradient-to-r from-blue-950/40 to-[#161b22]">
-        <div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold font-num text-sm" id="altModalTicker">TICKER</span><span class="text-xs text-gray-400 font-sans" id="altModalTypeTag">EXISTING</span></div>
-        <button onclick="closeModal('modalAlert')" class="text-gray-400 hover:text-white text-lg">&times;</button>
-      </div>
-      <div class="p-5 space-y-4 text-xs">
-        <div class="bg-[#0d1117] p-4 rounded-xl border border-[#30363d] space-y-3 font-num">
-          <div class="flex justify-between items-end">
-            <div><span class="text-[11px] text-gray-400 font-sans">ราคาปัจจุบัน</span><div class="text-2xl font-bold text-white mt-0.5">$<span id="altModalCurrentPrice">0.00</span></div></div>
-            <div class="text-right" id="altModalHoldingBox"><span class="text-[11px] text-gray-400 font-sans">ถือครอง / P/L</span><div class="text-sm font-semibold text-gray-200" id="altModalSharesCost">0 หุ้น</div><div class="text-xs font-bold" id="altModalPnl">$0.00</div></div>
-          </div>
-          <div class="space-y-1.5 pt-2 border-t border-[#21262d]">
-            <div class="flex justify-between text-[11px]"><span class="text-gray-400">52W Low: <strong class="text-rose-400">$<span id="altModalLow52">0.00</span></strong></span><span class="text-blue-400 font-bold" id="altModalRangePct">50%</span><span class="text-gray-400">52W High: <strong class="text-emerald-400">$<span id="altModalHigh52">0.00</span></strong></span></div>
-            <div class="h-3 w-full bg-[#21262d] rounded-full overflow-hidden"><div id="altModalProgressBar" class="h-full bg-gradient-to-r from-blue-500 to-emerald-400 rounded-full transition-all duration-500" style="width:50%"></div></div>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="bg-[#0d1117] p-3.5 rounded-xl border border-emerald-500/30 space-y-2"><label class="text-emerald-400 font-bold flex items-center gap-2 font-sans cursor-pointer select-none"><input type="checkbox" id="altBuyActive" class="w-4 h-4"><span>🟢 อยากซื้อ / ช้อนเพิ่ม</span></label><input type="number" step="any" id="altTargetBuy" placeholder="0.00" class="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-1.5 text-white font-num font-bold focus:border-emerald-500 focus:outline-none mt-1"></div>
-          <div class="bg-[#0d1117] p-3.5 rounded-xl border border-rose-500/30 space-y-2"><label class="text-rose-400 font-bold flex items-center gap-2 font-sans cursor-pointer select-none"><input type="checkbox" id="altSellActive" class="w-4 h-4"><span>🔴 อยากขายออก / ทำกำไร</span></label><input type="number" step="any" id="altTargetSell" placeholder="0.00" class="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-1.5 text-white font-num font-bold focus:border-rose-500 focus:outline-none mt-1"></div>
-        </div>
-        <div><label class="block text-gray-400 mb-1 font-sans">บันทึก / แผนการเทรด</label><input type="text" id="altNote" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></div>
-      </div>
-      <div class="p-4 border-t border-[#30363d] flex flex-wrap items-center justify-between gap-2 bg-[#161b22]">
-        <button onclick="testTelegramCurrentTicker()" id="btnTestTg" type="button" class="px-3 py-2 rounded-xl border border-[#30363d] bg-[#21262d] text-blue-400 hover:text-white font-semibold transition">📲 ทดสอบส่ง Telegram</button>
-        <div class="flex items-center gap-2"><button onclick="closeModal('modalAlert')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button><button onclick="submitSaveAlert()" id="btnSaveAlert" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold">บันทึกเป้าหมาย</button></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="modalWatchlist" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="card-dark rounded-2xl w-full max-w-2xl border border-[#30363d] overflow-hidden flex flex-col shadow-2xl">
-      <div class="p-4 border-b border-[#30363d] flex items-center justify-between bg-[#161b22]"><h3 class="text-sm font-bold text-white font-brand">★ WATCHLIST MONITOR</h3><button onclick="closeModal('modalWatchlist')" class="text-gray-400 hover:text-white text-lg">&times;</button></div>
-      <div class="p-4 border-b border-[#30363d] bg-[#0d1117] flex items-center gap-2">
-        <input type="text" id="newWatchlistTicker" placeholder="เพิ่ม Ticker ใหม่..." oninput="this.value=this.value.toUpperCase();" class="flex-1 bg-[#161b22] border border-[#30363d] rounded-xl px-3 py-2 text-xs text-white font-num uppercase focus:border-rose-500 focus:outline-none">
-        <button onclick="addNewWatchlistTicker()" id="btnAddWatchlist" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold whitespace-nowrap">+ เพิ่มลง Watchlist</button>
-      </div>
-      <div class="p-4 overflow-y-auto max-h-96">
+      <div class="overflow-x-auto">
         <table class="w-full text-left text-xs font-num">
           <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d] font-sans">
-            <tr><th class="py-2.5 px-3">Ticker</th><th class="py-2.5 px-3 text-right">ราคา ($)</th><th class="py-2.5 px-3 text-center">52W Range</th><th class="py-2.5 px-3 text-right">เป้าซื้อ</th><th class="py-2.5 px-3 text-right">เป้าขาย</th><th class="py-2.5 px-3 text-center">จัดการ</th></tr>
+            <tr><th class="py-3 px-4">สัญลักษณ์</th><th class="py-3 px-3 text-right">จำนวนหุ้น</th><th class="py-3 px-3 text-right">ต้นทุนเฉลี่ย ($)</th><th class="py-3 px-3 text-right">ราคาปัจจุบัน ($)</th><th class="py-3 px-3 text-right text-blue-300">ยอดสุทธิ ($)</th><th class="py-3 px-3 text-right">มูลค่ารวม ($)</th><th class="py-3 px-3 text-right">กำไร/ขาดทุน ($)</th><th class="py-3 px-4 text-right">ผลตอบแทน (%)</th></tr>
           </thead>
-          <tbody id="watchlistTableBody" class="divide-y divide-[#30363d] cursor-pointer"></tbody>
+          <tbody id="positionsTableBody" class="divide-y divide-[#30363d] cursor-pointer"></tbody>
         </table>
       </div>
-      <div class="p-3 border-t border-[#30363d] flex justify-between items-center text-[11px] text-gray-400 bg-[#161b22]">
-        <span>💡 ดับเบิลคลิกที่รายการ เพื่อแก้ไขราคาเป้าหมาย</span>
-        <button onclick="closeModal('modalWatchlist')" class="px-4 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] text-gray-300 hover:text-white font-semibold">ปิด</button>
+    </div>
+
+    <!-- Trade History -->
+    <div class="card-dark rounded-2xl overflow-hidden">
+      <div class="p-4 border-b border-[#30363d] flex flex-col md:flex-row gap-3 items-center justify-between">
+        <h3 class="text-xs font-bold text-white uppercase tracking-wider">ประวัติการทำรายการ (TRADE LOGS)</h3>
+        <div class="flex items-center gap-2">
+          <input type="text" id="filterTradeTicker" placeholder="ค้นหา TICKER..." oninput="renderTradeHistoryTable()" class="bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-white uppercase focus:border-blue-500 focus:outline-none">
+          <button onclick="openTradeModal()" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold">+ บันทึกรายการใหม่</button>
+          <button onclick="exportToPDF('viewTrades','Report_US_Stocks_ETF')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">PDF</button>
+          <button onclick="exportTradesCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">CSV</button>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs font-num">
+          <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d] font-sans">
+            <tr><th class="py-3 px-4">วันที่</th><th class="py-3 px-3">ประเภท</th><th class="py-3 px-3">สัญลักษณ์</th><th class="py-3 px-3 text-right">จำนวน</th><th class="py-3 px-3 text-right">ราคาซื้อ ($)</th><th class="py-3 px-3 text-right">ค่าธรรมเนียม ($)</th><th class="py-3 px-3 text-right">FX Rate</th><th class="py-3 px-3 text-right">ยอดสุทธิ ($)</th><th class="py-3 px-4 text-center">จัดการ</th></tr>
+          </thead>
+          <tbody id="tradesHistoryTableBody" class="divide-y divide-[#30363d]"></tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <!-- JavaScript Engine v7.5 -->
-  <script>
-    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw_P74pybIzkQ0SSa0RuO8lFgjbgDh5KSerIoL9NcNR1IVAOJ0Jyz3Vb4-khVlsEfNN/exec';
+  <!-- VIEW 3: FOREX -->
+  <div id="viewForex" class="hidden space-y-4">
+    <div class="card-dark rounded-2xl p-4 border border-indigo-500/30 bg-[#161b22]">
+      <div class="text-xs font-bold text-indigo-400 mb-3 uppercase tracking-wider">📊 สรุปพอร์ต FOREX MT5 รวมทุก TERMINAL (USD)</div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]"><div class="text-[11px] text-gray-400">Total Balance</div><div class="text-lg font-bold text-white font-num mt-1">$ <span id="forexSummaryTotalBalanceUSD">0.00</span></div></div>
+        <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]"><div class="text-[11px] text-gray-400">Total Equity</div><div class="text-lg font-bold text-white font-num mt-1">$ <span id="forexSummaryTotalEquityUSD">0.00</span></div></div>
+        <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]"><div class="text-[11px] text-gray-400">Total Profit/Loss</div><div class="text-lg font-bold font-num mt-1" id="forexSummaryTotalPnlUSD">$ 0.00</div></div>
+      </div>
+    </div>
+    <div class="card-dark rounded-2xl overflow-hidden">
+      <div class="p-4 border-b border-[#30363d] flex flex-col md:flex-row gap-3 items-center justify-between">
+        <div><h2 class="text-sm font-bold text-white font-brand">สถานะ MT5 Forex Monitor</h2><p class="text-xs text-gray-400">รายละเอียดบัญชีและ EA เชื่อมต่ออัตโนมัติ</p></div>
+        <div class="flex items-center gap-2">
+          <button onclick="loadDashboardData()" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold">🔄 ซิงค์</button>
+          <button onclick="exportToPDF('viewForex','Report_FOREX_MT5')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">PDF</button>
+          <button onclick="exportForexCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">CSV</button>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs font-num">
+          <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d] font-sans">
+            <tr><th class="py-3 px-4">Terminal</th><th class="py-3 px-3">รายละเอียด</th><th class="py-3 px-3 text-right">Balance ($)</th><th class="py-3 px-3 text-right">Equity ($)</th><th class="py-3 px-3 text-right">P/L ($)</th><th class="py-3 px-4 text-right">% Growth</th><th class="py-3 px-4 text-center">วันเริ่มเทรด</th></tr>
+          </thead>
+          <tbody id="forexTableBody" class="divide-y divide-[#30363d]"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-    let currentToken = localStorage.getItem('portfolio_token') || '';
-    let enteredPin   = '';
-    let appData      = null;
+  <!-- VIEW 4: CASHFLOW -->
+  <div id="viewCashflow" class="hidden space-y-4">
+    <div class="card-dark rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div><h2 class="text-sm font-bold text-white font-brand">ประวัติกระแสเงินสด (Cashflow)</h2><p class="text-xs text-gray-400">บันทึกเงินสดรับ-จ่าย</p></div>
+      <div class="flex items-center gap-2">
+        <button onclick="openCashflowModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold">+ บันทึกรายการใหม่</button>
+        <button onclick="exportToPDF('viewCashflow','Report_Cashflow')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">PDF</button>
+        <button onclick="exportCashflowCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">CSV</button>
+      </div>
+    </div>
+    <div class="card-dark rounded-2xl overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs font-num">
+          <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d] font-sans">
+            <tr><th class="py-3 px-4">วันที่</th><th class="py-3 px-3">ทิศทาง</th><th class="py-3 px-3">หมวดหมู่</th><th class="py-3 px-3">บัญชี</th><th class="py-3 px-3 text-right">จำนวนเงิน (THB)</th><th class="py-3 px-4">บันทึก</th><th class="py-3 px-4 text-center">จัดการ</th></tr>
+          </thead>
+          <tbody id="cashHistoryTableBody" class="divide-y divide-[#30363d]"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-    // Chart instances
-    let chartTrend          = null;
-    let chartForex          = null;
-    let chartUSStock        = null;
-    let chartGroupSatellite = null; // ★ ดาวเทียม
-    let chartGroupDividend  = null; // ★ ปันผลรายเดือน
-    let chartGroupStable    = null; // ★ เสถียร
+  <!-- VIEW 5: README -->
+  <div id="viewReadme" class="hidden space-y-6">
+    <div class="card-dark rounded-2xl p-6 border border-amber-500/30">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-[#30363d] pb-4 mb-6">
+        <div><div class="flex items-center gap-2"><span class="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 text-xs font-bold font-num">VERSION 7.6.0</span><span class="text-xs text-gray-400">อัปเดตล่าสุด: 2026-09-16</span></div><h2 class="text-xl font-bold text-white font-brand mt-1.5">📖 คู่มือการใช้งาน & สรุปบริบทโครงการ</h2></div>
+        <button onclick="exportToPDF('viewReadme','Portfolio_System_Manual_README')" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">📄 Export PDF</button>
+      </div>
+      <div class="space-y-4 text-xs text-gray-300 font-sans">
+        <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d]">
+          <h3 class="text-sm font-bold text-emerald-400 font-brand mb-3">ไทม์ไลน์การพัฒนา (Milestones)</h3>
+          <table class="w-full text-xs">
+            <thead class="bg-[#21262d] text-gray-400 border-b border-[#30363d]"><tr><th class="py-2 px-3">Phase</th><th class="py-2 px-3">การดำเนินการ</th><th class="py-2 px-3">ผลลัพธ์</th></tr></thead>
+            <tbody class="divide-y divide-[#30363d]">
+              <tr><td class="py-2 px-3 font-semibold text-white">Phase 1-7</td><td class="py-2 px-3">Core System</td><td class="py-2 px-3 text-gray-400">PIN, Reconciliation, MT5, Watchlist, Telegram</td></tr>
+              <tr><td class="py-2 px-3 font-semibold text-white">Phase 8</td><td class="py-2 px-3">Performance Opt.</td><td class="py-2 px-3 text-gray-400">Sheet API 16→10, Settings Cache</td></tr>
+              <tr><td class="py-2 px-3 font-semibold text-white">Phase 9</td><td class="py-2 px-3">US ETF Trend + Auto Snapshot</td><td class="py-2 px-3 text-gray-400">กราฟ Market vs Cost, Daily Trigger 23:00</td></tr>
+              <tr><td class="py-2 px-3 font-semibold text-white">Phase 10</td><td class="py-2 px-3">Group Performance Charts</td><td class="py-2 px-3 text-gray-400">กราฟแยก 3 กลุ่ม: ดาวเทียม / ปันผล / เสถียร</td></tr>
+              <tr><td class="py-2 px-3 font-semibold text-white">Phase 11</td><td class="py-2 px-3">Monthly Report PDF + CSV</td><td class="py-2 px-3 text-gray-400">Dashboard export รายเดือน group by Snapshot</td></tr>
+              <tr><td class="py-2 px-3 font-semibold text-white">Phase 12</td><td class="py-2 px-3">Bug Fix — Export & SNAPSHOT</td><td class="py-2 px-3 text-gray-400">CSV ทำงาน, PDF ไม่ว่าง, SNAPSHOT header-based update</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    let selectedSide     = 'BUY';
-    let selectedCashType = 'out';
-    let currentView      = 'trades';
-    let activeModalStock = null;
+<!-- MODALS -->
+<div id="modalTrade" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="card-dark rounded-2xl w-full max-w-lg border border-[#30363d] overflow-hidden flex flex-col">
+    <div class="p-4 border-b border-[#30363d] flex items-center justify-between"><h3 class="text-sm font-bold text-white font-brand">บันทึกรายการลงทุนสหรัฐ</h3><button onclick="closeModal('modalTrade')" class="text-gray-400 hover:text-white text-xl">&times;</button></div>
+    <div class="p-5 space-y-4 text-xs">
+      <div><label class="block text-gray-400 mb-1.5 font-medium">ประเภทคำสั่ง</label>
+        <div class="grid grid-cols-4 gap-2 font-num font-semibold text-center">
+          <button type="button" onclick="setSide('BUY')"    id="btnSideBUY"   class="py-2.5 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold transition">BUY</button>
+          <button type="button" onclick="setSide('W-BUY')"  id="btnSideWBUY"  class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">W-BUY</button>
+          <button type="button" onclick="setSide('SELL')"   id="btnSideSELL"  class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">SELL</button>
+          <button type="button" onclick="setSide('W-SELL')" id="btnSideWSELL" class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">W-SELL</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-gray-400 mb-1">วันที่</label><input type="date" id="tradeDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num focus:border-blue-500 focus:outline-none"></div>
+        <div><label class="block text-gray-400 mb-1">กลุ่มการลงทุน</label><select id="tradeGroup" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></select></div>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div><label class="block text-gray-400 mb-1">Ticker</label><input type="text" id="tradeTicker" oninput="this.value=this.value.toUpperCase();" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num uppercase focus:border-blue-500 focus:outline-none"></div>
+        <div><label class="block text-gray-400 mb-1">จำนวนหุ้น</label><input type="number" step="any" id="tradeShares" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num focus:border-blue-500 focus:outline-none"></div>
+        <div><label class="block text-gray-400 mb-1">ราคาต่อหุ้น ($)</label><input type="number" step="any" id="tradePrice" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num focus:border-blue-500 focus:outline-none"></div>
+      </div>
+      <div><label class="block text-gray-400 mb-1">บันทึกช่วยจำ</label><input type="text" id="tradeNote" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></div>
+    </div>
+    <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
+      <button onclick="closeModal('modalTrade')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
+      <button onclick="submitTradeForm()" id="btnSaveTrade" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold">บันทึกข้อมูล</button>
+    </div>
+  </div>
+</div>
 
-    // ─── GROUP CHART CONFIG ──────────────────────────────────────────────────
-    const GROUP_DEFS = [
-      {
-        key:      'Satellite',
-        match:    'ดาวเทียม',
-        canvasId: 'chartGroupSatellite',
-        summaryId:'summaryGroupSatellite',
-        barColor: 'rgba(167,139,250,0.55)',   // violet
-        barBorder:'#a78bfa'
-      },
-      {
-        key:      'Dividend',
-        match:    'ปันผล',
-        canvasId: 'chartGroupDividend',
-        summaryId:'summaryGroupDividend',
-        barColor: 'rgba(52,211,153,0.55)',    // emerald
-        barBorder:'#34d399'
-      },
-      {
-        key:      'Stable',
-        match:    'เสถียร',
-        canvasId: 'chartGroupStable',
-        summaryId:'summaryGroupStable',
-        barColor: 'rgba(96,165,250,0.55)',    // blue
-        barBorder:'#60a5fa'
-      }
-    ];
+<div id="modalCashflow" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="card-dark rounded-2xl w-full max-w-md border border-[#30363d] overflow-hidden flex flex-col">
+    <div class="p-4 border-b border-[#30363d] flex items-center justify-between"><h3 class="text-sm font-bold text-white font-brand">บันทึกกระแสเงินสด</h3><button onclick="closeModal('modalCashflow')" class="text-gray-400 hover:text-white text-xl">&times;</button></div>
+    <div class="p-5 space-y-4 text-xs">
+      <div><label class="block text-gray-400 mb-1.5">ทิศทางเงิน</label>
+        <div class="grid grid-cols-2 gap-2 font-semibold">
+          <button type="button" onclick="setCashType('out')" id="btnCashOut" class="py-2.5 rounded-xl border border-rose-500 bg-rose-500/20 text-rose-300 font-bold transition">โอนออก / จ่ายออก</button>
+          <button type="button" onclick="setCashType('in')"  id="btnCashIn"  class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">รับเข้า / โอนเข้าลงทุน</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-gray-400 mb-1">วันที่</label><input type="date" id="cashDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num focus:border-blue-500 focus:outline-none"></div>
+        <div><label class="block text-gray-400 mb-1">หมวดหมู่</label><select id="cashCategory" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></select></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-gray-400 mb-1">บัญชีที่ใช้</label><select id="cashAccount" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></select></div>
+        <div><label class="block text-gray-400 mb-1">จำนวนเงิน (บาท)</label><input type="number" step="any" id="cashAmount" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num font-bold focus:border-blue-500 focus:outline-none"></div>
+      </div>
+      <div><label class="block text-gray-400 mb-1">บันทึกช่วยจำ</label><input type="text" id="cashNote" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></div>
+    </div>
+    <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
+      <button onclick="closeModal('modalCashflow')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
+      <button onclick="submitCashflowForm()" id="btnSaveCash" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">บันทึกเงินสด</button>
+    </div>
+  </div>
+</div>
 
-    // ─── API CALL ────────────────────────────────────────────────────────────
-    function apiCall(action, payload = {}, callback) {
-      const cbName = 'jsonp_cb_' + Math.round(100000 * Math.random());
-      const script = document.createElement('script');
-      let isHandled = false;
-      const timeoutId = setTimeout(() => {
-        if (!isHandled) { isHandled = true; delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); callback({ ok: false, error: "การเชื่อมต่อใช้เวลานานเกินไป กรุณากดรีเฟรช" }); }
-      }, 12000);
-      window[cbName] = function(data) {
-        if (!isHandled) { isHandled = true; clearTimeout(timeoutId); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); callback(data); }
-      };
-      const pStr = encodeURIComponent(JSON.stringify(payload));
-      const url  = `${BACKEND_URL}?callback=${cbName}&action=${action}&token=${encodeURIComponent(currentToken)}&payload=${pStr}&_t=${Date.now()}`;
-      script.src = url;
-      script.onerror = function() {
-        if (!isHandled) { isHandled = true; clearTimeout(timeoutId); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); callback({ ok: false, error: "ไม่สามารถติดต่อฐานข้อมูลได้" }); }
-      };
-      document.body.appendChild(script);
-    }
+<div id="modalAccount" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="card-dark rounded-2xl w-full max-w-md border border-[#30363d] overflow-hidden flex flex-col">
+    <div class="p-4 border-b border-[#30363d] flex items-center justify-between"><h3 class="text-sm font-bold text-white font-brand">จัดการยอดบัญชี Group-1</h3><button onclick="closeModal('modalAccount')" class="text-gray-400 hover:text-white text-xl">&times;</button></div>
+    <div class="p-5 space-y-4 text-xs">
+      <div><label class="block text-gray-400 mb-1">เลือกบัญชี</label><select id="accSelect" onchange="onAccountSelectChange()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></select></div>
+      <div><label class="block text-gray-400 mb-1">ยอดเงิน (THB)</label><input type="number" step="any" id="accBalance" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num font-bold focus:border-blue-500 focus:outline-none"></div>
+    </div>
+    <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
+      <button onclick="closeModal('modalAccount')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ปิด</button>
+      <button onclick="submitUpdateAccount()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold">อัปเดตยอด</button>
+    </div>
+  </div>
+</div>
 
-    function refreshSummaryOnly(callback) {
-      apiCall('refreshSummary', {}, (res) => {
-        if (!res.ok) return;
-        appData.summary = res.data;
-        renderDashboard();
-        if (currentView === 'trades')   renderTradesView();
-        if (currentView === 'forex')    renderForexMonitorTable();
-        if (currentView === 'cashflow') renderCashflowTable();
-        if (typeof callback === 'function') callback();
-      });
-    }
+<div id="modalAlert" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="card-dark rounded-2xl w-full max-w-lg border border-blue-500/40 overflow-hidden flex flex-col shadow-2xl">
+    <div class="p-4 border-b border-[#30363d] flex items-center justify-between bg-gradient-to-r from-blue-950/40 to-[#161b22]">
+      <div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold font-num text-sm" id="altModalTicker">TICKER</span><span class="text-xs text-gray-400" id="altModalTypeTag">EXISTING</span></div>
+      <button onclick="closeModal('modalAlert')" class="text-gray-400 hover:text-white text-xl">&times;</button>
+    </div>
+    <div class="p-5 space-y-4 text-xs">
+      <div class="bg-[#0d1117] p-4 rounded-xl border border-[#30363d] space-y-3 font-num">
+        <div class="flex justify-between items-end">
+          <div><span class="text-[11px] text-gray-400 font-sans">ราคาปัจจุบัน</span><div class="text-2xl font-bold text-white mt-0.5">$<span id="altModalCurrentPrice">0.00</span></div></div>
+          <div class="text-right" id="altModalHoldingBox"><span class="text-[11px] text-gray-400 font-sans">ถือครอง / P/L</span><div class="text-sm font-semibold text-gray-200" id="altModalSharesCost">0 หุ้น</div><div class="text-xs font-bold" id="altModalPnl">$0.00</div></div>
+        </div>
+        <div class="space-y-1.5 pt-2 border-t border-[#21262d]">
+          <div class="flex justify-between text-[11px]"><span class="text-gray-400">52W Low: <strong class="text-rose-400">$<span id="altModalLow52">0.00</span></strong></span><span class="text-blue-400 font-bold" id="altModalRangePct">50%</span><span class="text-gray-400">52W High: <strong class="text-emerald-400">$<span id="altModalHigh52">0.00</span></strong></span></div>
+          <div class="h-3 w-full bg-[#21262d] rounded-full overflow-hidden"><div id="altModalProgressBar" class="h-full bg-gradient-to-r from-blue-500 to-emerald-400 rounded-full transition-all duration-500" style="width:50%"></div></div>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="bg-[#0d1117] p-3.5 rounded-xl border border-emerald-500/30 space-y-2"><label class="text-emerald-400 font-bold flex items-center gap-2 font-sans cursor-pointer select-none"><input type="checkbox" id="altBuyActive" class="w-4 h-4"><span>🟢 อยากซื้อ / ช้อนเพิ่ม</span></label><input type="number" step="any" id="altTargetBuy" placeholder="0.00" class="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-1.5 text-white font-num font-bold focus:border-emerald-500 focus:outline-none mt-1"></div>
+        <div class="bg-[#0d1117] p-3.5 rounded-xl border border-rose-500/30 space-y-2"><label class="text-rose-400 font-bold flex items-center gap-2 font-sans cursor-pointer select-none"><input type="checkbox" id="altSellActive" class="w-4 h-4"><span>🔴 อยากขายออก / ทำกำไร</span></label><input type="number" step="any" id="altTargetSell" placeholder="0.00" class="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-1.5 text-white font-num font-bold focus:border-rose-500 focus:outline-none mt-1"></div>
+      </div>
+      <div><label class="block text-gray-400 mb-1 font-sans">บันทึก / แผนการเทรด</label><input type="text" id="altNote" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></div>
+    </div>
+    <div class="p-4 border-t border-[#30363d] flex flex-wrap items-center justify-between gap-2 bg-[#161b22]">
+      <button onclick="testTelegramCurrentTicker()" id="btnTestTg" type="button" class="px-3 py-2 rounded-xl border border-[#30363d] bg-[#21262d] text-blue-400 hover:text-white font-semibold transition">📲 ทดสอบส่ง Telegram</button>
+      <div class="flex items-center gap-2"><button onclick="closeModal('modalAlert')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button><button onclick="submitSaveAlert()" id="btnSaveAlert" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold">บันทึกเป้าหมาย</button></div>
+    </div>
+  </div>
+</div>
 
-    // ─── NAVIGATION ──────────────────────────────────────────────────────────
-    function switchView(viewName) {
-      currentView = viewName;
-      ['dashboard','trades','forex','cashflow','readme'].forEach(v => {
-        const viewEl = document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1));
-        const tabEl  = document.getElementById('navTab' + v.charAt(0).toUpperCase() + v.slice(1));
-        if (!viewEl || !tabEl) return;
-        if (v === viewName) {
-          viewEl.classList.remove('hidden');
-          tabEl.className = v === 'readme'
-            ? "px-4 py-2 rounded-xl bg-amber-500 text-black font-bold transition"
-            : "px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold transition";
-        } else {
-          viewEl.classList.add('hidden');
-          tabEl.className = v === 'readme'
-            ? "px-4 py-2 rounded-xl bg-[#161b22] text-amber-400 hover:text-white border border-[#30363d] transition font-bold"
-            : "px-4 py-2 rounded-xl bg-[#161b22] text-gray-400 hover:text-white border border-[#30363d] transition font-semibold";
-        }
-      });
-      if (viewName === 'trades')   renderTradesView();
-      if (viewName === 'forex')    renderForexMonitorTable();
-      if (viewName === 'cashflow') renderCashflowTable();
-    }
+<div id="modalWatchlist" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="card-dark rounded-2xl w-full max-w-2xl border border-[#30363d] overflow-hidden flex flex-col shadow-2xl">
+    <div class="p-4 border-b border-[#30363d] flex items-center justify-between bg-[#161b22]"><h3 class="text-sm font-bold text-white font-brand">★ WATCHLIST MONITOR</h3><button onclick="closeModal('modalWatchlist')" class="text-gray-400 hover:text-white text-xl">&times;</button></div>
+    <div class="p-4 border-b border-[#30363d] bg-[#0d1117] flex items-center gap-2">
+      <input type="text" id="newWatchlistTicker" placeholder="เพิ่ม Ticker ใหม่..." oninput="this.value=this.value.toUpperCase();" class="flex-1 bg-[#161b22] border border-[#30363d] rounded-xl px-3 py-2 text-xs text-white font-num uppercase focus:border-rose-500 focus:outline-none">
+      <button onclick="addNewWatchlistTicker()" id="btnAddWatchlist" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold whitespace-nowrap">+ เพิ่มลง Watchlist</button>
+    </div>
+    <div class="p-4 overflow-y-auto max-h-96">
+      <table class="w-full text-left text-xs font-num">
+        <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d] font-sans">
+          <tr><th class="py-2.5 px-3">Ticker</th><th class="py-2.5 px-3 text-right">ราคา ($)</th><th class="py-2.5 px-3 text-center">52W Range</th><th class="py-2.5 px-3 text-right">เป้าซื้อ</th><th class="py-2.5 px-3 text-right">เป้าขาย</th><th class="py-2.5 px-3 text-center">จัดการ</th></tr>
+        </thead>
+        <tbody id="watchlistTableBody" class="divide-y divide-[#30363d] cursor-pointer"></tbody>
+      </table>
+    </div>
+    <div class="p-3 border-t border-[#30363d] flex justify-between items-center text-[11px] text-gray-400 bg-[#161b22]">
+      <span>💡 ดับเบิลคลิกที่รายการ เพื่อแก้ไขราคาเป้าหมาย</span>
+      <button onclick="closeModal('modalWatchlist')" class="px-4 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] text-gray-300 hover:text-white font-semibold">ปิด</button>
+    </div>
+  </div>
+</div>
 
-    // ─── PIN ─────────────────────────────────────────────────────────────────
-    function pressPin(n) { if (enteredPin.length < 6) { enteredPin += n; updatePinDots(); if (enteredPin.length === 6) submitPin(); } }
-    function deletePin() { if (enteredPin.length > 0) { enteredPin = enteredPin.slice(0,-1); updatePinDots(); } }
-    function clearPin()  { enteredPin = ''; updatePinDots(); document.getElementById('pinError').innerText = ''; }
-    function updatePinDots() {
-      document.querySelectorAll('.pin-dot').forEach((dot,i) => {
-        if (i < enteredPin.length) dot.classList.add('bg-blue-500','border-blue-500','scale-110');
-        else dot.classList.remove('bg-blue-500','border-blue-500','scale-110');
-      });
-    }
-    function submitPin() {
-      const errBox = document.getElementById('pinError');
-      errBox.innerText = 'กำลังตรวจสอบ...';
-      apiCall('login', { pin: enteredPin }, (res) => {
-        if (res.ok && res.data && res.data.token) {
-          currentToken = res.data.token;
-          localStorage.setItem('portfolio_token', currentToken);
-          errBox.innerText = '';
-          document.getElementById('pinOverlay').classList.add('hidden');
-          loadDashboardData();
-        } else {
-          errBox.innerText = res.error || 'รหัสผ่านไม่ถูกต้อง';
-          enteredPin = ''; updatePinDots();
-        }
-      });
-    }
-    function logout() { currentToken = ''; localStorage.removeItem('portfolio_token'); location.reload(); }
+<!-- ★ [FIX Step5A] visibility:hidden แทน display:none — ให้ browser layout ได้ -->
+<div id="reportContainer" style="visibility:hidden;position:fixed;left:-9999px;top:0;width:1400px;z-index:-1;"></div>
 
-    // ─── LOAD DATA ───────────────────────────────────────────────────────────
-    function loadDashboardData(onSuccess) {
-      const banner = document.getElementById('loadingBanner');
-      banner.classList.remove('hidden');
-      apiCall('bootstrap', {}, (res) => {
-        banner.classList.add('hidden');
-        if (!res.ok) {
-          if (res.error && res.error.includes('บัตรผ่าน')) logout();
-          else alert('เกิดข้อผิดพลาด: ' + res.error);
-          return;
-        }
-        appData = res.data;
-        renderDashboard();
-        populateAccountSelect();
-        populateDropdowns();
-        if (currentView === 'trades')   renderTradesView();
-        if (currentView === 'forex')    renderForexMonitorTable();
-        if (currentView === 'cashflow') renderCashflowTable();
-        if (typeof onSuccess === 'function') onSuccess();
-      });
-    }
+<!-- JS ENGINE v7.6 -->
+<script>
+  const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw_P74pybIzkQ0SSa0RuO8lFgjbgDh5KSerIoL9NcNR1IVAOJ0Jyz3Vb4-khVlsEfNN/exec';
 
-    // ─── RENDER DASHBOARD ────────────────────────────────────────────────────
-    function renderDashboard() {
-      if (!appData) return;
-      const sum = appData.summary || {};
-      const fx  = sum.fxRate || 33.14;
+  let currentToken = localStorage.getItem('portfolio_token') || '';
+  let enteredPin   = '';
+  let appData      = null;
 
-      document.getElementById('headerFxRate').innerText      = fx.toFixed(2);
-      document.getElementById('valGrandTotalTHB').innerText  = formatNum(sum.grandTotalTHB) + ' ฿';
-      document.getElementById('valGrandTotalUSD').innerText  = formatNum(sum.grandTotalUSD);
-      document.getElementById('valGroup1Total').innerText    = formatNum(sum.totalGroup1THB) + ' ฿';
-      document.getElementById('valItem1Cash').innerText      = formatNum(sum.cashTHB) + ' ฿';
-      document.getElementById('valItem2Bank').innerText      = formatNum(sum.bankTHB) + ' ฿';
-      document.getElementById('valItem3Emergency').innerText = formatNum(sum.emergencyTHB) + ' ฿';
-      document.getElementById('valItem4CostTHB').innerText   = formatNum(sum.usTotalNetTHBCost) + ' ฿';
-      document.getElementById('valItem4CostUSD').innerText   = formatNum(sum.usCostUSD);
-      document.getElementById('valItem4MarketTHB').innerText = formatNum(sum.usInvestTHB) + ' ฿';
-      document.getElementById('valItem4MarketUSD').innerText = formatNum(sum.usInvestUSD);
+  let chartTrend=null, chartForex=null, chartUSStock=null;
+  let chartGroupSatellite=null, chartGroupDividend=null, chartGroupStable=null;
+  let _reportExporting = false;
 
-      const usPnlEl = document.getElementById('valItem4PnlTHB');
-      const usPnl   = sum.usPnlTHB || 0;
-      usPnlEl.innerText = (usPnl >= 0 ? '+' : '') + formatNum(usPnl) + ' ฿';
-      usPnlEl.className = `text-xl font-bold font-num ${usPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-      document.getElementById('valItem4PnlUSD').innerText = (sum.usPnlUSD >= 0 ? '+' : '') + formatNum(sum.usPnlUSD);
+  let selectedSide='BUY', selectedCashType='out', currentView='dashboard', activeModalStock=null;
 
-      const usBadge = document.getElementById('badgeItem4PnlPct');
-      usBadge.innerText = (sum.usPnlPct >= 0 ? '+' : '') + formatNum(sum.usPnlPct,2) + '%';
-      usBadge.className = `text-[10px] font-bold px-1.5 py-0.5 rounded font-num ${sum.usPnlPct >= 0 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}`;
+  const GROUP_DEFS = [
+    { key:'Satellite', match:'ดาวเทียม', canvasId:'chartGroupSatellite', summaryId:'summaryGroupSatellite', barColor:'rgba(167,139,250,0.55)', barBorder:'#a78bfa' },
+    { key:'Dividend',  match:'ปันผล',    canvasId:'chartGroupDividend',  summaryId:'summaryGroupDividend',  barColor:'rgba(52,211,153,0.55)',   barBorder:'#34d399' },
+    { key:'Stable',    match:'เสถียร',   canvasId:'chartGroupStable',    summaryId:'summaryGroupStable',    barColor:'rgba(96,165,250,0.55)',   barBorder:'#60a5fa' }
+  ];
 
-      document.getElementById('valItem5BalanceTHB').innerText = formatNum(sum.forexBalanceTHB) + ' ฿';
-      document.getElementById('valItem5BalanceUSD').innerText = formatNum(sum.forexBalanceUSD);
-      document.getElementById('valItem5EquityTHB').innerText  = formatNum(sum.forexEquityTHB) + ' ฿';
-      document.getElementById('valItem5EquityUSD').innerText  = formatNum(sum.forexEquityUSD);
+  // ── API ────────────────────────────────────────────────────────────────────
+  function apiCall(action,payload={},callback){
+    const cbName='jsonp_cb_'+Math.round(100000*Math.random());
+    const script=document.createElement('script');
+    let isHandled=false;
+    const tid=setTimeout(()=>{if(!isHandled){isHandled=true;delete window[cbName];if(script.parentNode)script.parentNode.removeChild(script);callback({ok:false,error:'การเชื่อมต่อใช้เวลานานเกินไป กรุณากดรีเฟรช'});}},12000);
+    window[cbName]=function(d){if(!isHandled){isHandled=true;clearTimeout(tid);delete window[cbName];if(script.parentNode)script.parentNode.removeChild(script);callback(d);}};
+    const pStr=encodeURIComponent(JSON.stringify(payload));
+    script.src=`${BACKEND_URL}?callback=${cbName}&action=${action}&token=${encodeURIComponent(currentToken)}&payload=${pStr}&_t=${Date.now()}`;
+    script.onerror=function(){if(!isHandled){isHandled=true;clearTimeout(tid);delete window[cbName];if(script.parentNode)script.parentNode.removeChild(script);callback({ok:false,error:'ไม่สามารถติดต่อฐานข้อมูลได้'});}};
+    document.body.appendChild(script);
+  }
 
-      const fxPnlEl = document.getElementById('valItem5PnlTHB');
-      const fxPnl   = sum.forexPnlTHB || 0;
-      fxPnlEl.innerText = (fxPnl >= 0 ? '+' : '') + formatNum(fxPnl) + ' ฿';
-      fxPnlEl.className = `text-xl font-bold font-num ${fxPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-      document.getElementById('valItem5PnlUSD').innerText = (sum.forexPnlUSD >= 0 ? '+' : '') + formatNum(sum.forexPnlUSD);
+  function refreshSummaryOnly(cb){
+    apiCall('refreshSummary',{},(res)=>{
+      if(!res.ok) return;
+      appData.summary=res.data;
+      renderDashboard();
+      if(currentView==='trades')   renderTradesView();
+      if(currentView==='forex')    renderForexMonitorTable();
+      if(currentView==='cashflow') renderCashflowTable();
+      if(typeof cb==='function') cb();
+    });
+  }
 
-      const fxBadge = document.getElementById('badgeItem5PnlPct');
-      fxBadge.innerText = (sum.forexPnlPct >= 0 ? '+' : '') + formatNum(sum.forexPnlPct,2) + '%';
-      fxBadge.className = `text-[10px] font-bold px-1.5 py-0.5 rounded font-num ${sum.forexPnlPct >= 0 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}`;
-
-      const terms = sum.terminals || {};
-      ['Terminal-01','Terminal-02','Terminal-03','Terminal-04'].forEach((tName,i) => {
-        const t = terms[tName] || { terminalTitle: tName, equityUSD: 0, pnlUSD: 0 };
-        const idx = i + 1;
-        document.getElementById(`labelT${idx}Title`).innerText = t.terminalTitle || tName;
-        document.getElementById(`valT${idx}Equity`).innerText  = '$' + formatNum(t.equityUSD);
-        const pEl = document.getElementById(`valT${idx}Pnl`);
-        pEl.innerText = (t.pnlUSD >= 0 ? '+' : '') + '$' + formatNum(t.pnlUSD);
-        pEl.className = `text-[10px] mt-0.5 ${t.pnlUSD >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-      });
-
-      renderForexGrowthChart();
-      renderUSStockTrendChart();
-      renderNetWorthTrendChart();
-    }
-
-    function renderForexGrowthChart() {
-      const ctx   = document.getElementById('chartForexGrowth').getContext('2d');
-      const terms = (appData.summary && appData.summary.terminals) || {};
-      const t1 = terms['Terminal-01'] ? terms['Terminal-01'].equityUSD : 450;
-      const t2 = terms['Terminal-02'] ? terms['Terminal-02'].equityUSD : 700;
-      const t3 = terms['Terminal-03'] ? terms['Terminal-03'].equityUSD : 1160;
-      const t4 = terms['Terminal-04'] ? terms['Terminal-04'].equityUSD : 747;
-      if (chartForex) chartForex.destroy();
-      chartForex = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: ['เริ่มพอร์ต (2026-08-01)', 'ปัจจุบัน'],
-          datasets: [
-            { label: 'Terminal A (01)', data: [380, t1], borderColor: '#3b82f6', tension: 0.2 },
-            { label: 'Terminal B (02)', data: [580, t2], borderColor: '#a855f7', tension: 0.2 },
-            { label: 'Terminal C (03)', data: [1050,t3], borderColor: '#f59e0b', tension: 0.2 },
-            { label: 'Terminal D (04)', data: [690, t4], borderColor: '#10b981', tension: 0.2 }
-          ]
-        },
-        options: { responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { labels: { color: '#8b949e', font: { size: 10 } } } },
-          scales: {
-            x: { grid: { color: '#21262d' }, ticks: { color: '#8b949e' } },
-            y: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', callback: v => '$'+v } }
-          }
-        }
-      });
-    }
-
-    function renderUSStockTrendChart() {
-      const ctx   = document.getElementById('chartUSStockTrend').getContext('2d');
-      const snaps = appData.snapshot || [];
-      const valid = snaps.filter(s => Number(s.marketUSD) > 0 || Number(s.costUSD) > 0);
-      const sum   = appData.summary || {};
-      const labels   = valid.length ? valid.map(s=>s.date) : ['ปัจจุบัน'];
-      const mktData  = valid.length ? valid.map(s=>Number(s.marketUSD)||0) : [Number(sum.usInvestUSD)||0];
-      const costData = valid.length ? valid.map(s=>Number(s.costUSD)||0)   : [Number(sum.usCostUSD)||0];
-      const pnlData  = valid.length ? valid.map(s=>Number(s.pnlUSD)||0)    : [Number(sum.usPnlUSD)||0];
-      if (chartUSStock) chartUSStock.destroy();
-      chartUSStock = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            { label: 'Market Value (USD)', data: mktData, borderColor: '#58a6ff', backgroundColor: 'rgba(88,166,255,0.08)', fill: true, tension: 0.3, pointRadius: 3, yAxisID: 'y' },
-            { label: 'Cost Basis (USD)', data: costData, borderColor: '#475569', borderDash: [5,4], fill: false, tension: 0.3, pointRadius: 2, yAxisID: 'y' },
-            { label: 'P/L (USD)', data: pnlData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.06)', fill: true, tension: 0.3, pointRadius: 2, yAxisID: 'yPnl' }
-          ]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
-          plugins: { legend: { labels: { color: '#8b949e', font: { size: 10 }, boxWidth: 12 } },
-            tooltip: { callbacks: { label: c => `${c.dataset.label}: $${formatNum(c.parsed.y,2)}` } } },
-          scales: {
-            x: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', font: { size: 10 }, maxRotation: 30 } },
-            y: { position: 'left', grid: { color: '#21262d' }, ticks: { color: '#8b949e', font: { size: 10 }, callback: v => '$'+formatNum(v,0) } },
-            yPnl: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#10b981', font: { size: 10 }, callback: v => (v>=0?'+':'')+formatNum(v,0) } }
-          }
-        }
-      });
-    }
-
-    function renderNetWorthTrendChart() {
-      const ctx   = document.getElementById('chartNetWorthTrend').getContext('2d');
-      const snaps = appData.snapshot || [];
-      const labels = snaps.map(s=>s.date);
-      const data   = snaps.map(s=>s.netWorthTHB);
-      if (chartTrend) chartTrend.destroy();
-      chartTrend = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels.length ? labels : ['วันนี้'],
-          datasets: [{ label: 'Net Worth (THB)', data: data.length ? data : [appData.summary.grandTotalTHB], borderColor: '#58a6ff', backgroundColor: 'rgba(88,166,255,0.1)', fill: true, tension: 0.3 }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { color: '#21262d' }, ticks: { color: '#8b949e' } },
-            y: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', callback: v => '฿'+formatNum(v,0) } }
-          }
-        }
-      });
-    }
-
-    // ─── ★ GROUP CHARTS (3 กลุ่ม) ───────────────────────────────────────────
-    function renderGroupCharts() {
-      if (!appData) return;
-      const positions = (appData.summary && appData.summary.positions) || [];
-
-      GROUP_DEFS.forEach(g => {
-        const filtered = positions.filter(p => String(p.group || '').includes(g.match));
-        const tickers  = filtered.map(p => p.ticker);
-        const mktData  = filtered.map(p => p.marketUSD  || 0);
-        const costData = filtered.map(p => p.costUSD     || 0);
-        const pnlPct   = filtered.map(p => p.diffPct     || 0);
-
-        // bar color per ticker: gain = group color, loss = rose
-        const barBgColors  = filtered.map(p => p.diffUSD >= 0 ? g.barColor : 'rgba(248,113,113,0.55)');
-        const barBdrColors = filtered.map(p => p.diffUSD >= 0 ? g.barBorder : '#f87171');
-
-        // summary badge
-        const totalMkt  = filtered.reduce((s,p) => s + (p.marketUSD||0), 0);
-        const totalCost = filtered.reduce((s,p) => s + (p.costUSD||0),   0);
-        const summEl = document.getElementById(g.summaryId);
-        if (summEl) {
-          const diff = totalMkt - totalCost;
-          summEl.innerText = `$${formatNum(totalMkt,0)} / $${formatNum(totalCost,0)}`;
-          summEl.className = `text-xs font-bold font-num ${diff >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-        }
-
-        const canvas = document.getElementById(g.canvasId);
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-
-        // destroy old instance
-        if (g.key === 'Satellite' && chartGroupSatellite) { chartGroupSatellite.destroy(); chartGroupSatellite = null; }
-        if (g.key === 'Dividend'  && chartGroupDividend)  { chartGroupDividend.destroy();  chartGroupDividend  = null; }
-        if (g.key === 'Stable'    && chartGroupStable)    { chartGroupStable.destroy();    chartGroupStable    = null; }
-
-        const noData = tickers.length === 0;
-        const chart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: noData ? ['ไม่มีข้อมูล'] : tickers,
-            datasets: noData ? [{ data: [0], backgroundColor: 'rgba(100,100,100,0.3)' }] : [
-              {
-                label: 'Market Value ($)',
-                data: mktData,
-                backgroundColor: barBgColors,
-                borderColor: barBdrColors,
-                borderWidth: 1.5,
-                borderRadius: 5,
-                yAxisID: 'y'
-              },
-              {
-                label: 'Cost Basis ($)',
-                data: costData,
-                type: 'line',
-                borderColor: '#475569',
-                borderDash: [4,3],
-                backgroundColor: 'transparent',
-                pointRadius: 4,
-                pointBackgroundColor: '#94a3b8',
-                tension: 0,
-                yAxisID: 'y'
-              },
-              {
-                label: 'P/L (%)',
-                data: pnlPct,
-                type: 'line',
-                borderColor: '#f59e0b',
-                backgroundColor: 'rgba(245,158,11,0.08)',
-                pointRadius: 5,
-                pointBackgroundColor: filtered.map(p => p.diffPct >= 0 ? '#34d399' : '#f87171'),
-                pointBorderColor:     filtered.map(p => p.diffPct >= 0 ? '#34d399' : '#f87171'),
-                pointBorderWidth: 2,
-                fill: false,
-                tension: 0.1,
-                yAxisID: 'yPct'
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                callbacks: {
-                  label: ctx => {
-                    if (ctx.dataset.label === 'P/L (%)') return `P/L: ${ctx.parsed.y >= 0 ? '+' : ''}${formatNum(ctx.parsed.y,2)}%`;
-                    return `${ctx.dataset.label}: $${formatNum(ctx.parsed.y,2)}`;
-                  }
-                }
-              }
-            },
-            scales: {
-              x: {
-                grid: { color: '#21262d' },
-                ticks: { color: '#e2e8f0', font: { family: 'JetBrains Mono', size: 11, weight: 'bold' } }
-              },
-              y: {
-                position: 'left',
-                grid: { color: '#21262d' },
-                ticks: { color: '#8b949e', font: { size: 9 }, callback: v => '$'+formatNum(v,0) }
-              },
-              yPct: {
-                position: 'right',
-                grid: { drawOnChartArea: false },
-                ticks: {
-                  color: '#f59e0b',
-                  font: { size: 9 },
-                  callback: v => (v >= 0 ? '+' : '') + formatNum(v,2) + '%'
-                }
-              }
-            }
-          }
-        });
-
-        if (g.key === 'Satellite') chartGroupSatellite = chart;
-        if (g.key === 'Dividend')  chartGroupDividend  = chart;
-        if (g.key === 'Stable')    chartGroupStable    = chart;
-      });
-    }
-
-    // ─── RENDER TRADES VIEW ──────────────────────────────────────────────────
-    function renderTradesView() {
-      if (!appData) return;
-      const sum       = appData.summary || {};
-      const positions = sum.positions  || [];
-      const watchlist = sum.watchlist  || [];
-
-      document.getElementById('tradesTotalCostUSD').innerText   = formatNum(sum.usCostUSD, 2);
-      document.getElementById('tradesTotalMarketUSD').innerText = formatNum(sum.usInvestUSD, 2);
-      document.getElementById('watchlistCount').innerText       = watchlist.length;
-
-      const pnlEl = document.getElementById('tradesTotalPnlUSD');
-      const pnlU  = sum.usPnlUSD || 0;
-      pnlEl.innerText = (pnlU >= 0 ? '+' : '') + `$${formatNum(pnlU,2)} (${formatNum(sum.usPnlPct||0,2)}%)`;
-      pnlEl.className = `text-lg font-bold font-num mt-1 ${pnlU >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-
-      renderGroupCharts(); // ★ render 3 group charts
-
-      const posBody = document.getElementById('positionsTableBody');
-      if (!positions.length) {
-        posBody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-gray-500 font-sans">ไม่มีหุ้นที่ถือครองในพอร์ต</td></tr>`;
+  // ── Navigation ─────────────────────────────────────────────────────────────
+  function switchView(v){
+    currentView=v;
+    ['dashboard','trades','forex','cashflow','readme'].forEach(n=>{
+      const ve=document.getElementById('view'+n.charAt(0).toUpperCase()+n.slice(1));
+      const te=document.getElementById('navTab'+n.charAt(0).toUpperCase()+n.slice(1));
+      if(!ve||!te) return;
+      if(n===v){
+        ve.classList.remove('hidden');
+        te.className=n==='readme'?"px-4 py-2 rounded-xl bg-amber-500 text-black font-bold transition":"px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold transition";
       } else {
-        let html = '';
-        positions.forEach(p => {
-          const isGain = p.diffUSD >= 0;
-          const alertBadge = (p.isBuyAlertActive || p.isSellAlertActive)
-            ? `<span class="ml-1.5 px-1.5 py-0.2 rounded text-[9px] bg-blue-500/20 text-blue-300 border border-blue-500/40 font-sans">🔔 Alert</span>` : '';
-          html += `
-            <tr ondblclick="openStockAlertModal('${p.ticker}','EXISTING')" class="hover:bg-[#1c2128] transition select-none">
-              <td class="py-3 px-4 font-bold text-white flex items-center">${p.ticker}${alertBadge}</td>
-              <td class="py-3 px-3 text-right text-gray-200">${formatNum(p.shares,4)}</td>
-              <td class="py-3 px-3 text-right text-gray-400">$${formatNum(p.avgCost,2)}</td>
-              <td class="py-3 px-3 text-right font-semibold text-white">$${formatNum(p.currentPrice,2)}</td>
-              <td class="py-3 px-3 text-right font-bold text-blue-300">$${formatNum(p.costUSD,2)}</td>
-              <td class="py-3 px-3 text-right font-bold text-white">$${formatNum(p.marketUSD,2)}</td>
-              <td class="py-3 px-3 text-right font-semibold ${isGain?'text-emerald-400':'text-rose-400'}">${isGain?'+':''}$${formatNum(p.diffUSD,2)}</td>
-              <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${isGain?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'}">${isGain?'+':''}${formatNum(p.diffPct,2)}%</span></td>
-            </tr>`;
-        });
-        posBody.innerHTML = html;
-      }
-      renderTradeHistoryTable();
-    }
-
-    function renderTradeHistoryTable() {
-      if (!appData) return;
-      const tBody = document.getElementById('tradesHistoryTableBody');
-      const q = (document.getElementById('filterTradeTicker').value || '').toUpperCase().trim();
-      let list = (appData.trades || []).slice().reverse();
-      if (q) list = list.filter(t => (t.ticker||'').toUpperCase().includes(q));
-      if (!list.length) { tBody.innerHTML = `<tr><td colspan="9" class="py-6 text-center text-gray-500 font-sans">ไม่พบรายการประวัติการเทรด</td></tr>`; return; }
-      let html = '';
-      list.forEach(t => {
-        html += `<tr class="hover:bg-[#1c2128]"><td class="py-3 px-4 text-gray-300">${t.date}</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] border border-blue-500/30 text-blue-300 font-sans">${t.side}</span></td><td class="py-3 px-3 font-bold text-white">${t.ticker}</td><td class="py-3 px-3 text-right text-gray-200">${formatNum(t.shares,4)}</td><td class="py-3 px-3 text-right text-gray-300">$${formatNum(t.price,2)}</td><td class="py-3 px-3 text-right text-gray-400">$${formatNum(t.totalFee,2)}</td><td class="py-3 px-3 text-right text-gray-300 font-semibold">${formatNum(t.fxRate,2)}</td><td class="py-3 px-3 text-right font-semibold text-white">$${formatNum(t.netUSD,2)}</td><td class="py-3 px-4 text-center"><button onclick="deleteTradeItem('${t.id}')" class="text-rose-400 hover:text-white">ลบ</button></td></tr>`;
-      });
-      tBody.innerHTML = html;
-    }
-
-    // ─── ALERT MODAL ─────────────────────────────────────────────────────────
-    function openStockAlertModal(ticker, type = 'EXISTING') {
-      if (!appData) return;
-      closeModal('modalWatchlist');
-      const t   = String(ticker).toUpperCase().trim();
-      const sum = appData.summary || {};
-      const pos = (sum.positions||[]).find(p=>p.ticker===t);
-      const wt  = (sum.watchlist||[]).find(w=>w.ticker===t);
-      const mkt = (appData.market||[]).find(m=>m.ticker===t);
-      const alt = (appData.alerts||[]).find(a=>a.ticker===t) || {};
-      let curP   = (pos&&pos.currentPrice)||(wt&&wt.currentPrice)||(mkt&&Number(mkt.price))||100;
-      let low52  = (pos&&pos.low52)||(wt&&wt.low52)||(curP*0.7);
-      let high52 = (pos&&pos.high52)||(wt&&wt.high52)||(curP*1.3);
-      activeModalStock = { ticker: t, type, currentPrice: curP };
-      document.getElementById('altModalTicker').innerText       = t;
-      document.getElementById('altModalTypeTag').innerText      = type==='EXISTING' ? 'EXISTING (ในพอร์ต)' : 'WATCHLIST (สนใจ)';
-      document.getElementById('altModalCurrentPrice').innerText = formatNum(curP,2);
-      document.getElementById('altModalLow52').innerText        = formatNum(low52,2);
-      document.getElementById('altModalHigh52').innerText       = formatNum(high52,2);
-      const rangeSpan = high52 - low52;
-      let rangePct = rangeSpan > 0 ? Math.round(((curP-low52)/rangeSpan)*100) : 50;
-      rangePct = Math.max(0,Math.min(100,rangePct));
-      document.getElementById('altModalRangePct').innerText           = rangePct + '% (52W Position)';
-      document.getElementById('altModalProgressBar').style.width      = rangePct + '%';
-      const holdBox = document.getElementById('altModalHoldingBox');
-      if (pos && type === 'EXISTING') {
-        holdBox.classList.remove('hidden');
-        document.getElementById('altModalSharesCost').innerText = `${formatNum(pos.shares,4)} หุ้น (ทุน $${formatNum(pos.avgCost,2)})`;
-        const pEl = document.getElementById('altModalPnl');
-        pEl.innerText = (pos.diffUSD>=0?'+':'')+`$${formatNum(pos.diffUSD,2)} (${formatNum(pos.diffPct,2)}%)`;
-        pEl.className = `text-xs font-bold ${pos.diffUSD>=0?'text-emerald-400':'text-rose-400'}`;
-      } else { holdBox.classList.add('hidden'); }
-      document.getElementById('altTargetBuy').value    = alt.targetBuyPrice  || '';
-      document.getElementById('altTargetSell').value   = alt.targetSellPrice || '';
-      document.getElementById('altBuyActive').checked  = (alt.isBuyAlertActive  === true || alt.isBuyAlertActive  === 'TRUE');
-      document.getElementById('altSellActive').checked = (alt.isSellAlertActive === true || alt.isSellAlertActive === 'TRUE');
-      document.getElementById('altNote').value         = alt.note || '';
-      openModal('modalAlert');
-    }
-
-    function submitSaveAlert() {
-      if (!activeModalStock) return;
-      const btn = document.getElementById('btnSaveAlert');
-      btn.innerText = 'กำลังบันทึก...'; btn.disabled = true;
-      apiCall('saveAlert', {
-        ticker: activeModalStock.ticker, type: activeModalStock.type,
-        targetBuyPrice:  Number(document.getElementById('altTargetBuy').value)  || 0,
-        targetSellPrice: Number(document.getElementById('altTargetSell').value) || 0,
-        isBuyAlertActive:  document.getElementById('altBuyActive').checked,
-        isSellAlertActive: document.getElementById('altSellActive').checked,
-        note: document.getElementById('altNote').value.trim()
-      }, (res) => {
-        btn.innerText = 'บันทึกเป้าหมาย'; btn.disabled = false;
-        if (res.ok) { closeModal('modalAlert'); loadDashboardData(()=>{ renderWatchlistTable(); }); }
-        else alert('ผิดพลาด: ' + res.error);
-      });
-    }
-
-    function testTelegramCurrentTicker() {
-      if (!activeModalStock) return;
-      const btn = document.getElementById('btnTestTg');
-      btn.innerText = 'กำลังส่ง...'; btn.disabled = true;
-      apiCall('testTelegram', { ticker: activeModalStock.ticker }, (res) => {
-        btn.innerText = '📲 ทดสอบส่ง Telegram'; btn.disabled = false;
-        if (res.ok) { alert('ส่งแจ้งเตือน Telegram สำเร็จ!'); loadDashboardData(); }
-        else alert('ส่งไม่สำเร็จ: ' + res.error);
-      });
-    }
-
-    // ─── WATCHLIST ───────────────────────────────────────────────────────────
-    function openWatchlistModal() { renderWatchlistTable(); openModal('modalWatchlist'); }
-    function renderWatchlistTable() {
-      if (!appData) return;
-      const wList = (appData.summary&&appData.summary.watchlist) || [];
-      const tBody = document.getElementById('watchlistTableBody');
-      if (!wList.length) { tBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-gray-500 font-sans">ยังไม่มีหุ้นใน Watchlist</td></tr>`; return; }
-      let html = '';
-      wList.forEach(w => {
-        const buyBadge  = w.targetBuyPrice  > 0 ? `<span class="text-emerald-400 font-bold">$${formatNum(w.targetBuyPrice,2)}</span>`  : '<span class="text-gray-500">-</span>';
-        const sellBadge = w.targetSellPrice > 0 ? `<span class="text-rose-400 font-bold">$${formatNum(w.targetSellPrice,2)}</span>` : '<span class="text-gray-500">-</span>';
-        html += `<tr ondblclick="openStockAlertModal('${w.ticker}','WATCHLIST')" class="hover:bg-[#1c2128] transition select-none"><td class="py-2.5 px-3 font-bold text-white">${w.ticker}</td><td class="py-2.5 px-3 text-right font-semibold text-gray-200">$${formatNum(w.currentPrice,2)}</td><td class="py-2.5 px-3 text-center text-[10px] text-gray-400 font-sans">$${formatNum(w.low52,1)} - $${formatNum(w.high52,1)}</td><td class="py-2.5 px-3 text-right">${buyBadge}</td><td class="py-2.5 px-3 text-right">${sellBadge}</td><td class="py-2.5 px-3 text-center"><button onclick="deleteAlertTicker('${w.id}',event)" class="text-rose-400 hover:text-white">ลบ</button></td></tr>`;
-      });
-      tBody.innerHTML = html;
-    }
-
-    function addNewWatchlistTicker() {
-      const input  = document.getElementById('newWatchlistTicker');
-      const btn    = document.getElementById('btnAddWatchlist');
-      const ticker = input.value.trim().toUpperCase();
-      if (!ticker) return alert('กรุณาระบุ Ticker');
-      btn.disabled = true; btn.innerText = 'กำลังเพิ่ม...';
-      apiCall('saveAlert', { ticker, type: 'WATCHLIST' }, (res) => {
-        btn.disabled = false; btn.innerText = '+ เพิ่มลง Watchlist';
-        if (res.ok) { input.value = ''; loadDashboardData(()=>{ renderWatchlistTable(); }); }
-        else alert('ผิดพลาด: ' + res.error);
-      });
-    }
-
-    function deleteAlertTicker(id, event) {
-      if (event) event.stopPropagation();
-      if (!confirm('ยืนยันลบหุ้นนี้ออกจาก Watchlist?')) return;
-      apiCall('deleteAlert', { id }, (res) => {
-        if (res.ok) refreshSummaryOnly(()=>{ renderWatchlistTable(); });
-        else alert('ผิดพลาด: ' + res.error);
-      });
-    }
-
-    // ─── FOREX TABLE ─────────────────────────────────────────────────────────
-    function renderForexMonitorTable() {
-      if (!appData) return;
-      const sum   = appData.summary || {};
-      const terms = sum.terminals || {};
-      document.getElementById('forexSummaryTotalBalanceUSD').innerText = formatNum(sum.forexBalanceUSD,2);
-      document.getElementById('forexSummaryTotalEquityUSD').innerText  = formatNum(sum.forexEquityUSD,2);
-      const pnlEl = document.getElementById('forexSummaryTotalPnlUSD');
-      const pnlU  = sum.forexPnlUSD || 0;
-      pnlEl.innerText = (pnlU>=0?'+':'')+`$${formatNum(pnlU,2)} (${formatNum(sum.forexPnlPct||0,2)}%)`;
-      pnlEl.className = `text-lg font-bold font-num mt-1 ${pnlU>=0?'text-emerald-400':'text-rose-400'}`;
-      const tBody = document.getElementById('forexTableBody');
-      let html = '';
-      ['Terminal-01','Terminal-02','Terminal-03','Terminal-04'].forEach(tKey => {
-        const t = terms[tKey] || { terminalTitle:tKey, terminalDetail:tKey, balanceUSD:0, equityUSD:0, pnlUSD:0, growth:0, sinc:'2026-08-01' };
-        const isGain = t.pnlUSD >= 0;
-        html += `<tr class="hover:bg-[#1c2128]"><td class="py-3 px-4 font-bold text-indigo-400">${t.terminalTitle||tKey}</td><td class="py-3 px-3 text-gray-300 font-sans">${t.terminalDetail||'-'}</td><td class="py-3 px-3 text-right text-gray-300">$${formatNum(t.balanceUSD,2)}</td><td class="py-3 px-3 text-right font-bold text-white">$${formatNum(t.equityUSD,2)}</td><td class="py-3 px-3 text-right font-semibold ${isGain?'text-emerald-400':'text-rose-400'}">${isGain?'+':''}$${formatNum(t.pnlUSD,2)}</td><td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${isGain?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'}">${isGain?'+':''}${formatNum(t.growth,2)}%</span></td><td class="py-3 px-4 text-center text-gray-400">${t.sinc||'-'}</td></tr>`;
-      });
-      tBody.innerHTML = html;
-    }
-
-    // ─── CASHFLOW TABLE ───────────────────────────────────────────────────────
-    function renderCashflowTable() {
-      if (!appData) return;
-      const cBody = document.getElementById('cashHistoryTableBody');
-      let list = (appData.cashflow || []).slice().reverse();
-      if (!list.length) { cBody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-gray-500 font-sans">ไม่พบรายการกระแสเงินสด</td></tr>`; return; }
-      let html = '';
-      list.forEach(c => {
-        const isIn = String(c.type).toLowerCase() === 'in';
-        html += `<tr class="hover:bg-[#1c2128]"><td class="py-3 px-4 text-gray-300">${c.date}</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] ${isIn?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'} font-sans">${isIn?'รับเข้า':'จ่ายออก'}</span></td><td class="py-3 px-3 text-gray-300">${c.category||'-'}</td><td class="py-3 px-3 text-gray-400">${c.account||'-'}</td><td class="py-3 px-3 text-right font-bold ${isIn?'text-emerald-400':'text-rose-400'}">${isIn?'+':'-'}${formatNum(c.amountTHB,2)} ฿</td><td class="py-3 px-4 text-gray-400 font-sans">${c.note||'-'}</td><td class="py-3 px-4 text-center"><button onclick="deleteCashflowItem('${c.id}')" class="text-rose-400 hover:text-white">ลบ</button></td></tr>`;
-      });
-      cBody.innerHTML = html;
-    }
-
-    // ─── FORMS ───────────────────────────────────────────────────────────────
-    function setSide(side) {
-      selectedSide = side;
-      ['BUY','W-BUY','SELL','W-SELL'].forEach(s => {
-        const btn = document.getElementById('btnSide'+s.replace('-',''));
-        if (s === side) btn.className = s.includes('BUY') ? "py-2.5 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold transition" : "py-2.5 rounded-xl border border-rose-500 bg-rose-500/20 text-rose-300 font-bold transition";
-        else btn.className = "py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition";
-      });
-    }
-
-    function setCashType(type) {
-      selectedCashType = type;
-      const btnOut = document.getElementById('btnCashOut');
-      const btnIn  = document.getElementById('btnCashIn');
-      if (type === 'out') {
-        btnOut.className = "py-2.5 rounded-xl border border-rose-500 bg-rose-500/20 text-rose-300 font-bold transition";
-        btnIn.className  = "py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition";
-      } else {
-        btnIn.className  = "py-2.5 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold transition";
-        btnOut.className = "py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition";
-      }
-      updateCashCategoryDropdown(type);
-    }
-
-    function updateCashCategoryDropdown(type) {
-      const sel = document.getElementById('cashCategory');
-      if (!sel) return;
-      const inOpts  = ['โอนเข้าลงทุน','เงินเดือน / รายได้','ถอนกำไรจากพอร์ต','เงินปันผล / ดอกเบี้ย','เงินคืน / รายรับอื่นๆ'];
-      const outOpts = ['โอนออก','ค่าใช้จ่ายทั่วไป','ออมเงิน','ถอนเงินสด','ค่าธรรมเนียม / อื่นๆ'];
-      sel.innerHTML = (type==='in' ? inOpts : outOpts).map(c=>`<option value="${c}">${c}</option>`).join('');
-    }
-
-    function openTradeModal() {
-      ['tradeTicker','tradeShares','tradePrice','tradeNote'].forEach(id=>document.getElementById(id).value='');
-      document.getElementById('tradeDate').value = new Date().toISOString().slice(0,10);
-      setSide('BUY'); openModal('modalTrade');
-    }
-
-    function openCashflowModal() {
-      ['cashAmount','cashNote'].forEach(id=>document.getElementById(id).value='');
-      document.getElementById('cashDate').value = new Date().toISOString().slice(0,10);
-      setCashType('out'); openModal('modalCashflow');
-    }
-
-    function submitTradeForm() {
-      const ticker = document.getElementById('tradeTicker').value.trim();
-      const shares = Number(document.getElementById('tradeShares').value);
-      const price  = Number(document.getElementById('tradePrice').value);
-      if (!ticker) return alert('กรุณาระบุ Ticker');
-      if (shares<=0||price<=0) return alert('กรุณากรอกจำนวนและราคาให้ถูกต้อง');
-      const btn = document.getElementById('btnSaveTrade');
-      btn.innerText = 'กำลังบันทึก...'; btn.disabled = true;
-      apiCall('addTrade', { side: selectedSide, ticker, shares, price, date: document.getElementById('tradeDate').value, group: document.getElementById('tradeGroup').value, note: document.getElementById('tradeNote').value.trim() }, (res) => {
-        btn.innerText = 'บันทึกข้อมูล'; btn.disabled = false;
-        if (res.ok) { closeModal('modalTrade'); loadDashboardData(); }
-        else alert('ผิดพลาด: ' + res.error);
-      });
-    }
-
-    function submitCashflowForm() {
-      const amount = Number(document.getElementById('cashAmount').value);
-      if (amount<=0) return alert('กรุณากรอกจำนวนเงินให้ถูกต้อง');
-      const btn = document.getElementById('btnSaveCash');
-      btn.innerText = 'กำลังบันทึก...'; btn.disabled = true;
-      apiCall('addCashflow', { type: selectedCashType, category: document.getElementById('cashCategory').value, account: document.getElementById('cashAccount').value, amountTHB: amount, date: document.getElementById('cashDate').value, note: document.getElementById('cashNote').value.trim() }, (res) => {
-        btn.innerText = 'บันทึกเงินสด'; btn.disabled = false;
-        if (res.ok) { closeModal('modalCashflow'); loadDashboardData(); }
-        else alert('ผิดพลาด: ' + res.error);
-      });
-    }
-
-    function deleteTradeItem(id) {
-      if (!confirm('ยืนยันลบรายการลงทุนนี้?')) return;
-      apiCall('deleteTrade', { id }, (res) => {
-        if (res.ok) loadDashboardData(); else alert('ผิดพลาด: ' + res.error);
-      });
-    }
-
-    function deleteCashflowItem(id) {
-      if (!confirm('ยืนยันลบรายการกระแสเงินสดนี้?')) return;
-      apiCall('deleteCashflow', { id }, (res) => {
-        if (res.ok) loadDashboardData(); else alert('ผิดพลาด: ' + res.error);
-      });
-    }
-
-    function populateDropdowns() {
-      if (!appData) return;
-      const grpSel = document.getElementById('tradeGroup');
-      if (grpSel) grpSel.innerHTML = (appData.groups||[]).map(g=>`<option value="${g.nameTh}">${g.nameTh}</option>`).join('');
-      const accSel = document.getElementById('cashAccount');
-      if (accSel) {
-        const cashAccs = (appData.accounts||[]).filter(a=>a.currency==='THB'&&a.id!=='A4'&&a.id!=='A5');
-        accSel.innerHTML = cashAccs.map(a=>`<option value="${a.name}">${a.name} (${a.currency})</option>`).join('');
-      }
-      updateCashCategoryDropdown(selectedCashType);
-    }
-
-    function populateAccountSelect() {
-      const sel = document.getElementById('accSelect');
-      const g1  = (appData.accounts||[]).filter(a=>a.id==='A1'||a.id==='A2'||a.id==='A3'||(a.currency==='THB'&&a.id!=='A4'&&a.id!=='A5'));
-      sel.innerHTML = g1.map(a=>`<option value="${a.id}">${a.name} (${a.currency})</option>`).join('');
-      onAccountSelectChange();
-    }
-
-    function onAccountSelectChange() {
-      const id  = document.getElementById('accSelect').value;
-      const acc = (appData.accounts||[]).find(a=>a.id===id);
-      if (acc) document.getElementById('accBalance').value = acc.openingBalance || 0;
-    }
-
-    function submitUpdateAccount() {
-      const id  = document.getElementById('accSelect').value;
-      const bal = Number(document.getElementById('accBalance').value);
-      apiCall('updateAccount', { id, openingBalance: bal }, (res) => {
-        if (res.ok) { closeModal('modalAccount'); refreshSummaryOnly(); }
-        else alert('ผิดพลาด: ' + res.error);
-      });
-    }
-
-    function triggerManualSnapshot() {
-      if (!confirm('บันทึก Snapshot วันนี้ทันที?')) return;
-      apiCall('saveSnapshot', {}, (res) => {
-        if (res.ok) { alert('บันทึก Snapshot สำเร็จ'); loadDashboardData(); }
-      });
-    }
-
-    function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-    function formatNum(n, dec = 2) {
-      return (Number(n)||0).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
-    }
-
-    function exportToPDF(elementId, fileName) {
-      html2pdf().set({ margin:[10,10,10,10], filename:`${fileName}_${new Date().toISOString().slice(0,10)}.pdf`, image:{type:'jpeg',quality:0.98}, html2canvas:{scale:2,useCORS:true,backgroundColor:'#0d1117'}, jsPDF:{unit:'mm',format:'a4',orientation:'landscape'} }).from(document.getElementById(elementId)).save();
-    }
-
-    function exportTradesCSV() {
-      if (!appData||!appData.trades) return;
-      const headers = ['id','date','side','ticker','shares','price','commission','vat','secFee','tafFee','totalFee','fxRate','netUSD','netTHB'];
-      let csv = headers.join(',') + '\n';
-      appData.trades.forEach(t=>{ csv += headers.map(h=>`"${String(t[h]||'').replace(/"/g,'""')}"`).join(',') + '\n'; });
-      downloadFile(csv, `TRADES_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv');
-    }
-
-    function exportForexCSV() {
-      if (!appData?.summary?.terminals) return;
-      const terms = appData.summary.terminals;
-      let csv = 'Terminal,Detail,BalanceUSD,EquityUSD,ProfitLossUSD,GrowthPct,Since\n';
-      Object.keys(terms).forEach(k=>{ const t=terms[k]; csv+=`"${t.terminalTitle}","${t.terminalDetail}","${t.balanceUSD}","${t.equityUSD}","${t.pnlUSD}","${t.growth}%","${t.sinc}"\n`; });
-      downloadFile(csv, `FOREX_MT5_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv');
-    }
-
-    function exportCashflowCSV() {
-      if (!appData?.cashflow) return;
-      const headers = ['id','date','type','category','account','amountTHB','note'];
-      let csv = headers.join(',') + '\n';
-      appData.cashflow.forEach(c=>{ csv += headers.map(h=>`"${String(c[h]||'').replace(/"/g,'""')}"`).join(',') + '\n'; });
-      downloadFile(csv, `CASHFLOW_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv');
-    }
-
-    function downloadFile(content, fileName, mimeType) {
-      const blob = new Blob(["\uFEFF"+content], { type: mimeType });
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href = url; a.download = fileName;
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a); URL.revokeObjectURL(url);
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      if (currentToken) {
-        document.getElementById('pinOverlay').classList.add('hidden');
-        loadDashboardData();
-      } else {
-        document.getElementById('pinOverlay').classList.remove('hidden');
+        ve.classList.add('hidden');
+        te.className=n==='readme'?"px-4 py-2 rounded-xl bg-[#161b22] text-amber-400 hover:text-white border border-[#30363d] transition font-bold":"px-4 py-2 rounded-xl bg-[#161b22] text-gray-400 hover:text-white border border-[#30363d] transition font-semibold";
       }
     });
-  </script>
+    if(v==='trades')   renderTradesView();
+    if(v==='forex')    renderForexMonitorTable();
+    if(v==='cashflow') renderCashflowTable();
+  }
+
+  // ── PIN ─────────────────────────────────────────────────────────────────────
+  function pressPin(n){if(enteredPin.length<6){enteredPin+=n;updatePinDots();if(enteredPin.length===6)submitPin();}}
+  function deletePin(){if(enteredPin.length>0){enteredPin=enteredPin.slice(0,-1);updatePinDots();}}
+  function clearPin(){enteredPin='';updatePinDots();document.getElementById('pinError').innerText='';}
+  function updatePinDots(){document.querySelectorAll('.pin-dot').forEach((d,i)=>{if(i<enteredPin.length)d.classList.add('bg-blue-500','border-blue-500','scale-110');else d.classList.remove('bg-blue-500','border-blue-500','scale-110');});}
+  function submitPin(){
+    const eb=document.getElementById('pinError');eb.innerText='กำลังตรวจสอบ...';
+    apiCall('login',{pin:enteredPin},(res)=>{
+      if(res.ok&&res.data&&res.data.token){currentToken=res.data.token;localStorage.setItem('portfolio_token',currentToken);eb.innerText='';document.getElementById('pinOverlay').classList.add('hidden');loadDashboardData();}
+      else{eb.innerText=res.error||'รหัสผ่านไม่ถูกต้อง';enteredPin='';updatePinDots();}
+    });
+  }
+  function logout(){currentToken='';localStorage.removeItem('portfolio_token');location.reload();}
+
+  // ── Data ───────────────────────────────────────────────────────────────────
+  function loadDashboardData(onSuccess){
+    const banner=document.getElementById('loadingBanner');
+    banner.classList.remove('hidden');
+    apiCall('bootstrap',{},(res)=>{
+      banner.classList.add('hidden');
+      if(!res.ok){if(res.error&&res.error.includes('บัตรผ่าน'))logout();else alert('เกิดข้อผิดพลาด: '+res.error);return;}
+      appData=res.data;
+      renderDashboard();populateAccountSelect();populateDropdowns();
+      if(currentView==='trades')   renderTradesView();
+      if(currentView==='forex')    renderForexMonitorTable();
+      if(currentView==='cashflow') renderCashflowTable();
+      if(typeof onSuccess==='function') onSuccess();
+    });
+  }
+
+  // ── Dashboard Render ───────────────────────────────────────────────────────
+  function renderDashboard(){
+    if(!appData) return;
+    const sum=appData.summary||{};const fx=sum.fxRate||33.14;
+    document.getElementById('headerFxRate').innerText=fx.toFixed(2);
+    document.getElementById('valGrandTotalTHB').innerText=formatNum(sum.grandTotalTHB)+' ฿';
+    document.getElementById('valGrandTotalUSD').innerText=formatNum(sum.grandTotalUSD);
+    document.getElementById('valGroup1Total').innerText=formatNum(sum.totalGroup1THB)+' ฿';
+    document.getElementById('valItem1Cash').innerText=formatNum(sum.cashTHB)+' ฿';
+    document.getElementById('valItem2Bank').innerText=formatNum(sum.bankTHB)+' ฿';
+    document.getElementById('valItem3Emergency').innerText=formatNum(sum.emergencyTHB)+' ฿';
+    document.getElementById('valItem4CostTHB').innerText=formatNum(sum.usTotalNetTHBCost)+' ฿';
+    document.getElementById('valItem4CostUSD').innerText=formatNum(sum.usCostUSD);
+    document.getElementById('valItem4MarketTHB').innerText=formatNum(sum.usInvestTHB)+' ฿';
+    document.getElementById('valItem4MarketUSD').innerText=formatNum(sum.usInvestUSD);
+    const up4=document.getElementById('valItem4PnlTHB');
+    up4.innerText=(sum.usPnlTHB>=0?'+':'')+formatNum(sum.usPnlTHB)+' ฿';
+    up4.className=`text-xl font-bold font-num ${sum.usPnlTHB>=0?'text-emerald-400':'text-rose-400'}`;
+    document.getElementById('valItem4PnlUSD').innerText=(sum.usPnlUSD>=0?'+':'')+formatNum(sum.usPnlUSD);
+    const b4=document.getElementById('badgeItem4PnlPct');
+    b4.innerText=(sum.usPnlPct>=0?'+':'')+formatNum(sum.usPnlPct,2)+'%';
+    b4.className=`text-[10px] font-bold px-1.5 py-0.5 rounded font-num ${sum.usPnlPct>=0?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'}`;
+    document.getElementById('valItem5BalanceTHB').innerText=formatNum(sum.forexBalanceTHB)+' ฿';
+    document.getElementById('valItem5BalanceUSD').innerText=formatNum(sum.forexBalanceUSD);
+    document.getElementById('valItem5EquityTHB').innerText=formatNum(sum.forexEquityTHB)+' ฿';
+    document.getElementById('valItem5EquityUSD').innerText=formatNum(sum.forexEquityUSD);
+    const up5=document.getElementById('valItem5PnlTHB');
+    up5.innerText=(sum.forexPnlTHB>=0?'+':'')+formatNum(sum.forexPnlTHB)+' ฿';
+    up5.className=`text-xl font-bold font-num ${sum.forexPnlTHB>=0?'text-emerald-400':'text-rose-400'}`;
+    document.getElementById('valItem5PnlUSD').innerText=(sum.forexPnlUSD>=0?'+':'')+formatNum(sum.forexPnlUSD);
+    const b5=document.getElementById('badgeItem5PnlPct');
+    b5.innerText=(sum.forexPnlPct>=0?'+':'')+formatNum(sum.forexPnlPct,2)+'%';
+    b5.className=`text-[10px] font-bold px-1.5 py-0.5 rounded font-num ${sum.forexPnlPct>=0?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'}`;
+    const terms=sum.terminals||{};
+    ['Terminal-01','Terminal-02','Terminal-03','Terminal-04'].forEach((n,i)=>{
+      const t=terms[n]||{terminalTitle:n,equityUSD:0,pnlUSD:0};const idx=i+1;
+      document.getElementById(`labelT${idx}Title`).innerText=t.terminalTitle||n;
+      document.getElementById(`valT${idx}Equity`).innerText='$'+formatNum(t.equityUSD);
+      const pe=document.getElementById(`valT${idx}Pnl`);
+      pe.innerText=(t.pnlUSD>=0?'+':'')+'$'+formatNum(t.pnlUSD);
+      pe.className=`text-[10px] mt-0.5 ${t.pnlUSD>=0?'text-emerald-400':'text-rose-400'}`;
+    });
+    renderForexGrowthChart();renderUSStockTrendChart();renderNetWorthTrendChart();
+  }
+
+  function renderForexGrowthChart(){
+    const ctx=document.getElementById('chartForexGrowth').getContext('2d');
+    const terms=(appData.summary&&appData.summary.terminals)||{};
+    const t1=terms['Terminal-01']?terms['Terminal-01'].equityUSD:450;
+    const t2=terms['Terminal-02']?terms['Terminal-02'].equityUSD:700;
+    const t3=terms['Terminal-03']?terms['Terminal-03'].equityUSD:1160;
+    const t4=terms['Terminal-04']?terms['Terminal-04'].equityUSD:747;
+    if(chartForex)chartForex.destroy();
+    chartForex=new Chart(ctx,{type:'line',data:{labels:['เริ่มพอร์ต (2026-08-01)','ปัจจุบัน'],datasets:[{label:'Terminal A',data:[380,t1],borderColor:'#3b82f6',tension:0.2},{label:'Terminal B',data:[580,t2],borderColor:'#a855f7',tension:0.2},{label:'Terminal C',data:[1050,t3],borderColor:'#f59e0b',tension:0.2},{label:'Terminal D',data:[690,t4],borderColor:'#10b981',tension:0.2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8b949e',font:{size:10}}}},scales:{x:{grid:{color:'#21262d'},ticks:{color:'#8b949e'}},y:{grid:{color:'#21262d'},ticks:{color:'#8b949e',callback:v=>'$'+v}}}}});
+  }
+
+  function renderUSStockTrendChart(){
+    const ctx=document.getElementById('chartUSStockTrend').getContext('2d');
+    const snaps=appData.snapshot||[];
+    const valid=snaps.filter(s=>Number(s.marketTHB)>0||Number(s.costUSD)>0);
+    const sum=appData.summary||{};
+    const labels=valid.length?valid.map(s=>s.date):['ปัจจุบัน'];
+    const mkt=valid.length?valid.map(s=>Number(s.marketUSD)||0):[Number(sum.usInvestUSD)||0];
+    const cost=valid.length?valid.map(s=>Number(s.costUSD)||0):[Number(sum.usCostUSD)||0];
+    const pnl=valid.length?valid.map(s=>Number(s.pnlUSD)||0):[Number(sum.usPnlUSD)||0];
+    if(chartUSStock)chartUSStock.destroy();
+    chartUSStock=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Market Value (USD)',data:mkt,borderColor:'#58a6ff',backgroundColor:'rgba(88,166,255,0.08)',fill:true,tension:0.3,pointRadius:3,yAxisID:'y'},{label:'Cost Basis (USD)',data:cost,borderColor:'#475569',borderDash:[5,4],fill:false,tension:0.3,pointRadius:2,yAxisID:'y'},{label:'P/L (USD)',data:pnl,borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.06)',fill:true,tension:0.3,pointRadius:2,yAxisID:'yPnl'}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#8b949e',font:{size:10},boxWidth:12}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: $${formatNum(c.parsed.y,2)}`}}},scales:{x:{grid:{color:'#21262d'},ticks:{color:'#8b949e',font:{size:10},maxRotation:30}},y:{position:'left',grid:{color:'#21262d'},ticks:{color:'#8b949e',font:{size:10},callback:v=>'$'+formatNum(v,0)}},yPnl:{position:'right',grid:{drawOnChartArea:false},ticks:{color:'#10b981',font:{size:10},callback:v=>(v>=0?'+':'')+formatNum(v,0)}}}}});
+  }
+
+  function renderNetWorthTrendChart(){
+    const ctx=document.getElementById('chartNetWorthTrend').getContext('2d');
+    const snaps=appData.snapshot||[];
+    const labels=snaps.map(s=>s.date);const data=snaps.map(s=>s.netWorthTHB);
+    if(chartTrend)chartTrend.destroy();
+    chartTrend=new Chart(ctx,{type:'line',data:{labels:labels.length?labels:['วันนี้'],datasets:[{label:'Net Worth (THB)',data:data.length?data:[appData.summary.grandTotalTHB],borderColor:'#58a6ff',backgroundColor:'rgba(88,166,255,0.1)',fill:true,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#21262d'},ticks:{color:'#8b949e'}},y:{grid:{color:'#21262d'},ticks:{color:'#8b949e',callback:v=>'฿'+formatNum(v,0)}}}}});
+  }
+
+  // ── Group Charts ───────────────────────────────────────────────────────────
+  function renderGroupCharts(){
+    if(!appData) return;
+    const positions=(appData.summary&&appData.summary.positions)||[];
+    GROUP_DEFS.forEach(g=>{
+      const filtered=positions.filter(p=>String(p.group||'').includes(g.match));
+      const tickers=filtered.map(p=>p.ticker);
+      const mktData=filtered.map(p=>p.marketUSD||0);
+      const costData=filtered.map(p=>p.costUSD||0);
+      const pnlPct=filtered.map(p=>p.diffPct||0);
+      const barBg=filtered.map(p=>p.diffUSD>=0?g.barColor:'rgba(248,113,113,0.55)');
+      const barBdr=filtered.map(p=>p.diffUSD>=0?g.barBorder:'#f87171');
+      const totalMkt=filtered.reduce((s,p)=>s+(p.marketUSD||0),0);
+      const totalCost=filtered.reduce((s,p)=>s+(p.costUSD||0),0);
+      const summEl=document.getElementById(g.summaryId);
+      if(summEl){const diff=totalMkt-totalCost;summEl.innerText=`$${formatNum(totalMkt,0)} / $${formatNum(totalCost,0)}`;summEl.className=`text-xs font-bold font-num ${diff>=0?'text-emerald-400':'text-rose-400'}`;}
+      const canvas=document.getElementById(g.canvasId);if(!canvas) return;
+      if(g.key==='Satellite'&&chartGroupSatellite){chartGroupSatellite.destroy();chartGroupSatellite=null;}
+      if(g.key==='Dividend'&&chartGroupDividend){chartGroupDividend.destroy();chartGroupDividend=null;}
+      if(g.key==='Stable'&&chartGroupStable){chartGroupStable.destroy();chartGroupStable=null;}
+      const noData=tickers.length===0;
+      const chart=new Chart(canvas.getContext('2d'),{type:'bar',data:{labels:noData?['ไม่มีข้อมูล']:tickers,datasets:noData?[{data:[0],backgroundColor:'rgba(100,100,100,0.3)'}]:[{label:'Market Value ($)',data:mktData,backgroundColor:barBg,borderColor:barBdr,borderWidth:1.5,borderRadius:5,yAxisID:'y'},{label:'Cost Basis ($)',data:costData,type:'line',borderColor:'#475569',borderDash:[4,3],backgroundColor:'transparent',pointRadius:4,pointBackgroundColor:'#94a3b8',tension:0,yAxisID:'y'},{label:'P/L (%)',data:pnlPct,type:'line',borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.08)',pointRadius:5,pointBackgroundColor:filtered.map(p=>p.diffPct>=0?'#34d399':'#f87171'),pointBorderColor:filtered.map(p=>p.diffPct>=0?'#34d399':'#f87171'),pointBorderWidth:2,fill:false,tension:0.1,yAxisID:'yPct'}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{if(c.dataset.label==='P/L (%)')return `P/L: ${c.parsed.y>=0?'+':''}${formatNum(c.parsed.y,2)}%`;return `${c.dataset.label}: $${formatNum(c.parsed.y,2)}`;}}}},scales:{x:{grid:{color:'#21262d'},ticks:{color:'#e2e8f0',font:{size:11,weight:'bold'}}},y:{position:'left',grid:{color:'#21262d'},ticks:{color:'#8b949e',font:{size:9},callback:v=>'$'+formatNum(v,0)}},yPct:{position:'right',grid:{drawOnChartArea:false},ticks:{color:'#f59e0b',font:{size:9},callback:v=>(v>=0?'+':'')+formatNum(v,2)+'%'}}}}});
+      if(g.key==='Satellite')chartGroupSatellite=chart;
+      if(g.key==='Dividend')chartGroupDividend=chart;
+      if(g.key==='Stable')chartGroupStable=chart;
+    });
+  }
+
+  // ── Trades View ────────────────────────────────────────────────────────────
+  function renderTradesView(){
+    if(!appData) return;
+    const sum=appData.summary||{};const positions=sum.positions||[];const watchlist=sum.watchlist||[];
+    document.getElementById('tradesTotalCostUSD').innerText=formatNum(sum.usCostUSD,2);
+    document.getElementById('tradesTotalMarketUSD').innerText=formatNum(sum.usInvestUSD,2);
+    document.getElementById('watchlistCount').innerText=watchlist.length;
+    const pe=document.getElementById('tradesTotalPnlUSD');const pu=sum.usPnlUSD||0;
+    pe.innerText=(pu>=0?'+':'')+`$${formatNum(pu,2)} (${formatNum(sum.usPnlPct||0,2)}%)`;
+    pe.className=`text-lg font-bold font-num mt-1 ${pu>=0?'text-emerald-400':'text-rose-400'}`;
+    renderGroupCharts();
+    const posBody=document.getElementById('positionsTableBody');
+    if(!positions.length){posBody.innerHTML=`<tr><td colspan="8" class="py-6 text-center text-gray-500 font-sans">ไม่มีหุ้นที่ถือครองในพอร์ต</td></tr>`;return;}
+    let html='';
+    positions.forEach(p=>{
+      const isGain=p.diffUSD>=0;
+      const badge=(p.isBuyAlertActive||p.isSellAlertActive)?`<span class="ml-1.5 px-1.5 rounded text-[9px] bg-blue-500/20 text-blue-300 border border-blue-500/40 font-sans">🔔</span>`:'';
+      html+=`<tr ondblclick="openStockAlertModal('${p.ticker}','EXISTING')" class="hover:bg-[#1c2128] transition select-none"><td class="py-3 px-4 font-bold text-white flex items-center">${p.ticker}${badge}</td><td class="py-3 px-3 text-right text-gray-200">${formatNum(p.shares,4)}</td><td class="py-3 px-3 text-right text-gray-400">$${formatNum(p.avgCost,2)}</td><td class="py-3 px-3 text-right font-semibold text-white">$${formatNum(p.currentPrice,2)}</td><td class="py-3 px-3 text-right font-bold text-blue-300">$${formatNum(p.costUSD,2)}</td><td class="py-3 px-3 text-right font-bold text-white">$${formatNum(p.marketUSD,2)}</td><td class="py-3 px-3 text-right font-semibold ${isGain?'text-emerald-400':'text-rose-400'}">${isGain?'+':''}$${formatNum(p.diffUSD,2)}</td><td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${isGain?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'}">${isGain?'+':''}${formatNum(p.diffPct,2)}%</span></td></tr>`;
+    });
+    posBody.innerHTML=html;
+    renderTradeHistoryTable();
+  }
+
+  function renderTradeHistoryTable(){
+    if(!appData) return;
+    const tBody=document.getElementById('tradesHistoryTableBody');
+    const q=(document.getElementById('filterTradeTicker').value||'').toUpperCase().trim();
+    let list=(appData.trades||[]).slice().reverse();
+    if(q)list=list.filter(t=>(t.ticker||'').toUpperCase().includes(q));
+    if(!list.length){tBody.innerHTML=`<tr><td colspan="9" class="py-6 text-center text-gray-500 font-sans">ไม่พบรายการ</td></tr>`;return;}
+    let html='';
+    list.forEach(t=>{html+=`<tr class="hover:bg-[#1c2128]"><td class="py-3 px-4 text-gray-300">${t.date}</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] border border-blue-500/30 text-blue-300 font-sans">${t.side}</span></td><td class="py-3 px-3 font-bold text-white">${t.ticker}</td><td class="py-3 px-3 text-right text-gray-200">${formatNum(t.shares,4)}</td><td class="py-3 px-3 text-right text-gray-300">$${formatNum(t.price,2)}</td><td class="py-3 px-3 text-right text-gray-400">$${formatNum(t.totalFee,2)}</td><td class="py-3 px-3 text-right text-gray-300 font-semibold">${formatNum(t.fxRate,2)}</td><td class="py-3 px-3 text-right font-semibold text-white">$${formatNum(t.netUSD,2)}</td><td class="py-3 px-4 text-center"><button onclick="deleteTradeItem('${t.id}')" class="text-rose-400 hover:text-white">ลบ</button></td></tr>`;});
+    tBody.innerHTML=html;
+  }
+
+  // ── Alert Modal ────────────────────────────────────────────────────────────
+  function openStockAlertModal(ticker,type='EXISTING'){
+    if(!appData) return;closeModal('modalWatchlist');
+    const t=String(ticker).toUpperCase().trim();const sum=appData.summary||{};
+    const pos=(sum.positions||[]).find(p=>p.ticker===t);const wt=(sum.watchlist||[]).find(w=>w.ticker===t);
+    const mkt=(appData.market||[]).find(m=>m.ticker===t);const alt=(appData.alerts||[]).find(a=>a.ticker===t)||{};
+    let curP=(pos&&pos.currentPrice)||(wt&&wt.currentPrice)||(mkt&&Number(mkt.price))||100;
+    let low52=(pos&&pos.low52)||(wt&&wt.low52)||(curP*0.7);let high52=(pos&&pos.high52)||(wt&&wt.high52)||(curP*1.3);
+    activeModalStock={ticker:t,type,currentPrice:curP};
+    document.getElementById('altModalTicker').innerText=t;
+    document.getElementById('altModalTypeTag').innerText=type==='EXISTING'?'EXISTING (ในพอร์ต)':'WATCHLIST (สนใจ)';
+    document.getElementById('altModalCurrentPrice').innerText=formatNum(curP,2);
+    document.getElementById('altModalLow52').innerText=formatNum(low52,2);
+    document.getElementById('altModalHigh52').innerText=formatNum(high52,2);
+    const rs=high52-low52;let rp=rs>0?Math.round(((curP-low52)/rs)*100):50;rp=Math.max(0,Math.min(100,rp));
+    document.getElementById('altModalRangePct').innerText=rp+'% (52W Position)';
+    document.getElementById('altModalProgressBar').style.width=rp+'%';
+    const hb=document.getElementById('altModalHoldingBox');
+    if(pos&&type==='EXISTING'){hb.classList.remove('hidden');document.getElementById('altModalSharesCost').innerText=`${formatNum(pos.shares,4)} หุ้น (ทุน $${formatNum(pos.avgCost,2)})`;const pe=document.getElementById('altModalPnl');pe.innerText=(pos.diffUSD>=0?'+':'')+`$${formatNum(pos.diffUSD,2)} (${formatNum(pos.diffPct,2)}%)`;pe.className=`text-xs font-bold ${pos.diffUSD>=0?'text-emerald-400':'text-rose-400'}`;}
+    else hb.classList.add('hidden');
+    document.getElementById('altTargetBuy').value=alt.targetBuyPrice||'';document.getElementById('altTargetSell').value=alt.targetSellPrice||'';
+    document.getElementById('altBuyActive').checked=(alt.isBuyAlertActive===true||alt.isBuyAlertActive==='TRUE');
+    document.getElementById('altSellActive').checked=(alt.isSellAlertActive===true||alt.isSellAlertActive==='TRUE');
+    document.getElementById('altNote').value=alt.note||'';openModal('modalAlert');
+  }
+  function submitSaveAlert(){
+    if(!activeModalStock) return;const btn=document.getElementById('btnSaveAlert');btn.innerText='กำลังบันทึก...';btn.disabled=true;
+    apiCall('saveAlert',{ticker:activeModalStock.ticker,type:activeModalStock.type,targetBuyPrice:Number(document.getElementById('altTargetBuy').value)||0,targetSellPrice:Number(document.getElementById('altTargetSell').value)||0,isBuyAlertActive:document.getElementById('altBuyActive').checked,isSellAlertActive:document.getElementById('altSellActive').checked,note:document.getElementById('altNote').value.trim()},(res)=>{
+      btn.innerText='บันทึกเป้าหมาย';btn.disabled=false;
+      if(res.ok){closeModal('modalAlert');loadDashboardData(()=>{renderWatchlistTable();});}else alert('ผิดพลาด: '+res.error);
+    });
+  }
+  function testTelegramCurrentTicker(){
+    if(!activeModalStock) return;const btn=document.getElementById('btnTestTg');btn.innerText='กำลังส่ง...';btn.disabled=true;
+    apiCall('testTelegram',{ticker:activeModalStock.ticker},(res)=>{btn.innerText='📲 ทดสอบส่ง Telegram';btn.disabled=false;if(res.ok){alert('ส่ง Telegram สำเร็จ!');loadDashboardData();}else alert('ส่งไม่สำเร็จ: '+res.error);});
+  }
+
+  // ── Watchlist ──────────────────────────────────────────────────────────────
+  function openWatchlistModal(){renderWatchlistTable();openModal('modalWatchlist');}
+  function renderWatchlistTable(){
+    if(!appData) return;const wList=(appData.summary&&appData.summary.watchlist)||[];const tBody=document.getElementById('watchlistTableBody');
+    if(!wList.length){tBody.innerHTML=`<tr><td colspan="6" class="py-6 text-center text-gray-500 font-sans">ยังไม่มีหุ้นใน Watchlist</td></tr>`;return;}
+    let html='';
+    wList.forEach(w=>{const b1=w.targetBuyPrice>0?`<span class="text-emerald-400 font-bold">$${formatNum(w.targetBuyPrice,2)}</span>`:'<span class="text-gray-500">-</span>';const b2=w.targetSellPrice>0?`<span class="text-rose-400 font-bold">$${formatNum(w.targetSellPrice,2)}</span>`:'<span class="text-gray-500">-</span>';html+=`<tr ondblclick="openStockAlertModal('${w.ticker}','WATCHLIST')" class="hover:bg-[#1c2128] transition select-none"><td class="py-2.5 px-3 font-bold text-white">${w.ticker}</td><td class="py-2.5 px-3 text-right font-semibold text-gray-200">$${formatNum(w.currentPrice,2)}</td><td class="py-2.5 px-3 text-center text-[10px] text-gray-400 font-sans">$${formatNum(w.low52,1)} - $${formatNum(w.high52,1)}</td><td class="py-2.5 px-3 text-right">${b1}</td><td class="py-2.5 px-3 text-right">${b2}</td><td class="py-2.5 px-3 text-center"><button onclick="deleteAlertTicker('${w.id}',event)" class="text-rose-400 hover:text-white">ลบ</button></td></tr>`;});
+    tBody.innerHTML=html;
+  }
+  function addNewWatchlistTicker(){
+    const input=document.getElementById('newWatchlistTicker');const btn=document.getElementById('btnAddWatchlist');const ticker=input.value.trim().toUpperCase();if(!ticker) return alert('กรุณาระบุ Ticker');
+    btn.disabled=true;btn.innerText='กำลังเพิ่ม...';
+    apiCall('saveAlert',{ticker,type:'WATCHLIST'},(res)=>{btn.disabled=false;btn.innerText='+ เพิ่มลง Watchlist';if(res.ok){input.value='';loadDashboardData(()=>{renderWatchlistTable();});}else alert('ผิดพลาด: '+res.error);});
+  }
+  function deleteAlertTicker(id,event){
+    if(event)event.stopPropagation();if(!confirm('ยืนยันลบหุ้นนี้ออกจาก Watchlist?')) return;
+    apiCall('deleteAlert',{id},(res)=>{if(res.ok)refreshSummaryOnly(()=>{renderWatchlistTable();});else alert('ผิดพลาด: '+res.error);});
+  }
+
+  // ── Forex ──────────────────────────────────────────────────────────────────
+  function renderForexMonitorTable(){
+    if(!appData) return;const sum=appData.summary||{};const terms=sum.terminals||{};
+    document.getElementById('forexSummaryTotalBalanceUSD').innerText=formatNum(sum.forexBalanceUSD,2);
+    document.getElementById('forexSummaryTotalEquityUSD').innerText=formatNum(sum.forexEquityUSD,2);
+    const pe=document.getElementById('forexSummaryTotalPnlUSD');const pu=sum.forexPnlUSD||0;
+    pe.innerText=(pu>=0?'+':'')+`$${formatNum(pu,2)} (${formatNum(sum.forexPnlPct||0,2)}%)`;
+    pe.className=`text-lg font-bold font-num mt-1 ${pu>=0?'text-emerald-400':'text-rose-400'}`;
+    let html='';
+    ['Terminal-01','Terminal-02','Terminal-03','Terminal-04'].forEach(k=>{
+      const t=terms[k]||{terminalTitle:k,terminalDetail:k,balanceUSD:0,equityUSD:0,pnlUSD:0,growth:0,sinc:'2026-08-01'};const ig=t.pnlUSD>=0;
+      html+=`<tr class="hover:bg-[#1c2128]"><td class="py-3 px-4 font-bold text-indigo-400">${t.terminalTitle||k}</td><td class="py-3 px-3 text-gray-300 font-sans">${t.terminalDetail||'-'}</td><td class="py-3 px-3 text-right text-gray-300">$${formatNum(t.balanceUSD,2)}</td><td class="py-3 px-3 text-right font-bold text-white">$${formatNum(t.equityUSD,2)}</td><td class="py-3 px-3 text-right font-semibold ${ig?'text-emerald-400':'text-rose-400'}">${ig?'+':''}$${formatNum(t.pnlUSD,2)}</td><td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${ig?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'}">${ig?'+':''}${formatNum(t.growth,2)}%</span></td><td class="py-3 px-4 text-center text-gray-400">${t.sinc||'-'}</td></tr>`;
+    });
+    document.getElementById('forexTableBody').innerHTML=html;
+  }
+
+  // ── Cashflow ───────────────────────────────────────────────────────────────
+  function renderCashflowTable(){
+    if(!appData) return;const cBody=document.getElementById('cashHistoryTableBody');
+    let list=(appData.cashflow||[]).slice().reverse();
+    if(!list.length){cBody.innerHTML=`<tr><td colspan="7" class="py-6 text-center text-gray-500 font-sans">ไม่พบรายการ</td></tr>`;return;}
+    let html='';
+    list.forEach(c=>{const isIn=String(c.type).toLowerCase()==='in';html+=`<tr class="hover:bg-[#1c2128]"><td class="py-3 px-4 text-gray-300">${c.date}</td><td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] ${isIn?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'} font-sans">${isIn?'รับเข้า':'จ่ายออก'}</span></td><td class="py-3 px-3 text-gray-300">${c.category||'-'}</td><td class="py-3 px-3 text-gray-400">${c.account||'-'}</td><td class="py-3 px-3 text-right font-bold ${isIn?'text-emerald-400':'text-rose-400'}">${isIn?'+':'-'}${formatNum(c.amountTHB,2)} ฿</td><td class="py-3 px-4 text-gray-400 font-sans">${c.note||'-'}</td><td class="py-3 px-4 text-center"><button onclick="deleteCashflowItem('${c.id}')" class="text-rose-400 hover:text-white">ลบ</button></td></tr>`;});
+    cBody.innerHTML=html;
+  }
+
+  // ── Forms ──────────────────────────────────────────────────────────────────
+  function setSide(side){selectedSide=side;['BUY','W-BUY','SELL','W-SELL'].forEach(s=>{const b=document.getElementById('btnSide'+s.replace('-',''));if(s===side)b.className=s.includes('BUY')?"py-2.5 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold transition":"py-2.5 rounded-xl border border-rose-500 bg-rose-500/20 text-rose-300 font-bold transition";else b.className="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition";});}
+  function setCashType(type){
+    selectedCashType=type;const bo=document.getElementById('btnCashOut');const bi=document.getElementById('btnCashIn');
+    if(type==='out'){bo.className="py-2.5 rounded-xl border border-rose-500 bg-rose-500/20 text-rose-300 font-bold transition";bi.className="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition";}
+    else{bi.className="py-2.5 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold transition";bo.className="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition";}
+    updateCashCategoryDropdown(type);
+  }
+  function updateCashCategoryDropdown(type){
+    const s=document.getElementById('cashCategory');if(!s) return;
+    const io=['โอนเข้าลงทุน','เงินเดือน / รายได้','ถอนกำไรจากพอร์ต','เงินปันผล / ดอกเบี้ย','เงินคืน / รายรับอื่นๆ'];
+    const oo=['โอนออก','ค่าใช้จ่ายทั่วไป','ออมเงิน','ถอนเงินสด','ค่าธรรมเนียม / อื่นๆ'];
+    s.innerHTML=(type==='in'?io:oo).map(c=>`<option value="${c}">${c}</option>`).join('');
+  }
+  function openTradeModal(){['tradeTicker','tradeShares','tradePrice','tradeNote'].forEach(id=>document.getElementById(id).value='');document.getElementById('tradeDate').value=new Date().toISOString().slice(0,10);setSide('BUY');openModal('modalTrade');}
+  function openCashflowModal(){['cashAmount','cashNote'].forEach(id=>document.getElementById(id).value='');document.getElementById('cashDate').value=new Date().toISOString().slice(0,10);setCashType('out');openModal('modalCashflow');}
+  function submitTradeForm(){
+    const ticker=document.getElementById('tradeTicker').value.trim();const shares=Number(document.getElementById('tradeShares').value);const price=Number(document.getElementById('tradePrice').value);
+    if(!ticker) return alert('กรุณาระบุ Ticker');if(shares<=0||price<=0) return alert('กรุณากรอกจำนวนและราคา');
+    const btn=document.getElementById('btnSaveTrade');btn.innerText='กำลังบันทึก...';btn.disabled=true;
+    apiCall('addTrade',{side:selectedSide,ticker,shares,price,date:document.getElementById('tradeDate').value,group:document.getElementById('tradeGroup').value,note:document.getElementById('tradeNote').value.trim()},(res)=>{btn.innerText='บันทึกข้อมูล';btn.disabled=false;if(res.ok){closeModal('modalTrade');loadDashboardData();}else alert('ผิดพลาด: '+res.error);});
+  }
+  function submitCashflowForm(){
+    const amount=Number(document.getElementById('cashAmount').value);if(amount<=0) return alert('กรุณากรอกจำนวนเงิน');
+    const btn=document.getElementById('btnSaveCash');btn.innerText='กำลังบันทึก...';btn.disabled=true;
+    apiCall('addCashflow',{type:selectedCashType,category:document.getElementById('cashCategory').value,account:document.getElementById('cashAccount').value,amountTHB:amount,date:document.getElementById('cashDate').value,note:document.getElementById('cashNote').value.trim()},(res)=>{btn.innerText='บันทึกเงินสด';btn.disabled=false;if(res.ok){closeModal('modalCashflow');loadDashboardData();}else alert('ผิดพลาด: '+res.error);});
+  }
+  function deleteTradeItem(id){if(!confirm('ยืนยันลบรายการลงทุนนี้?')) return;apiCall('deleteTrade',{id},(res)=>{if(res.ok)loadDashboardData();else alert('ผิดพลาด: '+res.error);});}
+  function deleteCashflowItem(id){if(!confirm('ยืนยันลบรายการกระแสเงินสดนี้?')) return;apiCall('deleteCashflow',{id},(res)=>{if(res.ok)loadDashboardData();else alert('ผิดพลาด: '+res.error);});}
+  function populateDropdowns(){
+    if(!appData) return;
+    const g=document.getElementById('tradeGroup');if(g)g.innerHTML=(appData.groups||[]).map(gr=>`<option value="${gr.nameTh}">${gr.nameTh}</option>`).join('');
+    const a=document.getElementById('cashAccount');if(a){const ca=(appData.accounts||[]).filter(ac=>ac.currency==='THB'&&ac.id!=='A4'&&ac.id!=='A5');a.innerHTML=ca.map(ac=>`<option value="${ac.name}">${ac.name} (${ac.currency})</option>`).join('');}
+    updateCashCategoryDropdown(selectedCashType);
+  }
+  function populateAccountSelect(){
+    const sel=document.getElementById('accSelect');const g1=(appData.accounts||[]).filter(a=>a.id==='A1'||a.id==='A2'||a.id==='A3'||(a.currency==='THB'&&a.id!=='A4'&&a.id!=='A5'));
+    sel.innerHTML=g1.map(a=>`<option value="${a.id}">${a.name} (${a.currency})</option>`).join('');onAccountSelectChange();
+  }
+  function onAccountSelectChange(){const id=document.getElementById('accSelect').value;const acc=(appData.accounts||[]).find(a=>a.id===id);if(acc)document.getElementById('accBalance').value=acc.openingBalance||0;}
+  function submitUpdateAccount(){
+    const id=document.getElementById('accSelect').value;const bal=Number(document.getElementById('accBalance').value);
+    apiCall('updateAccount',{id,openingBalance:bal},(res)=>{if(res.ok){closeModal('modalAccount');refreshSummaryOnly();}else alert('ผิดพลาด: '+res.error);});
+  }
+  function triggerManualSnapshot(){if(!confirm('บันทึก Snapshot วันนี้ทันที?')) return;apiCall('saveSnapshot',{},(res)=>{if(res.ok){alert('บันทึก Snapshot สำเร็จ');loadDashboardData();}});}
+  function openModal(id){document.getElementById(id).classList.remove('hidden');}
+  function closeModal(id){document.getElementById(id).classList.add('hidden');}
+  function formatNum(n,dec=2){return(Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec});}
+
+  // ════════ ★ MONTHLY REPORT EXPORT ════════
+
+  function buildMonthlyRows(){
+    const snaps=(appData.snapshot||[]).slice();const sum=appData.summary||{};const fxLive=sum.fxRate||33.14;
+    const byMonth={};
+    snaps.forEach(s=>{if(!s.date) return;const m=String(s.date).slice(0,7);if(!byMonth[m]||String(s.date)>=String(byMonth[m].date))byMonth[m]=s;});
+    const rows=Object.keys(byMonth).sort().map(m=>{
+      const s=byMonth[m];
+      const cashTHB=Number(s.cashTHB)||0;const mktTHB=Number(s.marketTHB)||0;
+      const costUSD=Number(s.costUSD)||0;const mktUSD=Number(s.marketUSD)||0;const pnlUSD=Number(s.pnlUSD)||0;
+      const nwTHB=Number(s.netWorthTHB)||0;
+      const forexEquTHB=Number(s.forexEquityTHB)||0||(nwTHB-mktTHB-cashTHB);
+      const forexBalTHB=Number(s.forexBalanceTHB)||0;
+      const fxSnap=Number(s.fxRate)||0;
+      const implFx=fxSnap>0?fxSnap:(mktUSD>0&&mktTHB>0)?(mktTHB/mktUSD):fxLive;
+      return {month:m,date:s.date,cashTHB,etfCostTHB:costUSD*implFx,etfMktTHB:mktTHB,etfPnlTHB:pnlUSD*implFx,forexEquTHB,forexBalTHB,fxRate:implFx,nwTHB};
+    });
+    const nowMonth=new Date().toISOString().slice(0,7);
+    if(!byMonth[nowMonth]){
+      rows.push({month:nowMonth,date:'(live)',cashTHB:Number(sum.totalGroup1THB)||0,etfCostTHB:Number(sum.usTotalNetTHBCost)||0,etfMktTHB:Number(sum.usInvestTHB)||0,etfPnlTHB:Number(sum.usPnlTHB)||0,forexEquTHB:Number(sum.forexEquityTHB)||0,forexBalTHB:Number(sum.forexBalanceTHB)||0,fxRate:fxLive,nwTHB:Number(sum.grandTotalTHB)||0});
+    }
+    return rows;
+  }
+
+  // ★ [FIX Step3] Dashboard CSV — guard + error message
+  function exportDashboardCSV(){
+    if(!appData) return alert('กรุณาโหลดข้อมูลก่อนครับ');
+    const rows=buildMonthlyRows();const sum=appData.summary||{};
+    if(!rows.length) return alert('ไม่พบข้อมูล Snapshot — กรุณากด 📸 Snapshot ก่อน แล้ว Refresh ครับ');
+    const headers=['เดือน','G1-สภาพคล่อง(฿)','ETF-ต้นทุน(฿)','ETF-มูลค่า(฿)','ETF-P/L(฿)','FOREX-Equity(฿)','FOREX-Balance(฿)','FX-Rate','Net-Worth(฿)','เปลี่ยนแปลง(฿)','วันที่บันทึก'];
+    let csv=`# Monthly Portfolio Report | ณ ${new Date().toLocaleDateString('th-TH')} | USD/THB: ${(sum.fxRate||33.14).toFixed(2)}\n`;
+    csv+=headers.join(',')+'\n';
+    rows.forEach((r,i)=>{
+      const prev=i>0?rows[i-1].nwTHB:r.nwTHB;const change=i>0?r.nwTHB-prev:0;
+      csv+=[r.month,r.cashTHB.toFixed(0),r.etfCostTHB.toFixed(0),r.etfMktTHB.toFixed(0),r.etfPnlTHB.toFixed(0),r.forexEquTHB.toFixed(0),r.forexBalTHB.toFixed(0),r.fxRate.toFixed(2),r.nwTHB.toFixed(0),(i>0?(change>=0?'+':'')+change.toFixed(0):'-'),r.date].map(v=>`"${v}"`).join(',')+'\n';
+    });
+    downloadFile(csv,`Monthly_Report_${new Date().toISOString().slice(0,10)}.csv`,'text/csv');
+  }
+
+  // ★ [FIX Step5B] Monthly Report PDF — visibility toggle + double rAF
+  function exportDashboardPDF(){
+    if(!appData) return alert('กรุณาโหลดข้อมูลก่อนครับ');
+    if(_reportExporting) return;
+    _reportExporting=true;
+    const btn=document.getElementById('btnDashPDF');
+    if(btn){btn.innerText='กำลังสร้าง PDF...';btn.disabled=true;}
+    const rows=buildMonthlyRows();const sum=appData.summary||{};const fx=sum.fxRate||33.14;
+    const badge=(label,val,sub,color)=>`<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px;flex:1"><div style="font-size:9px;color:#8b949e;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em">${label}</div><div style="font-size:17px;font-weight:bold;color:${color};line-height:1.2">${val}</div><div style="font-size:9px;color:#6b7280;margin-top:3px">${sub}</div></div>`;
+    let tableRows='';
+    rows.forEach((r,i)=>{
+      const prev=i>0?rows[i-1].nwTHB:r.nwTHB;const change=i>0?r.nwTHB-prev:0;const isLive=r.date==='(live)';
+      const rowBg=isLive?'#1e3a5f':(i%2===0?'#0d1117':'#161b22');
+      const pc=r.etfPnlTHB>=0?'#34d399':'#f87171';const fc=r.forexEquTHB>=0?'#a78bfa':'#f87171';const cc=change>=0?'#34d399':'#f87171';
+      tableRows+=`<tr style="background:${rowBg}"><td style="padding:6px 10px;font-weight:bold;color:${isLive?'#93c5fd':'#58a6ff'};white-space:nowrap;font-size:11px">${r.month}${isLive?' ★':''}</td><td style="padding:6px 10px;text-align:right;color:#d1d5db;font-size:11px">${formatNum(r.cashTHB,0)}</td><td style="padding:6px 10px;text-align:right;color:#9ca3af;font-size:11px">${formatNum(r.etfCostTHB,0)}</td><td style="padding:6px 10px;text-align:right;color:#d1d5db;font-size:11px">${formatNum(r.etfMktTHB,0)}</td><td style="padding:6px 10px;text-align:right;color:${pc};font-weight:600;font-size:11px">${r.etfPnlTHB>=0?'+':''}${formatNum(r.etfPnlTHB,0)}</td><td style="padding:6px 10px;text-align:right;color:${fc};font-weight:600;font-size:11px">${formatNum(r.forexEquTHB,0)}</td><td style="padding:6px 10px;text-align:right;font-weight:bold;color:#f0f6fc;font-size:11px">${formatNum(r.nwTHB,0)}</td><td style="padding:6px 10px;text-align:right;color:${cc};font-weight:600;font-size:10px">${i>0?((change>=0?'+':'')+formatNum(change,0)):'-'}</td><td style="padding:6px 10px;text-align:center;color:#6b7280;font-size:9px">${r.date}</td><td style="padding:6px 10px;text-align:right;color:#8b949e;font-size:9px">${r.fxRate.toFixed(2)}</td></tr>`;
+    });
+    const html=`<div style="background:#0d1117;color:#c9d1d9;font-family:'Segoe UI',sans-serif;padding:22px;min-width:1300px"><div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #30363d"><div><div style="font-size:10px;color:#8b949e;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px">Monthly Portfolio Report</div><div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-0.5px">${formatNum(sum.grandTotalTHB)} ฿</div><div style="font-size:11px;color:#8b949e;margin-top:3px">Net Worth รวมทุกสินทรัพย์ | USD/THB: <strong style="color:#c9d1d9">${fx.toFixed(2)}</strong></div></div><div style="text-align:right"><div style="font-size:10px;color:#8b949e">สร้างเมื่อ</div><div style="font-size:13px;color:#c9d1d9;font-weight:600">${new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})}</div><div style="font-size:10px;color:#6b7280;margin-top:2px">${new Date().toLocaleTimeString('th-TH')}</div></div></div><div style="display:flex;gap:12px;margin-bottom:16px">${badge('Group 1: สภาพคล่อง (THB)',formatNum(sum.totalGroup1THB)+' ฿','เงินสด + ธนาคาร + ฉุกเฉิน','#34d399')}${badge('Group 2: US ETF Market Value',formatNum(sum.usInvestTHB)+' ฿',`P/L: ${sum.usPnlTHB>=0?'+':''}${formatNum(sum.usPnlTHB)} ฿ (${sum.usPnlPct>=0?'+':''}${formatNum(sum.usPnlPct,2)}%)`,'#60a5fa')}${badge('Group 3: FOREX Equity',formatNum(sum.forexEquityTHB)+' ฿',`P/L: ${sum.forexPnlTHB>=0?'+':''}${formatNum(sum.forexPnlTHB)} ฿ (${sum.forexPnlPct>=0?'+':''}${formatNum(sum.forexPnlPct,2)}%)`,'#a78bfa')}</div><table style="width:100%;border-collapse:collapse;font-family:'Courier New',monospace"><thead><tr style="background:#21262d"><th style="padding:8px 10px;text-align:left;color:#8b949e;font-weight:600;border-bottom:2px solid #30363d;font-size:10px">เดือน</th><th style="padding:8px 10px;text-align:right;color:#34d399;font-weight:600;border-bottom:2px solid #30363d;font-size:10px">G1 สภาพคล่อง (฿)</th><th style="padding:8px 10px;text-align:right;color:#8b949e;font-weight:600;border-bottom:2px solid #30363d;font-size:10px">ETF ต้นทุน (฿)</th><th style="padding:8px 10px;text-align:right;color:#60a5fa;font-weight:600;border-bottom:2px solid #30363d;font-size:10px">ETF มูลค่า (฿)</th><th style="padding:8px 10px;text-align:right;color:#8b949e;font-weight:600;border-bottom:2px solid #30363d;font-size:10px">ETF P/L (฿)</th><th style="padding:8px 10px;text-align:right;color:#a78bfa;font-weight:600;border-bottom:2px solid #30363d;font-size:10px">FOREX Equity (฿)</th><th style="padding:8px 10px;text-align:right;color:#f0f6fc;font-weight:700;border-bottom:2px solid #30363d;font-size:10px">Net Worth (฿)</th><th style="padding:8px 10px;text-align:right;color:#8b949e;font-weight:600;border-bottom:2px solid #30363d;font-size:10px">เปลี่ยน (฿)</th><th style="padding:8px 10px;text-align:center;color:#8b949e;font-weight:600;border-bottom:2px solid #30363d;font-size:10px">วันที่</th><th style="padding:8px 10px;text-align:right;color:#8b949e;font-weight:600;border-bottom:2px solid #30363d;font-size:10px">FX Rate</th></tr></thead><tbody>${tableRows}</tbody></table><div style="margin-top:12px;padding:10px 14px;background:#161b22;border-radius:8px;border:1px solid #30363d;font-size:9px;color:#6b7280;line-height:1.7">หมายเหตุ: ข้อมูลรายเดือนอ้างอิง Snapshot สุดท้ายของแต่ละเดือน | ★ = Live ปัจจุบัน | Generated: ${new Date().toLocaleString('th-TH')}</div></div>`;
+    const container=document.getElementById('reportContainer');
+    container.innerHTML=html;
+    container.style.visibility='visible'; // ★ [FIX] visibility แทน display
+    // ★ [FIX] double requestAnimationFrame — รอ browser layout+paint เสร็จ
+    requestAnimationFrame(()=>{ requestAnimationFrame(()=>{
+      html2pdf().set({margin:[5,5,5,5],filename:`Monthly_Report_${new Date().toISOString().slice(0,10)}.pdf`,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#0d1117',logging:false},jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}}).from(container).save().then(()=>{
+        container.style.visibility='hidden';container.innerHTML='';_reportExporting=false;
+        if(btn){btn.innerText='PDF';btn.disabled=false;}
+      }).catch(()=>{
+        container.style.visibility='hidden';container.innerHTML='';_reportExporting=false;
+        if(btn){btn.innerText='PDF';btn.disabled=false;}
+      });
+    });});
+  }
+
+  // ★ [FIX Step4] exportToPDF — handle hidden elements ด้วย requestAnimationFrame
+  function exportToPDF(elementId,fileName){
+    const source=document.getElementById(elementId);if(!source) return;
+    const wasHidden=source.classList.contains('hidden');
+    if(wasHidden){
+      source.classList.remove('hidden');
+      source.style.position='fixed';source.style.left='-9999px';source.style.top='0';
+      source.style.width='1100px';source.style.zIndex='-1';
+    }
+    const restore=()=>{
+      if(wasHidden){source.classList.add('hidden');source.style.position='';source.style.left='';source.style.top='';source.style.width='';source.style.zIndex='';}
+    };
+    requestAnimationFrame(()=>{
+      html2pdf().set({margin:[8,8,8,8],filename:`${fileName}_${new Date().toISOString().slice(0,10)}.pdf`,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#0d1117',logging:false},jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}}).from(source).save().then(restore).catch(restore);
+    });
+  }
+
+  // ★ [FIX Step2] exportTradesCSV — guard + error
+  function exportTradesCSV(){
+    if(!appData) return alert('กรุณาโหลดข้อมูลก่อนครับ');
+    const trades=appData.trades||[];
+    if(!trades.length) return alert('ไม่พบข้อมูล Trade — กรุณา Refresh ก่อนครับ');
+    const h=['id','date','side','ticker','shares','price','commission','vat','secFee','tafFee','totalFee','fxRate','netUSD','netTHB'];
+    let csv=h.join(',')+'\n';
+    trades.forEach(t=>{csv+=h.map(k=>`"${String(t[k]===undefined?'':t[k]).replace(/"/g,'""')}"`).join(',')+'\n';});
+    downloadFile(csv,`TRADES_${new Date().toISOString().slice(0,10)}.csv`,'text/csv');
+  }
+
+  function exportForexCSV(){
+    if(!appData?.summary?.terminals) return;const t=appData.summary.terminals;
+    let csv='Terminal,Detail,BalanceUSD,EquityUSD,ProfitLossUSD,GrowthPct,Since\n';
+    Object.keys(t).forEach(k=>{const r=t[k];csv+=`"${r.terminalTitle}","${r.terminalDetail}","${r.balanceUSD}","${r.equityUSD}","${r.pnlUSD}","${r.growth}%","${r.sinc}"\n`;});
+    downloadFile(csv,`FOREX_MT5_${new Date().toISOString().slice(0,10)}.csv`,'text/csv');
+  }
+  function exportCashflowCSV(){
+    if(!appData?.cashflow) return;const h=['id','date','type','category','account','amountTHB','note'];
+    let csv=h.join(',')+'\n';appData.cashflow.forEach(c=>{csv+=h.map(k=>`"${String(c[k]===undefined?'':c[k]).replace(/"/g,'""')}"`).join(',')+'\n';});
+    downloadFile(csv,`CASHFLOW_${new Date().toISOString().slice(0,10)}.csv`,'text/csv');
+  }
+  function downloadFile(content,fileName,mimeType){
+    const blob=new Blob(['\uFEFF'+content],{type:mimeType});const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=fileName;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  }
+
+  window.addEventListener('DOMContentLoaded',()=>{
+    if(currentToken){document.getElementById('pinOverlay').classList.add('hidden');loadDashboardData();}
+    else document.getElementById('pinOverlay').classList.remove('hidden');
+  });
+</script>
+</main>
 </body>
 </html>
