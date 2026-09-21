@@ -96,6 +96,12 @@
         <button onclick="triggerManualSnapshot()" class="px-2.5 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-emerald-400 hover:bg-[#30363d] font-semibold transition flex items-center gap-1">
           <span>📸 Snapshot</span>
         </button>
+        <button onclick="exportDashboardPDF()" class="px-2.5 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-rose-400 hover:bg-[#30363d] font-semibold transition flex items-center gap-1">
+          <span>PDF</span>
+        </button>
+        <button onclick="exportMonthlyCSV()" class="px-2.5 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-blue-400 hover:bg-[#30363d] font-semibold transition flex items-center gap-1">
+          <span>CSV</span>
+        </button>
         <button onclick="loadDashboardData()" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="รีเฟรช">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         </button>
@@ -387,7 +393,8 @@
               <tr>
                 <th class="py-3 px-4">วันที่</th><th class="py-3 px-3">ประเภท</th>
                 <th class="py-3 px-3">Ticker</th><th class="py-3 px-3 text-right">จำนวน</th>
-                <th class="py-3 px-3 text-right">ราคา (฿)</th><th class="py-3 px-3 text-right">ค่าธรรมเนียม (฿)</th>
+                <th class="py-3 px-3 text-right">ราคา (฿)</th><th class="py-3 px-3 text-right">Comm (฿)</th>
+                <th class="py-3 px-3 text-right">Clearing (฿)</th>
                 <th class="py-3 px-3 text-right">ยอดสุทธิ (฿)</th><th class="py-3 px-4 text-center">จัดการ</th>
               </tr>
             </thead>
@@ -2103,7 +2110,8 @@
           <td class="py-3 px-3 font-bold text-white">${t.ticker}</td>
           <td class="py-3 px-3 text-right text-gray-200">${formatNum(t.shares,0)}</td>
           <td class="py-3 px-3 text-right text-gray-300">${formatNum(t.price,2)} ฿</td>
-          <td class="py-3 px-3 text-right text-gray-400">${formatNum(t.totalFee,2)} ฿</td>
+          <td class="py-3 px-3 text-right text-gray-400">${formatNum(t.commission,2)} ฿</td>
+          <td class="py-3 px-3 text-right text-gray-400">${formatNum(t.clearingFee||0,2)} ฿</td>
           <td class="py-3 px-3 text-right font-semibold text-white">${formatNum(t.netTHB,2)} ฿</td>
           <td class="py-3 px-4 text-center"><button onclick="deleteThaiTradeItem('${t.id}')" class="text-rose-400 hover:text-white">ลบ</button></td>
         </tr>`).join('');
@@ -2320,10 +2328,105 @@
 
     function exportThaiCSV() {
       if (!appData||!appData.thaiTrades) return;
-      const h=['id','date','side','ticker','shares','price','commission','vat','totalFee','netTHB','note'];
+      const h=['id','date','side','ticker','shares','price','commission','clearingFee','vat','totalFee','netTHB','note'];
       let csv=h.join(',')+'\n';
       appData.thaiTrades.forEach(t=>{ csv+=h.map(k=>`"${String(t[k]||'').replace(/"/g,'""')}"`).join(',')+'\n'; });
       downloadFile(csv,`THAI_TRADES_${new Date().toISOString().slice(0,10)}.csv`,'text/csv');
+    }
+
+
+    function exportDashboardPDF() {
+      // Render allocation pie ก่อนแล้ว capture
+      renderAllocationPie();
+      setTimeout(function() {
+        const el  = document.getElementById('viewDashboard');
+        const opt = {
+          margin:   [8,8,8,8],
+          filename: `Dashboard_${new Date().toISOString().slice(0,10)}.pdf`,
+          image:    { type:'jpeg', quality:0.98 },
+          html2canvas: {
+            scale: 2, useCORS: true,
+            backgroundColor: '#ffffff',
+            onclone: function(doc) {
+              doc.querySelectorAll('.card-dark,[class*="bg-\\[#"]').forEach(el=>{
+                el.style.background='#ffffff';
+                el.style.border='1px solid #e5e7eb';
+              });
+              doc.querySelectorAll('*').forEach(el=>{ el.style.color='#111827'; });
+              const v = doc.getElementById('viewDashboard');
+              if (v) { v.style.display='block'; v.classList.remove('hidden'); }
+            }
+          },
+          jsPDF: { unit:'mm', format:'a4', orientation:'landscape' }
+        };
+        html2pdf().set(opt).from(el).save();
+      }, 300);
+    }
+
+    function exportMonthlyCSV() {
+      if (!appData) return;
+      const snaps = appData.snapshot || [];
+      const sum   = appData.summary  || {};
+      const fx    = sum.fxRate || 33.14;
+      const title = `# Monthly Portfolio Report | ณ ${new Date().toLocaleDateString('th-TH')} | USD/THB: ${fx}`;
+      const headers = [
+        'เดือน','G1-สภาพคล่อง(฿)',
+        'Thai-ต้นทุน(฿)','Thai-มูลค่า(฿)','Thai-P/L(฿)',
+        'ETF-ต้นทุน(฿)','ETF-มูลค่า(฿)','ETF-P/L(฿)',
+        'FOREX-Equity(฿)','FOREX-Balance(฿)',
+        'FX-Rate','Net-Worth(฿)','เปลี่ยนแปลง(฿)','วันที่บันทึก'
+      ];
+      let csv = title + '\n' + headers.join(',') + '\n';
+
+      // Group snapshots by month
+      const byMonth = {};
+      snaps.forEach(s => {
+        const m = (s.date||'').slice(0,7);
+        if (!byMonth[m]) byMonth[m] = [];
+        byMonth[m].push(s);
+      });
+
+      let prevNW = 0;
+      Object.keys(byMonth).sort().forEach(month => {
+        const rows  = byMonth[month];
+        const last  = rows[rows.length-1];
+        const nwTHB = Number(last.netWorthTHB) || 0;
+        const change= prevNW > 0 ? nwTHB - prevNW : 0;
+        prevNW = nwTHB;
+
+        const row = [
+          month,
+          Number(last.cashTHB)||0,
+          Number(last.thaiCostTHB)||0,
+          Number(last.thaiMarketTHB)||0,
+          Number(last.thaiPnlTHB)||0,
+          Number(last.costUSD||0)*(Number(last.fxRate)||fx),
+          Number(last.marketUSD||0)*(Number(last.fxRate)||fx),
+          Number(last.pnlUSD||0)*(Number(last.fxRate)||fx),
+          Number(last.forexEquityTHB)||0,
+          Number(last.forexBalanceTHB)||0,
+          Number(last.fxRate)||fx,
+          nwTHB,
+          change,
+          last.createdAt||last.date||''
+        ].map(v => typeof v==='number' ? v.toFixed(2) : `"${v}"`);
+        csv += row.join(',') + '\n';
+      });
+
+      // ถ้ายังไม่มี snapshot ให้ export ยอดปัจจุบัน
+      if (!snaps.length) {
+        const now = new Date().toISOString().slice(0,7);
+        csv += [
+          now,
+          sum.totalGroup1THB||0,
+          sum.thaiCostTHB||0, sum.thaiMarketTHB||0, sum.thaiPnlTHB||0,
+          (sum.usCostUSD||0)*fx, (sum.usInvestUSD||0)*fx, (sum.usPnlUSD||0)*fx,
+          sum.forexEquityTHB||0, sum.forexBalanceTHB||0,
+          fx, sum.grandTotalTHB||0, 0,
+          new Date().toLocaleString('th-TH')
+        ].map(v => typeof v==='number' ? v.toFixed(2) : `"${v}"`).join(',') + '\n';
+      }
+      downloadFile(csv, `Monthly_Report_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv');
     }
 
     window.addEventListener('DOMContentLoaded', () => {
