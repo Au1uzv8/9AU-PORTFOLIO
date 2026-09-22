@@ -414,7 +414,7 @@
           <div class="flex items-center gap-2">
             <input type="text" id="filterThaiTicker" placeholder="ค้นหา TICKER..." oninput="renderThaiHistoryTable()" class="bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-white uppercase focus:border-emerald-500 focus:outline-none">
             <button onclick="openThaiTradeModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold">+ บันทึกรายการใหม่</button>
-            <button onclick="exportToPDF('viewThai','Report_Thai_Stocks')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">PDF</button>
+            <button onclick="exportThaiPDF()" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">PDF</button>
             <button onclick="exportThaiCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">CSV</button>
           </div>
         </div>
@@ -507,7 +507,7 @@
             <button onclick="openTradeModal()" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold">
               + บันทึกรายการใหม่
             </button>
-            <button onclick="exportToPDF('viewTrades', 'Report_US_Stocks_ETF')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">
+            <button onclick="exportUSStocksPDF()" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">
               PDF
             </button>
             <button onclick="exportTradesCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">
@@ -801,7 +801,7 @@
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="block text-gray-400 mb-1">วันที่</label>
+          <div><label class="block text-gray-400 mb-1">วันที่ <span class="text-[10px] text-gray-500">(แก้ไขย้อนหลังได้)</span></label>
             <input type="date" id="thaiTradeDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num focus:border-emerald-500 focus:outline-none">
           </div>
           <div><label class="block text-gray-400 mb-1">กลุ่มการลงทุน</label>
@@ -825,7 +825,7 @@
           <input type="text" id="thaiTradeNote" placeholder="รายละเอียดเพิ่มเติม" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-emerald-500 focus:outline-none">
         </div>
         <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d] text-[11px] text-gray-400 font-num">
-          Fee: Commission 0.15% + VAT 7% (min 50 ฿) — คำนวณโดย Apps Script
+          Fee: Commission 0.15% + Clearing 0.0072% + VAT 7% บน (Comm+Clearing) — คำนวณโดย Apps Script
         </div>
       </div>
       <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
@@ -2054,34 +2054,226 @@
     }
 
 
-    /* ── PDF Fix ─────────────────────────────────────────────── */
-    function exportToPDF(elementId, fileName) {
-      const element = document.getElementById(elementId);
+    /* ── PDF Print Engine (v8.2) ────────────────────────────────
+     *  ใช้ chart.toBase64Image() + inject HTML แทน live DOM capture
+     *  เพื่อแก้ปัญหา: canvas not cloned, dark bg, hidden elements
+     * ──────────────────────────────────────────────────────── */
+    const PDF_CSS = `
+      *{font-family:'Sarabun',sans-serif!important;box-sizing:border-box;}
+      body,html{background:#fff!important;color:#111!important;}
+      h1{font-size:18px;margin:0 0 4px;}h2{font-size:14px;margin:0 0 10px;color:#1e3a8a;}
+      .sub{font-size:12px;color:#6b7280;margin:0 0 16px;}
+      .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+      .card{border:1px solid #e5e7eb;border-radius:8px;padding:12px;background:#f9fafb;}
+      .clabel{font-size:10px;color:#6b7280;margin-bottom:4px;}
+      .cval{font-size:18px;font-weight:700;color:#111;}
+      .pies{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+      .pie-box{border:1px solid #e5e7eb;border-radius:8px;padding:12px;text-align:center;}
+      .pie-box p{font-size:11px;color:#6b7280;margin:0 0 6px;}
+      .pie-box img{max-width:220px;height:auto;}
+      table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px;}
+      th{background:#f3f4f6;padding:7px 8px;text-align:left;border-bottom:2px solid #e5e7eb;font-weight:600;}
+      td{padding:6px 8px;border-bottom:1px solid #f3f4f6;}
+      tr:nth-child(even) td{background:#fafafa;}
+      .g{color:#059669!important;font-weight:600;}
+      .r{color:#dc2626!important;font-weight:600;}
+      .bold{font-weight:700;}
+      .section{border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:14px;}
+    `;
+
+    function _pdfRender(content, filename, landscape) {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:absolute;left:-9999px;top:0;width:'+(landscape?'1120px':'794px')+';background:#fff;';
+      wrap.innerHTML = '<style>'+PDF_CSS+'</style>'+content;
+      document.body.appendChild(wrap);
       const opt = {
-        margin: [8,8,8,8],
-        filename: `${fileName}_${new Date().toISOString().slice(0,10)}.pdf`,
-        image: { type:'jpeg', quality:0.98 },
-        html2canvas: {
-          scale:2, useCORS:true,
-          backgroundColor:'#ffffff',
-          onclone: function(doc) {
-            // force white bg on all cards
-            doc.querySelectorAll('.card-dark,[class*="bg-[#"]').forEach(el => {
-              el.style.background = '#ffffff';
-              el.style.border     = '1px solid #e5e7eb';
-              el.style.color      = '#111827';
-            });
-            doc.querySelectorAll('[class*="text-gray"],[class*="text-white"],[class*="text-emerald"],[class*="text-blue"],[class*="text-rose"],[class*="text-indigo"]').forEach(el => {
-              el.style.color = '#111827';
-            });
-            // make sure target element is visible
-            const el = doc.getElementById(elementId);
-            if (el) { el.style.display='block'; el.classList.remove('hidden'); }
-          }
-        },
-        jsPDF: { unit:'mm', format:'a4', orientation:'landscape' }
+        margin:[8,8,8,8],
+        filename: filename+'_'+new Date().toISOString().slice(0,10)+'.pdf',
+        image:{type:'jpeg',quality:0.98},
+        html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},
+        jsPDF:{unit:'mm',format:'a4',orientation:landscape?'landscape':'portrait'}
       };
-      html2pdf().set(opt).from(element).save();
+      html2pdf().set(opt).from(wrap).save().then(function(){ document.body.removeChild(wrap); });
+    }
+
+    function _fmtVal(v,d){ return formatNum(v||0,d||2); }
+    function _pnlClass(v){ return Number(v)>=0?'g':'r'; }
+    function _pnlSign(v){ return Number(v)>=0?'+':''; }
+    function _dateNow(){ return new Date().toLocaleDateString('th-TH'); }
+
+    /* ── Thai Stocks PDF ────────────────────────────────── */
+    function exportThaiPDF() {
+      if (!appData) return;
+      const sum  = appData.summary||{};
+      const thai = sum.thaiPositions||[];
+      const logs = (appData.thaiTrades||[]).slice().reverse();
+      const pG   = chartThaiGroup ? chartThaiGroup.toBase64Image() : null;
+      const pS   = chartThaiStock ? chartThaiStock.toBase64Image() : null;
+      const pnl  = sum.thaiPnlTHB||0;
+
+      const content = `
+        <h1>Group-4: หุ้นไทย (Thai Stocks)</h1>
+        <p class="sub">ส่งออก ณ ${_dateNow()} | FX: ${_fmtVal(sum.fxRate,2)} THB/USD</p>
+        <div class="cards">
+          <div class="card"><div class="clabel">ต้นทุนรวม (Total Cost)</div><div class="cval">${_fmtVal(sum.thaiCostTHB)} ฿</div></div>
+          <div class="card"><div class="clabel">มูลค่าปัจจุบัน (Market Value)</div><div class="cval">${_fmtVal(sum.thaiMarketTHB)} ฿</div></div>
+          <div class="card"><div class="clabel">กำไร / ขาดทุน</div>
+            <div class="cval ${_pnlClass(pnl)}">${_pnlSign(pnl)}${_fmtVal(pnl)} ฿ (${_pnlSign(pnl)}${_fmtVal(sum.thaiPnlPct)}%)</div></div>
+        </div>
+        ${(pG||pS)?`<div class="pies">
+          ${pG?`<div class="pie-box"><p>สัดส่วนตามกลุ่ม</p><img src="${pG}"></div>`:''}
+          ${pS?`<div class="pie-box"><p>สัดส่วนรายหุ้น</p><img src="${pS}"></div>`:''}
+        </div>`:''}
+        <div class="section">
+          <h2>พอร์ตที่ถือครอง (Holdings)</h2>
+          <table><thead><tr>
+            <th>Ticker</th><th>กลุ่ม</th><th>จำนวน</th><th>ต้นทุนเฉลี่ย(฿)</th>
+            <th>ราคา(฿)</th><th>มูลค่า(฿)</th><th>P/L(฿)</th><th>%</th>
+          </tr></thead><tbody>
+          ${thai.map(p=>`<tr>
+            <td class="bold">${p.ticker}</td><td>${p.group||'-'}</td>
+            <td>${_fmtVal(p.shares,0)}</td><td>${_fmtVal(p.avgCost)}</td>
+            <td>${_fmtVal(p.currentPrice)}</td><td class="bold">${_fmtVal(p.marketTHB)}</td>
+            <td class="${_pnlClass(p.diffTHB)}">${_pnlSign(p.diffTHB)}${_fmtVal(p.diffTHB)}</td>
+            <td class="${_pnlClass(p.diffPct)}">${_pnlSign(p.diffPct)}${_fmtVal(p.diffPct)}%</td>
+          </tr>`).join('')}
+          </tbody></table>
+        </div>
+        <div class="section">
+          <h2>ประวัติรายการ (Trade Logs)</h2>
+          <table><thead><tr>
+            <th>วันที่</th><th>ประเภท</th><th>Ticker</th><th>จำนวน</th>
+            <th>ราคา(฿)</th><th>Comm(฿)</th><th>Clearing(฿)</th><th>ยอดสุทธิ(฿)</th>
+          </tr></thead><tbody>
+          ${logs.map(t=>`<tr>
+            <td>${t.date}</td><td>${t.side}</td><td class="bold">${t.ticker}</td>
+            <td>${_fmtVal(t.shares,0)}</td><td>${_fmtVal(t.price)}</td>
+            <td>${_fmtVal(t.commission)}</td><td>${_fmtVal(t.clearingFee||0)}</td>
+            <td class="bold">${_fmtVal(t.netTHB)}</td>
+          </tr>`).join('')}
+          </tbody></table>
+        </div>`;
+      _pdfRender(content, 'Report_Thai_Stocks', true);
+    }
+
+    /* ── US Stocks PDF ──────────────────────────────────── */
+    function exportUSStocksPDF() {
+      if (!appData) return;
+      const sum  = appData.summary||{};
+      const pos  = sum.positions||[];
+      const logs = (appData.trades||[]).slice().reverse();
+      const pG   = chartUSGroup ? chartUSGroup.toBase64Image() : null;
+      const pS   = chartUSStock ? chartUSStock.toBase64Image() : null;
+      const pnl  = sum.usPnlUSD||0;
+
+      const content = `
+        <h1>Group-2: หุ้น/ETF สหรัฐ (US Stocks & ETF)</h1>
+        <p class="sub">ส่งออก ณ ${_dateNow()} | FX: ${_fmtVal(sum.fxRate,2)} THB/USD</p>
+        <div class="cards">
+          <div class="card"><div class="clabel">ต้นทุนรวม (Total Cost)</div>
+            <div class="cval">$ ${_fmtVal(sum.usCostUSD)}</div></div>
+          <div class="card"><div class="clabel">มูลค่าปัจจุบัน (Market Value)</div>
+            <div class="cval">$ ${_fmtVal(sum.usInvestUSD)}</div></div>
+          <div class="card"><div class="clabel">กำไร / ขาดทุน</div>
+            <div class="cval ${_pnlClass(pnl)}">${_pnlSign(pnl)}$${_fmtVal(pnl)} (${_pnlSign(pnl)}${_fmtVal(sum.usPnlPct)}%)</div></div>
+        </div>
+        ${(pG||pS)?`<div class="pies">
+          ${pG?`<div class="pie-box"><p>สัดส่วนตามกลุ่ม</p><img src="${pG}"></div>`:''}
+          ${pS?`<div class="pie-box"><p>สัดส่วนรายหุ้น</p><img src="${pS}"></div>`:''}
+        </div>`:''}
+        <div class="section">
+          <h2>พอร์ตที่ถือครอง (Current Holdings)</h2>
+          <table><thead><tr>
+            <th>Ticker</th><th>จำนวน</th><th>Avg Cost($)</th><th>ราคา($)</th>
+            <th>Net Cost($)</th><th>Market($)</th><th>P/L($)</th><th>%</th>
+          </tr></thead><tbody>
+          ${pos.map(p=>`<tr>
+            <td class="bold">${p.ticker}</td><td>${_fmtVal(p.shares,4)}</td>
+            <td>${_fmtVal(p.avgCost)}</td><td>${_fmtVal(p.currentPrice)}</td>
+            <td>${_fmtVal(p.costUSD)}</td><td class="bold">${_fmtVal(p.marketUSD)}</td>
+            <td class="${_pnlClass(p.diffUSD)}">${_pnlSign(p.diffUSD)}${_fmtVal(p.diffUSD)}</td>
+            <td class="${_pnlClass(p.diffPct)}">${_pnlSign(p.diffPct)}${_fmtVal(p.diffPct)}%</td>
+          </tr>`).join('')}
+          </tbody></table>
+        </div>
+        <div class="section">
+          <h2>ประวัติรายการ (Trade Logs)</h2>
+          <table><thead><tr>
+            <th>วันที่</th><th>ประเภท</th><th>Ticker</th><th>จำนวน</th>
+            <th>ราคา($)</th><th>Fee($)</th><th>FX</th><th>Net($)</th>
+          </tr></thead><tbody>
+          ${logs.map(t=>`<tr>
+            <td>${t.date}</td><td>${t.side}</td><td class="bold">${t.ticker}</td>
+            <td>${_fmtVal(t.shares,4)}</td><td>${_fmtVal(t.price)}</td>
+            <td>${_fmtVal(t.totalFee)}</td><td>${_fmtVal(t.fxRate,2)}</td>
+            <td class="bold">${_fmtVal(t.netUSD)}</td>
+          </tr>`).join('')}
+          </tbody></table>
+        </div>`;
+      _pdfRender(content, 'Report_US_Stocks_ETF', true);
+    }
+
+    /* ── Dashboard PDF (Monthly Summary) ───────────────── */
+    function exportDashboardPDF() {
+      if (!appData) return;
+      const sum = appData.summary||{};
+      const fx  = sum.fxRate||33.14;
+      const pA  = chartAlloc ? chartAlloc.toBase64Image() : null;
+      const gT  = sum.grandTotalTHB||0;
+
+      const content = `
+        <h1>ภาพรวมพอร์ตการลงทุน (Portfolio Summary)</h1>
+        <p class="sub">ส่งออก ณ ${_dateNow()} | Net Worth: ${_fmtVal(gT)} ฿ (≈ $${_fmtVal(gT/fx)})</p>
+        ${pA?`<div class="section" style="text-align:center;">
+          <h2>สัดส่วนสินทรัพย์รวม (Asset Allocation)</h2>
+          <img src="${pA}" style="max-width:360px;height:auto;">
+        </div>`:''}
+        <div class="cards">
+          <div class="card"><div class="clabel">Group-1: สภาพคล่อง</div><div class="cval">${_fmtVal(sum.totalGroup1THB)} ฿</div></div>
+          <div class="card"><div class="clabel">Group-4: หุ้นไทย</div><div class="cval">${_fmtVal(sum.thaiMarketTHB)} ฿</div></div>
+          <div class="card"><div class="clabel">Group-2: US ETF (Market)</div><div class="cval">${_fmtVal(sum.usInvestTHB)} ฿</div></div>
+        </div>
+        <div class="cards">
+          <div class="card"><div class="clabel">Group-3: FOREX MT5 (Equity)</div><div class="cval">${_fmtVal(sum.forexEquityTHB)} ฿</div></div>
+          <div class="card"><div class="clabel">Thai P/L</div>
+            <div class="cval ${_pnlClass(sum.thaiPnlTHB)}">${_pnlSign(sum.thaiPnlTHB)}${_fmtVal(sum.thaiPnlTHB)} ฿ (${_pnlSign(sum.thaiPnlPct)}${_fmtVal(sum.thaiPnlPct)}%)</div></div>
+          <div class="card"><div class="clabel">US P/L</div>
+            <div class="cval ${_pnlClass(sum.usPnlTHB)}">${_pnlSign(sum.usPnlTHB)}${_fmtVal(sum.usPnlTHB)} ฿</div></div>
+        </div>
+        <div class="section">
+          <h2>Terminal FOREX MT5</h2>
+          <table><thead><tr><th>Terminal</th><th>Balance ($)</th><th>Equity ($)</th><th>P/L ($)</th><th>Growth %</th></tr></thead><tbody>
+          ${Object.values(sum.terminals||{}).map(t=>`<tr>
+            <td class="bold">${t.terminalTitle}</td><td>${_fmtVal(t.balanceUSD)}</td>
+            <td class="bold">${_fmtVal(t.equityUSD)}</td>
+            <td class="${_pnlClass(t.pnlUSD)}">${_pnlSign(t.pnlUSD)}${_fmtVal(t.pnlUSD)}</td>
+            <td class="${_pnlClass(t.growth)}">${_pnlSign(t.growth)}${_fmtVal(t.growth)}%</td>
+          </tr>`).join('')}
+          </tbody></table>
+        </div>`;
+      _pdfRender(content, 'Dashboard_Report', true);
+    }
+
+    /* ── Legacy wrapper (README tab still uses this) ─── */
+    function exportToPDF(elementId, fileName) {
+      if (elementId==='viewThai')   { exportThaiPDF();      return; }
+      if (elementId==='viewTrades') { exportUSStocksPDF();  return; }
+      if (elementId==='viewDashboard') { exportDashboardPDF(); return; }
+      // README: use original approach (static content, no charts)
+      const el  = document.getElementById(elementId);
+      if (!el) return;
+      const opt = {
+        margin:[8,8,8,8], filename:fileName+'_'+new Date().toISOString().slice(0,10)+'.pdf',
+        image:{type:'jpeg',quality:0.98},
+        html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',
+          onclone:function(doc){
+            doc.querySelectorAll('.card-dark').forEach(e=>{e.style.background='#fff';e.style.border='1px solid #e5e7eb';});
+            doc.querySelectorAll('*').forEach(e=>{e.style.color='#111827';});
+            const v=doc.getElementById(elementId); if(v){v.style.display='block';v.classList.remove('hidden');}
+          }},
+        jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}
+      };
+      html2pdf().set(opt).from(el).save();
     }
 
     /* ── Thai Stocks State ───────────────────────────────────── */
