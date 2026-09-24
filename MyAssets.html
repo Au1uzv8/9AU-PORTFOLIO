@@ -374,6 +374,7 @@
         <div class="card-dark rounded-2xl p-4">
           <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-3">สัดส่วนรายหุ้น (By Stock)</h3>
           <div class="relative h-48"><canvas id="chartThaiByStock"></canvas></div>
+          <div id="legendThaiByStock" class="mt-3 grid grid-cols-2 gap-1"></div>
         </div>
       </div>
 
@@ -465,6 +466,7 @@
         <div class="card-dark rounded-2xl p-4">
           <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-3">สัดส่วนรายหุ้น (By Stock)</h3>
           <div class="relative h-48"><canvas id="chartUSByStock"></canvas></div>
+          <div id="legendUSByStock" class="mt-3 grid grid-cols-2 gap-1"></div>
         </div>
       </div>
 
@@ -590,6 +592,37 @@
             <tbody id="forexTableBody" class="divide-y divide-[#30363d]"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- N-1: Terminal mini-cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-[#0d1117] p-3 rounded-xl border border-indigo-500/30">
+          <div class="text-[10px] text-gray-400 font-sans">Terminal A</div>
+          <div class="text-base font-bold text-white font-num mt-0.5">$<span id="fvT1Bal">0.00</span></div>
+          <div class="text-[10px] mt-0.5" id="fvT1Pnl">$0.00</div>
+        </div>
+        <div class="bg-[#0d1117] p-3 rounded-xl border border-purple-500/30">
+          <div class="text-[10px] text-gray-400 font-sans">Terminal B</div>
+          <div class="text-base font-bold text-white font-num mt-0.5">$<span id="fvT2Bal">0.00</span></div>
+          <div class="text-[10px] mt-0.5" id="fvT2Pnl">$0.00</div>
+        </div>
+        <div class="bg-[#0d1117] p-3 rounded-xl border border-amber-500/30">
+          <div class="text-[10px] text-gray-400 font-sans">Terminal C</div>
+          <div class="text-base font-bold text-white font-num mt-0.5">$<span id="fvT3Bal">0.00</span></div>
+          <div class="text-[10px] mt-0.5" id="fvT3Pnl">$0.00</div>
+        </div>
+        <div class="bg-[#0d1117] p-3 rounded-xl border border-emerald-500/30">
+          <div class="text-[10px] text-gray-400 font-sans">Terminal D</div>
+          <div class="text-base font-bold text-white font-num mt-0.5">$<span id="fvT4Bal">0.00</span></div>
+          <div class="text-[10px] mt-0.5" id="fvT4Pnl">$0.00</div>
+        </div>
+      </div>
+
+      <!-- N-1: FOREX Growth Chart (USD, shared data — separate canvas) -->
+      <div class="card-dark rounded-2xl p-5">
+        <h2 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">กราฟการเติบโต MT5 FOREX (Growth by Terminal USD)</h2>
+        <div class="relative h-60 w-full"><canvas id="chartForexGrowthFV"></canvas></div>
+        <div class="text-[10px] text-gray-500 mt-1">เริ่มนับ (2026-08-01)</div>
       </div>
     </div>
 
@@ -787,8 +820,8 @@
   <div id="modalThaiTrade" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="card-dark rounded-2xl w-full max-w-lg border border-[#30363d] overflow-hidden flex flex-col">
       <div class="p-4 border-b border-[#30363d] flex items-center justify-between">
-        <h3 class="text-sm font-bold text-white font-brand">บันทึกรายการหุ้นไทย</h3>
-        <button onclick="closeModal('modalThaiTrade')" class="text-gray-400 hover:text-white">&times;</button>
+        <h3 id="modalThaiTradeTitle" class="text-sm font-bold text-white font-brand">บันทึกรายการหุ้นไทย</h3>
+        <button onclick="closeModal('modalThaiTrade'); closeThaiEditMode();" class="text-gray-400 hover:text-white">&times;</button>
       </div>
       <div class="p-5 space-y-4 text-xs">
         <div>
@@ -812,7 +845,7 @@
         </div>
         <div class="grid grid-cols-3 gap-3">
           <div><label class="block text-gray-400 mb-1">Ticker (BKK:XX)</label>
-            <input type="text" id="thaiTradeTicker" placeholder="เช่น BKK:AS" oninput="this.value=this.value.toUpperCase();" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num uppercase focus:border-emerald-500 focus:outline-none">
+            <input type="text" id="thaiTradeTicker" placeholder="เช่น BKK:AS" oninput="this.value=this.value.toUpperCase();" onblur="onThaiTradeTickerBlur()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num uppercase focus:border-emerald-500 focus:outline-none">
           </div>
           <div><label class="block text-gray-400 mb-1">จำนวนหุ้น</label>
             <input type="number" step="any" id="thaiTradeShares" placeholder="0" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num focus:border-emerald-500 focus:outline-none">
@@ -829,7 +862,7 @@
         </div>
       </div>
       <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
-        <button onclick="closeModal('modalThaiTrade')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
+        <button onclick="closeModal('modalThaiTrade'); closeThaiEditMode();" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
         <button onclick="submitThaiTradeForm()" id="btnSaveThaiTrade" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">บันทึกข้อมูล</button>
       </div>
     </div>
@@ -965,7 +998,7 @@
         <div class="grid grid-cols-3 gap-3">
           <div>
             <label class="block text-gray-400 mb-1">Ticker</label>
-            <input type="text" id="tradeTicker" placeholder="เช่น TSLA" oninput="this.value = this.value.toUpperCase();" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num uppercase focus:border-blue-500 focus:outline-none">
+            <input type="text" id="tradeTicker" placeholder="เช่น TSLA" oninput="this.value = this.value.toUpperCase();" onblur="onTradeTickerBlur()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white font-num uppercase focus:border-blue-500 focus:outline-none">
           </div>
           <div>
             <label class="block text-gray-400 mb-1">จำนวนหุ้น</label>
@@ -1265,7 +1298,7 @@
       });
       if (viewName === 'thai')   renderThaiView();
       if (viewName === 'trades') renderTradesView();
-      if (viewName === 'forex') renderForexMonitorTable();
+      if (viewName === 'forex') { renderForexMonitorTable(); renderForexViewCards(); }
       if (viewName === 'cashflow') renderCashflowTable();
     }
 
@@ -1408,6 +1441,7 @@
       });
 
       renderForexGrowthChart();
+      renderForexViewCards();
       renderNetWorthTrendChart();
       renderAllocationPie();
     }
@@ -1438,6 +1472,54 @@
           scales: {
             x: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono' } } },
             y: { grid: { color: '#21262d' }, ticks: { color: '#8b949e', font: { family: 'JetBrains Mono' }, callback: v => '$' + v } }
+          }
+        }
+      });
+    }
+
+    /* ── N-1: Forex View Tab — mini-cards + growth chart ─────── */
+    let chartForexFV = null;
+    function renderForexViewCards() {
+      if (!appData) return;
+      const terms = appData.summary?.terminals || {};
+      const keys  = ['Terminal-01','Terminal-02','Terminal-03','Terminal-04'];
+      const ids   = ['fvT1','fvT2','fvT3','fvT4'];
+      keys.forEach(function(k,i) {
+        const t   = terms[k] || {};
+        const bal = document.getElementById(ids[i]+'Bal');
+        const pnl = document.getElementById(ids[i]+'Pnl');
+        if (bal) bal.innerText = formatNum(t.equityUSD||0,2);
+        if (pnl) {
+          const v = t.pnlUSD||0;
+          pnl.innerText  = (v>=0?'+':'') + '$' + formatNum(v,2);
+          pnl.className  = 'text-[10px] mt-0.5 ' + (v>=0?'text-emerald-400':'text-rose-400');
+        }
+      });
+      // growth chart FV (same data as Dashboard chart)
+      const ctx  = document.getElementById('chartForexGrowthFV');
+      if (!ctx) return;
+      const t1   = terms['Terminal-01']?.equityUSD||450;
+      const t2   = terms['Terminal-02']?.equityUSD||700;
+      const t3   = terms['Terminal-03']?.equityUSD||1160;
+      const t4   = terms['Terminal-04']?.equityUSD||747;
+      if (chartForexFV) chartForexFV.destroy();
+      chartForexFV = new Chart(ctx.getContext('2d'), {
+        type:'line',
+        data:{
+          labels:['เริ่มพอร์ต (2026-08-01)','ปัจจุบัน'],
+          datasets:[
+            { label:'Terminal A (01)', data:[380,t1], borderColor:'#3b82f6', tension:0.2 },
+            { label:'Terminal B (02)', data:[580,t2], borderColor:'#a855f7', tension:0.2 },
+            { label:'Terminal C (03)', data:[1050,t3], borderColor:'#f59e0b', tension:0.2 },
+            { label:'Terminal D (04)', data:[690,t4], borderColor:'#10b981', tension:0.2 }
+          ]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ labels:{ color:'#8b949e', font:{ family:'JetBrains Mono', size:10 } } } },
+          scales:{
+            x:{ grid:{ color:'#21262d' }, ticks:{ color:'#8b949e', font:{ family:'JetBrains Mono' } } },
+            y:{ grid:{ color:'#21262d' }, ticks:{ color:'#8b949e', font:{ family:'JetBrains Mono' }, callback:v=>'$'+v } }
           }
         }
       });
@@ -1862,6 +1944,9 @@
       document.getElementById('tradePrice').value = '';
       document.getElementById('tradeNote').value = '';
       document.getElementById('tradeDate').value = new Date().toISOString().slice(0, 10);
+      const grpSel = document.getElementById('tradeGroup');
+      grpSel.disabled = false;
+      grpSel.title    = '';
       setSide('BUY');
       openModal('modalTrade');
     }
@@ -2354,7 +2439,10 @@
           <td class="py-3 px-3 text-right text-gray-400">${formatNum(t.commission,2)} ฿</td>
           <td class="py-3 px-3 text-right text-gray-400">${formatNum(t.clearingFee||0,2)} ฿</td>
           <td class="py-3 px-3 text-right font-semibold text-white">${formatNum(t.netTHB,2)} ฿</td>
-          <td class="py-3 px-4 text-center"><button onclick="deleteThaiTradeItem('${t.id}')" class="text-rose-400 hover:text-white">ลบ</button></td>
+          <td class="py-3 px-4 text-center flex gap-2 justify-center">
+            <button onclick="openThaiEditModal('${t.id}')" class="text-blue-400 hover:text-white">แก้ไข</button>
+            <button onclick="deleteThaiTradeItem('${t.id}')" class="text-rose-400 hover:text-white">ลบ</button>
+          </td>
         </tr>`).join('');
     }
 
@@ -2362,33 +2450,44 @@
     let chartThaiGroup=null, chartThaiStock=null, chartUSGroup=null, chartUSStock=null, chartAlloc=null;
     const PIE_COLORS = ['#3b82f6','#10b981','#f59e0b','#a855f7','#ef4444','#06b6d4','#84cc16','#f97316'];
 
-    function buildPie(canvasId, labels, data, chartRef) {
+    /* ── X-4: buildPie with optional custom HTML legend ──────── */
+    function buildPie(canvasId, labels, data, chartRef, legendId) {
       const ctx = document.getElementById(canvasId);
       if (!ctx) return null;
       if (chartRef) chartRef.destroy();
-      return new Chart(ctx, {
+      const chart = new Chart(ctx, {
         type:'doughnut',
         data:{ labels, datasets:[{ data, backgroundColor:PIE_COLORS.slice(0,data.length), borderColor:'#161b22', borderWidth:2 }] },
         options:{ responsive:true, maintainAspectRatio:false, cutout:'60%',
-          plugins:{ legend:{ position:'right', labels:{ color:'#8b949e', font:{ family:'JetBrains Mono', size:10 }, boxWidth:10 } } } }
+          plugins:{ legend:{ display: !legendId } } }
       });
+      if (legendId) {
+        const leg = document.getElementById(legendId);
+        if (leg) {
+          const total = data.reduce((a,b)=>a+b,0)||1;
+          leg.innerHTML = labels.map((l,i)=>`
+            <div class="flex items-center gap-1.5 py-0.5">
+              <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${PIE_COLORS[i]||'#888'}"></div>
+              <span class="text-[10px] text-gray-300 font-num truncate">${l}</span>
+              <span class="text-[10px] text-gray-500 ml-auto font-num">${formatNum(data[i]/total*100,1)}%</span>
+            </div>`).join('');
+        }
+      }
+      return chart;
     }
 
     function renderThaiPieCharts(thai) {
-      // By Group
       const gMap={};
       thai.forEach(p=>{ gMap[p.group||'อื่นๆ']=(gMap[p.group||'อื่นๆ']||0)+p.marketTHB; });
       chartThaiGroup = buildPie('chartThaiByGroup', Object.keys(gMap), Object.values(gMap), chartThaiGroup);
-      // By Stock
-      chartThaiStock = buildPie('chartThaiByStock', thai.map(p=>p.ticker), thai.map(p=>p.marketTHB), chartThaiStock);
+      chartThaiStock = buildPie('chartThaiByStock', thai.map(p=>p.ticker), thai.map(p=>p.marketTHB), chartThaiStock, 'legendThaiByStock');
     }
 
     function renderUSPieCharts(positions) {
-      const fx = (appData.summary||{}).fxRate||33.14;
       const gMap={};
       positions.forEach(p=>{ gMap[p.group||'อื่นๆ']=(gMap[p.group||'อื่นๆ']||0)+p.marketUSD; });
       chartUSGroup = buildPie('chartUSByGroup', Object.keys(gMap), Object.values(gMap), chartUSGroup);
-      chartUSStock = buildPie('chartUSByStock', positions.map(p=>p.ticker), positions.map(p=>p.marketUSD), chartUSStock);
+      chartUSStock = buildPie('chartUSByStock', positions.map(p=>p.ticker), positions.map(p=>p.marketUSD), chartUSStock, 'legendUSByStock');
     }
 
     function renderAllocationPie() {
@@ -2539,6 +2638,9 @@
       document.getElementById('thaiTradePrice').value='';
       document.getElementById('thaiTradeNote').value='';
       document.getElementById('thaiTradeDate').value=new Date().toISOString().slice(0,10);
+      const grpSel = document.getElementById('thaiTradeGroup');
+      grpSel.disabled = false;
+      grpSel.title    = '';
       setThaiSide('BUY');
       openModal('modalThaiTrade');
     }
@@ -2550,16 +2652,96 @@
       const date  =document.getElementById('thaiTradeDate').value;
       const group =document.getElementById('thaiTradeGroup').value;
       const note  =document.getElementById('thaiTradeNote').value.trim();
-      if (!ticker)     return alert('กรุณาระบุ Ticker');
-      if (shares<=0)   return alert('กรุณากรอกจำนวนหุ้น');
-      if (price<=0)    return alert('กรุณากรอกราคา (฿)');
+      if (!ticker)   return alert('กรุณาระบุ Ticker');
+      if (shares<=0) return alert('กรุณากรอกจำนวนหุ้น');
+      if (price<=0)  return alert('กรุณากรอกราคา (฿)');
       const btn=document.getElementById('btnSaveThaiTrade');
       btn.innerText='กำลังบันทึก...'; btn.disabled=true;
-      apiCall('addThaiTrade',{side:selectedThaiSide,ticker,shares,price,date,group,note},res=>{
-        btn.innerText='บันทึกข้อมูล'; btn.disabled=false;
-        if (res.ok) { closeModal('modalThaiTrade'); loadDashboardData(); }
-        else alert('ผิดพลาด: '+res.error);
-      });
+      // N-2: branch add vs update
+      if (thaiEditId) {
+        apiCall('updateThaiTrade',{id:thaiEditId,side:selectedThaiSide,ticker,shares,price,date,group,note},res=>{
+          btn.innerText='บันทึกข้อมูล'; btn.disabled=false;
+          if (res.ok) { closeModal('modalThaiTrade'); closeThaiEditMode(); loadDashboardData(); }
+          else alert('ผิดพลาด: '+res.error);
+        });
+      } else {
+        apiCall('addThaiTrade',{side:selectedThaiSide,ticker,shares,price,date,group,note},res=>{
+          btn.innerText='บันทึกข้อมูล'; btn.disabled=false;
+          if (res.ok) { closeModal('modalThaiTrade'); loadDashboardData(); }
+          else alert('ผิดพลาด: '+res.error);
+        });
+      }
+    }
+
+    /* ── B-2: Group auto-fill + lock ────────────────────────── */
+    function onTradeTickerBlur() {
+      const ticker = document.getElementById('tradeTicker').value.trim().toUpperCase();
+      const grpSel = document.getElementById('tradeGroup');
+      if (!ticker || !appData) { grpSel.disabled = false; return; }
+      const allTrades = [
+        ...(appData.summary?.positions     || []),
+        ...(appData.summary?.pendingOrders || [])
+      ];
+      const match = allTrades.find(t => String(t.ticker || '').toUpperCase() === ticker && t.group);
+      if (match) {
+        grpSel.value    = match.group;
+        grpSel.disabled = true;
+        grpSel.title    = 'กลุ่มถูกผูกกับ ' + ticker + ' แล้ว';
+      } else {
+        grpSel.disabled = false;
+        grpSel.title    = '';
+      }
+    }
+
+    function onThaiTradeTickerBlur() {
+      const ticker = document.getElementById('thaiTradeTicker').value.trim().toUpperCase();
+      const grpSel = document.getElementById('thaiTradeGroup');
+      if (!ticker || !appData) { grpSel.disabled = false; return; }
+      const allThai = appData.summary?.thaiPositions || [];
+      const match = allThai.find(t => String(t.ticker || '').toUpperCase() === ticker && t.group);
+      if (match) {
+        grpSel.value    = match.group;
+        grpSel.disabled = true;
+        grpSel.title    = 'กลุ่มถูกผูกกับ ' + ticker + ' แล้ว';
+      } else {
+        grpSel.disabled = false;
+        grpSel.title    = '';
+      }
+    }
+
+    /* ── N-2: Thai Trade Edit (backdate + corrections) ──────── */
+    let thaiEditId = null;
+    function openThaiEditModal(id) {
+      const trade = (appData.thaiTrades||[]).find(t=>t.id===id);
+      if (!trade) return alert('ไม่พบรายการ id: ' + id);
+      thaiEditId = id;
+      // Pre-fill modal fields
+      document.getElementById('thaiTradeTicker').value = trade.ticker||'';
+      document.getElementById('thaiTradeShares').value = trade.shares||'';
+      document.getElementById('thaiTradePrice').value  = trade.price||'';
+      document.getElementById('thaiTradeNote').value   = trade.note||'';
+      document.getElementById('thaiTradeDate').value   = trade.date||new Date().toISOString().slice(0,10);
+      // group
+      const grpSel = document.getElementById('thaiTradeGroup');
+      grpSel.value    = trade.group||'';
+      grpSel.disabled = true;
+      grpSel.title    = 'กลุ่มถูกผูกกับ ' + trade.ticker + ' แล้ว';
+      // side
+      setThaiSide(trade.side||'BUY');
+      // change modal title + button
+      const title = document.getElementById('modalThaiTradeTitle');
+      if (title) title.innerText = 'แก้ไขรายการหุ้นไทย (Edit Trade)';
+      const btn = document.getElementById('btnSubmitThaiTrade');
+      if (btn) btn.innerText = 'บันทึกการแก้ไข';
+      openModal('modalThaiTrade');
+    }
+
+    function closeThaiEditMode() {
+      thaiEditId = null;
+      const title = document.getElementById('modalThaiTradeTitle');
+      if (title) title.innerText = 'บันทึกการลงทุนหุ้นไทย (Trade / Order)';
+      const btn = document.getElementById('btnSubmitThaiTrade');
+      if (btn) btn.innerText = 'บันทึกข้อมูล';
     }
 
     function deleteThaiTradeItem(id) {
