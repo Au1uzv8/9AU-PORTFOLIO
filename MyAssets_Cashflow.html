@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>9AU Portfolio — Cashflow</title>
+  <link rel="apple-touch-icon" href="profile.png">
+  <link rel="icon" type="image/png" href="profile.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#161b22">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:'Sarabun',sans-serif;background:#0d1117;color:#c9d1d9;}
+    .fn{font-family:'JetBrains Mono',monospace;font-feature-settings:"tnum";}
+    .fb{font-family:'Chakra Petch',sans-serif;}
+    .cd{background:#161b22;border:1px solid #30363d;}
+    .nav-tab{padding:8px 16px;border-radius:10px;font-size:12px;font-weight:600;transition:.15s;white-space:nowrap;border:1px solid #30363d;text-decoration:none;display:inline-block;}
+    .nav-tab.active{background:#059669;color:#fff;border-color:#059669;}
+    .nav-tab:not(.active){background:#161b22;color:#64748b;}
+    .nav-tab:not(.active):hover{color:#fff;border-color:#475569;}
+    .no-scrollbar::-webkit-scrollbar{display:none;}
+  </style>
+</head>
+<body class="min-h-screen antialiased pb-16">
+
+<header class="border-b border-[#30363d] bg-[#161b22]/90 backdrop-blur sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-500 flex-shrink-0">
+        <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
+      </div>
+      <div>
+        <div class="text-sm font-bold text-white fb">กระแสเงินสด (Cashflow)</div>
+        <div class="text-[11px] text-gray-400">บันทึกเงินสดรับ-จ่าย และโอนย้ายสภาพคล่อง</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <button onclick="loadBootstrap()" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      </button>
+      <button onclick="logout()" class="p-2 text-rose-400 hover:text-rose-300 rounded-lg border border-[#30363d] bg-[#21262d] transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
+    <a href="MyAssets.html"          class="nav-tab">Dashboard</a>
+    <a href="MyAssets_Thai.html"     class="nav-tab">หุ้นไทย</a>
+    <a href="MyAssets_US.html"       class="nav-tab">US ETF</a>
+    <a href="MyAssets_Forex.html"    class="nav-tab">FOREX MT5</a>
+    <a href="MyAssets_Cashflow.html" class="nav-tab active">Cashflow</a>
+    <a href="MyAssets_README.html"   class="nav-tab" style="color:#d97706">README</a>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 pt-5 space-y-5">
+
+  <div id="loadingBanner" class="hidden flex items-center justify-center gap-2 p-3 rounded-xl bg-blue-950/40 border border-blue-800/50 text-blue-300 text-xs">
+    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+    กำลังโหลดข้อมูล...
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">รับเข้าทั้งหมด</div><div class="text-xl font-bold text-emerald-400 fn" id="cfTotalIn">0.00 ฿</div></div>
+    <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">จ่ายออกทั้งหมด</div><div class="text-xl font-bold text-rose-400 fn" id="cfTotalOut">0.00 ฿</div></div>
+    <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">กระแสสุทธิ</div><div class="text-xl font-bold fn" id="cfNet">0.00 ฿</div></div>
+    <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">รายการทั้งหมด</div><div class="text-xl font-bold text-white fn" id="cfCount">0</div></div>
+  </div>
+
+  <!-- TOOLBAR + TABLE -->
+  <div class="cd rounded-2xl overflow-hidden">
+    <div class="p-4 border-b border-[#30363d] flex flex-col md:flex-row gap-3 items-center justify-between">
+      <h3 class="text-xs font-bold text-white uppercase tracking-wider">ประวัติกระแสเงินสด</h3>
+      <div class="flex items-center gap-2 flex-wrap">
+        <select id="filterCFType" onchange="renderCashflow()" class="bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-white focus:border-emerald-500 focus:outline-none">
+          <option value="">ทุกทิศทาง</option>
+          <option value="in">รับเข้า</option>
+          <option value="out">จ่ายออก</option>
+        </select>
+        <button onclick="openCFModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold">+ บันทึกรายการ</button>
+        <button onclick="exportCashflowCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">CSV</button>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs fn">
+        <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d]">
+          <tr>
+            <th class="py-3 px-4">วันที่</th>
+            <th class="py-3 px-3">ทิศทาง</th>
+            <th class="py-3 px-3">หมวดหมู่</th>
+            <th class="py-3 px-3">บัญชี</th>
+            <th class="py-3 px-3 text-right">จำนวน (฿)</th>
+            <th class="py-3 px-4">หมายเหตุ</th>
+            <th class="py-3 px-4 text-center">จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="cfBody" class="divide-y divide-[#30363d]"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL: Cashflow -->
+<div id="modalCF" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="cd rounded-2xl w-full max-w-md border border-[#30363d] overflow-hidden">
+    <div class="p-4 border-b border-[#30363d] flex items-center justify-between">
+      <h3 class="text-sm font-bold text-white fb">บันทึกกระแสเงินสด</h3>
+      <button onclick="closeModal('modalCF')" class="text-gray-400 hover:text-white text-lg">&times;</button>
+    </div>
+    <div class="p-5 space-y-4 text-xs">
+      <div>
+        <label class="block text-gray-400 mb-1.5">ทิศทางเงิน</label>
+        <div class="grid grid-cols-2 gap-2 font-semibold">
+          <button onclick="setCFType('out')" id="btnCFOut" class="py-2.5 rounded-xl border border-rose-500 bg-rose-500/20 text-rose-300 font-bold transition">โอนออก / จ่ายออก</button>
+          <button onclick="setCFType('in')"  id="btnCFIn"  class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">รับเข้า / โอนเข้าลงทุน</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-gray-400 mb-1">วันที่</label>
+          <input type="date" id="cfDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-emerald-500 focus:outline-none">
+        </div>
+        <div><label class="block text-gray-400 mb-1">หมวดหมู่</label>
+          <select id="cfCategory" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-emerald-500 focus:outline-none"></select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-gray-400 mb-1">บัญชีที่ใช้</label>
+          <select id="cfAccount" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-emerald-500 focus:outline-none"></select>
+        </div>
+        <div><label class="block text-gray-400 mb-1">จำนวนเงิน (฿)</label>
+          <input type="number" step="any" id="cfAmount" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn font-bold focus:border-emerald-500 focus:outline-none">
+        </div>
+      </div>
+      <div><label class="block text-gray-400 mb-1">หมายเหตุ</label>
+        <input type="text" id="cfNote" placeholder="รายละเอียดเพิ่มเติม" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-emerald-500 focus:outline-none">
+      </div>
+    </div>
+    <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
+      <button onclick="closeModal('modalCF')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
+      <button onclick="submitCF()" id="btnSaveCF" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+const BACKEND='https://script.google.com/macros/s/AKfycbw_P74pybIzkQ0SSa0RuO8lFgjbgDh5KSerIoL9NcNR1IVAOJ0Jyz3Vb4-khVlsEfNN/exec';
+let currentToken=localStorage.getItem('portfolio_token')||'';
+let appData=null, selectedCFType='out';
+
+if(!currentToken){location.replace('MyAssets.html');}
+
+function apiCall(action,payload,cb){
+  const cbName='jcb_'+Math.round(1e6*Math.random());
+  const script=document.createElement('script');let done=false;
+  const timer=setTimeout(()=>{if(!done){done=true;cleanup();cb({ok:false,error:'timeout'});}},15000);
+  window[cbName]=data=>{if(!done){done=true;clearTimeout(timer);cleanup();cb(data);}};
+  script.onerror=()=>{if(!done){done=true;clearTimeout(timer);cleanup();cb({ok:false,error:'network'});}};
+  const ps=encodeURIComponent(JSON.stringify(payload||{}));
+  script.src=`${BACKEND}?callback=${cbName}&action=${action}&token=${encodeURIComponent(currentToken)}&payload=${ps}&_t=${Date.now()}`;
+  document.body.appendChild(script);
+  function cleanup(){delete window[cbName];if(script.parentNode)script.parentNode.removeChild(script);}
+}
+
+function loadBootstrap(cb){
+  document.getElementById('loadingBanner').classList.remove('hidden');
+  apiCall('bootstrap',{},res=>{
+    document.getElementById('loadingBanner').classList.add('hidden');
+    if(!res.ok){if(res.error?.includes('บัตรผ่าน'))logout();return;}
+    appData=res.data;
+    populateDropdowns();
+    renderCashflow();
+    if(cb)cb();
+  });
+}
+function logout(){currentToken='';localStorage.removeItem('portfolio_token');location.replace('MyAssets.html');}
+
+function renderCashflow(){
+  if(!appData)return;
+  const filter=document.getElementById('filterCFType').value;
+  let list=(appData.cashflow||[]).slice().reverse();
+  if(filter)list=list.filter(c=>c.type===filter);
+
+  let totalIn=0,totalOut=0;
+  list.forEach(c=>{const a=Number(c.amountTHB)||0;c.type==='in'?totalIn+=a:totalOut+=a;});
+  const net=totalIn-totalOut;
+
+  document.getElementById('cfTotalIn').textContent='+'+fmtN(totalIn)+' ฿';
+  document.getElementById('cfTotalOut').textContent='-'+fmtN(totalOut)+' ฿';
+  const nEl=document.getElementById('cfNet');
+  nEl.textContent=(net>=0?'+':'')+fmtN(net)+' ฿';
+  nEl.className='text-xl font-bold fn '+(net>=0?'text-emerald-400':'text-rose-400');
+  document.getElementById('cfCount').textContent=list.length;
+
+  const tbody=document.getElementById('cfBody');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="7" class="py-6 text-center text-gray-500">ไม่พบรายการกระแสเงินสด</td></tr>`;return;}
+  tbody.innerHTML=list.map(c=>{
+    const isIn=c.type==='in';
+    return `<tr class="hover:bg-[#1c2128]">
+      <td class="py-3 px-4 text-gray-300">${c.date}</td>
+      <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] ${isIn?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'}">${isIn?'รับเข้า':'จ่ายออก'}</span></td>
+      <td class="py-3 px-3 text-gray-300">${c.category||'-'}</td>
+      <td class="py-3 px-3 text-gray-400">${c.account||'-'}</td>
+      <td class="py-3 px-3 text-right font-bold ${isIn?'text-emerald-400':'text-rose-400'}">${isIn?'+':'-'}${fmtN(c.amountTHB)} ฿</td>
+      <td class="py-3 px-4 text-gray-400">${c.note||'-'}</td>
+      <td class="py-3 px-4 text-center"><button onclick="deleteCF('${c.id}')" class="text-rose-400 hover:text-white">ลบ</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function populateDropdowns(){
+  const accSel=document.getElementById('cfAccount');
+  const accs=(appData?.accounts||[]).filter(a=>a.currency==='THB'&&a.id!=='A4'&&a.id!=='A5');
+  accSel.innerHTML=accs.map(a=>`<option value="${a.name}">${a.name}</option>`).join('');
+  updateCatDropdown(selectedCFType);
+}
+function updateCatDropdown(type){
+  const sel=document.getElementById('cfCategory');
+  const inOpts=['โอนเข้าลงทุน','เงินเดือน / รายได้','ถอนกำไรจากพอร์ต','เงินปันผล / ดอกเบี้ย','เงินคืน / รายรับอื่นๆ'];
+  const outOpts=['โอนออก','ค่าใช้จ่ายทั่วไป','ออมเงิน','ถอนเงินสด','ค่าธรรมเนียม / อื่นๆ'];
+  sel.innerHTML=(type==='in'?inOpts:outOpts).map(c=>`<option>${c}</option>`).join('');
+}
+function setCFType(t){
+  selectedCFType=t;
+  const bOut=document.getElementById('btnCFOut'),bIn=document.getElementById('btnCFIn');
+  if(t==='out'){bOut.className='py-2.5 rounded-xl border border-rose-500 bg-rose-500/20 text-rose-300 font-bold transition';bIn.className='py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition';}
+  else{bIn.className='py-2.5 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold transition';bOut.className='py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition';}
+  updateCatDropdown(t);
+}
+function openCFModal(){
+  document.getElementById('cfAmount').value='';
+  document.getElementById('cfNote').value='';
+  document.getElementById('cfDate').value=new Date().toISOString().slice(0,10);
+  setCFType('out');
+  openModal('modalCF');
+}
+function submitCF(){
+  const amount=Number(document.getElementById('cfAmount').value);
+  if(amount<=0)return alert('กรุณากรอกจำนวนเงิน');
+  const btn=document.getElementById('btnSaveCF');btn.textContent='กำลังบันทึก...';btn.disabled=true;
+  apiCall('addCashflow',{type:selectedCFType,category:document.getElementById('cfCategory').value,account:document.getElementById('cfAccount').value,amountTHB:amount,date:document.getElementById('cfDate').value,note:document.getElementById('cfNote').value.trim()},res=>{
+    btn.textContent='บันทึก';btn.disabled=false;
+    if(res.ok){closeModal('modalCF');loadBootstrap();}else alert('ผิดพลาด: '+res.error);
+  });
+}
+function deleteCF(id){
+  if(!confirm('ยืนยันลบรายการนี้?'))return;
+  apiCall('deleteCashflow',{id},res=>{if(res.ok)loadBootstrap();else alert('ผิดพลาด: '+res.error);});
+}
+function exportCashflowCSV(){
+  if(!appData?.cashflow)return;
+  const h=['id','date','type','category','account','amountTHB','note'];
+  let csv=h.join(',')+'\n';
+  appData.cashflow.forEach(c=>{csv+=h.map(k=>`"${String(c[k]||'').replace(/"/g,'""')}"`).join(',')+'\n';});
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`CASHFLOW_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);a.click();a.remove();
+}
+function fmtN(n,d=2){return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function openModal(id){document.getElementById(id).classList.remove('hidden');}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+
+document.addEventListener('DOMContentLoaded',loadBootstrap);
+</script>
+</body>
+</html>

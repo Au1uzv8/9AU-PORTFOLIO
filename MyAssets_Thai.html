@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>9AU Portfolio — หุ้นไทย</title>
+  <link rel="apple-touch-icon" href="profile.png">
+  <link rel="icon" type="image/png" href="profile.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#161b22">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family:'Sarabun',sans-serif; background:#0d1117; color:#c9d1d9; }
+    .fn { font-family:'JetBrains Mono',monospace; font-feature-settings:"tnum"; }
+    .fb { font-family:'Chakra Petch',sans-serif; }
+    .cd { background:#161b22; border:1px solid #30363d; }
+    .pulse-dot { animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .nav-tab { padding:8px 16px;border-radius:10px;font-size:12px;font-weight:600;transition:.15s;white-space:nowrap;border:1px solid #30363d;text-decoration:none;display:inline-block; }
+    .nav-tab.active { background:#0d9488;color:#fff;border-color:#0d9488; }
+    .nav-tab:not(.active) { background:#161b22;color:#64748b; }
+    .nav-tab:not(.active):hover { color:#fff;border-color:#475569; }
+    .no-scrollbar::-webkit-scrollbar { display:none; }
+  </style>
+</head>
+<body class="min-h-screen antialiased pb-16">
+
+<!-- ── HEADER ─────────────────────────────────────────────── -->
+<header class="border-b border-[#30363d] bg-[#161b22]/90 backdrop-blur sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="w-9 h-9 rounded-full overflow-hidden border-2 border-teal-500 flex-shrink-0">
+        <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
+      </div>
+      <div>
+        <div class="text-sm font-bold text-white fb">หุ้นไทย (Thai Stocks)</div>
+        <div class="flex items-center gap-1.5 text-[11px] text-gray-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+          <span>USD/THB: <strong id="hFx" class="fn text-gray-200">--.--</strong></span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <button onclick="loadBootstrap()" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="รีเฟรช">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      </button>
+      <button onclick="logout()" class="p-2 text-rose-400 hover:text-rose-300 rounded-lg border border-[#30363d] bg-[#21262d] transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
+    <a href="MyAssets.html"          class="nav-tab">Dashboard</a>
+    <a href="MyAssets_Thai.html"     class="nav-tab active">หุ้นไทย</a>
+    <a href="MyAssets_US.html"       class="nav-tab">US ETF</a>
+    <a href="MyAssets_Forex.html"    class="nav-tab">FOREX MT5</a>
+    <a href="MyAssets_Cashflow.html" class="nav-tab">Cashflow</a>
+    <a href="MyAssets_README.html"   class="nav-tab" style="color:#d97706">README</a>
+  </div>
+</header>
+
+<!-- ── MAIN ───────────────────────────────────────────────── -->
+<main class="max-w-7xl mx-auto px-4 pt-5 space-y-5">
+
+  <div id="loadingBanner" class="hidden flex items-center justify-center gap-2 p-3 rounded-xl bg-blue-950/40 border border-blue-800/50 text-blue-300 text-xs">
+    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+    กำลังโหลดข้อมูล...
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="cd rounded-2xl p-4 border border-teal-500/30">
+    <div class="text-xs font-bold text-teal-400 mb-3 uppercase tracking-wider">Group-4: สรุปพอร์ตหุ้นไทย (THB)</div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
+        <div class="text-[11px] text-gray-400">ต้นทุนรวม</div>
+        <div class="text-lg font-bold text-white fn mt-1">฿ <span id="thaiCost">0.00</span></div>
+      </div>
+      <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
+        <div class="text-[11px] text-gray-400">มูลค่าปัจจุบัน</div>
+        <div class="text-lg font-bold text-white fn mt-1">฿ <span id="thaiMarket">0.00</span></div>
+      </div>
+      <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
+        <div class="text-[11px] text-gray-400">กำไร / ขาดทุน</div>
+        <div class="text-lg font-bold fn mt-1" id="thaiPnlEl">฿ 0.00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIE CHARTS -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="cd rounded-2xl p-4">
+      <div class="text-xs font-bold text-gray-400 uppercase mb-3">สัดส่วนตามกลุ่ม</div>
+      <div class="relative h-48"><canvas id="chartThaiGroup"></canvas></div>
+    </div>
+    <div class="cd rounded-2xl p-4">
+      <div class="text-xs font-bold text-gray-400 uppercase mb-3">สัดส่วนรายหุ้น</div>
+      <div class="relative h-48"><canvas id="chartThaiStock"></canvas></div>
+      <div id="legendThaiStock" class="mt-3 grid grid-cols-2 gap-1"></div>
+    </div>
+  </div>
+
+  <!-- HOLDINGS TABLE -->
+  <div class="cd rounded-2xl overflow-hidden">
+    <div class="p-4 border-b border-[#30363d] flex flex-wrap gap-2 justify-between items-center">
+      <div class="flex items-center gap-3">
+        <h3 class="text-xs font-bold text-white uppercase tracking-wider">พอร์ตหุ้นไทยที่ถือครอง</h3>
+        <button onclick="openThaiWatchlist()" class="px-3 py-1 rounded-full bg-rose-600/20 text-rose-300 border border-rose-500/40 text-[11px] font-bold hover:bg-rose-600 hover:text-white transition">
+          Watchlist (<span id="thaiWLCount">0</span>)
+        </button>
+      </div>
+      <span class="text-[11px] text-amber-400/80">ดับเบิลคลิกที่แถวหุ้น เพื่อตั้งราคาเป้าหมาย</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs fn">
+        <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d]">
+          <tr>
+            <th class="py-3 px-4">Ticker</th>
+            <th class="py-3 px-3 text-right">จำนวน</th>
+            <th class="py-3 px-3 text-right">ทุนเฉลี่ย (฿)</th>
+            <th class="py-3 px-3 text-right">ราคา (฿)</th>
+            <th class="py-3 px-3 text-right text-teal-300">ต้นทุนสุทธิ (฿)</th>
+            <th class="py-3 px-3 text-right">มูลค่า (฿)</th>
+            <th class="py-3 px-3 text-right">P/L (฿)</th>
+            <th class="py-3 px-4 text-right">%</th>
+          </tr>
+        </thead>
+        <tbody id="thaiHoldingsBody" class="divide-y divide-[#30363d] cursor-pointer"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TRADE LOG -->
+  <div class="cd rounded-2xl overflow-hidden">
+    <div class="p-4 border-b border-[#30363d] flex flex-col md:flex-row gap-3 items-center justify-between">
+      <h3 class="text-xs font-bold text-white uppercase tracking-wider">ประวัติรายการหุ้นไทย</h3>
+      <div class="flex items-center gap-2">
+        <input type="text" id="filterThaiTicker" placeholder="ค้นหา Ticker..." oninput="renderThaiLogs()" class="bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-white uppercase focus:border-teal-500 focus:outline-none">
+        <button onclick="openThaiTradeModal()" class="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold">+ บันทึกรายการ</button>
+        <button onclick="exportThaiCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">CSV</button>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs fn">
+        <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d]">
+          <tr>
+            <th class="py-3 px-4">วันที่</th>
+            <th class="py-3 px-3">ประเภท</th>
+            <th class="py-3 px-3">Ticker</th>
+            <th class="py-3 px-3 text-right">จำนวน</th>
+            <th class="py-3 px-3 text-right">ราคา (฿)</th>
+            <th class="py-3 px-3 text-right">Comm (฿)</th>
+            <th class="py-3 px-3 text-right">Clearing (฿)</th>
+            <th class="py-3 px-3 text-right">ยอดสุทธิ (฿)</th>
+            <th class="py-3 px-4 text-center">จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="thaiLogsBody" class="divide-y divide-[#30363d]"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── MODAL: Thai Trade ───────────────────────────────────── -->
+<div id="modalThaiTrade" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="cd rounded-2xl w-full max-w-lg border border-[#30363d] overflow-hidden">
+    <div class="p-4 border-b border-[#30363d] flex items-center justify-between">
+      <h3 id="thaiTradeModalTitle" class="text-sm font-bold text-white fb">บันทึกรายการหุ้นไทย</h3>
+      <button onclick="closeThaiTradeModal()" class="text-gray-400 hover:text-white text-lg">&times;</button>
+    </div>
+    <div class="p-5 space-y-4 text-xs">
+      <div>
+        <label class="block text-gray-400 mb-1.5">ประเภทคำสั่ง</label>
+        <div class="grid grid-cols-4 gap-2 fn font-semibold text-center">
+          <button onclick="setThaiSide('BUY')"    id="btnTBUY"   class="py-2.5 rounded-xl border border-teal-500 bg-teal-500/20 text-teal-300 font-bold transition">BUY</button>
+          <button onclick="setThaiSide('W-BUY')"  id="btnTWBUY"  class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">W-BUY</button>
+          <button onclick="setThaiSide('SELL')"   id="btnTSELL"  class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">SELL</button>
+          <button onclick="setThaiSide('W-SELL')" id="btnTWSELL" class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">W-SELL</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-gray-400 mb-1">วันที่</label>
+          <input type="date" id="thaiDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-teal-500 focus:outline-none">
+        </div>
+        <div><label class="block text-gray-400 mb-1">กลุ่มการลงทุน</label>
+          <select id="thaiGroup" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-teal-500 focus:outline-none">
+            <option>Satellite</option><option>Core (NAV growth)</option><option>Monthly Income</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div><label class="block text-gray-400 mb-1">Ticker</label>
+          <input type="text" id="thaiTicker" placeholder="BKK:AS" oninput="this.value=this.value.toUpperCase()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn uppercase focus:border-teal-500 focus:outline-none">
+        </div>
+        <div><label class="block text-gray-400 mb-1">จำนวนหุ้น</label>
+          <input type="number" step="any" id="thaiShares" placeholder="0" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-teal-500 focus:outline-none">
+        </div>
+        <div><label class="block text-gray-400 mb-1">ราคา (฿)</label>
+          <input type="number" step="any" id="thaiPrice" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-teal-500 focus:outline-none">
+        </div>
+      </div>
+      <div><label class="block text-gray-400 mb-1">หมายเหตุ</label>
+        <input type="text" id="thaiNote" placeholder="รายละเอียดเพิ่มเติม" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-teal-500 focus:outline-none">
+      </div>
+      <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d] text-[11px] text-gray-400 fn">
+        Fee: Commission 0.15% + Clearing 0.0072% + VAT 7% — คำนวณโดย Apps Script
+      </div>
+    </div>
+    <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
+      <button onclick="closeThaiTradeModal()" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
+      <button onclick="submitThaiTrade()" id="btnSaveThai" class="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Thai Watchlist ───────────────────────────────── -->
+<div id="modalThaiWatchlist" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="cd rounded-2xl w-full max-w-2xl border border-[#30363d] overflow-hidden">
+    <div class="p-4 border-b border-[#30363d] flex items-center justify-between bg-[#161b22]">
+      <h3 class="text-sm font-bold text-white fb">Watchlist หุ้นไทย</h3>
+      <button onclick="closeModal('modalThaiWatchlist')" class="text-gray-400 hover:text-white text-lg">&times;</button>
+    </div>
+    <div class="p-4 border-b border-[#30363d] bg-[#0d1117] flex gap-2">
+      <input type="text" id="newThaiWL" placeholder="BKK:KBANK, BKK:SCB..." oninput="this.value=this.value.toUpperCase()" class="flex-1 bg-[#161b22] border border-[#30363d] rounded-xl px-3 py-2 text-xs text-white fn uppercase focus:border-rose-500 focus:outline-none">
+      <button onclick="addThaiWL()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold whitespace-nowrap">+ เพิ่ม</button>
+    </div>
+    <div class="p-4 overflow-y-auto max-h-96">
+      <table class="w-full text-left text-xs fn">
+        <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d]">
+          <tr>
+            <th class="py-2.5 px-3">Ticker</th>
+            <th class="py-2.5 px-3 text-right">ราคา (฿)</th>
+            <th class="py-2.5 px-3 text-center">52W Range</th>
+            <th class="py-2.5 px-3 text-right">เป้าซื้อ</th>
+            <th class="py-2.5 px-3 text-right">เป้าขาย</th>
+            <th class="py-2.5 px-3 text-center">จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="thaiWLBody" class="divide-y divide-[#30363d] cursor-pointer"></tbody>
+      </table>
+    </div>
+    <div class="p-3 border-t border-[#30363d] flex justify-end bg-[#161b22]">
+      <button onclick="closeModal('modalThaiWatchlist')" class="px-4 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] text-gray-300 hover:text-white font-semibold text-xs">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Thai Alert ───────────────────────────────────── -->
+<div id="modalThaiAlert" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="cd rounded-2xl w-full max-w-lg border border-teal-500/40 overflow-hidden">
+    <div class="p-4 border-b border-[#30363d] flex items-center justify-between bg-gradient-to-r from-teal-950/40 to-[#161b22]">
+      <div class="flex items-center gap-2">
+        <span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 font-bold fn text-sm" id="thaiAltTicker">TICKER</span>
+        <span class="text-xs text-gray-400" id="thaiAltTypeTag">EXISTING</span>
+      </div>
+      <button onclick="closeModal('modalThaiAlert')" class="text-gray-400 hover:text-white text-lg">&times;</button>
+    </div>
+    <div class="p-5 space-y-4 text-xs">
+      <div class="bg-[#0d1117] p-4 rounded-xl border border-[#30363d] fn">
+        <div class="flex justify-between items-end">
+          <div><span class="text-[11px] text-gray-400">ราคาปัจจุบัน</span><div class="text-2xl font-bold text-white mt-0.5">฿<span id="thaiAltPrice">0.00</span></div></div>
+          <div class="text-right" id="thaiAltHoldBox">
+            <span class="text-[11px] text-gray-400">ถือครอง</span>
+            <div class="text-sm font-semibold text-gray-200" id="thaiAltShares">-</div>
+            <div class="text-xs font-bold" id="thaiAltPnl">-</div>
+          </div>
+        </div>
+        <div class="space-y-1.5 pt-2 border-t border-[#21262d] mt-3">
+          <div class="flex justify-between text-[11px]">
+            <span class="text-gray-400">52W Low: <strong class="text-rose-400">฿<span id="thaiAltLow">0.00</span></strong></span>
+            <span class="text-teal-400 font-bold" id="thaiAltRange">50%</span>
+            <span class="text-gray-400">52W High: <strong class="text-emerald-400">฿<span id="thaiAltHigh">0.00</span></strong></span>
+          </div>
+          <div class="h-3 w-full bg-[#21262d] rounded-full overflow-hidden">
+            <div id="thaiAltBar" class="h-full bg-gradient-to-r from-teal-500 to-emerald-400 rounded-full transition-all duration-500" style="width:50%"></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-[#0d1117] p-3.5 rounded-xl border border-teal-500/30">
+          <label class="text-teal-400 font-bold flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="thaiAltBuyChk" class="w-4 h-4 rounded focus:ring-0"> เตือนเมื่ออยากซื้อ
+          </label>
+          <input type="number" step="any" id="thaiAltBuyPrice" placeholder="ราคาเป้า (฿)" class="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-1.5 text-white fn font-bold focus:border-teal-500 focus:outline-none mt-2">
+        </div>
+        <div class="bg-[#0d1117] p-3.5 rounded-xl border border-rose-500/30">
+          <label class="text-rose-400 font-bold flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="thaiAltSellChk" class="w-4 h-4 rounded focus:ring-0"> เตือนเมื่ออยากขาย
+          </label>
+          <input type="number" step="any" id="thaiAltSellPrice" placeholder="ราคาเป้า (฿)" class="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-1.5 text-white fn font-bold focus:border-rose-500 focus:outline-none mt-2">
+        </div>
+      </div>
+      <div><label class="block text-gray-400 mb-1">บันทึกแผนการเทรด</label>
+        <input type="text" id="thaiAltNote" placeholder="เช่น รอซื้อแถวแนวรับ 52W Low" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-teal-500 focus:outline-none">
+      </div>
+    </div>
+    <div class="p-4 border-t border-[#30363d] flex justify-between items-center bg-[#161b22]">
+      <button onclick="testThaiTelegram()" class="px-3 py-2 rounded-xl border border-[#30363d] bg-[#21262d] text-teal-400 hover:text-white font-semibold text-xs transition">Telegram Test</button>
+      <div class="flex gap-2">
+        <button onclick="closeModal('modalThaiAlert')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white text-xs">ยกเลิก</button>
+        <button onclick="submitThaiAlert()" class="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-xs">บันทึกเป้าหมาย</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SCRIPT ──────────────────────────────────────────────── -->
+<script>
+'use strict';
+
+const BACKEND = 'https://script.google.com/macros/s/AKfycbw_P74pybIzkQ0SSa0RuO8lFgjbgDh5KSerIoL9NcNR1IVAOJ0Jyz3Vb4-khVlsEfNN/exec';
+const FB_CFG  = {
+  apiKey:"AIzaSyBOJsWzqqt9DfvyHHRjbAZMSiGevd7UOsE",
+  authDomain:"au-portfolio-7d687.firebaseapp.com",
+  databaseURL:"https://au-portfolio-7d687-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"au-portfolio-7d687",
+  storageBucket:"au-portfolio-7d687.firebasestorage.app",
+  messagingSenderId:"806351101494",
+  appId:"1:806351101494:web:c832da2ef2baff90d18297"
+};
+
+let currentToken = localStorage.getItem('portfolio_token') || '';
+let appData      = null;
+let rtData       = null;
+let selectedThaiSide = 'BUY';
+let thaiEditId   = null;
+let activeThaiTicker = null;
+let chartTG = null, chartTS = null;
+
+const PIE_COLORS = ['#3b82f6','#10b981','#f59e0b','#a855f7','#ef4444','#06b6d4','#84cc16','#f97316'];
+
+/* ── Auth guard ──────────────────────────────────────────── */
+if (!currentToken) { location.replace('MyAssets.html'); }
+
+/* ── Firebase ────────────────────────────────────────────── */
+firebase.initializeApp(FB_CFG);
+const db = firebase.database();
+db.ref('realtime').on('value', snap => {
+  rtData = snap.val();
+  if (rtData) {
+    document.getElementById('hFx').textContent = fmtN(rtData.fxRate||33.14,2);
+    renderThaiView();
+  }
+});
+
+/* ── JSONP ───────────────────────────────────────────────── */
+function apiCall(action, payload, cb) {
+  const cbName = 'jcb_'+Math.round(1e6*Math.random());
+  const script = document.createElement('script');
+  let done = false;
+  const timer = setTimeout(()=>{ if(!done){done=true;cleanup();cb({ok:false,error:'timeout'});} },15000);
+  window[cbName] = data=>{ if(!done){done=true;clearTimeout(timer);cleanup();cb(data);} };
+  script.onerror = ()=>{ if(!done){done=true;clearTimeout(timer);cleanup();cb({ok:false,error:'network'});} };
+  const ps = encodeURIComponent(JSON.stringify(payload||{}));
+  script.src = `${BACKEND}?callback=${cbName}&action=${action}&token=${encodeURIComponent(currentToken)}&payload=${ps}&_t=${Date.now()}`;
+  document.body.appendChild(script);
+  function cleanup(){ delete window[cbName]; if(script.parentNode)script.parentNode.removeChild(script); }
+}
+
+function loadBootstrap(cb) {
+  document.getElementById('loadingBanner').classList.remove('hidden');
+  apiCall('bootstrap',{},res=>{
+    document.getElementById('loadingBanner').classList.add('hidden');
+    if (!res.ok){ if(res.error?.includes('บัตรผ่าน'))logout(); return; }
+    appData = res.data;
+    renderThaiView();
+    if (cb) cb();
+  });
+}
+
+function logout(){ currentToken=''; localStorage.removeItem('portfolio_token'); location.replace('MyAssets.html'); }
+
+/* ── Render ──────────────────────────────────────────────── */
+function renderThaiView() {
+  if (!appData) return;
+  const sum   = appData.summary || {};
+  const thai  = sum.thaiPositions || [];
+  const wl    = (sum.watchlist||[]).filter(w=>w.ticker?.startsWith('BKK:'));
+  const priceMap = rtData?.priceMap || {};
+
+  // Update positions with Firebase realtime prices
+  thai.forEach(p => {
+    if (priceMap[p.ticker]) {
+      const lp = priceMap[p.ticker];
+      p.currentPrice = lp;
+      p.marketTHB    = p.shares * lp;
+      p.diffTHB      = p.marketTHB - p.costTHB;
+      p.diffPct      = p.costTHB > 0 ? (p.diffTHB/p.costTHB*100) : 0;
+    }
+  });
+
+  const totalMarket = thai.reduce((a,p)=>a+p.marketTHB,0);
+  const totalCost   = thai.reduce((a,p)=>a+p.costTHB,0);
+  const pnl = totalMarket - totalCost;
+  const pct = totalCost>0 ? pnl/totalCost*100 : 0;
+
+  document.getElementById('thaiCost').textContent   = fmtN(totalCost);
+  document.getElementById('thaiMarket').textContent = fmtN(totalMarket);
+  const pEl = document.getElementById('thaiPnlEl');
+  pEl.textContent = (pnl>=0?'+':'')+fmtN(pnl)+' ฿ ('+(pct>=0?'+':'')+fmtN(pct)+'%)';
+  pEl.className   = 'text-lg font-bold fn mt-1 '+(pnl>=0?'text-emerald-400':'text-rose-400');
+
+  document.getElementById('thaiWLCount').textContent = wl.length;
+
+  // Holdings table
+  const tbody = document.getElementById('thaiHoldingsBody');
+  if (!thai.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-gray-500">ยังไม่มีหุ้นไทยในพอร์ต</td></tr>`;
+  } else {
+    tbody.innerHTML = thai.map(p=>{
+      const g = p.diffTHB>=0;
+      return `<tr ondblclick="openThaiAlert('${p.ticker}','EXISTING')" class="hover:bg-[#1c2128] transition select-none">
+        <td class="py-3 px-4 font-bold text-white">${p.ticker}</td>
+        <td class="py-3 px-3 text-right text-gray-200">${fmtN(p.shares,0)}</td>
+        <td class="py-3 px-3 text-right text-gray-400">${fmtN(p.avgCost)}</td>
+        <td class="py-3 px-3 text-right font-semibold text-white">${fmtN(p.currentPrice)}</td>
+        <td class="py-3 px-3 text-right font-bold text-teal-300">${fmtN(p.costTHB)}</td>
+        <td class="py-3 px-3 text-right font-bold text-white">${fmtN(p.marketTHB)}</td>
+        <td class="py-3 px-3 text-right font-semibold ${g?'text-emerald-400':'text-rose-400'}">${g?'+':''}${fmtN(p.diffTHB)}</td>
+        <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${g?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'}">${g?'+':''}${fmtN(p.diffPct)}%</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  renderThaiLogs();
+  renderThaiPies(thai);
+  renderThaiWLTable(wl);
+}
+
+function renderThaiLogs() {
+  const q    = (document.getElementById('filterThaiTicker').value||'').toUpperCase();
+  const tbody= document.getElementById('thaiLogsBody');
+  let list   = (appData?.thaiTrades||[]).slice().reverse();
+  if (q) list = list.filter(t=>(t.ticker||'').toUpperCase().includes(q));
+  if (!list.length) { tbody.innerHTML=`<tr><td colspan="9" class="py-6 text-center text-gray-500">ไม่พบรายการ</td></tr>`; return; }
+  tbody.innerHTML = list.map(t=>`
+    <tr class="hover:bg-[#1c2128]">
+      <td class="py-3 px-4 text-gray-300">${t.date}</td>
+      <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] border border-teal-500/30 text-teal-300">${t.side}</span></td>
+      <td class="py-3 px-3 font-bold text-white">${t.ticker}</td>
+      <td class="py-3 px-3 text-right text-gray-200">${fmtN(t.shares,0)}</td>
+      <td class="py-3 px-3 text-right text-gray-300">${fmtN(t.price)}</td>
+      <td class="py-3 px-3 text-right text-gray-400">${fmtN(t.commission)}</td>
+      <td class="py-3 px-3 text-right text-gray-400">${fmtN(t.clearingFee||0)}</td>
+      <td class="py-3 px-3 text-right font-semibold text-white">${fmtN(t.netTHB)}</td>
+      <td class="py-3 px-4 text-center flex gap-2 justify-center">
+        <button onclick="openThaiEdit('${t.id}')" class="text-blue-400 hover:text-white">แก้ไข</button>
+        <button onclick="deleteThaiTrade('${t.id}')" class="text-rose-400 hover:text-white">ลบ</button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ── Pie Charts ──────────────────────────────────────────── */
+function renderThaiPies(thai) {
+  const gMap={};
+  thai.forEach(p=>{ gMap[p.group||'อื่นๆ']=(gMap[p.group||'อื่นๆ']||0)+p.marketTHB; });
+  buildPie('chartThaiGroup',Object.keys(gMap),Object.values(gMap),(c)=>chartTG=c,chartTG);
+  buildPie('chartThaiStock',thai.map(p=>p.ticker),thai.map(p=>p.marketTHB),(c)=>chartTS=c,chartTS,'legendThaiStock');
+}
+
+function buildPie(canvasId,labels,data,setter,old,legId) {
+  const ctx=document.getElementById(canvasId); if(!ctx)return;
+  if(old) old.destroy();
+  const chart=new Chart(ctx,{
+    type:'doughnut',
+    data:{labels,datasets:[{data,backgroundColor:PIE_COLORS.slice(0,data.length),borderColor:'#161b22',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:!legId}}}
+  });
+  setter(chart);
+  if(legId){
+    const total=data.reduce((a,b)=>a+b,0)||1;
+    const leg=document.getElementById(legId);
+    if(leg)leg.innerHTML=labels.map((l,i)=>`
+      <div class="flex items-center gap-1.5 py-0.5">
+        <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${PIE_COLORS[i]||'#888'}"></div>
+        <span class="text-[10px] text-gray-300 fn truncate">${l}</span>
+        <span class="text-[10px] text-gray-500 ml-auto fn">${fmtN(data[i]/total*100,1)}%</span>
+      </div>`).join('');
+  }
+}
+
+/* ── Thai Trade Modal ────────────────────────────────────── */
+function openThaiTradeModal() {
+  thaiEditId=null;
+  document.getElementById('thaiTradeModalTitle').textContent='บันทึกรายการหุ้นไทย';
+  document.getElementById('thaiTicker').value='';
+  document.getElementById('thaiShares').value='';
+  document.getElementById('thaiPrice').value='';
+  document.getElementById('thaiNote').value='';
+  document.getElementById('thaiDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('thaiGroup').disabled=false;
+  setThaiSide('BUY');
+  openModal('modalThaiTrade');
+}
+function openThaiEdit(id) {
+  const t=(appData?.thaiTrades||[]).find(x=>x.id===id); if(!t) return;
+  thaiEditId=id;
+  document.getElementById('thaiTradeModalTitle').textContent='แก้ไขรายการหุ้นไทย';
+  document.getElementById('thaiTicker').value=t.ticker||'';
+  document.getElementById('thaiShares').value=t.shares||'';
+  document.getElementById('thaiPrice').value=t.price||'';
+  document.getElementById('thaiNote').value=t.note||'';
+  document.getElementById('thaiDate').value=t.date||'';
+  document.getElementById('thaiGroup').value=t.group||'Satellite';
+  document.getElementById('thaiGroup').disabled=true;
+  setThaiSide(t.side||'BUY');
+  openModal('modalThaiTrade');
+}
+function closeThaiTradeModal() { thaiEditId=null; closeModal('modalThaiTrade'); }
+
+function setThaiSide(s) {
+  selectedThaiSide=s;
+  ['BUY','W-BUY','SELL','W-SELL'].forEach(x=>{
+    const id='btnT'+x.replace('-','');
+    const btn=document.getElementById(id); if(!btn)return;
+    if(x===s) btn.className='py-2.5 rounded-xl border '+(x.includes('BUY')?'border-teal-500 bg-teal-500/20 text-teal-300':'border-rose-500 bg-rose-500/20 text-rose-300')+' font-bold transition';
+    else btn.className='py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition';
+  });
+}
+
+function submitThaiTrade() {
+  const ticker=document.getElementById('thaiTicker').value.trim();
+  const shares=Number(document.getElementById('thaiShares').value);
+  const price =Number(document.getElementById('thaiPrice').value);
+  if (!ticker||shares<=0||price<=0) return alert('กรุณากรอกข้อมูลให้ครบ');
+  const btn=document.getElementById('btnSaveThai');
+  btn.textContent='กำลังบันทึก...'; btn.disabled=true;
+  const payload={side:selectedThaiSide,ticker,shares,price,
+    date:document.getElementById('thaiDate').value,
+    group:document.getElementById('thaiGroup').value,
+    note:document.getElementById('thaiNote').value.trim()};
+  const action = thaiEditId ? 'updateThaiTrade' : 'addThaiTrade';
+  if (thaiEditId) payload.id=thaiEditId;
+  apiCall(action,payload,res=>{
+    btn.textContent='บันทึก'; btn.disabled=false;
+    if(res.ok){ closeThaiTradeModal(); loadBootstrap(); }
+    else alert('ผิดพลาด: '+res.error);
+  });
+}
+
+function deleteThaiTrade(id) {
+  if(!confirm('ยืนยันลบรายการนี้?'))return;
+  apiCall('deleteThaiTrade',{id},res=>{ if(res.ok)loadBootstrap(); else alert('ผิดพลาด: '+res.error); });
+}
+
+/* ── Watchlist ───────────────────────────────────────────── */
+function openThaiWatchlist() { renderThaiWLTable(); openModal('modalThaiWatchlist'); }
+function renderThaiWLTable(wl) {
+  wl = wl || ((appData?.summary?.watchlist||[]).filter(w=>w.ticker?.startsWith('BKK:')));
+  const tbody=document.getElementById('thaiWLBody');
+  if(!wl.length){ tbody.innerHTML=`<tr><td colspan="6" class="py-6 text-center text-gray-500">ยังไม่มีหุ้นไทยใน Watchlist</td></tr>`; return; }
+  tbody.innerHTML=wl.map(w=>`
+    <tr ondblclick="openThaiAlert('${w.ticker}','WATCHLIST')" class="hover:bg-[#1c2128] transition select-none">
+      <td class="py-2.5 px-3 font-bold text-white">${w.ticker}</td>
+      <td class="py-2.5 px-3 text-right font-semibold text-gray-200">${fmtN(w.currentPrice)}</td>
+      <td class="py-2.5 px-3 text-center text-[10px] text-gray-400">${fmtN(w.low52,2)} - ${fmtN(w.high52,2)}</td>
+      <td class="py-2.5 px-3 text-right">${w.targetBuyPrice>0?`<span class="text-teal-400 font-bold">${fmtN(w.targetBuyPrice)}</span>`:'<span class="text-gray-500">-</span>'}</td>
+      <td class="py-2.5 px-3 text-right">${w.targetSellPrice>0?`<span class="text-rose-400 font-bold">${fmtN(w.targetSellPrice)}</span>`:'<span class="text-gray-500">-</span>'}</td>
+      <td class="py-2.5 px-3 text-center"><button onclick="deleteWL('${w.id}',event)" class="text-rose-400 hover:text-white">ลบ</button></td>
+    </tr>`).join('');
+}
+function addThaiWL() {
+  const ticker=document.getElementById('newThaiWL').value.trim().toUpperCase();
+  if(!ticker)return alert('กรุณาระบุ Ticker');
+  apiCall('saveAlert',{ticker,type:'WATCHLIST'},res=>{
+    if(res.ok){ document.getElementById('newThaiWL').value=''; loadBootstrap(()=>renderThaiWLTable()); }
+    else alert('ผิดพลาด: '+res.error);
+  });
+}
+function deleteWL(id,e) {
+  if(e)e.stopPropagation();
+  if(!confirm('ยืนยันลบออกจาก Watchlist?'))return;
+  apiCall('deleteAlert',{id},res=>{ if(res.ok)loadBootstrap(()=>renderThaiWLTable()); else alert('ผิดพลาด: '+res.error); });
+}
+
+/* ── Alert Modal ─────────────────────────────────────────── */
+function openThaiAlert(ticker,type) {
+  closeModal('modalThaiWatchlist');
+  const t=ticker.toUpperCase();
+  activeThaiTicker=t;
+  const sum=appData?.summary||{};
+  const pos=(sum.thaiPositions||[]).find(p=>p.ticker===t);
+  const wt=(sum.watchlist||[]).find(w=>w.ticker===t);
+  const alt=(appData?.alerts||[]).find(a=>a.ticker===t)||{};
+  const curP=(pos?.currentPrice)||(wt?.currentPrice)||(rtData?.priceMap?.[t])||0;
+  const low52=(pos?.low52)||(wt?.low52)||(curP*0.7);
+  const high52=(pos?.high52)||(wt?.high52)||(curP*1.3);
+
+  document.getElementById('thaiAltTicker').textContent=t;
+  document.getElementById('thaiAltTypeTag').textContent=type==='EXISTING'?'EXISTING (ในพอร์ต)':'WATCHLIST';
+  document.getElementById('thaiAltPrice').textContent=fmtN(curP);
+  document.getElementById('thaiAltLow').textContent=fmtN(low52);
+  document.getElementById('thaiAltHigh').textContent=fmtN(high52);
+  const span=high52-low52, pct=span>0?Math.min(100,Math.max(0,Math.round((curP-low52)/span*100))):50;
+  document.getElementById('thaiAltRange').textContent=pct+'% (52W position)';
+  document.getElementById('thaiAltBar').style.width=pct+'%';
+
+  const hBox=document.getElementById('thaiAltHoldBox');
+  if(pos&&type==='EXISTING'){
+    hBox.classList.remove('hidden');
+    document.getElementById('thaiAltShares').textContent=fmtN(pos.shares,0)+' หุ้น @ ฿'+fmtN(pos.avgCost);
+    const pnlEl=document.getElementById('thaiAltPnl');
+    pnlEl.textContent=(pos.diffTHB>=0?'+':'')+'฿'+fmtN(pos.diffTHB)+' ('+fmtN(pos.diffPct)+'%)';
+    pnlEl.className='text-xs font-bold '+(pos.diffTHB>=0?'text-emerald-400':'text-rose-400');
+  } else hBox.classList.add('hidden');
+
+  document.getElementById('thaiAltBuyPrice').value=alt.targetBuyPrice||'';
+  document.getElementById('thaiAltSellPrice').value=alt.targetSellPrice||'';
+  document.getElementById('thaiAltBuyChk').checked=(alt.isBuyAlertActive===true||alt.isBuyAlertActive==='TRUE');
+  document.getElementById('thaiAltSellChk').checked=(alt.isSellAlertActive===true||alt.isSellAlertActive==='TRUE');
+  document.getElementById('thaiAltNote').value=alt.note||'';
+  openModal('modalThaiAlert');
+}
+function submitThaiAlert() {
+  if(!activeThaiTicker)return;
+  apiCall('saveAlert',{
+    ticker:activeThaiTicker, type:'WATCHLIST',
+    targetBuyPrice: Number(document.getElementById('thaiAltBuyPrice').value)||0,
+    targetSellPrice:Number(document.getElementById('thaiAltSellPrice').value)||0,
+    isBuyAlertActive: document.getElementById('thaiAltBuyChk').checked,
+    isSellAlertActive:document.getElementById('thaiAltSellChk').checked,
+    note:document.getElementById('thaiAltNote').value.trim()
+  },res=>{
+    if(res.ok){ closeModal('modalThaiAlert'); loadBootstrap(()=>renderThaiWLTable()); }
+    else alert('ผิดพลาด: '+res.error);
+  });
+}
+function testThaiTelegram() {
+  if(!activeThaiTicker)return;
+  apiCall('testTelegram',{ticker:activeThaiTicker},res=>{ if(res.ok)alert('ส่ง Telegram สำเร็จ!'); else alert('ส่งไม่สำเร็จ: '+res.error); });
+}
+
+/* ── CSV Export ──────────────────────────────────────────── */
+function exportThaiCSV() {
+  if(!appData?.thaiTrades)return;
+  const h=['id','date','side','ticker','shares','price','commission','clearingFee','vat','totalFee','netTHB','note'];
+  let csv=h.join(',')+'\n';
+  appData.thaiTrades.forEach(t=>{ csv+=h.map(k=>`"${String(t[k]||'').replace(/"/g,'""')}"`).join(',')+'\n'; });
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`THAI_TRADES_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ── Helpers ─────────────────────────────────────────────── */
+function fmtN(n,d=2){ return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function openModal(id){ document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+
+/* ── Init ────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', loadBootstrap);
+</script>
+</body>
+</html>

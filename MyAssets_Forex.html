@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>9AU Portfolio — FOREX MT5</title>
+  <link rel="apple-touch-icon" href="profile.png">
+  <link rel="icon" type="image/png" href="profile.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#161b22">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:'Sarabun',sans-serif;background:#0d1117;color:#c9d1d9;}
+    .fn{font-family:'JetBrains Mono',monospace;font-feature-settings:"tnum";}
+    .fb{font-family:'Chakra Petch',sans-serif;}
+    .cd{background:#161b22;border:1px solid #30363d;}
+    .pulse-dot{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .nav-tab{padding:8px 16px;border-radius:10px;font-size:12px;font-weight:600;transition:.15s;white-space:nowrap;border:1px solid #30363d;text-decoration:none;display:inline-block;}
+    .nav-tab.active{background:#4f46e5;color:#fff;border-color:#4f46e5;}
+    .nav-tab:not(.active){background:#161b22;color:#64748b;}
+    .nav-tab:not(.active):hover{color:#fff;border-color:#475569;}
+    .no-scrollbar::-webkit-scrollbar{display:none;}
+    .live-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:9999px;background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.25);}
+  </style>
+</head>
+<body class="min-h-screen antialiased pb-16">
+
+<header class="border-b border-[#30363d] bg-[#161b22]/90 backdrop-blur sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="w-9 h-9 rounded-full overflow-hidden border-2 border-indigo-500 flex-shrink-0">
+        <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
+      </div>
+      <div>
+        <div class="text-sm font-bold text-white fb flex items-center gap-2">
+          FOREX MT5
+          <span class="live-badge"><span class="w-1.5 h-1.5 rounded-full bg-indigo-400 pulse-dot"></span>Firebase Live</span>
+        </div>
+        <div class="text-[11px] text-gray-400">
+          USD/THB: <strong id="hFx" class="fn text-gray-200">--.--</strong>
+          <span class="ml-2" id="fbUpdated"></span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <button onclick="loadBootstrap()" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="รีเฟรช Bootstrap">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      </button>
+      <button onclick="logout()" class="p-2 text-rose-400 hover:text-rose-300 rounded-lg border border-[#30363d] bg-[#21262d] transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
+    <a href="MyAssets.html"          class="nav-tab">Dashboard</a>
+    <a href="MyAssets_Thai.html"     class="nav-tab">หุ้นไทย</a>
+    <a href="MyAssets_US.html"       class="nav-tab">US ETF</a>
+    <a href="MyAssets_Forex.html"    class="nav-tab active">FOREX MT5</a>
+    <a href="MyAssets_Cashflow.html" class="nav-tab">Cashflow</a>
+    <a href="MyAssets_README.html"   class="nav-tab" style="color:#d97706">README</a>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 pt-5 space-y-5">
+
+  <!-- SUMMARY CARDS -->
+  <div class="cd rounded-2xl p-4 border border-indigo-500/30">
+    <div class="text-xs font-bold text-indigo-400 mb-3 uppercase tracking-wider">Group-3: FOREX MT5 รวม 4 Terminals (Firebase Realtime)</div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
+        <div class="text-[11px] text-gray-400">Total Balance</div>
+        <div class="text-lg font-bold text-white fn mt-1">$ <span id="fxTotalBal">0.00</span></div>
+        <div class="text-xs text-gray-400 fn">฿ <span id="fxTotalBalTHB">0.00</span></div>
+      </div>
+      <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
+        <div class="text-[11px] text-gray-400">Total Equity</div>
+        <div class="text-lg font-bold text-white fn mt-1">$ <span id="fxTotalEq">0.00</span></div>
+        <div class="text-xs text-gray-400 fn">฿ <span id="fxTotalEqTHB">0.00</span></div>
+      </div>
+      <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
+        <div class="text-[11px] text-gray-400">Total P/L</div>
+        <div class="text-lg font-bold fn mt-1" id="fxTotalPnl">$ 0.00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 TERMINAL CARDS -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="cd rounded-2xl p-4 border-l-4 border-l-blue-500">
+      <div class="text-xs font-semibold text-gray-300 fn" id="lT1">Terminal A</div>
+      <div class="text-sm text-gray-400 mt-0.5 truncate" id="dT1">-</div>
+      <div class="text-xl font-bold text-white fn mt-2">$<span id="eT1">0.00</span></div>
+      <div class="text-xs fn mt-0.5" id="pT1">$0.00</div>
+      <div class="mt-2 h-1.5 w-full bg-[#21262d] rounded-full"><div id="gT1" class="h-full bg-blue-500 rounded-full" style="width:0%"></div></div>
+      <div class="text-[10px] text-gray-500 fn mt-1" id="grT1">0.00%</div>
+    </div>
+    <div class="cd rounded-2xl p-4 border-l-4 border-l-purple-500">
+      <div class="text-xs font-semibold text-gray-300 fn" id="lT2">Terminal B</div>
+      <div class="text-sm text-gray-400 mt-0.5 truncate" id="dT2">-</div>
+      <div class="text-xl font-bold text-white fn mt-2">$<span id="eT2">0.00</span></div>
+      <div class="text-xs fn mt-0.5" id="pT2">$0.00</div>
+      <div class="mt-2 h-1.5 w-full bg-[#21262d] rounded-full"><div id="gT2" class="h-full bg-purple-500 rounded-full" style="width:0%"></div></div>
+      <div class="text-[10px] text-gray-500 fn mt-1" id="grT2">0.00%</div>
+    </div>
+    <div class="cd rounded-2xl p-4 border-l-4 border-l-amber-500">
+      <div class="text-xs font-semibold text-gray-300 fn" id="lT3">Terminal C</div>
+      <div class="text-sm text-gray-400 mt-0.5 truncate" id="dT3">-</div>
+      <div class="text-xl font-bold text-white fn mt-2">$<span id="eT3">0.00</span></div>
+      <div class="text-xs fn mt-0.5" id="pT3">$0.00</div>
+      <div class="mt-2 h-1.5 w-full bg-[#21262d] rounded-full"><div id="gT3" class="h-full bg-amber-500 rounded-full" style="width:0%"></div></div>
+      <div class="text-[10px] text-gray-500 fn mt-1" id="grT3">0.00%</div>
+    </div>
+    <div class="cd rounded-2xl p-4 border-l-4 border-l-emerald-500">
+      <div class="text-xs font-semibold text-gray-300 fn" id="lT4">Terminal D</div>
+      <div class="text-sm text-gray-400 mt-0.5 truncate" id="dT4">-</div>
+      <div class="text-xl font-bold text-white fn mt-2">$<span id="eT4">0.00</span></div>
+      <div class="text-xs fn mt-0.5" id="pT4">$0.00</div>
+      <div class="mt-2 h-1.5 w-full bg-[#21262d] rounded-full"><div id="gT4" class="h-full bg-emerald-500 rounded-full" style="width:0%"></div></div>
+      <div class="text-[10px] text-gray-500 fn mt-1" id="grT4">0.00%</div>
+    </div>
+  </div>
+
+  <!-- DETAIL TABLE -->
+  <div class="cd rounded-2xl overflow-hidden">
+    <div class="p-4 border-b border-[#30363d] flex items-center justify-between">
+      <div>
+        <h2 class="text-sm font-bold text-white fb">Terminal Detail (ดึงสดจาก Firebase ← REALTIME Sheet)</h2>
+        <p class="text-xs text-gray-400 mt-0.5">อัปเดตทุก 5 นาทีโดย Apps Script Trigger</p>
+      </div>
+      <button onclick="exportForexCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">CSV</button>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs fn">
+        <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d]">
+          <tr>
+            <th class="py-3 px-4">Terminal</th>
+            <th class="py-3 px-3">รายละเอียด EA</th>
+            <th class="py-3 px-3 text-right">Balance ($)</th>
+            <th class="py-3 px-3 text-right">Equity ($)</th>
+            <th class="py-3 px-3 text-right">P/L ($)</th>
+            <th class="py-3 px-4 text-right">Growth %</th>
+            <th class="py-3 px-4 text-center">เริ่มเทรด</th>
+          </tr>
+        </thead>
+        <tbody id="forexTableBody" class="divide-y divide-[#30363d]"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GROWTH CHART -->
+  <div class="cd rounded-2xl p-5">
+    <div class="text-xs font-bold text-gray-400 uppercase mb-2">FOREX Growth by Terminal (USD)</div>
+    <div class="relative h-64"><canvas id="chartForexGrowth"></canvas></div>
+    <div class="text-[10px] text-gray-500 mt-1">เริ่มนับ 2026-08-01 | อัปเดตตาม Firebase Realtime</div>
+  </div>
+
+  <!-- EQUITY BREAKDOWN PIE -->
+  <div class="cd rounded-2xl p-5">
+    <div class="text-xs font-bold text-gray-400 uppercase mb-3">สัดส่วน Equity แต่ละ Terminal</div>
+    <div class="flex flex-col md:flex-row items-center gap-6">
+      <div class="relative w-52 h-52 flex-shrink-0"><canvas id="chartForexPie"></canvas></div>
+      <div id="forexPieLegend" class="grid grid-cols-2 gap-3 w-full text-xs fn"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+'use strict';
+const BACKEND='https://script.google.com/macros/s/AKfycbw_P74pybIzkQ0SSa0RuO8lFgjbgDh5KSerIoL9NcNR1IVAOJ0Jyz3Vb4-khVlsEfNN/exec';
+const FB_CFG={apiKey:"AIzaSyBOJsWzqqt9DfvyHHRjbAZMSiGevd7UOsE",authDomain:"au-portfolio-7d687.firebaseapp.com",databaseURL:"https://au-portfolio-7d687-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"au-portfolio-7d687",storageBucket:"au-portfolio-7d687.firebasestorage.app",messagingSenderId:"806351101494",appId:"1:806351101494:web:c832da2ef2baff90d18297"};
+
+let currentToken=localStorage.getItem('portfolio_token')||'';
+let rtData=null, appData=null;
+let chartGrowth=null, chartPie=null;
+const TERM_KEYS=['Terminal-01','Terminal-02','Terminal-03','Terminal-04'];
+const TERM_COLORS=['#3b82f6','#a855f7','#f59e0b','#10b981'];
+const INIT_BAL=[380,580,1050,690];
+
+if(!currentToken){location.replace('MyAssets.html');}
+
+firebase.initializeApp(FB_CFG);
+const db=firebase.database();
+
+db.ref('realtime').on('value', snap=>{
+  rtData=snap.val();
+  if(!rtData)return;
+  document.getElementById('hFx').textContent=fmtN(rtData.fxRate||33.14,2);
+  if(rtData.updatedAt){
+    document.getElementById('fbUpdated').textContent='Updated: '+rtData.updatedAt.slice(11,16);
+  }
+  renderForexView();
+});
+
+function apiCall(action,payload,cb){
+  const cbName='jcb_'+Math.round(1e6*Math.random());
+  const script=document.createElement('script');let done=false;
+  const timer=setTimeout(()=>{if(!done){done=true;cleanup();cb({ok:false,error:'timeout'});}},15000);
+  window[cbName]=data=>{if(!done){done=true;clearTimeout(timer);cleanup();cb(data);}};
+  script.onerror=()=>{if(!done){done=true;clearTimeout(timer);cleanup();cb({ok:false,error:'network'});}};
+  const ps=encodeURIComponent(JSON.stringify(payload||{}));
+  script.src=`${BACKEND}?callback=${cbName}&action=${action}&token=${encodeURIComponent(currentToken)}&payload=${ps}&_t=${Date.now()}`;
+  document.body.appendChild(script);
+  function cleanup(){delete window[cbName];if(script.parentNode)script.parentNode.removeChild(script);}
+}
+
+function loadBootstrap(cb){
+  apiCall('bootstrap',{},res=>{
+    if(!res.ok){if(res.error?.includes('บัตรผ่าน'))logout();return;}
+    appData=res.data;
+    renderForexView();
+    if(cb)cb();
+  });
+}
+function logout(){currentToken='';localStorage.removeItem('portfolio_token');location.replace('MyAssets.html');}
+
+function renderForexView(){
+  const terms=rtData?.terminals || appData?.summary?.terminals || {};
+  const fx=rtData?.fxRate||33.14;
+
+  let totalBal=0,totalEq=0,totalPnl=0;
+  TERM_KEYS.forEach((k,i)=>{
+    const t=terms[k]||{};
+    totalBal+=(t.balanceUSD||0);
+    totalEq +=(t.equityUSD||0);
+    totalPnl+=(t.pnlUSD||0);
+  });
+
+  // Summary
+  document.getElementById('fxTotalBal').textContent=fmtN(totalBal);
+  document.getElementById('fxTotalBalTHB').textContent=fmtN(totalBal*fx);
+  document.getElementById('fxTotalEq').textContent=fmtN(totalEq);
+  document.getElementById('fxTotalEqTHB').textContent=fmtN(totalEq*fx);
+  const pEl=document.getElementById('fxTotalPnl');
+  pEl.textContent=(totalPnl>=0?'+':'')+'$'+fmtN(totalPnl)+' ('+(totalBal>0?(totalPnl>=0?'+':'')+fmtN(totalPnl/totalBal*100):'0.00')+'%)';
+  pEl.className='text-lg font-bold fn mt-1 '+(totalPnl>=0?'text-emerald-400':'text-rose-400');
+
+  // Terminal cards
+  const maxGrowth=Math.max(...TERM_KEYS.map((k,i)=>{const t=terms[k]||{};return t.balanceUSD>0?((t.equityUSD||0)-(t.balanceUSD||0))/(t.balanceUSD)*100:0;}),0.01);
+  TERM_KEYS.forEach((k,i)=>{
+    const t=terms[k]||{};
+    const idx=i+1;
+    const pnl=t.pnlUSD||0;
+    const growthPct=t.balanceUSD>0?((t.equityUSD||0)-(t.balanceUSD||0))/(t.balanceUSD)*100:0;
+    setText('lT'+idx, t.terminalTitle||k);
+    setText('dT'+idx, t.terminalDetail||'-');
+    setText('eT'+idx, fmtN(t.equityUSD||0));
+    const pnlEl=document.getElementById('pT'+idx);
+    if(pnlEl){pnlEl.textContent=(pnl>=0?'+':'')+'$'+fmtN(pnl);pnlEl.className='text-xs fn mt-0.5 '+(pnl>=0?'text-emerald-400':'text-rose-400');}
+    const bar=document.getElementById('gT'+idx);
+    if(bar)bar.style.width=Math.min(100,Math.max(0,(growthPct/maxGrowth)*100)).toFixed(1)+'%';
+    const grEl=document.getElementById('grT'+idx);
+    if(grEl){grEl.textContent=(growthPct>=0?'+':'')+fmtN(growthPct)+'% growth';grEl.className='text-[10px] fn mt-1 '+(growthPct>=0?'text-emerald-400':'text-rose-400');}
+  });
+
+  // Detail table
+  const tbody=document.getElementById('forexTableBody');
+  tbody.innerHTML=TERM_KEYS.map(k=>{
+    const t=terms[k]||{terminalTitle:k,terminalDetail:k,balanceUSD:0,equityUSD:0,pnlUSD:0,growth:0,sinc:'2026-08-01'};
+    const g=t.pnlUSD>=0;
+    return `<tr class="hover:bg-[#1c2128]">
+      <td class="py-3 px-4 font-bold text-indigo-400">${t.terminalTitle||k}</td>
+      <td class="py-3 px-3 text-gray-300 text-[11px]">${t.terminalDetail||'-'}</td>
+      <td class="py-3 px-3 text-right text-gray-300">$${fmtN(t.balanceUSD||0)}</td>
+      <td class="py-3 px-3 text-right font-bold text-white">$${fmtN(t.equityUSD||0)}</td>
+      <td class="py-3 px-3 text-right font-semibold ${g?'text-emerald-400':'text-rose-400'}">${g?'+':''}$${fmtN(t.pnlUSD||0)}</td>
+      <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${g?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'}">${g?'+':''}${fmtN(t.growth||0)}%</span></td>
+      <td class="py-3 px-4 text-center text-gray-400">${t.sinc||'2026-08-01'}</td>
+    </tr>`;
+  }).join('');
+
+  renderGrowthChart(terms);
+  renderPieChart(terms);
+}
+
+function renderGrowthChart(terms){
+  const ctx=document.getElementById('chartForexGrowth');
+  if(chartGrowth)chartGrowth.destroy();
+  chartGrowth=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:['เริ่มพอร์ต (2026-08-01)','ปัจจุบัน'],
+      datasets:TERM_KEYS.map((k,i)=>({
+        label:(terms[k]?.terminalTitle||'T'+(i+1)),
+        data:[INIT_BAL[i], terms[k]?.equityUSD||INIT_BAL[i]],
+        borderColor:TERM_COLORS[i],tension:0.2,borderWidth:2,
+        pointBackgroundColor:TERM_COLORS[i],pointRadius:4
+      }))
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#8b949e',font:{family:'JetBrains Mono',size:10}}}},
+      scales:{
+        x:{grid:{color:'#21262d'},ticks:{color:'#8b949e',font:{family:'JetBrains Mono'}}},
+        y:{grid:{color:'#21262d'},ticks:{color:'#8b949e',font:{family:'JetBrains Mono'},callback:v=>'$'+v}}
+      }
+    }
+  });
+}
+
+function renderPieChart(terms){
+  const ctx=document.getElementById('chartForexPie');
+  const data=TERM_KEYS.map(k=>terms[k]?.equityUSD||0);
+  const labels=TERM_KEYS.map((k,i)=>terms[k]?.terminalTitle||'T'+(i+1));
+  const total=data.reduce((a,b)=>a+b,0)||1;
+  if(chartPie)chartPie.destroy();
+  chartPie=new Chart(ctx,{
+    type:'doughnut',
+    data:{labels,datasets:[{data,backgroundColor:TERM_COLORS,borderColor:'#161b22',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false}}}
+  });
+  const leg=document.getElementById('forexPieLegend');
+  leg.innerHTML=labels.map((l,i)=>`
+    <div class="flex items-center gap-2 p-3 rounded-xl bg-[#0d1117] border border-[#30363d]">
+      <div class="w-3 h-3 rounded-full flex-shrink-0" style="background:${TERM_COLORS[i]}"></div>
+      <div>
+        <div class="text-[10px] text-gray-400">${l}</div>
+        <div class="text-sm font-bold text-white">$${fmtN(data[i])}</div>
+        <div class="text-[11px]" style="color:${TERM_COLORS[i]}">${fmtN(data[i]/total*100,1)}%</div>
+      </div>
+    </div>`).join('');
+}
+
+function exportForexCSV(){
+  const terms=rtData?.terminals||appData?.summary?.terminals||{};
+  const fx=rtData?.fxRate||33.14;
+  const h=['Terminal','Title','Detail','BalanceUSD','EquityUSD','PnlUSD','Growth%','BalanceTHB','EquityTHB','Since'];
+  let csv=h.join(',')+'\n';
+  TERM_KEYS.forEach(k=>{
+    const t=terms[k]||{};
+    csv+=`"${k}","${t.terminalTitle||k}","${t.terminalDetail||''}","${fmtN(t.balanceUSD||0)}","${fmtN(t.equityUSD||0)}","${fmtN(t.pnlUSD||0)}","${fmtN(t.growth||0)}%","${fmtN((t.balanceUSD||0)*fx)}","${fmtN((t.equityUSD||0)*fx)}","${t.sinc||'2026-08-01'}"\n`;
+  });
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`FOREX_MT5_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);a.click();a.remove();
+}
+
+function fmtN(n,d=2){return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+
+document.addEventListener('DOMContentLoaded',()=>loadBootstrap());
+</script>
+</body>
+</html>

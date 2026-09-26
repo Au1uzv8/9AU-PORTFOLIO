@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>9AU Portfolio — README</title>
+  <link rel="apple-touch-icon" href="profile.png">
+  <link rel="icon" type="image/png" href="profile.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#161b22">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:'Sarabun',sans-serif;background:#0d1117;color:#c9d1d9;}
+    .fn{font-family:'JetBrains Mono',monospace;}
+    .fb{font-family:'Chakra Petch',sans-serif;}
+    .cd{background:#161b22;border:1px solid #30363d;}
+    .nav-tab{padding:8px 16px;border-radius:10px;font-size:12px;font-weight:600;transition:.15s;white-space:nowrap;border:1px solid #30363d;text-decoration:none;display:inline-block;}
+    .nav-tab.active{background:#b45309;color:#fff;border-color:#b45309;}
+    .nav-tab:not(.active){background:#161b22;color:#64748b;}
+    .nav-tab:not(.active):hover{color:#fff;border-color:#475569;}
+    .no-scrollbar::-webkit-scrollbar{display:none;}
+  </style>
+</head>
+<body class="min-h-screen antialiased pb-16">
+
+<header class="border-b border-[#30363d] bg-[#161b22]/90 backdrop-blur sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="w-9 h-9 rounded-full overflow-hidden border-2 border-amber-500 flex-shrink-0">
+        <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
+      </div>
+      <div>
+        <div class="text-sm font-bold text-amber-300 fb">README — คู่มือระบบ</div>
+        <div class="text-[11px] text-gray-400">v8.2.0 | อัปเดต 2026-09-14</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <button onclick="exportPDF()" class="px-3 py-1.5 text-xs rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white font-semibold transition">Export PDF</button>
+      <a href="MyAssets.html" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      </a>
+    </div>
+  </div>
+  <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
+    <a href="MyAssets.html"          class="nav-tab">Dashboard</a>
+    <a href="MyAssets_Thai.html"     class="nav-tab">หุ้นไทย</a>
+    <a href="MyAssets_US.html"       class="nav-tab">US ETF</a>
+    <a href="MyAssets_Forex.html"    class="nav-tab">FOREX MT5</a>
+    <a href="MyAssets_Cashflow.html" class="nav-tab">Cashflow</a>
+    <a href="MyAssets_README.html"   class="nav-tab active">README</a>
+  </div>
+</header>
+
+<main id="readmeContent" class="max-w-4xl mx-auto px-4 pt-6 pb-10 space-y-6 text-sm text-gray-300 leading-relaxed">
+
+  <div class="cd rounded-2xl p-6 border border-amber-500/30">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row items-start justify-between gap-4 border-b border-[#30363d] pb-5 mb-6">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 text-xs font-bold fn">VERSION 8.2.0</span>
+          <span class="text-xs text-gray-400">อัปเดตล่าสุด: 2026-09-25</span>
+        </div>
+        <h1 class="text-xl font-bold text-white fb">คู่มือการใช้งาน & Context Summary</h1>
+        <p class="text-xs text-gray-400 mt-1">พิมพ์เขียวสถาปัตยกรรม | การแก้ไข | Hybrid Firebase Migration</p>
+      </div>
+    </div>
+
+    <!-- Chapter 1 -->
+    <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d] mb-5">
+      <h2 class="text-base font-bold text-amber-400 fb mb-3">1. แนวคิดและที่มาของระบบ</h2>
+      <p class="text-xs text-gray-400 mb-3">รวมศูนย์สินทรัพย์ 4 กลุ่มหลัก (All-in-One Net Worth):</p>
+      <ul class="list-disc list-inside space-y-1 text-xs text-gray-300">
+        <li><strong>Group-1:</strong> สภาพคล่องเงินบาท — เงินสด, ธนาคาร, เงินสำรองฉุกเฉิน</li>
+        <li><strong>Group-2:</strong> หุ้น/ETF สหรัฐ (Dime! Broker) — True Reconciliation, ค่าธรรมเนียม SEC/TAF</li>
+        <li><strong>Group-3:</strong> FOREX MT5 XM Broker — 4 Terminals, Firebase Realtime Live</li>
+        <li><strong>Group-4:</strong> หุ้นไทย (Dime! Broker) — Commission+Clearing+VAT</li>
+      </ul>
+    </div>
+
+    <!-- Chapter 2 Architecture -->
+    <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d] mb-5">
+      <h2 class="text-base font-bold text-blue-400 fb mb-3">2. สถาปัตยกรรมระบบ v8.2 (Hybrid Firebase)</h2>
+      <div class="p-3 bg-[#161b22] rounded-lg border border-[#30363d] fn text-[11px] text-gray-300 mb-4 overflow-x-auto">
+        REALTIME DATA (Firebase &lt; 300ms)<br>
+        ├── FOREX Terminals (Equity/Balance/P&L)<br>
+        ├── ราคาหุ้น US + Thai (priceMap)<br>
+        └── FX Rate (USD/THB)<br><br>
+        HISTORICAL DATA (Apps Script JSONP)<br>
+        ├── TRADES / THAI_TRADES<br>
+        ├── CASHFLOW / ACCOUNTS<br>
+        └── SNAPSHOT<br><br>
+        Apps Script Trigger → Firebase RTDB ทุก 5 นาที
+      </div>
+      <div class="text-xs text-gray-300">
+        <strong>สูตร Net Worth:</strong>
+        <div class="p-2.5 bg-[#161b22] rounded-lg fn text-emerald-400 mt-1 text-[11px]">
+          Net Worth (THB) = G1 (THB) + G4 Market (THB) + G2 Market USD × FX + G3 Equity USD × FX
+        </div>
+      </div>
+    </div>
+
+    <!-- Chapter 3 Files -->
+    <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d] mb-5">
+      <h2 class="text-base font-bold text-teal-400 fb mb-3">3. โครงสร้างไฟล์ (Multi-Page Architecture)</h2>
+      <table class="w-full text-left text-xs">
+        <thead class="bg-[#21262d] text-gray-400 border-b border-[#30363d]">
+          <tr><th class="py-2 px-3">ไฟล์</th><th class="py-2 px-3">เนื้อหา</th><th class="py-2 px-3">บรรทัด</th></tr>
+        </thead>
+        <tbody class="divide-y divide-[#30363d]">
+          <tr><td class="py-2 px-3 fn text-white">MyAssets.html</td><td class="py-2 px-3">Dashboard + PIN + Allocation Pie</td><td class="py-2 px-3 text-gray-400">~560</td></tr>
+          <tr><td class="py-2 px-3 fn text-white">MyAssets_Thai.html</td><td class="py-2 px-3">หุ้นไทย + Trade Log + Watchlist + Alert</td><td class="py-2 px-3 text-gray-400">~660</td></tr>
+          <tr><td class="py-2 px-3 fn text-white">MyAssets_US.html</td><td class="py-2 px-3">US ETF + Trade Log + Watchlist + Alert</td><td class="py-2 px-3 text-gray-400">~570</td></tr>
+          <tr><td class="py-2 px-3 fn text-white">MyAssets_Forex.html</td><td class="py-2 px-3">FOREX MT5 Live (Firebase only)</td><td class="py-2 px-3 text-gray-400">~350</td></tr>
+          <tr><td class="py-2 px-3 fn text-white">MyAssets_Cashflow.html</td><td class="py-2 px-3">Cashflow บันทึก/ลบ/กรอง</td><td class="py-2 px-3 text-gray-400">~270</td></tr>
+          <tr><td class="py-2 px-3 fn text-white">MyAssets_README.html</td><td class="py-2 px-3">คู่มือนี้</td><td class="py-2 px-3 text-gray-400">~250</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Chapter 4 Timeline -->
+    <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d] mb-5">
+      <h2 class="text-base font-bold text-emerald-400 fb mb-3">4. ไทม์ไลน์การพัฒนา (Milestones)</h2>
+      <table class="w-full text-left text-xs">
+        <thead class="bg-[#21262d] text-gray-400 border-b border-[#30363d]">
+          <tr><th class="py-2 px-3">Phase</th><th class="py-2 px-3">งานหลัก</th><th class="py-2 px-3">ผลลัพธ์</th></tr>
+        </thead>
+        <tbody class="divide-y divide-[#30363d]">
+          <tr><td class="py-2 px-3 font-semibold text-white">1-2</td><td class="py-2 px-3">Database + Dashboard UI</td><td class="py-2 px-3 text-gray-400">PIN 6 หลัก, Schema, Dark Mode</td></tr>
+          <tr><td class="py-2 px-3 font-semibold text-white">3-4</td><td class="py-2 px-3">Dime Reconciliation + MT5</td><td class="py-2 px-3 text-gray-400">ต้นทุนถัวเฉลี่ย, W-BUY/W-SELL, IMPORTMT5</td></tr>
+          <tr><td class="py-2 px-3 font-semibold text-white">5</td><td class="py-2 px-3">Performance + Fallback</td><td class="py-2 px-3 text-gray-400">Direct Cell Mapping, Fallback ราคา</td></tr>
+          <tr><td class="py-2 px-3 font-semibold text-white">6</td><td class="py-2 px-3">Fee Engine + Export</td><td class="py-2 px-3 text-gray-400">SEC/TAF Fee, PDF/CSV</td></tr>
+          <tr><td class="py-2 px-3 font-semibold text-white">7</td><td class="py-2 px-3">Watchlist + Telegram</td><td class="py-2 px-3 text-gray-400">52W Range, Alert, Telegram Bot</td></tr>
+          <tr><td class="py-2 px-3 font-semibold text-white">8.1</td><td class="py-2 px-3">Thai Stocks + REALTIME Sheet</td><td class="py-2 px-3 text-gray-400">Group-4, calcThaiFee_, updateThaiTrade_</td></tr>
+          <tr><td class="py-2 px-3 font-semibold text-white">8.2</td><td class="py-2 px-3">Firebase Hybrid + Multi-Page</td><td class="py-2 px-3 text-gray-400">Firebase RTDB Live, 6 ไฟล์แยก, Timeout หมดปัญหา</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Chapter 5 Troubleshooting -->
+    <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d] mb-5">
+      <h2 class="text-base font-bold text-rose-400 fb mb-3">5. ปัญหาที่พบและแนวทางแก้ไข</h2>
+      <ul class="space-y-3 text-xs">
+        <li><strong class="text-white">Apps Script Timeout (popup ใช้เวลานาน):</strong>
+          <p class="text-gray-400 mt-1">แก้ด้วย Firebase Hybrid — ข้อมูล realtime ดึงจาก Firebase (&lt;300ms) ไม่ต้องรอ Apps Script แล้ว</p></li>
+        <li><strong class="text-white">ไฟล์ HTML เดียว 2800+ บรรทัด รวนเมื่อแก้ไข:</strong>
+          <p class="text-gray-400 mt-1">แก้ด้วย Multi-Page — แต่ละ Tab เป็น HTML แยก ~300-660 บรรทัด แก้ไขระบุไฟล์ชัดเจน</p></li>
+        <li><strong class="text-white">ราคาหุ้น Google Finance เพี้ยน (SPCX=$0.01):</strong>
+          <p class="text-gray-400 mt-1">ใช้ REALTIME Sheet เป็น source of truth → push ไป Firebase ทุก 5 นาที มี Guard &gt;1.0</p></li>
+        <li><strong class="text-white">Token หมดอายุ ต้อง Login ซ้ำทุกหน้า:</strong>
+          <p class="text-gray-400 mt-1">ใช้ localStorage เก็บ token ร่วมกันทุกหน้า Login ครั้งเดียวใช้ได้ทุก Tab (12 ชั่วโมง)</p></li>
+      </ul>
+    </div>
+
+    <!-- Chapter 6 Firebase -->
+    <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d] mb-5">
+      <h2 class="text-base font-bold text-indigo-400 fb mb-3">6. Firebase Configuration</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+        <div>
+          <div class="text-gray-400 mb-2">Project</div>
+          <div class="p-3 bg-[#161b22] rounded-lg border border-[#30363d] fn text-gray-300 text-[11px] space-y-1">
+            <div>Project: <span class="text-indigo-300">9AU-PORTFOLIO</span></div>
+            <div>ID: <span class="text-indigo-300">au-portfolio-7d687</span></div>
+            <div>Region: <span class="text-indigo-300">asia-southeast1 (Singapore)</span></div>
+            <div>Node: <span class="text-indigo-300">/realtime</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="text-gray-400 mb-2">Apps Script</div>
+          <div class="p-3 bg-[#161b22] rounded-lg border border-[#30363d] fn text-gray-300 text-[11px] space-y-1">
+            <div>Function: <span class="text-indigo-300">pushToFirebase_()</span></div>
+            <div>Trigger: <span class="text-indigo-300">ทุก 5 นาที (Time-based)</span></div>
+            <div>Property: <span class="text-indigo-300">FIREBASE_DB_URL</span></div>
+            <div>Payload: <span class="text-indigo-300">fxRate, terminals, priceMap, stats52</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chapter 7 Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d]">
+        <h3 class="text-sm font-bold text-indigo-400 fb mb-2">7. ข้อดีของระบบ</h3>
+        <ul class="list-disc list-inside space-y-1 text-xs text-gray-400">
+          <li><strong class="text-gray-200">Zero Server Cost:</strong> Google Sheets + Firebase Free Tier + GitHub Pages</li>
+          <li><strong class="text-gray-200">Realtime:</strong> Firebase push &lt;300ms แทน JSONP poll</li>
+          <li><strong class="text-gray-200">True Reconciliation:</strong> ตรงกับ Dime App และ MT5</li>
+          <li><strong class="text-gray-200">Multi-Page:</strong> แก้ไขง่าย ระบุไฟล์ชัดเจน ไม่รวน</li>
+          <li><strong class="text-gray-200">Telegram Alert:</strong> แจ้งเตือนราคาเป้าหมายอัตโนมัติ</li>
+        </ul>
+      </div>
+      <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d]">
+        <h3 class="text-sm font-bold text-emerald-400 fb mb-2">8. บทสรุป</h3>
+        <p class="text-xs text-gray-400 leading-relaxed">
+          ระบบ v8.2 Hybrid Firebase ได้แก้ปัญหา Timeout และไฟล์ขนาดใหญ่ ด้วยการแยก 1 Tab = 1 HTML ไฟล์ และเปลี่ยนข้อมูล Realtime มาดึงจาก Firebase RTDB แทน Apps Script โดยตรง ทำให้ระบบเสถียร แก้ไขง่าย และ Response เร็วขึ้นอย่างมีนัยสำคัญ
+        </p>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+'use strict';
+const currentToken=localStorage.getItem('portfolio_token')||'';
+if(!currentToken){location.replace('MyAssets.html');}
+
+function exportPDF(){
+  const el=document.getElementById('readmeContent');
+  html2pdf().set({
+    margin:[10,10,10,10],
+    filename:`Portfolio_README_v8.2_${new Date().toISOString().slice(0,10)}.pdf`,
+    image:{type:'jpeg',quality:0.98},
+    html2canvas:{scale:2,useCORS:true,backgroundColor:'#0d1117'},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+  }).from(el).save();
+}
+</script>
+</body>
+</html>
