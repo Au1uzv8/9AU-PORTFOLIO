@@ -171,7 +171,7 @@
 <div id="modalUSTrade" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
   <div class="cd rounded-2xl w-full max-w-lg border border-[#30363d] overflow-hidden">
     <div class="p-4 border-b border-[#30363d] flex items-center justify-between">
-      <h3 class="text-sm font-bold text-white fb">บันทึกรายการ US Stocks/ETF</h3>
+      <h3 id="usTradeModalTitle" class="text-sm font-bold text-white fb">บันทึกรายการ US Stocks/ETF</h3>
       <button onclick="closeModal('modalUSTrade')" class="text-gray-400 hover:text-white text-lg">&times;</button>
     </div>
     <div class="p-5 space-y-4 text-xs">
@@ -309,7 +309,7 @@ const FB_CFG={apiKey:"AIzaSyBOJsWzqqt9DfvyHHRjbAZMSiGevd7UOsE",authDomain:"au-po
 
 let currentToken=localStorage.getItem('portfolio_token')||'';
 let appData=null, rtData=null;
-let selectedUSSide='BUY', activeUSTicker=null;
+let selectedUSSide='BUY', activeUSTicker=null, usEditId=null;
 let chartUG=null, chartUS2=null;
 const PIE_COLORS=['#3b82f6','#10b981','#f59e0b','#a855f7','#ef4444','#06b6d4','#84cc16','#f97316'];
 
@@ -423,7 +423,10 @@ function renderUSLogs(){
       <td class="py-3 px-3 text-right text-gray-400">$${fmtN(t.totalFee)}</td>
       <td class="py-3 px-3 text-right text-gray-300">${fmtN(t.fxRate,2)}</td>
       <td class="py-3 px-3 text-right font-semibold text-white">$${fmtN(t.netUSD)}</td>
-      <td class="py-3 px-4 text-center"><button onclick="deleteTrade('${t.id}')" class="text-rose-400 hover:text-white">ลบ</button></td>
+      <td class="py-3 px-4 text-center flex gap-2 justify-center">
+        <button onclick="openUSEdit('${t.id}')" class="text-blue-400 hover:text-white">แก้ไข</button>
+        <button onclick="deleteTrade('${t.id}')" class="text-rose-400 hover:text-white">ลบ</button>
+      </td>
     </tr>`).join('');
 }
 
@@ -443,12 +446,34 @@ function buildPie(id,labels,data,setter,old,legId){
 
 /* Trade modal */
 function openUSTradeModal(){
+  usEditId=null;
+  document.getElementById('usTradeModalTitle').textContent='บันทึกรายการ US Stocks/ETF';
   document.getElementById('usTicker').value='';
   document.getElementById('usShares').value='';
   document.getElementById('usPrice').value='';
   document.getElementById('usNote').value='';
   document.getElementById('usDate').value=new Date().toISOString().slice(0,10);
-  setUSSide('BUY');openModal('modalUSTrade');
+  document.getElementById('usGroup').disabled=false;
+  document.getElementById('usTicker').readOnly=false;
+  setUSSide('BUY');
+  openModal('modalUSTrade');
+}
+
+function openUSEdit(id){
+  const t=(appData?.trades||[]).find(x=>x.id===id);
+  if(!t)return alert('ไม่พบรายการ id: '+id);
+  usEditId=id;
+  document.getElementById('usTradeModalTitle').textContent='แก้ไขรายการ US Stocks/ETF';
+  document.getElementById('usTicker').value=t.ticker||'';
+  document.getElementById('usTicker').readOnly=true;
+  document.getElementById('usShares').value=t.shares||'';
+  document.getElementById('usPrice').value=t.price||'';
+  document.getElementById('usNote').value=t.note||'';
+  document.getElementById('usDate').value=(t.date||'').slice(0,10);
+  document.getElementById('usGroup').value=t.group||'';
+  document.getElementById('usGroup').disabled=true;
+  setUSSide(t.side||'BUY');
+  openModal('modalUSTrade');
 }
 function setUSSide(s){
   selectedUSSide=s;
@@ -464,10 +489,24 @@ function submitUSTrade(){
   const price=Number(document.getElementById('usPrice').value);
   if(!ticker||shares<=0||price<=0)return alert('กรุณากรอกข้อมูลให้ครบ');
   const btn=document.getElementById('btnSaveUS');btn.textContent='กำลังบันทึก...';btn.disabled=true;
-  apiCall('addTrade',{side:selectedUSSide,ticker,shares,price,date:document.getElementById('usDate').value,group:document.getElementById('usGroup').value,note:document.getElementById('usNote').value.trim()},res=>{
-    btn.textContent='บันทึก';btn.disabled=false;
-    if(res.ok){closeModal('modalUSTrade');loadBootstrap();}else alert('ผิดพลาด: '+res.error);
-  });
+  const payload={side:selectedUSSide,ticker,shares,price,
+    date:document.getElementById('usDate').value,
+    group:document.getElementById('usGroup').value,
+    note:document.getElementById('usNote').value.trim()};
+  if(usEditId){
+    payload.id=usEditId;
+    apiCall('updateTrade',payload,res=>{
+      btn.textContent='บันทึก';btn.disabled=false;
+      if(res.ok){usEditId=null;closeModal('modalUSTrade');loadBootstrap();}
+      else alert('ผิดพลาด: '+res.error);
+    });
+  } else {
+    apiCall('addTrade',payload,res=>{
+      btn.textContent='บันทึก';btn.disabled=false;
+      if(res.ok){closeModal('modalUSTrade');loadBootstrap();}
+      else alert('ผิดพลาด: '+res.error);
+    });
+  }
 }
 function deleteTrade(id){
   if(!confirm('ยืนยันลบรายการนี้?'))return;
