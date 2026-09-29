@@ -8,6 +8,7 @@
   <link rel="icon" type="image/png" href="profile.png">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#161b22">
+  <script src="i18n.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -48,6 +49,7 @@
       </div>
     </div>
     <div class="flex items-center gap-1.5">
+      <button onclick="toggleLang()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
       <button onclick="loadBootstrap()" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="รีเฟรช Bootstrap">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
       </button>
@@ -284,7 +286,7 @@ function renderGrowthChart(terms){
   chartGrowth=new Chart(ctx,{
     type:'line',
     data:{
-      labels:['เริ่มพอร์ต (2026-08-01)','ปัจจุบัน'],
+      labels:[t('เริ่มพอร์ต (2026-08-01)'),t('ปัจจุบัน')],
       datasets:TERM_KEYS.map((k,i)=>({
         label:(terms[k]?.terminalTitle||'T'+(i+1)),
         data:[INIT_BAL[i], terms[k]?.equityUSD||INIT_BAL[i]],
@@ -344,6 +346,9 @@ function fmtN(n,d=2){return (Number(n)||0).toLocaleString('en-US',{minimumFracti
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 
 document.addEventListener('DOMContentLoaded',()=>loadBootstrap());
+</script>
+<script>
+window.onLangChange = function(){ if (typeof appData !== 'undefined' && appData) { renderForexView(); } };
 </script>
 </body>
 </html>

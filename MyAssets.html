@@ -8,6 +8,7 @@
   <link rel="icon" type="image/png" href="profile.png">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#161b22">
+  <script src="i18n.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Firebase Compat SDK -->
@@ -87,6 +88,7 @@
     </div>
     <div id="tickerTop" class="hidden md:flex items-center gap-2 fn text-[11px]"></div>
     <div class="flex items-center gap-1.5">
+      <button onclick="toggleLang()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
       <button onclick="exportMonthlyCSV()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-amber-400 hover:bg-[#30363d] font-semibold transition" title="Export Monthly Report (CSV)">CSV</button>
       <button onclick="triggerSnapshot()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-emerald-400 hover:bg-[#30363d] font-semibold transition">Snapshot</button>
       <button onclick="loadBootstrap()"   class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="รีเฟรช">
@@ -444,7 +446,7 @@ const TABS = ['MyAssets_Thai.html','MyAssets_US.html','MyAssets_Forex.html','MyA
 
 function renderAllocPie(sum, fxEqTHB, fx) {
   const data   = [sum.thaiMarketTHB||0, sum.usInvestTHB||0, fxEqTHB, sum.totalGroup1THB||0];
-  const labels = ['หุ้นไทย','US ETF','FOREX MT5','สภาพคล่อง'];
+  const labels = [t('หุ้นไทย'),'US ETF','FOREX MT5',t('สภาพคล่อง')];
   const total  = data.reduce((a,b)=>a+b,0)||1;
   const ctx    = document.getElementById('chartAlloc');
   if (chartAlloc) chartAlloc.destroy();
@@ -475,7 +477,7 @@ function renderForexChart(terms) {
   chartForex = new Chart(ctx, {
     type:'line',
     data:{
-      labels:['เริ่มพอร์ต (08/01)','ปัจจุบัน'],
+      labels:[t('เริ่มพอร์ต (08/01)'),t('ปัจจุบัน')],
       datasets: keys.map((k,i)=>({
         label: (terms[k]?.terminalTitle||k),
         data:  [init[i], terms[k]?.equityUSD||init[i]],
@@ -499,7 +501,7 @@ function renderTrendChart(snaps) {
   chartTrend = new Chart(ctx, {
     type:'line',
     data:{
-      labels: snaps.length ? snaps.map(s=>s.date) : ['วันนี้'],
+      labels: snaps.length ? snaps.map(s=>s.date) : [t('วันนี้')],
       datasets:[{
         label:'Net Worth (THB)',
         data: snaps.length ? snaps.map(s=>s.netWorthTHB) : [appData?.summary?.grandTotalTHB||0],
@@ -684,6 +686,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('pinOverlay').classList.remove('hidden');
   }
 });
+</script>
+<script>
+window.onLangChange = function(){ if (typeof appData !== 'undefined' && appData) { renderDashboard(); } };
 </script>
 </body>
 </html>

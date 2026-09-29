@@ -16,7 +16,7 @@
   'use strict';
 
   var KEY   = 'portfolio_lang';
-  var THAI  = /[\u0E00-\u0E7F]/;
+  var THAI  = /[\u0E01-\u0E3E\u0E40-\u0E5B]/;   // ตัวอักษรไทย (ไม่รวมสัญลักษณ์ ฿)
   var lang  = (function () { try { return localStorage.getItem(KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } })();
 
   /* ── พจนานุกรม TH -> EN (key ต้องตรงกับข้อความหลัง trim) ── */
