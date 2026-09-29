@@ -124,6 +124,7 @@
             <th class="py-3 px-3 text-right">จำนวน</th>
             <th class="py-3 px-3 text-right">Avg Cost ($)</th>
             <th class="py-3 px-3 text-right">ราคา ($)</th>
+            <th class="py-3 px-3 text-center">52W Range</th>
             <th class="py-3 px-3 text-right text-blue-300">Net Cost ($)</th>
             <th class="py-3 px-3 text-right">Market ($)</th>
             <th class="py-3 px-3 text-right">P/L ($)</th>
@@ -352,6 +353,27 @@ function populateGroups(){
   if(sel)sel.innerHTML=(appData?.groups||[]).map(g=>`<option value="${g.nameTh}">${g.nameTh}</option>`).join('');
 }
 
+/* ── 52W Range Inline (D-4) ──────────────────────────────── */
+function range52Cell(cur, low, high, dec) {
+  cur = Number(cur) || 0; low = Number(low) || 0; high = Number(high) || 0;
+  if (!(high > low) || cur <= 0) return '<span class="text-gray-600">-</span>';
+  const pct = Math.max(0, Math.min(100, (cur - low) / (high - low) * 100));
+  const p0  = Math.round(pct);
+  return `<div class="flex items-center gap-1.5 min-w-[170px] justify-center" title="52W Low ${fmtN(low,dec)} / High ${fmtN(high,dec)} (ตำแหน่งราคา ${p0}%)">
+      <span class="text-[10px] text-gray-500">${fmtN(low,dec)}</span>
+      <div class="relative flex-1 h-1.5 bg-[#21262d] rounded-full">
+        <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-emerald-400" style="width:${pct}%"></div>
+        <div class="absolute w-2.5 h-2.5 rounded-full bg-white border-2 border-blue-500" style="top:-3px;left:calc(${pct}% - 5px)"></div>
+      </div>
+      <span class="text-[10px] text-gray-500">${fmtN(high,dec)}</span>
+      <span class="text-[10px] font-bold text-blue-300 w-8 text-right">${p0}%</span>
+    </div>`;
+}
+function get52(p) {
+  const s = rtData?.stats52?.[p.ticker];
+  return { low: (s && s.low52) || p.low52, high: (s && s.high52) || p.high52 };
+}
+
 function renderUSView(){
   if(!appData)return;
   const sum=appData.summary||{};
@@ -384,7 +406,7 @@ function renderUSView(){
 
   // Holdings table
   const tbody=document.getElementById('usHoldingsBody');
-  if(!pos.length){tbody.innerHTML=`<tr><td colspan="8" class="py-6 text-center text-gray-500">ไม่มีหุ้น US ในพอร์ต</td></tr>`;
+  if(!pos.length){tbody.innerHTML=`<tr><td colspan="9" class="py-6 text-center text-gray-500">ไม่มีหุ้น US ในพอร์ต</td></tr>`;
   }else{
     tbody.innerHTML=pos.map(p=>{
       const g=p.diffUSD>=0;
@@ -394,6 +416,7 @@ function renderUSView(){
         <td class="py-3 px-3 text-right text-gray-200">${fmtN(p.shares,4)}</td>
         <td class="py-3 px-3 text-right text-gray-400">$${fmtN(p.avgCost)}</td>
         <td class="py-3 px-3 text-right font-semibold text-white">$${fmtN(p.currentPrice)}</td>
+        <td class="py-3 px-3">${(()=>{const r=get52(p);return range52Cell(p.currentPrice,r.low,r.high,2);})()}</td>
         <td class="py-3 px-3 text-right font-bold text-blue-300">$${fmtN(p.costUSD)}</td>
         <td class="py-3 px-3 text-right font-bold text-white">$${fmtN(p.marketUSD)}</td>
         <td class="py-3 px-3 text-right font-semibold ${g?'text-emerald-400':'text-rose-400'}">${g?'+':''}$${fmtN(p.diffUSD)}</td>
