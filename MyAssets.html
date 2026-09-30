@@ -8,7 +8,6 @@
   <link rel="icon" type="image/png" href="profile.png">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#161b22">
-  <script src="i18n.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Firebase Compat SDK -->
@@ -86,10 +85,7 @@
         </div>
       </div>
     </div>
-    <div id="tickerTop" class="hidden md:flex items-center gap-2 fn text-[11px]"></div>
     <div class="flex items-center gap-1.5">
-      <button onclick="toggleLang()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
-      <button onclick="exportMonthlyCSV()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-amber-400 hover:bg-[#30363d] font-semibold transition" title="Export Monthly Report (CSV)">CSV</button>
       <button onclick="triggerSnapshot()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-emerald-400 hover:bg-[#30363d] font-semibold transition">Snapshot</button>
       <button onclick="loadBootstrap()"   class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="รีเฟรช">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -99,7 +95,6 @@
       </button>
     </div>
   </div>
-  <div id="tickerStrip" class="md:hidden max-w-7xl mx-auto px-4 pb-2 flex gap-2 overflow-x-auto fn text-[11px]"></div>
   <!-- NAV TABS (Multi-page links) -->
   <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
     <a href="MyAssets.html"           class="nav-tab active">Dashboard</a>
@@ -130,6 +125,7 @@
         <div class="text-xs font-semibold text-blue-400 uppercase tracking-wider">มูลค่าสินทรัพย์สุทธิรวม (Net Worth)</div>
         <div class="text-3xl font-extrabold text-white fn" id="valNetWorthTHB">0.00 ฿</div>
         <div class="text-xs text-gray-400 fn">≈ $ <span id="valNetWorthUSD">0.00</span> USD</div>
+        <div class="text-[10px] text-gray-600 fn mt-0.5">อัปเดต: <span id="valLastUpdate">-</span></div>
       </div>
     </div>
     <button onclick="openModal('modalAccount')" class="px-3 py-2 rounded-xl bg-[#21262d] border border-[#30363d] text-gray-300 hover:text-white text-xs font-semibold transition">
@@ -137,6 +133,40 @@
     </button>
   </div>
 
+  <!-- PERFORMANCE ROW (D-6) -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="cd rounded-2xl p-4 border-l-4 border-l-teal-400">
+      <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-1">หุ้นไทย</div>
+      <div class="text-lg font-bold fn" id="d6ThaiPnl">0.00 ฿</div>
+      <div class="text-[10px] mt-0.5"><span id="d6ThaiPct" class="fn text-gray-400">0.00%</span></div>
+    </div>
+    <div class="cd rounded-2xl p-4 border-l-4 border-l-blue-400">
+      <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-1">US ETF</div>
+      <div class="text-lg font-bold fn" id="d6USPnl">0.00 ฿</div>
+      <div class="text-[10px] mt-0.5"><span id="d6USPct" class="fn text-gray-400">0.00%</span></div>
+    </div>
+    <div class="cd rounded-2xl p-4 border-l-4 border-l-indigo-400">
+      <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-1">FOREX MT5</div>
+      <div class="text-lg font-bold fn" id="d6FxPnl">0.00 ฿</div>
+      <div class="text-[10px] mt-0.5"><span id="d6FxPct" class="fn text-gray-400">0.00%</span></div>
+    </div>
+    <div class="cd rounded-2xl p-4 border-l-4 border-l-amber-400">
+      <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Snapshot ล่าสุด</div>
+      <div class="text-sm font-bold text-white fn" id="d6SnapDate">--</div>
+      <div class="text-[10px] mt-0.5 fn text-gray-400" id="d6SnapNW">--</div>
+    </div>
+  </div>
+  <!-- TOP GAINERS / LOSERS (D-6) -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="cd rounded-2xl p-4">
+      <div class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-3">Top Gainers</div>
+      <div id="d6Gainers" class="space-y-2 text-xs fn"></div>
+    </div>
+    <div class="cd rounded-2xl p-4">
+      <div class="text-xs font-bold text-rose-400 uppercase tracking-wider mb-3">Top Losers</div>
+      <div id="d6Losers" class="space-y-2 text-xs fn"></div>
+    </div>
+  </div>
   <!-- ALLOCATION PIE -->
   <div class="cd rounded-2xl p-5">
     <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">สัดส่วนสินทรัพย์รวม</div>
@@ -277,16 +307,12 @@ let rtData       = null;          // Firebase realtime snapshot
 let chartAlloc   = null;
 let chartForex   = null;
 let chartTrend   = null;
-let btcLive      = null;          // { usd, chg } จาก CoinGecko (live)
-let lastCalc     = null;          // ค่าที่คำนวณล่าสุดจาก renderDashboard (ใช้ใน Export CSV)
 
 /* ── Firebase Init ───────────────────────────────────────── */
 firebase.initializeApp(FB_CFG);
 const db = firebase.database();
 
 function startFirebaseListen() {
-  fetchBtcLive();
-  setInterval(fetchBtcLive, 60000);
   const statusEl = document.getElementById('fbStatus');
   db.ref('realtime').on('value', snap => {
     rtData = snap.val();
@@ -362,12 +388,14 @@ function logout() {
 }
 
 /* ── Bootstrap (history, accounts, snapshot) ─────────────── */
-function loadBootstrap(cb) {
+function loadBootstrap(cb, _retry) {
+  _retry = _retry || 0;
   document.getElementById('loadingBanner').classList.remove('hidden');
   apiCall('bootstrap', {}, res => {
     document.getElementById('loadingBanner').classList.add('hidden');
     if (!res.ok) {
-      if (res.error?.includes('บัตรผ่าน')) logout();
+      if (res.error?.includes('บัตรผ่าน')) { logout(); return; }
+      if (_retry < 2) { setTimeout(() => loadBootstrap(cb, _retry+1), 3000); return; }
       return;
     }
     appData = res.data;
@@ -432,12 +460,80 @@ function renderDashboard() {
   const nw = (sum.totalGroup1THB||0)+(sum.thaiMarketTHB||0)+(sum.usInvestTHB||0)+fxEqUSD*fx;
   setText('valNetWorthTHB', fmtN(nw)+' ฿');
   setText('valNetWorthUSD', fmtN(nw/fx));
-  lastCalc = { fx, nw, terms, fxBalUSD, fxEqUSD, fxPnlUSD, fxPct };
-  renderTicker();
 
   renderAllocPie(sum, fxEqUSD*fx, fx);
   renderForexChart(terms);
   renderTrendChart(appData?.snapshot||[]);
+  renderD6(sum, fxEqUSD*fx, fxPnlUSD, fxPct, fxBalUSD*fx);
+}
+
+/* ── D-6: Performance Row + Top Gainers/Losers ──────────── */
+function renderD6(sum, fxEqTHB, fxPnlUSD, fxPct, fxBalTHB) {
+  const fx = rtData?.fxRate || sum.fxRate || 33.14;
+  function setBar(idPnl, idPct, pnl, pct, unit) {
+    const el = document.getElementById(idPnl);
+    const ep = document.getElementById(idPct);
+    if (!el || !ep) return;
+    const sign = pnl >= 0 ? '+' : '';
+    el.textContent = sign + fmtN(pnl) + (unit ? ' ' + unit : '');
+    el.className   = 'text-lg font-bold fn ' + (pnl >= 0 ? 'text-emerald-400' : 'text-rose-400');
+    ep.textContent = sign + fmtN(pct, 2) + '%';
+    ep.className   = 'fn text-[10px] ' + (pnl >= 0 ? 'text-emerald-400' : 'text-rose-400');
+  }
+  setBar('d6ThaiPnl','d6ThaiPct', sum.thaiPnlTHB||0, sum.thaiPnlPct||0, '฿');
+  setBar('d6USPnl',  'd6USPct',   sum.usPnlTHB  ||0, sum.usPnlPct  ||0, '฿');
+  setBar('d6FxPnl',  'd6FxPct',   fxPnlUSD*fx,       fxPct||0,           '฿');
+
+  /* Snapshot ล่าสุด */
+  const snaps = (appData?.snapshot||[]).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const snap  = snaps[0];
+  const sdEl  = document.getElementById('d6SnapDate');
+  const snEl  = document.getElementById('d6SnapNW');
+  if (snap && sdEl && snEl) {
+    sdEl.textContent = String(snap.date||'').slice(0,10);
+    snEl.textContent = '฿' + fmtN(snap.netWorthTHB||0, 0);
+  }
+
+  /* Top Gainers / Losers — รวม Thai + US */
+  const positions = [];
+  (sum.positions||[]).forEach(p => {
+    if ((p.shares||0) > 0) positions.push({
+      ticker:p.ticker, diffTHB:(p.diffUSD||0)*fx, diffPct:p.diffPct||0, group:'US'
+    });
+  });
+  (sum.thaiPositions||[]).forEach(p => {
+    if ((p.shares||0) > 0) positions.push({
+      ticker:p.ticker, diffTHB:p.pnlTHB||0, diffPct:p.pnlPct||0, group:'TH'
+    });
+  });
+  positions.sort((a,b) => b.diffPct - a.diffPct);
+  const gainers = positions.filter(p=>p.diffPct>0).slice(0,4);
+  const losers  = [...positions].reverse().filter(p=>p.diffPct<0).slice(0,4);
+
+  function renderList(elId, list, color) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (!list.length) { el.innerHTML='<div class="text-gray-600">-</div>'; return; }
+    el.innerHTML = list.map(p => {
+      const sign   = p.diffPct>=0 ? '+' : '';
+      const grpCls = p.group==='TH' ? 'bg-teal-500/15 text-teal-400' : 'bg-blue-500/15 text-blue-400';
+      return `<div class="flex items-center justify-between py-1.5 border-b border-[#21262d] last:border-0">
+        <div class="flex items-center gap-2">
+          <span class="text-[9px] px-1.5 py-0.5 rounded ${grpCls}">${p.group}</span>
+          <span class="font-bold text-white">${p.ticker}</span>
+        </div>
+        <div class="text-right">
+          <div class="font-bold ${color}">${sign}${fmtN(p.diffPct,2)}%</div>
+          <div class="text-[10px] text-gray-500">${sign}฿${fmtN(Math.abs(p.diffTHB),0)}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  renderList('d6Gainers', gainers, 'text-emerald-400');
+  renderList('d6Losers',  losers,  'text-rose-400');
+
+  const lu = document.getElementById('valLastUpdate');
+  if (lu) lu.textContent = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
 }
 
 /* ── Charts ──────────────────────────────────────────────── */
@@ -446,7 +542,7 @@ const TABS = ['MyAssets_Thai.html','MyAssets_US.html','MyAssets_Forex.html','MyA
 
 function renderAllocPie(sum, fxEqTHB, fx) {
   const data   = [sum.thaiMarketTHB||0, sum.usInvestTHB||0, fxEqTHB, sum.totalGroup1THB||0];
-  const labels = [t('หุ้นไทย'),'US ETF','FOREX MT5',t('สภาพคล่อง')];
+  const labels = ['หุ้นไทย','US ETF','FOREX MT5','สภาพคล่อง'];
   const total  = data.reduce((a,b)=>a+b,0)||1;
   const ctx    = document.getElementById('chartAlloc');
   if (chartAlloc) chartAlloc.destroy();
@@ -477,7 +573,7 @@ function renderForexChart(terms) {
   chartForex = new Chart(ctx, {
     type:'line',
     data:{
-      labels:[t('เริ่มพอร์ต (08/01)'),t('ปัจจุบัน')],
+      labels:['เริ่มพอร์ต (08/01)','ปัจจุบัน'],
       datasets: keys.map((k,i)=>({
         label: (terms[k]?.terminalTitle||k),
         data:  [init[i], terms[k]?.equityUSD||init[i]],
@@ -501,7 +597,7 @@ function renderTrendChart(snaps) {
   chartTrend = new Chart(ctx, {
     type:'line',
     data:{
-      labels: snaps.length ? snaps.map(s=>s.date) : [t('วันนี้')],
+      labels: snaps.length ? snaps.map(s=>s.date) : ['วันนี้'],
       datasets:[{
         label:'Net Worth (THB)',
         data: snaps.length ? snaps.map(s=>s.netWorthTHB) : [appData?.summary?.grandTotalTHB||0],
@@ -544,127 +640,6 @@ function triggerSnapshot() {
   apiCall('saveSnapshot',{},res=>{ if(res.ok){alert('บันทึกสำเร็จ');loadBootstrap();} });
 }
 
-/* ── Header Price Ticker (BTC / Gold Spot / Thai Gold) ───── */
-/* BTC: CoinGecko (live, ~60s) -> fallback Firebase/Sheet
-   Gold Spot + Thai Gold: Firebase realtime -> fallback bootstrap summary (จากชีต REALTIME) */
-const COINGECKO_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true';
-
-function fetchBtcLive() {
-  fetch(COINGECKO_URL, { cache:'no-store' })
-    .then(r => r.ok ? r.json() : Promise.reject(r.status))
-    .then(j => {
-      const b = j && j.bitcoin;
-      if (b && Number(b.usd) > 0) { btcLive = { usd:Number(b.usd), chg:Number(b.usd_24h_change)||0 }; renderTicker(); }
-    })
-    .catch(() => { /* เงียบ: ใช้ค่าจาก Firebase/Sheet แทน */ });
-}
-
-function renderTicker() {
-  const sum  = appData?.summary || {};
-  const btc  = btcLive ? btcLive.usd : (Number(rtData?.btcUSD) || Number(sum.btcUSD) || 0);
-  const gold = Number(rtData?.goldWorld) || Number(sum.goldWorld) || 0;
-  const thai = Number(rtData?.goldTH)    || Number(sum.goldTH)    || 0;
-
-  const chip = (label, val, unit, extra) => `
-    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0d1117] border border-[#30363d] whitespace-nowrap flex-shrink-0">
-      <span class="text-gray-400">${label}</span>
-      <span class="text-white font-bold">${val > 0 ? unit + fmtN(val, 0) : '--'}</span>${extra || ''}
-    </span>`;
-
-  let btcExtra = '';
-  if (btcLive) {
-    const c = btcLive.chg;
-    btcExtra = `<span class="${c >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${c >= 0 ? '+' : ''}${fmtN(c, 2)}%</span>`;
-  }
-  const html = chip('BTC/USD', btc, '$', btcExtra) + chip('Gold Spot', gold, '$') + chip('Thai Gold', thai, '฿');
-  ['tickerTop','tickerStrip'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = html; });
-}
-
-/* ── Export Monthly Report (CSV) ─────────────────────────── */
-function exportMonthlyCSV() {
-  if (!appData || !lastCalc) { alert('ข้อมูลยังไม่พร้อม กรุณารอโหลดเสร็จแล้วลองใหม่'); return; }
-
-  const bkk      = new Date(Date.now() + 7*3600*1000).toISOString();
-  const defMonth = bkk.slice(0,7);
-  const input    = prompt('เลือกเดือนของรายงาน (YYYY-MM)', defMonth);
-  if (input === null) return;
-  const month = input.trim();
-  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) { alert('รูปแบบเดือนไม่ถูกต้อง เช่น ' + defMonth); return; }
-
-  const sum = appData.summary || {};
-  const { fx, nw, terms, fxBalUSD, fxEqUSD, fxPnlUSD, fxPct } = lastCalc;
-  const r2  = v => Math.round((Number(v)||0)*100)/100;
-  const pct = (pnl, cost) => cost > 0 ? r2(pnl/cost*100) : 0;
-
-  const cell = v => {
-    if (typeof v === 'number') return isFinite(v) ? String(v) : '0';
-    return '"' + String(v == null ? '' : v).replace(/"/g,'""') + '"';
-  };
-  const rows = [];
-  const add  = arr => rows.push(arr.map(cell).join(','));
-  const blank = () => rows.push('');
-
-  /* 1) Header */
-  add(['9AU Portfolio - Monthly Report']);
-  add(['Report Month', month]);
-  add(['Generated (Asia/Bangkok)', bkk.slice(0,16).replace('T',' ')]);
-  add(['USD/THB', r2(fx)]);
-  blank();
-
-  /* 2) Summary (มูลค่า ณ เวลาที่ export) */
-  add(['SUMMARY (มูลค่า ณ เวลาที่ Export)']);
-  add(['Group','Cost THB','Market Value THB','P/L THB','P/L %','Cost USD','Market Value USD','P/L USD']);
-  add(['Group-1 Cash','',r2(sum.cashTHB),'','','','','']);
-  add(['Group-1 Bank','',r2(sum.bankTHB),'','','','','']);
-  add(['Group-1 Emergency Fund','',r2(sum.emergencyTHB),'','','','','']);
-  add(['Group-1 Liquidity Total','',r2(sum.totalGroup1THB),'','','','','']);
-  add(['Group-4 Thai Stocks', r2(sum.thaiCostTHB), r2(sum.thaiMarketTHB), r2(sum.thaiPnlTHB),
-       r2(sum.thaiPnlPct != null ? sum.thaiPnlPct : pct(sum.thaiPnlTHB, sum.thaiCostTHB)), '','','']);
-  add(['Group-2 US Stocks & ETF', r2(sum.usTotalNetTHBCost), r2(sum.usInvestTHB), r2(sum.usPnlTHB),
-       r2(sum.usPnlPct), r2(sum.usCostUSD), r2(sum.usInvestUSD), r2(sum.usPnlUSD)]);
-  add(['Group-3 FOREX MT5', r2(fxBalUSD*fx), r2(fxEqUSD*fx), r2(fxPnlUSD*fx),
-       r2(fxPct), r2(fxBalUSD), r2(fxEqUSD), r2(fxPnlUSD)]);
-  add(['NET WORTH TOTAL','',r2(nw),'','','',r2(nw/fx),'']);
-  blank();
-
-  /* 3) FOREX Terminals */
-  add(['FOREX MT5 TERMINALS']);
-  add(['Terminal','Detail','Balance USD','Equity USD','P/L USD','Growth %']);
-  ['Terminal-01','Terminal-02','Terminal-03','Terminal-04'].forEach(k => {
-    const t = terms[k] || {};
-    const g = t.growth != null ? t.growth : pct(t.pnlUSD||0, t.balanceUSD||0);
-    add([t.terminalTitle || k, t.terminalDetail || '', r2(t.balanceUSD), r2(t.equityUSD), r2(t.pnlUSD), r2(g)]);
-  });
-  blank();
-
-  /* 4) Daily History จาก SNAPSHOT (ทุก Column ตามชีต) */
-  add(['DAILY HISTORY (SNAPSHOT) - ' + month]);
-  const snaps = (appData.snapshot || [])
-    .filter(s => String(s.date || '').slice(0,7) === month)
-    .sort((a,b) => String(a.date).localeCompare(String(b.date)));
-
-  if (!snaps.length) {
-    add(['ไม่มีข้อมูล SNAPSHOT ในเดือนนี้']);
-  } else {
-    const cols = [];
-    snaps.forEach(s => Object.keys(s).forEach(k => { if (cols.indexOf(k) === -1) cols.push(k); }));
-    add(cols);
-    snaps.forEach(s => add(cols.map(k => {
-      const v = s[k];
-      if (k === 'date') return String(v).slice(0,10);
-      if (v === '' || v == null) return '';
-      return (typeof v === 'number') ? r2(v) : v;
-    })));
-  }
-
-  const blob = new Blob(['\uFEFF' + rows.join('\r\n')], { type:'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = 'Monthly_Report_' + month + '.csv';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
 /* ── Helpers ─────────────────────────────────────────────── */
 function fmtN(n,d=2) { return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
 function setText(id,v) { const el=document.getElementById(id); if(el)el.textContent=v; }
@@ -686,9 +661,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('pinOverlay').classList.remove('hidden');
   }
 });
-</script>
-<script>
-window.onLangChange = function(){ if (typeof appData !== 'undefined' && appData) { renderDashboard(); } };
 </script>
 </body>
 </html>
