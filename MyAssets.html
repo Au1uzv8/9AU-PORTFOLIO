@@ -27,6 +27,13 @@
     .nav-tab.active { background:#2563eb;color:#fff;border-color:#2563eb; }
     .nav-tab:not(.active) { background:#161b22;color:#64748b; }
     .nav-tab:not(.active):hover { color:#fff;border-color:#475569; }
+    /* Risk Monitor badges */
+    .rm-badge { display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:9999px;white-space:nowrap; }
+    .rm-watch  { background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.35); }
+    .rm-sl15   { background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.4); }
+    .rm-sl20   { background:rgba(239,68,68,.18);color:#ef4444;border:1px solid rgba(239,68,68,.5);animation:pulse 1.5s infinite; }
+    .rm-tp     { background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.35); }
+    .rm-tp-str { background:rgba(16,185,129,.22);color:#34d399;border:1px solid rgba(16,185,129,.6); }
   </style>
 </head>
 <body class="min-h-screen antialiased pb-16">
@@ -118,6 +125,17 @@
   <div id="loadingBanner" class="hidden flex items-center justify-center gap-2 p-3 rounded-xl bg-blue-950/40 border border-blue-800/50 text-blue-300 text-xs">
     <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
     กำลังโหลดข้อมูลประวัติ...
+  </div>
+
+  <!-- RISK MONITOR PANEL -->
+  <div id="riskMonitor" class="hidden cd rounded-2xl border border-rose-500/30 overflow-hidden">
+    <div class="flex items-center justify-between px-4 py-2.5 border-b border-[#30363d] bg-rose-950/20">
+      <div class="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-rose-500 pulse-dot"></span> Risk Monitor
+      </div>
+      <span class="text-[10px] text-gray-500 fn">คลิกที่หุ้นเพื่อดูรายละเอียด</span>
+    </div>
+    <div id="riskMonitorBody" class="px-4 py-3 flex flex-wrap gap-2"></div>
   </div>
 
   <!-- NET WORTH HERO -->
@@ -476,6 +494,61 @@ function renderDashboard() {
   lastCalc = { fx, nw, terms, fxBalUSD, fxEqUSD, fxPnlUSD, fxPct };
   renderTicker();
   renderD6(sum, fxEqUSD*fx, fxPnlUSD, fxPct, fxBalUSD*fx);
+  renderRiskMonitor(sum);
+}
+
+/* ── Risk Monitor (SL / TP Status Panel) ────────────────── */
+function renderRiskMonitor(sum) {
+  const panel = document.getElementById('riskMonitor');
+  const body  = document.getElementById('riskMonitorBody');
+  if (!panel || !body) return;
+
+  const items = [];
+
+  /* รวม US + Thai positions แล้วคำนวณ diffPct */
+  (sum.positions || []).forEach(function(p) {
+    if ((p.shares || 0) <= 0) return;
+    items.push({ ticker: p.ticker, diffPct: p.diffPct || 0, market: 'US',
+                 url: 'MyAssets_US.html' });
+  });
+  (sum.thaiPositions || []).forEach(function(p) {
+    if ((p.shares || 0) <= 0) return;
+    /* Thai pnlPct/diffPct ขึ้นอยู่กับ version — ลอง diffPct ก่อน ถ้าไม่มีใช้ pnlPct */
+    const dp = (p.diffPct != null ? p.diffPct : p.pnlPct) || 0;
+    items.push({ ticker: p.ticker, diffPct: dp, market: 'TH',
+                 url: 'MyAssets_Thai.html' });
+  });
+
+  /* กรองเฉพาะที่อยู่ใน Risk หรือ TP zone */
+  const risky = items.filter(function(p) {
+    return p.diffPct <= -10 || p.diffPct >= 40;
+  });
+
+  if (!risky.length) { panel.classList.add('hidden'); return; }
+  panel.classList.remove('hidden');
+
+  body.innerHTML = risky.map(function(p) {
+    const d = p.diffPct;
+    let cls = '', label = '';
+    if      (d <= -20) { cls = 'rm-sl20';  label = 'SL-20%'; }
+    else if (d <= -15) { cls = 'rm-sl15';  label = 'SL-15%'; }
+    else if (d <= -10) { cls = 'rm-watch'; label = 'WATCH'; }
+    else if (d >= 60)  { cls = 'rm-tp-str';label = 'TP+60%'; }
+    else if (d >= 50)  { cls = 'rm-tp-str';label = 'TP+50%'; }
+    else               { cls = 'rm-tp';    label = 'TP+40%'; }
+
+    const grpCls = p.market === 'TH'
+      ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
+      : 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
+    const sign = d >= 0 ? '+' : '';
+
+    return '<a href="' + p.url + '" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#0d1117] border border-[#30363d] hover:border-[#475569] transition cursor-pointer">'
+         + '<span class="text-[9px] px-1 py-0.5 rounded ' + grpCls + '">' + p.market + '</span>'
+         + '<span class="text-xs font-bold text-white fn">' + p.ticker + '</span>'
+         + '<span class="rm-badge ' + cls + '">' + label + '</span>'
+         + '<span class="text-[10px] fn ' + (d >= 0 ? 'text-emerald-400' : 'text-rose-400') + '">' + sign + fmtN(d, 2) + '%</span>'
+         + '</a>';
+  }).join('');
 }
 
 /* ── D-6: Performance Row + Top Gainers/Losers ──────────── */
