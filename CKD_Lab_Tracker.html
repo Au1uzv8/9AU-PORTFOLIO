@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CKD Lab Tracker</title>
+<link rel="icon" href="app-icon.png">
+<link rel="apple-touch-icon" href="app-icon.png">
+<meta name="theme-color" content="#0B0E14">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0B0E14;--card:#141922;--card2:#1A2130;--line:#232D3C;--gold:#FFD75E;--cyan:#4DE8FF;--mag:#FF4DD2;--lime:#B6FF3C;--txt:#D7E0EA;--dim:#7F8EA3}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:'Noto Sans Thai',system-ui,sans-serif;font-size:15px;padding-bottom:50px}
+.num{font-family:'Orbitron',sans-serif;letter-spacing:.5px}
+#nojs{background:#5a0b22;color:#ffd7e4;padding:12px 14px;font-size:13px;line-height:1.6;border-bottom:1px solid #FF4DD2}
+#errbar{display:none;background:#5a0b22;color:#ffd7e4;padding:10px 14px;font-size:13px;border-bottom:1px solid #FF4DD2}
+#okchip{display:none;font-size:10px;color:#0B0E14;background:#B6FF3C;border-radius:999px;padding:3px 9px;font-weight:700}
+header{position:sticky;top:0;z-index:50;background:rgba(11,14,20,.94);border-bottom:1px solid var(--line);padding:10px 14px}
+.hrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.logo{width:38px;height:38px;border-radius:10px;object-fit:cover;border:1px solid var(--gold);background:#000}
+h1{font-size:17px;margin:0;color:var(--gold)}
+.sub{font-size:11.5px;color:var(--dim);margin-top:2px}
+.spacer{flex:1}
+.btn{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:8px 13px;font-family:inherit;font-size:13px;cursor:pointer}
+.btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn.gold{border-color:var(--gold);color:var(--gold)}
+.btn.cy{border-color:var(--cyan);color:var(--cyan)}
+.btn.mg{border-color:var(--mag);color:var(--mag)}
+.btn.lm{border-color:var(--lime);color:var(--lime)}
+.btn.big{padding:13px 20px;font-size:15px}
+nav{display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding-bottom:3px}
+nav button{white-space:nowrap;background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:999px;padding:7px 15px;font-family:inherit;font-size:13px;cursor:pointer}
+nav button.on{color:var(--bg);background:var(--cyan);border-color:var(--cyan);font-weight:700}
+main{max-width:1180px;margin:0 auto;padding:14px}
+.view{display:none}.view.on{display:block}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){.g3,.g2{grid-template-columns:1fr}.g4{grid-template-columns:1fr 1fr}}
+.card{background:linear-gradient(180deg,var(--card),#10151e);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.card h3{margin:0 0 10px;font-size:13px;color:var(--gold)}
+.kpi{cursor:pointer;margin:0}
+.kpi:hover{border-color:var(--cyan)}
+.kpi .lbl{font-size:12px;color:var(--dim);min-height:32px}
+.kpi .val{font-size:28px;margin:6px 0 2px}
+.kpi .unit,.kpi .ref{font-size:11px;color:var(--dim)}
+.kpi .trend{font-size:12px;margin:3px 0}
+.ok{color:var(--lime)}.hi{color:var(--mag)}.lo{color:var(--gold)}.dim{color:var(--dim)}
+.pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+.chart{height:290px}
+canvas{width:100%;height:100%;display:block;cursor:pointer}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{color:var(--cyan);font-size:11px;position:sticky;top:0;background:#10151e}
+tr.clk{cursor:pointer}tr.clk:hover td{background:#1b2433}
+.scroll{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:12px}
+.adv{font-size:12.5px;background:#10151e;border-left:3px solid var(--mag);padding:9px 12px;border-radius:8px;margin:7px 0;line-height:1.55}
+.adv.good{border-left-color:var(--lime)}
+.badge{font-size:11px;padding:2px 8px;border-radius:6px;background:#10151e;border:1px solid var(--line);color:var(--dim)}
+label{font-size:12px;color:var(--dim);display:block;margin-bottom:4px}
+input{width:100%;background:#0E131B;border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:10px;font-family:inherit;font-size:15px}
+input:focus{outline:none;border-color:var(--cyan)}
+.field{margin-bottom:10px}
+.modal{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(5,7,11,.85);z-index:100;display:none;align-items:center;justify-content:center;padding:12px}
+.modal.on{display:flex}
+.mbox{background:var(--card);border:1px solid var(--cyan);border-radius:16px;max-width:880px;width:100%;max-height:92vh;overflow:auto;padding:16px}
+.drop{border:2px dashed var(--line);border-radius:16px;padding:30px 16px;text-align:center}
+.drop.hot{border-color:var(--lime)}
+.bar{height:7px;background:#0E131B;border-radius:4px;overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:var(--cyan);width:0}
+.med{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.med b{color:var(--cyan);font-weight:600}
+.dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;margin-top:5px}
+small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margin-top:8px}
+</style>
+</head>
+<body>
+
+<div id="nojs">
+  สคริปต์ยังไม่ทำงาน ถ้าคุณเห็นข้อความนี้ค้างอยู่ แปลว่าหน้าต่างที่เปิดอยู่บล็อก JavaScript
+  ให้บันทึกไฟล์เป็น index.html แบบ UTF-8 แล้วดับเบิลคลิกเปิดด้วย Chrome โดยตรง อย่าดูผ่านหน้าต่างพรีวิวของโปรแกรมแก้โค้ด
+</div>
+<noscript><div id="nojs">เบราว์เซอร์นี้ปิดการใช้งาน JavaScript กรุณาเปิดใช้งานก่อน</div></noscript>
+<div id="errbar"></div>
+
+<script>
+window.onerror=function(m,s,l){var b=document.getElementById('errbar');if(b){b.style.display='block';b.textContent='ERROR: '+m+'  (line '+l+')';}return false;};
+</script>
+
+<header>
+  <div class="hrow">
+    <img class="logo" src="app-icon.png" alt="" onerror="this.style.visibility='hidden'">
+    <div><h1 data-i18n="appName">CKD Lab Tracker</h1><div class="sub" data-i18n="appSub">ผู้ช่วยติดตามผลเลือดโรคไตเรื้อรัง</div></div>
+    <div class="spacer"></div>
+    <span id="okchip">JS OK</span>
+    <button class="btn gold" data-act="lang" id="langBtn">ENGLISH</button>
+  </div>
+  <nav>
+    <button data-act="nav" data-val="dash" class="on" data-i18n="navDash">แดชบอร์ด</button>
+    <button data-act="nav" data-val="daily" data-i18n="navDaily">บันทึกรายวัน</button>
+    <button data-act="nav" data-val="hist" data-i18n="navHist">ประวัติย้อนหลัง</button>
+    <button data-act="nav" data-val="add" data-i18n="navAdd">กรอกผลตรวจ</button>
+    <button data-act="nav" data-val="ocr" data-i18n="navOcr">อัปโหลดรูป (OCR)</button>
+    <button data-act="nav" data-val="data" data-i18n="navData">ข้อมูล/สำรอง</button>
+  </nav>
+</header>
+
+<main>
+
+<section class="view on" id="v-dash">
+  <div class="card">
+    <div class="hrow">
+      <div><div class="sub" data-i18n="lastVisit">ผลตรวจล่าสุด</div><div class="num" id="lastDate" style="font-size:20px;color:var(--gold)"></div></div>
+      <div class="spacer"></div>
+      <div style="text-align:right"><div class="sub" data-i18n="ckdStage">ระยะของโรคไต</div><div class="num" id="stageTxt" style="font-size:20px"></div></div>
+    </div>
+  </div>
+  <div class="grid g4" id="kpis" style="margin-bottom:12px"></div>
+  <div class="card"><h3 data-i18n="vitalsNow">สัญญาณชีพล่าสุด</h3><div class="grid g4" id="vkpis"></div></div>
+  <div class="grid g2">
+    <div class="card"><h3 data-i18n="egfrHist">ประวัติ eGFR (EPI)</h3><div class="chart"><canvas id="cEgfr"></canvas></div><small class="note" data-i18n="clickHint">แตะที่กราฟเพื่อดูรายละเอียดย้อนหลัง</small></div>
+    <div class="card"><h3 data-i18n="radarT">ภาพรวมค่าสำคัญ</h3><div class="chart"><canvas id="cRadar"></canvas></div><small class="note" data-i18n="radarHint">วงเขียว คือ ขีดจำกัดบนของค่าปกติ เส้นที่ทะลุออกนอกวง คือค่าที่สูงเกิน</small></div>
+  </div>
+  <div class="card"><h3 data-i18n="comboT">ความสัมพันธ์ A/C ratio กับ ความดันตัวบน</h3><div class="chart"><canvas id="cCombo"></canvas></div><small class="note" data-i18n="comboHint">เส้นชมพู คือ A/C ratio อ่านที่แกนซ้าย เส้นฟ้า คือ ความดันตัวบน อ่านที่แกนขวา</small></div>
+  <div class="grid g3" id="groups"></div>
+  <div class="card"><h3 data-i18n="adviceT">คำแนะนำสำหรับรอบนี้</h3><div id="advice"></div>
+    <small class="note" data-i18n="disclaimer">* เป็นข้อมูลช่วยจำเท่านั้น การปรับยาและอาหารให้ยึดตามคำสั่งแพทย์เสมอ</small></div>
+  <div class="grid g2">
+    <div class="card"><h3 data-i18n="dxT">การวินิจฉัย</h3><div id="dxList"></div></div>
+    <div class="card"><h3 data-i18n="medT">ยาประจำตัว</h3><div id="medList"></div></div>
+  </div>
+</section>
+
+<section class="view" id="v-daily">
+  <div class="card">
+    <h3 data-i18n="dailyT">บันทึกความดัน น้ำหนัก และน้ำดื่มประจำวัน</h3>
+    <div class="grid g4">
+      <div class="field"><label data-i18n="fDate">วันที่</label><input type="date" id="dDate"></div>
+      <div class="field"><label data-i18n="vsys">ความดันตัวบน (mmHg)</label><input type="number" id="d_sys"></div>
+      <div class="field"><label data-i18n="vdia">ความดันตัวล่าง (mmHg)</label><input type="number" id="d_dia"></div>
+      <div class="field"><label data-i18n="vpulse">ชีพจร (ครั้ง/นาที)</label><input type="number" id="d_pulse"></div>
+      <div class="field"><label data-i18n="vwt">น้ำหนัก (กก.)</label><input type="number" step="any" id="d_wt"></div>
+      <div class="field"><label data-i18n="vfluid">น้ำดื่มรวม (มล.)</label><input type="number" id="d_fluid"></div>
+      <div class="field"><label data-i18n="vurine">ปัสสาวะรวม (มล.)</label><input type="number" id="d_urine"></div>
+      <div class="field"><label data-i18n="vlimit">เพดานน้ำดื่มต่อวัน (มล.)</label><input type="number" id="d_limit"></div>
+    </div>
+    <button class="btn lm big" data-act="save-daily" data-i18n="saveDaily">บันทึกข้อมูลวันนี้</button>
+    <small class="note" data-i18n="dailyHint">กรอกเฉพาะช่องที่มี บันทึกซ้ำวันเดิมจะเป็นการแก้ไขข้อมูลวันนั้น</small>
+  </div>
+  <div class="grid g4" id="dstats" style="margin-bottom:12px"></div>
+  <div class="grid g2">
+    <div class="card"><h3 data-i18n="bpChart">ความดันโลหิต</h3><div class="chart"><canvas id="cBp"></canvas></div></div>
+    <div class="card"><h3 data-i18n="wtChart">น้ำหนักตัว</h3><div class="chart"><canvas id="cWt"></canvas></div></div>
+  </div>
+  <div class="card"><h3 data-i18n="flChart">น้ำดื่มและปัสสาวะ</h3><div class="chart"><canvas id="cFl"></canvas></div></div>
+  <div class="card"><h3 data-i18n="dailyAdv">คำแนะนำจากบันทึกรายวัน</h3><div id="dadvice"></div></div>
+  <div class="card"><h3 data-i18n="dailyTable">ตารางบันทึกรายวัน</h3><div class="scroll" style="max-height:50vh"><table id="dTable"></table></div></div>
+</section>
+
+<section class="view" id="v-hist">
+  <div class="card">
+    <div class="hrow"><h3 style="margin:0" data-i18n="histT">ตารางประวัติผลตรวจทุกรอบ</h3><div class="spacer"></div>
+      <button class="btn cy" id="modeAll" data-act="mode" data-val="all" data-i18n="modeAll">ทุกรอบตรวจ</button>
+      <button class="btn" id="modeQ" data-act="mode" data-val="q" data-i18n="modeQ">เฉลี่ยราย 3 เดือน</button></div>
+    <small class="note" data-i18n="histHint">แตะที่แถวเพื่อดูกราฟและประวัติเฉพาะค่านั้น</small>
+  </div>
+  <div class="scroll"><table id="histTable"></table></div>
+  <div class="card" style="margin-top:12px"><h3 data-i18n="vitQ">สัญญาณชีพ เฉลี่ยราย 3 เดือน</h3><div class="scroll" style="max-height:40vh"><table id="vitTable"></table></div></div>
+</section>
+
+<section class="view" id="v-add">
+  <div class="card"><h3 data-i18n="addT">กรอกผลตรวจด้วยตนเอง</h3>
+    <div class="grid g2">
+      <div class="field"><label data-i18n="fDate">วันที่ตรวจ</label><input type="date" id="fDate"></div>
+      <div class="field"><label data-i18n="fNote">หมายเหตุ</label><input type="text" id="fNote"></div>
+    </div>
+    <small class="note" data-i18n="addHint">กรอกเฉพาะช่องที่มีผล ช่องที่เว้นว่างจะไม่ถูกบันทึก</small>
+  </div>
+  <div id="addForm"></div>
+  <div class="hrow">
+    <button class="btn lm big" data-act="save-lab" data-i18n="saveBtn">บันทึกผลตรวจรอบนี้</button>
+    <button class="btn" data-act="fill-last" data-i18n="fillLast">ใส่ค่าจากรอบล่าสุดเป็นตัวตั้ง</button>
+  </div>
+</section>
+
+<section class="view" id="v-ocr">
+  <div class="card"><h3 data-i18n="ocrT">อัปโหลดภาพผลแล็บ แล้วให้ระบบอ่านให้อัตโนมัติ</h3>
+    <div class="drop" id="drop">
+      <p data-i18n="ocrDrop">ลากรูปมาวางที่นี่ หรือกดปุ่มด้านล่าง เลือกได้หลายรูปพร้อมกัน</p>
+      <button class="btn cy big" data-act="pick" data-i18n="ocrPick">เลือกรูปผลแล็บ</button>
+      <input type="file" id="file" accept="image/*" multiple hidden>
+      <div class="bar"><i id="pbar"></i></div><div class="sub" id="pstat"></div>
+    </div>
+    <small class="note" data-i18n="ocrNote">ครั้งแรกต้องต่ออินเทอร์เน็ตเพื่อโหลดชุดอ่านตัวอักษร ระบบจะให้ตรวจทานค่าก่อนบันทึกเสมอ</small>
+  </div>
+  <div id="ocrReview"></div>
+</section>
+
+<section class="view" id="v-data">
+  <div class="card"><h3 data-i18n="dataT">สำรองและกู้คืนข้อมูล</h3>
+    <p class="sub" id="dbStat"></p>
+    <div class="hrow">
+      <button class="btn lm" data-act="export" data-i18n="expBtn">ดาวน์โหลดไฟล์ .json</button>
+      <button class="btn cy" data-act="import" data-i18n="impBtn">นำเข้าไฟล์ .json</button>
+      <input type="file" id="impFile" accept=".json,application/json" hidden>
+      <button class="btn gold" data-act="reset" data-i18n="resetBtn">โหลดข้อมูลตัวอย่างใหม่</button>
+      <button class="btn mg" data-act="clear" data-i18n="clrBtn">ล้างข้อมูลทั้งหมด</button>
+    </div>
+    <small class="note" data-i18n="dataNote">ข้อมูลทั้งหมดเก็บอยู่ในเครื่องของคุณเท่านั้น</small>
+  </div>
+  <div class="card"><h3 data-i18n="instT">ติดตั้งเป็นแอปบนมือถือ</h3>
+    <div class="sub" style="line-height:1.8" data-i18n="instBody">1) วางไฟล์ index.html และ app-icon.png ไว้โฟลเดอร์เดียวกัน<br>2) เปิดด้วยเบราว์เซอร์ แล้วเลือกเมนู เพิ่มลงในหน้าจอโฮม<br>3) จะได้ไอคอนแอปบนหน้าจอ</div>
+  </div>
+</section>
+
+</main>
+
+<div class="modal" id="modal"><div class="mbox" id="mbox"></div></div>
+
+<script>
+(function(){
+function E(id){return document.getElementById(id);}
+function showErr(m){var b=E('errbar');if(b){b.style.display='block';b.textContent='ERROR: '+m;}}
+try{
+E('nojs').style.display='none';
+E('okchip').style.display='inline-block';
+
+var LABS=[
+{k:'egfr',g:'A',th:'eGFR (EPI)',en:'eGFR (EPI)',u:'mL/min',min:60,max:null,dec:2,key:1,alias:['egfr','gfr']},
+{k:'cr',g:'A',th:'ครีเอตินีน',en:'Creatinine',u:'mg/dL',min:0.51,max:0.95,dec:2,key:1,alias:['creatinine','ครีเอตินีน']},
+{k:'bun',g:'A',th:'ยูเรียไนโตรเจน (BUN)',en:'Blood Urea Nitrogen',u:'mg/dL',min:6,max:20,dec:0,alias:['bun','urea']},
+{k:'acr',g:'A',th:'ไมโครอัลบูมินปัสสาวะ',en:'Urine Microalbumin',u:'mgA/gC',min:0,max:20,dec:0,key:1,alias:['microalbumin','a/c ratio','acr']},
+{k:'uric',g:'A',th:'กรดยูริก',en:'Uric acid',u:'mg/dL',min:3,max:7,dec:1,alias:['uric','ยูริก']},
+{k:'k',g:'B',th:'โพแทสเซียม',en:'Potassium',u:'mmol/L',min:3.5,max:5.1,dec:2,key:1,alias:['potassium','โพแทสเซียม']},
+{k:'na',g:'B',th:'โซเดียม',en:'Sodium',u:'mmol/L',min:135,max:145,dec:0,alias:['sodium','โซเดียม']},
+{k:'p',g:'B',th:'ฟอสฟอรัส',en:'Phosphorus',u:'mg/dL',min:2.5,max:4.5,dec:2,alias:['phosphorus','phosphate']},
+{k:'ca',g:'B',th:'แคลเซียม',en:'Calcium',u:'mg/dL',min:8.6,max:10.3,dec:2,alias:['calcium']},
+{k:'hco3',g:'B',th:'ไบคาร์บอเนต',en:'Bicarbonate',u:'mmol/L',min:22,max:29,dec:0,alias:['bicarbonate','hco3']},
+{k:'hb',g:'C',th:'ฮีโมโกลบิน',en:'Hemoglobin',u:'g/dL',min:11,max:16,dec:1,alias:['hemoglobin']},
+{k:'alb',g:'C',th:'อัลบูมินในเลือด',en:'Serum Albumin',u:'g/dL',min:3.5,max:5.2,dec:1,alias:['serum albumin']},
+{k:'fbs',g:'C',th:'น้ำตาลหลังอดอาหาร',en:'Fasting Blood Sugar',u:'mg/dL',min:70,max:110,dec:0,alias:['fbs','glucose']},
+{k:'a1c',g:'C',th:'น้ำตาลสะสม HbA1c',en:'HbA1c',u:'%',min:null,max:7,dec:1,alias:['hba1c','a1c']},
+{k:'chol',g:'C',th:'คอเลสเตอรอล',en:'Cholesterol',u:'mg/dL',min:null,max:200,dec:0,alias:['cholesterol']},
+{k:'tg',g:'C',th:'ไตรกลีเซอไรด์',en:'Triglyceride',u:'mg/dL',min:null,max:150,dec:0,alias:['triglyceride']},
+{k:'hdl',g:'C',th:'ไขมันดี HDL',en:'HDL',u:'mg/dL',min:40,max:null,dec:0,alias:['hdl']},
+{k:'ldl',g:'C',th:'ไขมันเลว LDL',en:'LDL',u:'mg/dL',min:null,max:100,dec:0,alias:['ldl']},
+{k:'upro',g:'C',th:'โปรตีนในปัสสาวะ',en:'Urine Protein',u:'+',min:null,max:0,dec:0,alias:['urine protein']},
+{k:'uph',g:'C',th:'ความเป็นกรดปัสสาวะ',en:'Urine pH',u:'',min:5,max:8,dec:1,alias:['ph']},
+{k:'usg',g:'C',th:'ความถ่วงจำเพาะปัสสาวะ',en:'Specific Gravity',u:'',min:1.003,max:1.03,dec:3,alias:['specific gravity']}];
+var LM={};
+for(var i=0;i<LABS.length;i++){LM[LABS[i].k]=LABS[i];}
+var GROUPS={A:{th:'การทำงานของไต',en:'Kidney Function'},B:{th:'เกลือแร่และแร่ธาตุ',en:'Electrolytes'},C:{th:'เมตาบอลิก / ปัสสาวะ',en:'Metabolic / Urinalysis'}};
+var RADAR=['cr','bun','k','na','p','uric'];
+var VITALS=[
+{k:'sys',th:'ความดันตัวบน',en:'Systolic BP',u:'mmHg',min:90,max:130,dec:0},
+{k:'dia',th:'ความดันตัวล่าง',en:'Diastolic BP',u:'mmHg',min:60,max:80,dec:0},
+{k:'pulse',th:'ชีพจร',en:'Pulse',u:'/min',min:50,max:100,dec:0},
+{k:'wt',th:'น้ำหนัก',en:'Weight',u:'kg',min:null,max:null,dec:1},
+{k:'fluid',th:'น้ำดื่ม',en:'Fluid intake',u:'mL',min:null,max:null,dec:0},
+{k:'urine',th:'ปัสสาวะ',en:'Urine output',u:'mL',min:null,max:null,dec:0}];
+var VM={};
+for(i=0;i<VITALS.length;i++){VM[VITALS[i].k]=VITALS[i];}
+var VKEYS=['sys','dia','pulse','wt','fluid','urine'];
+
+var ADV={
+egfr:{lo:{th:'การกรองของไตลดลง ลดโปรตีนเหลือราว 0.6 ถึง 0.8 กรัมต่อน้ำหนักตัว 1 กิโลกรัมต่อวัน เน้นไข่ขาวและปลา งดอาหารเสริมและยาแก้ปวดกลุ่ม NSAIDs เด็ดขาด',en:'Kidney filtration declining. Limit protein to 0.6-0.8 g/kg/day, prefer egg white and fish, avoid supplements and NSAID painkillers.'}},
+cr:{hi:{th:'ของเสียจากกล้ามเนื้อคั่ง ดื่มน้ำตามที่แพทย์กำหนด เลี่ยงอาหารโปรตีนสูงมื้อใหญ่ และเลี่ยงออกกำลังหนักก่อนเจาะเลือด',en:'Creatinine high. Keep fluid as prescribed, avoid large high-protein meals and heavy exercise before testing.'}},
+bun:{hi:{th:'ของเสียไนโตรเจนสูง ลดเนื้อสัตว์แปรรูป เครื่องในสัตว์ และน้ำซุปกระดูก แบ่งโปรตีนกระจายทุกมื้อแทนการกินรวดเดียว',en:'High nitrogen waste. Cut processed meat, organ meat and bone broth, spread protein across meals.'}},
+acr:{hi:{th:'มีโปรตีนรั่วในปัสสาวะมาก คุมความดันให้ต่ำกว่า 130/80 ลดโซเดียมให้ต่ำกว่า 2000 มิลลิกรัมต่อวัน และห้ามหยุดยาป้องกันไตเองโดยเด็ดขาด',en:'Significant proteinuria. Keep BP below 130/80, sodium under 2000 mg/day, never stop kidney-protective medication.'}},
+uric:{hi:{th:'กรดยูริกสูง เลี่ยงเครื่องในสัตว์ ยอดผัก สัตว์ปีก เบียร์ และน้ำหวานฟรุกโตส',en:'High uric acid. Avoid organ meat, young shoots, poultry, beer and fructose drinks.'},lo:{th:'กรดยูริกต่ำกว่าเกณฑ์เล็กน้อย โดยทั่วไปไม่อันตราย แจ้งแพทย์หากมีอาการผิดปกติ',en:'Slightly low uric acid, usually harmless.'}},
+k:{hi:{th:'โพแทสเซียมสูง อันตรายต่อหัวใจ งดกล้วย ส้ม มะละกอ ทุเรียน มะเขือเทศ ผักใบเขียวเข้ม น้ำผลไม้ และเกลือลดโซเดียมซึ่งมีโพแทสเซียมสูง ผักให้หั่นแช่น้ำแล้วต้มทิ้งน้ำก่อนปรุง',en:'High potassium is dangerous. Avoid banana, orange, papaya, durian, tomato, dark greens, juice and low-sodium salt. Soak and boil vegetables, discard the water.'},lo:{th:'โพแทสเซียมต่ำ อาจอ่อนแรงหรือเป็นตะคริว แจ้งแพทย์ อย่าซื้ออาหารเสริมเอง',en:'Low potassium may cause weakness or cramps. Inform your doctor.'}},
+na:{lo:{th:'โซเดียมต่ำ มักเกิดจากดื่มน้ำมากเกินไป จำกัดน้ำตามแผน และชั่งน้ำหนักทุกเช้าเพื่อดูภาวะน้ำเกิน',en:'Low sodium often from excess fluid. Restrict fluid and weigh daily.'},hi:{th:'โซเดียมสูง ลดอาหารเค็ม น้ำปลา ซีอิ๊ว อาหารสำเร็จรูป และดื่มน้ำตามแผน',en:'High sodium. Cut salty food, fish sauce, soy sauce and ready meals.'}},
+p:{hi:{th:'ฟอสฟอรัสสูง ทำให้คันและกระดูกบาง เลี่ยงนม ชีส ถั่ว เมล็ดพืช น้ำอัดลมสีดำ และอาหารแปรรูปที่ใส่ฟอสเฟต กินยาจับฟอสเฟตพร้อมคำแรกของมื้ออาหาร',en:'High phosphorus causes itching and bone loss. Avoid dairy, nuts, seeds, cola and phosphate additives. Take binders with the first bite.'}},
+ca:{lo:{th:'แคลเซียมต่ำ รับวิตามินดีตามแพทย์สั่ง อย่าเสริมแคลเซียมเองเพราะเสี่ยงหินปูนเกาะหลอดเลือด',en:'Low calcium. Take vitamin D as prescribed, avoid self-supplementing calcium.'},hi:{th:'แคลเซียมสูง หยุดอาหารเสริมแคลเซียมและแจ้งแพทย์',en:'High calcium. Stop calcium supplements and inform your doctor.'}},
+hco3:{lo:{th:'ภาวะเลือดเป็นกรด เร่งให้ไตเสื่อมเร็วขึ้น เพิ่มผักผลไม้ที่โพแทสเซียมต่ำ และกินโซเดียมไบคาร์บอเนตตามแพทย์สั่ง',en:'Metabolic acidosis speeds kidney decline. Take bicarbonate as prescribed.'}},
+hb:{lo:{th:'ซีดจากไตสร้างฮอร์โมนได้น้อย แจ้งแพทย์เพื่อประเมินธาตุเหล็กและยากระตุ้นเม็ดเลือด',en:'Anemia of CKD. Ask about iron and erythropoietin therapy.'}},
+alb:{lo:{th:'อัลบูมินต่ำ เสี่ยงขาดสารอาหาร เพิ่มโปรตีนคุณภาพสูงในปริมาณที่นักกำหนดอาหารวางไว้',en:'Low albumin suggests malnutrition.'}},
+fbs:{hi:{th:'น้ำตาลสูง เร่งไตเสื่อม ลดข้าวขาว น้ำหวาน ขนมหวาน และตรวจน้ำตาลปลายนิ้วตามแพทย์สั่ง',en:'High glucose accelerates kidney damage.'}},
+a1c:{hi:{th:'น้ำตาลสะสมสูงกว่าเป้า ทบทวนยาเบาหวานกับแพทย์ เพราะยาบางตัวต้องลดขนาดเมื่อไตเสื่อม',en:'HbA1c above target. Review diabetes medication.'}},
+chol:{hi:{th:'คอเลสเตอรอลสูง เลี่ยงของทอดและไขมันสัตว์',en:'High cholesterol. Avoid fried food and animal fat.'}},
+tg:{hi:{th:'ไตรกลีเซอไรด์สูง ลดแป้ง น้ำตาล และงดแอลกอฮอล์',en:'High triglycerides. Cut starch, sugar and alcohol.'}},
+ldl:{hi:{th:'LDL สูง ปรึกษาแพทย์เรื่องยาลดไขมัน',en:'High LDL. Discuss statin therapy.'}},
+hdl:{lo:{th:'HDL ต่ำ เดินเร็ววันละ 30 นาทีเท่าที่ร่างกายไหว',en:'Low HDL. Brisk walking 30 minutes daily.'}},
+upro:{hi:{th:'พบโปรตีนรั่วในปัสสาวะ คุมความดันและลดเค็มอย่างเคร่งครัด',en:'Proteinuria present. Strict BP and salt control.'}},
+uph:{lo:{th:'ปัสสาวะเป็นกรดมาก เสี่ยงนิ่วกรดยูริก ดื่มน้ำให้พอตามแผน',en:'Acidic urine raises stone risk.'}},
+usg:{lo:{th:'ไตเริ่มทำให้ปัสสาวะเข้มข้นได้น้อยลง สังเกตอาการปัสสาวะบ่อยตอนกลางคืน',en:'Reduced concentrating ability. Watch for nocturia.'}}};
+
+var DX=[{t:{th:'โรคหลัก',en:'Primary'},n:{th:'ไตวายเรื้อรัง',en:'Chronic Renal Failure'},c:'N18.9',col:'var(--mag)'},
+{t:{th:'โรคร่วม',en:'Secondary'},n:{th:'ความดันโลหิตสูง',en:'Essential Hypertension'},c:'I10',col:'var(--gold)'},
+{t:{th:'โรคร่วม',en:'Secondary'},n:{th:'เบาหวานชนิดไม่พึ่งอินซูลิน',en:'Type 2 Diabetes Mellitus'},c:'E11.9',col:'var(--cyan)'}];
+var MEDS=[{n:'CALCIFEROL BD 20000 IU',d:{th:'ครั้งละ 2 แคปซูล สัปดาห์ละ 1 ครั้ง หลังอาหารเช้า',en:'2 capsules once weekly after breakfast'}},
+{n:'CARDIPRIN 100 MG',d:{th:'ครั้งละ 1 เม็ด วันละ 1 ครั้ง หลังอาหารเช้า ยาป้องกันหลอดเลือดอุดตัน',en:'1 tablet daily after breakfast'}},
+{n:'F-MIN 5 MG',d:{th:'รับประทานตามแพทย์สั่ง',en:'As prescribed'}},
+{n:'ANALGESIC (RTAF) CREAM',d:{th:'ทานวดบริเวณที่ปวด วันละ 2 ครั้ง เช้าและเย็น',en:'Apply twice daily'}},
+{n:'ALCOHOL 70% SOLUTION',d:{th:'ใช้ภายนอก ทำความสะอาดผิวหนัง',en:'External use'}}];
+
+var I18N={th:{appName:'CKD Lab Tracker',appSub:'ผู้ช่วยติดตามผลเลือดโรคไตเรื้อรัง',navDash:'แดชบอร์ด',navDaily:'บันทึกรายวัน',navHist:'ประวัติย้อนหลัง',navAdd:'กรอกผลตรวจ',navOcr:'อัปโหลดรูป (OCR)',navData:'ข้อมูล/สำรอง',
+lastVisit:'ผลตรวจล่าสุด',ckdStage:'ระยะของโรคไต',vitalsNow:'สัญญาณชีพล่าสุด',egfrHist:'ประวัติ eGFR (EPI)',radarT:'ภาพรวมค่าสำคัญ',
+clickHint:'แตะที่กราฟเพื่อดูรายละเอียดย้อนหลัง',radarHint:'วงเขียว คือ ขีดจำกัดบนของค่าปกติ เส้นที่ทะลุออกนอกวง คือค่าที่สูงเกิน',
+comboT:'ความสัมพันธ์ A/C ratio กับ ความดันตัวบน',comboHint:'เส้นชมพู คือ A/C ratio อ่านที่แกนซ้าย เส้นฟ้า คือ ความดันตัวบน อ่านที่แกนขวา',
+adviceT:'คำแนะนำสำหรับรอบนี้',disclaimer:'* เป็นข้อมูลช่วยจำเท่านั้น การปรับยาและอาหารให้ยึดตามคำสั่งแพทย์เสมอ',dxT:'การวินิจฉัย',medT:'ยาประจำตัว',
+dailyT:'บันทึกความดัน น้ำหนัก และน้ำดื่มประจำวัน',vsys:'ความดันตัวบน (mmHg)',vdia:'ความดันตัวล่าง (mmHg)',vpulse:'ชีพจร (ครั้ง/นาที)',vwt:'น้ำหนัก (กก.)',vfluid:'น้ำดื่มรวม (มล.)',vurine:'ปัสสาวะรวม (มล.)',vlimit:'เพดานน้ำดื่มต่อวัน (มล.)',
+saveDaily:'บันทึกข้อมูลวันนี้',dailyHint:'กรอกเฉพาะช่องที่มี บันทึกซ้ำวันเดิมจะเป็นการแก้ไขข้อมูลวันนั้น',bpChart:'ความดันโลหิต',wtChart:'น้ำหนักตัว',flChart:'น้ำดื่มและปัสสาวะ',dailyAdv:'คำแนะนำจากบันทึกรายวัน',dailyTable:'ตารางบันทึกรายวัน',
+histT:'ตารางประวัติผลตรวจทุกรอบ',modeAll:'ทุกรอบตรวจ',modeQ:'เฉลี่ยราย 3 เดือน',histHint:'แตะที่แถวเพื่อดูกราฟและประวัติเฉพาะค่านั้น',vitQ:'สัญญาณชีพ เฉลี่ยราย 3 เดือน',
+addT:'กรอกผลตรวจด้วยตนเอง',fDate:'วันที่ตรวจ',fNote:'หมายเหตุ',addHint:'กรอกเฉพาะช่องที่มีผล ช่องที่เว้นว่างจะไม่ถูกบันทึก',saveBtn:'บันทึกผลตรวจรอบนี้',fillLast:'ใส่ค่าจากรอบล่าสุดเป็นตัวตั้ง',
+ocrT:'อัปโหลดภาพผลแล็บ แล้วให้ระบบอ่านให้อัตโนมัติ',ocrDrop:'ลากรูปมาวางที่นี่ หรือกดปุ่มด้านล่าง เลือกได้หลายรูปพร้อมกัน',ocrPick:'เลือกรูปผลแล็บ',ocrNote:'ครั้งแรกต้องต่ออินเทอร์เน็ตเพื่อโหลดชุดอ่านตัวอักษร ระบบจะให้ตรวจทานค่าก่อนบันทึกเสมอ',ocrFail:'โหลดชุดอ่านตัวอักษรไม่สำเร็จ กรุณาเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่',
+dataT:'สำรองและกู้คืนข้อมูล',expBtn:'ดาวน์โหลดไฟล์ .json',impBtn:'นำเข้าไฟล์ .json',resetBtn:'โหลดข้อมูลตัวอย่างใหม่',clrBtn:'ล้างข้อมูลทั้งหมด',dataNote:'ข้อมูลทั้งหมดเก็บอยู่ในเครื่องของคุณเท่านั้น',
+instT:'ติดตั้งเป็นแอปบนมือถือ',instBody:'1) วางไฟล์ index.html และ app-icon.png ไว้โฟลเดอร์เดียวกัน<br>2) เปิดด้วยเบราว์เซอร์ แล้วเลือกเมนู เพิ่มลงในหน้าจอโฮม<br>3) จะได้ไอคอนแอปบนหน้าจอ',
+ref:'ค่าอ้างอิง',item:'รายการ',trend:'แนวโน้ม',normal:'ปกติ',abnormal:'ผิดปกติ',noData:'ยังไม่มีข้อมูล',high:'สูง',low:'ต่ำ',ok:'ปกติ',close:'ปิด',confirm:'ยืนยันและบันทึก',
+review:'ตรวจทานค่าที่อ่านได้จากรูป',saved:'บันทึกเรียบร้อย',reading:'กำลังอ่านรูปที่',value:'ค่า',date:'วันที่',records:'รอบตรวจ',dayrec:'วันที่บันทึกรายวัน',betterOk:'ค่าทั้งหมดในกลุ่มนี้อยู่ในเกณฑ์',
+advGood:'รอบนี้ไม่มีค่าที่ต้องเฝ้าระวังเป็นพิเศษ รักษาวินัยเรื่องอาหารและยาต่อไปได้เลย',qLabel:'ไตรมาส',avg7:'เฉลี่ย 7 วัน',confirmClear:'ต้องการลบข้อมูลทั้งหมดจริงหรือไม่',confirmReset:'โหลดข้อมูลตัวอย่างทับข้อมูลปัจจุบันหรือไม่',del:'ลบ',bal:'สมดุลน้ำ',needDate:'กรุณาเลือกวันที่',needVal:'ยังไม่ได้กรอกค่าใด'},
+en:{appName:'CKD Lab Tracker',appSub:'Chronic kidney disease companion',navDash:'Dashboard',navDaily:'Daily Log',navHist:'History',navAdd:'Enter Results',navOcr:'Upload Images (OCR)',navData:'Data / Backup',
+lastVisit:'Latest test',ckdStage:'CKD Stage',vitalsNow:'Latest vitals',egfrHist:'eGFR (EPI) history',radarT:'Key values vs reference',
+clickHint:'Tap the chart for detailed history',radarHint:'Green ring is the upper normal limit. Any line outside it is above range.',
+comboT:'A/C ratio vs Systolic BP',comboHint:'Pink line is A/C ratio on the left axis, cyan line is systolic BP on the right axis',
+adviceT:'Advice for this round',disclaimer:'* A memory aid only. Always follow your doctor and dietitian.',dxT:'Diagnosis',medT:'Current medication',
+dailyT:'Daily blood pressure, weight and fluid log',vsys:'Systolic BP (mmHg)',vdia:'Diastolic BP (mmHg)',vpulse:'Pulse (/min)',vwt:'Weight (kg)',vfluid:'Fluid intake (mL)',vurine:'Urine output (mL)',vlimit:'Daily fluid limit (mL)',
+saveDaily:'Save today',dailyHint:'Fill only what you have. Saving the same date updates that day.',bpChart:'Blood pressure',wtChart:'Body weight',flChart:'Fluid intake and urine output',dailyAdv:'Advice from the daily log',dailyTable:'Daily log table',
+histT:'Full test history',modeAll:'Every visit',modeQ:'Quarterly average',histHint:'Tap a row to see that value in detail',vitQ:'Vitals, quarterly average',
+addT:'Enter results manually',fDate:'Test date',fNote:'Note',addHint:'Fill only the fields you have.',saveBtn:'Save this round',fillLast:'Prefill from last round',
+ocrT:'Upload lab images and let the app read them',ocrDrop:'Drag images here or use the button below',ocrPick:'Choose lab images',ocrNote:'First run needs internet to fetch OCR data. You always review values before saving.',ocrFail:'Could not load the OCR engine. Connect to the internet and retry.',
+dataT:'Backup and restore',expBtn:'Download .json',impBtn:'Import .json',resetBtn:'Reload sample data',clrBtn:'Erase all data',dataNote:'All data stays on your device.',
+instT:'Install on your phone',instBody:'1) Keep index.html and app-icon.png in the same folder<br>2) Open in a browser, menu, Add to Home Screen<br>3) You get a real app icon',
+ref:'Reference',item:'Item',trend:'Trend',normal:'Normal',abnormal:'Out of range',noData:'No data yet',high:'High',low:'Low',ok:'Normal',close:'Close',confirm:'Confirm and save',
+review:'Review values read from the images',saved:'Saved',reading:'Reading image',value:'Value',date:'Date',records:'lab rounds',dayrec:'daily entries',betterOk:'All values in this group are within range',
+advGood:'Nothing needs special attention this round.',qLabel:'Quarter',avg7:'7-day average',confirmClear:'Erase all stored data?',confirmReset:'Overwrite current data with the sample set?',del:'Delete',bal:'Fluid balance',needDate:'Please pick a date',needVal:'No values entered'}};
+
+var LANG='th';
+try{var sv=localStorage.getItem('ckd_lang');if(sv)LANG=sv;}catch(e){}
+function t(k){var v=I18N[LANG][k];return v===undefined?k:v;}
+function nm(o){return LANG==='th'?o.th:o.en;}
+
+var KEY='ckd_db_v4';
+function seed(){return{records:[
+{id:'r1',date:'2026-02-24',note:'',items:{k:4.30,na:136,egfr:18.31,cr:2.45,bun:55,acr:443,p:4.20}},
+{id:'r2',date:'2026-05-12',note:'',items:{k:4.50,na:133,egfr:24.90,cr:1.90,bun:33,acr:868,p:3.60,uric:3.3,uph:5.0,usg:1.007,upro:2}},
+{id:'r3',date:'2026-08-25',note:'',items:{k:4.80,na:138,egfr:14.67,cr:2.91,bun:33,acr:159,p:4.30}}],
+daily:[
+{id:'d1',date:'2026-08-20',sys:148,dia:84,pulse:78,wt:56.4,fluid:1450,urine:900},
+{id:'d2',date:'2026-08-21',sys:142,dia:80,pulse:76,wt:56.2,fluid:1300,urine:950},
+{id:'d3',date:'2026-08-22',sys:136,dia:78,pulse:74,wt:56.0,fluid:1250,urine:1000},
+{id:'d4',date:'2026-08-23',sys:139,dia:82,pulse:80,wt:56.8,fluid:1700,urine:850},
+{id:'d5',date:'2026-08-24',sys:132,dia:76,pulse:72,wt:56.3,fluid:1200,urine:1050},
+{id:'d6',date:'2026-08-25',sys:128,dia:74,pulse:70,wt:56.1,fluid:1150,urine:1100}],
+settings:{fluidLimit:1500}};}
+var DB;
+try{var raw=localStorage.getItem(KEY);DB=raw?JSON.parse(raw):seed();}catch(e){DB=seed();}
+if(!DB||!DB.records)DB=seed();
+if(!DB.daily)DB.daily=[];
+if(!DB.settings)DB.settings={fluidLimit:1500};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}}
+function byDate(a,b){return a.date<b.date?-1:1;}
+function recs(){return DB.records.slice().sort(byDate);}
+function days(){return DB.daily.slice().sort(byDate);}
+function last(){var r=recs();return r.length?r[r.length-1]:null;}
+function prev(){var r=recs();return r.length>1?r[r.length-2]:null;}
+function lastDay(){var d=days();return d.length?d[d.length-1]:null;}
+
+function flagL(k,v){var l=LM[k];if(!l||v===null||v===undefined||isNaN(v))return'';if(l.max!==null&&v>l.max)return'hi';if(l.min!==null&&v<l.min)return'lo';return'ok';}
+function flagV(k,v){var l=VM[k];if(!l||v===null||v===undefined||isNaN(v))return'';if(l.max!==null&&v>l.max)return'hi';if(l.min!==null&&v<l.min)return'lo';return'ok';}
+function fmtL(k,v){var l=LM[k];return(v===null||v===undefined||isNaN(v))?'-':Number(v).toFixed(l.dec);}
+function refTxt(l){if(l.min!==null&&l.max!==null)return l.min+' - '+l.max;if(l.min!==null)return'> '+l.min;if(l.max!==null)return'< '+l.max;return'-';}
+var THMON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+var ENMON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function dTxt(d){var x=new Date(d+'T00:00:00');if(isNaN(x.getTime()))return d;var m=(LANG==='th')?THMON:ENMON;var y=(LANG==='th')?x.getFullYear()+543:x.getFullYear();return x.getDate()+' '+m[x.getMonth()]+' '+y;}
+function dShort(d){var x=new Date(d+'T00:00:00');if(isNaN(x.getTime()))return d;var m=(LANG==='th')?THMON:ENMON;return x.getDate()+' '+m[x.getMonth()];}
+function qOf(d){var x=new Date(d+'T00:00:00');return x.getFullYear()+'-Q'+(Math.floor(x.getMonth()/3)+1);}
+function mOf(d){return d.slice(0,7);}
+function stageOf(e){if(e===null||e===undefined)return['-','var(--dim)'];if(e>=90)return['G1','var(--lime)'];if(e>=60)return['G2','var(--lime)'];if(e>=45)return['G3a','var(--cyan)'];if(e>=30)return['G3b','var(--gold)'];if(e>=15)return['G4','var(--mag)'];return['G5','var(--mag)'];}
+function avg(a){if(!a.length)return null;var s=0;for(var j=0;j<a.length;j++){s+=a[j];}return s/a.length;}
+function labSeries(k){var o=[],r=recs();for(var j=0;j<r.length;j++){var v=r[j].items[k];if(v!==undefined&&v!==null)o.push({d:r[j].date,v:Number(v)});}return o;}
+function vitSeries(k){var o=[],r=days();for(var j=0;j<r.length;j++){var v=r[j][k];if(v!==undefined&&v!==null&&v!=='')o.push({d:r[j].date,v:Number(v)});}return o;}
+function groupAvg(arr,fn){var g={},o=[],ks=[];for(var j=0;j<arr.length;j++){var key=fn(arr[j].d);if(!g[key]){g[key]=[];ks.push(key);}g[key].push(arr[j].v);}
+ks.sort();for(j=0;j<ks.length;j++){o.push({d:ks[j],v:avg(g[ks[j]])});}return o;}
+function labQuarter(k){return groupAvg(labSeries(k),qOf);}
+function vitQuarter(k){return groupAvg(vitSeries(k),qOf);}
+function vitMonth(k){return groupAvg(vitSeries(k),mOf);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function axisFmt(v){var a=Math.abs(v);return a>=100?v.toFixed(0):(a>=10?v.toFixed(1):v.toFixed(2));}
+function drawChart(cv,cfg){
+ if(!cv)return;
+ var dpr=window.devicePixelRatio||1;
+ var W=cv.clientWidth||600,H=cv.clientHeight||280;
+ if(W<40||H<40)return;
+ cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+ var c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,W,H);
+ var hasR=false,j;
+ for(j=0;j<cfg.series.length;j++){if(cfg.series[j].axis==='R')hasR=true;}
+ var PL=48,PR=hasR?48:14,PT=20,PB=32,pw=W-PL-PR,ph=H-PT-PB,n=cfg.labels.length;
+ var bands=cfg.bands||[];
+ if(!n||pw<30){c.fillStyle='#7F8EA3';c.font='13px sans-serif';c.fillText(t('noData'),PL,H/2);return;}
+ function scale(axis){var vals=[],s,x;
+  for(s=0;s<cfg.series.length;s++){var se=cfg.series[s];if((se.axis||'L')!==axis)continue;
+   for(x=0;x<se.data.length;x++){var d=se.data[x];if(d!==null&&d!==undefined&&!isNaN(d))vals.push(Number(d));}}
+  for(s=0;s<bands.length;s++){if((bands[s].axis||'L')===axis){vals.push(bands[s].from);vals.push(bands[s].to);}}
+  if(!vals.length)return{mn:0,mx:1};
+  var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+  if(mx===mn){mx=mn+(Math.abs(mn)*0.1+1);mn=mn-(Math.abs(mn)*0.1+1);}
+  var pad=(mx-mn)*0.18;mn=mn-pad;if(mn<0)mn=0;return{mn:mn,mx:mx+pad};}
+ var SL=scale('L'),SR=scale('R');
+ function X(ix){return n===1?PL+pw/2:PL+pw*ix/(n-1);}
+ function Y(v,a){var s=(a==='R')?SR:SL;return PT+ph-(Number(v)-s.mn)/(s.mx-s.mn)*ph;}
+ for(j=0;j<bands.length;j++){var b=bands[j],a=b.axis||'L',sc=(a==='R')?SR:SL;
+  var y1=Y(Math.min(b.to,sc.mx),a),y2=Y(Math.max(b.from,sc.mn),a);
+  if(y2>y1){c.fillStyle=b.color;c.fillRect(PL,y1,pw,y2-y1);
+   if(b.label){c.fillStyle='#7F8EA3';c.font='9px sans-serif';c.fillText(b.label,PL+4,y1+10);}}}
+ c.strokeStyle='#232D3C';c.lineWidth=1;c.font='10px sans-serif';
+ for(j=0;j<=4;j++){var lv=SL.mn+(SL.mx-SL.mn)*j/4,gy=Y(lv,'L');
+  c.beginPath();c.moveTo(PL,gy);c.lineTo(W-PR,gy);c.stroke();
+  c.fillStyle='#7F8EA3';c.fillText(axisFmt(lv),3,gy+3);
+  if(hasR){var rv=SR.mn+(SR.mx-SR.mn)*j/4;c.fillStyle='#4DE8FF';c.fillText(axisFmt(rv),W-PR+5,gy+3);}}
+ for(j=0;j<cfg.series.length;j++){
+  var se2=cfg.series[j],ax=se2.axis||'L',started=false,x2,v2,px,py;
+  c.strokeStyle=se2.color;c.lineWidth=2.4;c.beginPath();
+  for(x2=0;x2<se2.data.length;x2++){v2=se2.data[x2];
+   if(v2===null||v2===undefined||isNaN(v2)){started=false;continue;}
+   px=X(x2);py=Y(v2,ax);
+   if(!started){c.moveTo(px,py);started=true;}else{c.lineTo(px,py);}}
+  c.stroke();
+  for(x2=0;x2<se2.data.length;x2++){v2=se2.data[x2];
+   if(v2===null||v2===undefined||isNaN(v2))continue;
+   px=X(x2);py=Y(v2,ax);
+   c.fillStyle=se2.dot?se2.dot(v2):se2.color;
+   c.beginPath();c.arc(px,py,4,0,Math.PI*2);c.fill();
+   if(cfg.values!==false&&n<=14){c.fillStyle='#D7E0EA';c.font='bold 10px Orbitron,sans-serif';c.textAlign='center';
+    c.fillText(Number(v2).toFixed(se2.dec||0),px,py-10);c.textAlign='left';}}}
+ c.fillStyle='#7F8EA3';c.font='10px sans-serif';c.textAlign='center';
+ var step=Math.ceil(n/(W<500?4:9));if(step<1)step=1;
+ for(j=0;j<n;j++){if(j%step===0||j===n-1)c.fillText(cfg.labels[j],X(j),H-11);}
+ c.textAlign='left';
+ if(cfg.series.length>1){var lx=PL;
+  for(j=0;j<cfg.series.length;j++){c.fillStyle=cfg.series[j].color;c.fillRect(lx,6,12,3);
+   c.fillStyle='#7F8EA3';c.font='10px sans-serif';c.fillText(cfg.series[j].name,lx+16,10);
+   lx+=c.measureText(cfg.series[j].name).width+38;}}
+ cv.onclick=cfg.onClick||null;
+}
+function drawRadar(cv){
+ if(!cv)return;
+ var dpr=window.devicePixelRatio||1,W=cv.clientWidth||300,H=cv.clientHeight||280;
+ if(W<40||H<40)return;
+ cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+ var c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,W,H);
+ var L=last(),P=prev(),ax=[],j;
+ for(j=0;j<RADAR.length;j++){if(L&&L.items[RADAR[j]]!==undefined&&L.items[RADAR[j]]!==null)ax.push(RADAR[j]);}
+ if(!ax.length){c.fillStyle='#7F8EA3';c.font='13px sans-serif';c.fillText(t('noData'),20,H/2);return;}
+ var cx=W/2,cy=H/2+4,R=Math.min(W,H)/2-46,N=ax.length;
+ function ang(ix){return-Math.PI/2+ix*2*Math.PI/N;}
+ function pt(ix,r){var rr=Math.min(r,2)/2;return[cx+Math.cos(ang(ix))*R*rr,cy+Math.sin(ang(ix))*R*rr];}
+ var rings=[0.5,1,1.5,2];
+ for(j=0;j<rings.length;j++){var g=rings[j];
+  c.strokeStyle=(g===1)?'rgba(182,255,60,.55)':'#232D3C';c.lineWidth=(g===1)?1.6:1;
+  c.beginPath();
+  for(var q=0;q<N;q++){var p=pt(q,g);if(q)c.lineTo(p[0],p[1]);else c.moveTo(p[0],p[1]);}
+  c.closePath();c.stroke();}
+ c.strokeStyle='#232D3C';
+ for(j=0;j<N;j++){var pe=pt(j,2);c.beginPath();c.moveTo(cx,cy);c.lineTo(pe[0],pe[1]);c.stroke();}
+ function poly(rec,col,fill){if(!rec)return;c.beginPath();
+  for(var z=0;z<N;z++){var kk=ax[z],vv=rec.items[kk],mx=LM[kk].max||1;
+   var rr=(vv===undefined||vv===null)?0:vv/mx,pp=pt(z,rr);
+   if(z)c.lineTo(pp[0],pp[1]);else c.moveTo(pp[0],pp[1]);}
+  c.closePath();c.fillStyle=fill;c.fill();c.strokeStyle=col;c.lineWidth=2;c.stroke();}
+ poly(P,'rgba(127,142,163,.8)','rgba(127,142,163,.10)');
+ poly(L,'#4DE8FF','rgba(77,232,255,.16)');
+ for(j=0;j<N;j++){var k2=ax[j],lp=pt(j,2.3);
+  c.font='10px sans-serif';
+  c.textAlign=lp[0]<cx-6?'right':(lp[0]>cx+6?'left':'center');
+  c.fillStyle=flagL(k2,L.items[k2])==='ok'?'#B6FF3C':'#FF4DD2';
+  c.fillText(nm(LM[k2]).slice(0,16),lp[0],lp[1]);
+  c.fillStyle='#7F8EA3';c.font='9px Orbitron,sans-serif';
+  c.fillText(fmtL(k2,L.items[k2]),lp[0],lp[1]+12);}
+ c.textAlign='left';
+ cv.onclick=function(){openDetail('lab','cr');};
+}
+
+function vitalAdvice(){
+ var out=[],d=days();if(!d.length)return out;
+ var L=d[d.length-1],P=d.length>1?d[d.length-2]:null;
+ var lim=DB.settings.fluidLimit||1500;
+ if((L.sys!==undefined&&L.sys>130)||(L.dia!==undefined&&L.dia>80)){
+  out.push('<div class="adv"><b style="color:var(--mag)">'+nm(VM.sys)+' '+(L.sys||'-')+'/'+(L.dia||'-')+' mmHg</b><br>'+
+  (LANG==='th'?'ความดันสูงกว่าเป้าหมาย 130/80 ซึ่งเป็นตัวเร่งให้โปรตีนรั่วสูงขึ้น ลดเค็มให้ต่ำกว่า 2000 มิลลิกรัมโซเดียมต่อวัน งดน้ำปลา ซีอิ๊ว ผงปรุงรส อาหารหมักดอง และวัดซ้ำตอนเช้าหลังนั่งพัก 5 นาที':'BP above the 130/80 target drives proteinuria up. Keep sodium under 2000 mg/day and re-measure after resting 5 minutes.')+'</div>');}
+ if(L.sys!==undefined&&L.sys<90){out.push('<div class="adv"><b style="color:var(--gold)">'+nm(VM.sys)+' '+L.sys+' mmHg</b><br>'+
+  (LANG==='th'?'ความดันต่ำ ระวังหน้ามืดเวลาลุกยืน ลุกช้า ๆ และแจ้งแพทย์หากเป็นบ่อย':'Low BP. Rise slowly and tell your doctor if it recurs.')+'</div>');}
+ if(L.fluid!==undefined&&L.fluid>lim){out.push('<div class="adv"><b style="color:var(--mag)">'+nm(VM.fluid)+' '+L.fluid+' mL</b><br>'+
+  (LANG==='th'?'ดื่มน้ำเกินเพดานที่ตั้งไว้ '+lim+' มิลลิลิตร เสี่ยงบวมและโซเดียมเจือจาง ใช้แก้วเล็ก อมน้ำแข็งก้อนเล็กแทนการดื่ม และนับน้ำจากแกงหรือซุปรวมด้วย':'Fluid above the '+lim+' mL limit. Use small cups, suck ice chips, and count soup as fluid.')+'</div>');}
+ if(P&&L.wt!==undefined&&P.wt!==undefined&&(L.wt-P.wt)>=1){out.push('<div class="adv"><b style="color:var(--mag)">'+nm(VM.wt)+' +'+(L.wt-P.wt).toFixed(1)+' kg</b><br>'+
+  (LANG==='th'?'น้ำหนักเพิ่มเร็วใน 1 วัน มักเป็นน้ำคั่งไม่ใช่ไขมัน สังเกตขาบวม กดบุ๋ม หรือเหนื่อยตอนนอนราบ หากมีอาการให้พบแพทย์':'Rapid 1-day weight gain usually means fluid retention.')+'</div>');}
+ if(L.pulse!==undefined&&(L.pulse<50||L.pulse>100)){out.push('<div class="adv"><b style="color:var(--gold)">'+nm(VM.pulse)+' '+L.pulse+'</b><br>'+
+  (LANG==='th'?'ชีพจรผิดจากช่วงปกติ 50 ถึง 100 ครั้งต่อนาที ควรแจ้งแพทย์ โดยเฉพาะเมื่อโพแทสเซียมในเลือดสูง':'Pulse outside 50-100. Inform your doctor.')+'</div>');}
+ if(L.fluid!==undefined&&L.urine!==undefined&&(L.fluid-L.urine)>700){out.push('<div class="adv"><b style="color:var(--mag)">'+t('bal')+' +'+(L.fluid-L.urine)+' mL</b><br>'+
+  (LANG==='th'?'น้ำเข้ามากกว่าน้ำออกค่อนข้างมาก ให้ชั่งน้ำหนักทุกเช้าเวลาเดิมหลังเข้าห้องน้ำ และแจ้งแพทย์หากสะสมต่อเนื่องหลายวัน':'Intake exceeds output notably. Weigh each morning and report the trend.')+'</div>');}
+ return out;
+}
+
+function renderDash(){
+ var L=last(),P=prev(),j,h='';
+ E('lastDate').textContent=L?dTxt(L.date):'-';
+ var st=stageOf(L&&L.items.egfr!==undefined?L.items.egfr:null);
+ E('stageTxt').textContent=st[0];E('stageTxt').style.color=st[1];
+ for(j=0;j<LABS.length;j++){var l=LABS[j];if(!l.key)continue;
+  var v=L?L.items[l.k]:null,pv=P?P.items[l.k]:null,f=flagL(l.k,v);
+  var col=f==='ok'?'var(--lime)':(f==='hi'?'var(--mag)':(f==='lo'?'var(--gold)':'var(--dim)'));
+  var tr='';
+  if(v!==undefined&&v!==null&&pv!==undefined&&pv!==null){var df=v-pv;tr=(df>0?'+':'')+df.toFixed(l.dec);}
+  h+='<div class="card kpi" data-act="detail" data-val="lab:'+l.k+'"><div class="lbl">'+nm(l)+'</div>'+
+     '<div class="val num" style="color:'+col+'">'+fmtL(l.k,v)+'</div><div class="unit">'+l.u+'</div>'+
+     '<div class="trend dim">'+tr+'</div><div class="ref">'+t('ref')+' '+refTxt(l)+'</div></div>';}
+ E('kpis').innerHTML=h;
+
+ var D=lastDay(),d7=days().slice(-7);
+ function a7(k){var vv=[];for(var z=0;z<d7.length;z++){if(d7[z][k]!==undefined&&d7[z][k]!==null)vv.push(Number(d7[z][k]));}
+  var m=avg(vv);return m===null?'-':m.toFixed(VM[k].dec);}
+ function vcard(k){var l2=VM[k],val=D?D[k]:null,f2=flagV(k,val);
+  var col2=f2==='ok'?'var(--lime)':(f2==='hi'?'var(--mag)':(f2==='lo'?'var(--gold)':'var(--cyan)'));
+  return '<div class="card kpi" data-act="detail" data-val="vit:'+k+'"><div class="lbl">'+nm(l2)+'</div>'+
+   '<div class="val num" style="color:'+col2+'">'+((val===undefined||val===null)?'-':Number(val).toFixed(l2.dec))+'</div>'+
+   '<div class="unit">'+l2.u+'</div><div class="ref">'+t('avg7')+' '+a7(k)+'</div></div>';}
+ E('vkpis').innerHTML=vcard('sys')+vcard('dia')+vcard('wt')+vcard('fluid');
+
+ var es=labSeries('egfr'),lab=[],dat=[];
+ for(j=0;j<es.length;j++){lab.push(dShort(es[j].d));dat.push(es[j].v);}
+ drawChart(E('cEgfr'),{labels:lab,
+  bands:[{from:0,to:15,color:'rgba(255,77,210,.16)',label:'G5'},{from:15,to:30,color:'rgba(255,77,210,.09)',label:'G4'},
+         {from:30,to:45,color:'rgba(255,215,94,.09)',label:'G3b'},{from:45,to:60,color:'rgba(77,232,255,.08)',label:'G3a'}],
+  series:[{name:'eGFR',color:'#FFD75E',dec:2,data:dat,dot:function(v){return flagL('egfr',v)==='ok'?'#B6FF3C':'#FF4DD2';}}],
+  onClick:function(){openDetail('lab','egfr');}});
+ drawRadar(E('cRadar'));
+
+ var ac=labSeries('acr'),sy=vitMonth('sys'),mset={},mk=[];
+ for(j=0;j<ac.length;j++){var m1=mOf(ac[j].d);if(!mset[m1]){mset[m1]=1;mk.push(m1);}}
+ for(j=0;j<sy.length;j++){if(!mset[sy[j].d]){mset[sy[j].d]=1;mk.push(sy[j].d);}}
+ mk.sort();
+ var acM={},syM={};
+ for(j=0;j<ac.length;j++){var mm=mOf(ac[j].d);if(!acM[mm])acM[mm]=[];acM[mm].push(ac[j].v);}
+ for(j=0;j<sy.length;j++){syM[sy[j].d]=sy[j].v;}
+ var d1=[],d2=[];
+ for(j=0;j<mk.length;j++){d1.push(acM[mk[j]]?avg(acM[mk[j]]):null);d2.push(syM[mk[j]]!==undefined?syM[mk[j]]:null);}
+ drawChart(E('cCombo'),{labels:mk,values:false,
+  series:[{name:'A/C ratio',color:'#FF4DD2',dec:0,axis:'L',data:d1},{name:nm(VM.sys),color:'#4DE8FF',dec:0,axis:'R',data:d2}],
+  onClick:function(){openDetail('lab','acr');}});
+
+ var gh='',gk=['A','B','C'];
+ for(j=0;j<gk.length;j++){var g=gk[j],rows=[],bad=0,z;
+  for(z=0;z<LABS.length;z++){var l3=LABS[z];
+   if(l3.g===g&&L&&L.items[l3.k]!==undefined&&L.items[l3.k]!==null){rows.push(l3);if(flagL(l3.k,L.items[l3.k])!=='ok')bad++;}}
+  var body='';
+  if(rows.length){for(z=0;z<rows.length;z++){var l4=rows[z],f4=flagL(l4.k,L.items[l4.k]);
+   body+='<tr class="clk" data-act="detail" data-val="lab:'+l4.k+'"><td>'+nm(l4)+'</td><td class="num '+f4+'">'+fmtL(l4.k,L.items[l4.k])+
+    '</td><td class="dim">'+l4.u+'</td><td><span class="pill '+f4+'">'+(f4==='ok'?t('ok'):(f4==='hi'?t('high'):t('low')))+'</span></td></tr>';}}
+  else{body='<tr><td class="dim">'+t('noData')+'</td></tr>';}
+  gh+='<div class="card"><h3>'+nm(GROUPS[g])+'</h3><div style="margin-bottom:8px"><span class="badge ok">'+t('normal')+' '+(rows.length-bad)+
+   '</span> <span class="badge '+(bad?'hi':'')+'">'+t('abnormal')+' '+bad+'</span></div><table>'+body+'</table></div>';}
+ E('groups').innerHTML=gh;
+
+ var al=[];
+ if(L){for(j=0;j<LABS.length;j++){var l5=LABS[j],v5=L.items[l5.k],f5=flagL(l5.k,v5);
+  if(f5&&f5!=='ok'&&ADV[l5.k]&&ADV[l5.k][f5])
+   al.push('<div class="adv"><b style="color:var(--mag)">'+nm(l5)+' '+fmtL(l5.k,v5)+' '+l5.u+' ('+(f5==='hi'?t('high'):t('low'))+')</b><br>'+ADV[l5.k][f5][LANG]+'</div>');}}
+ var va=vitalAdvice();
+ for(j=0;j<va.length;j++){al.push(va[j]);}
+ E('advice').innerHTML=al.length?al.join(''):'<div class="adv good">'+t('advGood')+'</div>';
+
+ var dh='';
+ for(j=0;j<DX.length;j++){dh+='<div class="med"><div class="dot" style="background:'+DX[j].col+'"></div><div><b>'+nm(DX[j].n)+
+  '</b> <span class="badge">'+DX[j].c+'</span><br><span class="dim" style="font-size:12px">'+nm(DX[j].t)+'</span></div></div>';}
+ E('dxList').innerHTML=dh;
+ var mh='';
+ for(j=0;j<MEDS.length;j++){mh+='<div class="med"><div class="dot" style="background:var(--cyan)"></div><div><b>'+MEDS[j].n+
+  '</b><br><span class="dim" style="font-size:12px">'+nm(MEDS[j].d)+'</span></div></div>';}
+ E('medList').innerHTML=mh;
+}
+
+function renderDaily(){
+ var j;
+ if(!E('dDate').value)E('dDate').value=new Date().toISOString().slice(0,10);
+ if(!E('d_limit').value)E('d_limit').value=DB.settings.fluidLimit||1500;
+ var d=days(),d7=d.slice(-7),lim=DB.settings.fluidLimit||1500;
+ var s7=[],w7=[],f7=[];
+ for(j=0;j<d7.length;j++){if(d7[j].sys!==undefined)s7.push(Number(d7[j].sys));if(d7[j].wt!==undefined)w7.push(Number(d7[j].wt));if(d7[j].fluid!==undefined)f7.push(Number(d7[j].fluid));}
+ var ms=avg(s7),mw=avg(w7),mf=avg(f7);
+ function stat(lbl,val,unit,col){return '<div class="card kpi" style="cursor:default"><div class="lbl">'+lbl+'</div><div class="val num" style="color:'+col+'">'+val+'</div><div class="unit">'+unit+'</div></div>';}
+ E('dstats').innerHTML=
+  stat(t('avg7')+' '+nm(VM.sys),ms===null?'-':ms.toFixed(0),'mmHg',(ms!==null&&ms>130)?'var(--mag)':'var(--lime)')+
+  stat(t('avg7')+' '+nm(VM.wt),mw===null?'-':mw.toFixed(1),'kg','var(--cyan)')+
+  stat(t('avg7')+' '+nm(VM.fluid),mf===null?'-':mf.toFixed(0),'mL',(mf!==null&&mf>lim)?'var(--mag)':'var(--lime)')+
+  stat(t('vlimit'),lim,'mL','var(--gold)');
+
+ var lbl=[],sys=[],dia=[],wt=[],fl=[],ur=[];
+ for(j=0;j<d.length;j++){lbl.push(dShort(d[j].date));
+  sys.push(d[j].sys===undefined?null:Number(d[j].sys));
+  dia.push(d[j].dia===undefined?null:Number(d[j].dia));
+  wt.push(d[j].wt===undefined?null:Number(d[j].wt));
+  fl.push(d[j].fluid===undefined?null:Number(d[j].fluid));
+  ur.push(d[j].urine===undefined?null:Number(d[j].urine));}
+ drawChart(E('cBp'),{labels:lbl,values:d.length<=10,bands:[{from:0,to:130,color:'rgba(182,255,60,.07)'}],
+  series:[{name:nm(VM.sys),color:'#FF4DD2',dec:0,data:sys},{name:nm(VM.dia),color:'#4DE8FF',dec:0,data:dia}],
+  onClick:function(){openDetail('vit','sys');}});
+ drawChart(E('cWt'),{labels:lbl,series:[{name:nm(VM.wt),color:'#FFD75E',dec:1,data:wt}],
+  onClick:function(){openDetail('vit','wt');}});
+ drawChart(E('cFl'),{labels:lbl,values:d.length<=10,bands:[{from:0,to:lim,color:'rgba(182,255,60,.07)',label:t('vlimit')}],
+  series:[{name:nm(VM.fluid),color:'#B6FF3C',dec:0,data:fl},{name:nm(VM.urine),color:'#4DE8FF',dec:0,data:ur}],
+  onClick:function(){openDetail('vit','fluid');}});
+
+ var ad=vitalAdvice();
+ E('dadvice').innerHTML=ad.length?ad.join(''):'<div class="adv good">'+t('advGood')+'</div>';
+
+ var th='<thead><tr><th>'+t('date')+'</th><th>'+nm(VM.sys)+'/'+nm(VM.dia)+'</th><th>'+nm(VM.pulse)+'</th><th>'+nm(VM.wt)+
+  '</th><th>'+nm(VM.fluid)+'</th><th>'+nm(VM.urine)+'</th><th>'+t('bal')+'</th><th></th></tr></thead><tbody>';
+ var rv=d.slice().reverse();
+ for(j=0;j<rv.length;j++){var r=rv[j];
+  var bal=(r.fluid!==undefined&&r.urine!==undefined)?(Number(r.fluid)-Number(r.urine)):null;
+  th+='<tr><td>'+dTxt(r.date)+'</td><td class="num '+flagV('sys',r.sys)+'">'+(r.sys===undefined?'-':r.sys)+'/'+(r.dia===undefined?'-':r.dia)+
+   '</td><td class="num">'+(r.pulse===undefined?'-':r.pulse)+'</td><td class="num">'+(r.wt===undefined?'-':Number(r.wt).toFixed(1))+
+   '</td><td class="num '+((r.fluid!==undefined&&r.fluid>lim)?'hi':'')+'">'+(r.fluid===undefined?'-':r.fluid)+
+   '</td><td class="num">'+(r.urine===undefined?'-':r.urine)+'</td><td class="num '+((bal!==null&&bal>700)?'hi':'dim')+'">'+
+   (bal===null?'-':(bal>0?'+':'')+bal)+'</td><td><button class="btn mg" data-act="del-daily" data-val="'+r.id+'">'+t('del')+'</button></td></tr>';}
+ th+='</tbody>';
+ E('dTable').innerHTML=th;
+}
+
+var HMODE='all';
+function renderHist(){
+ var cols=[],j,z,r=recs();
+ if(HMODE==='all'){for(j=0;j<r.length;j++){cols.push({label:dTxt(r[j].date),items:r[j].items});}}
+ else{var g={},ks=[];
+  for(j=0;j<r.length;j++){var q=qOf(r[j].date);if(!g[q]){g[q]=[];ks.push(q);}g[q].push(r[j]);}
+  ks.sort();
+  for(j=0;j<ks.length;j++){var it={};
+   for(z=0;z<LABS.length;z++){var vv=[],y;
+    for(y=0;y<g[ks[j]].length;y++){var val=g[ks[j]][y].items[LABS[z].k];if(val!==undefined&&val!==null)vv.push(Number(val));}
+    if(vv.length)it[LABS[z].k]=avg(vv);}
+   cols.push({label:ks[j],items:it});}}
+ var h='<thead><tr><th>'+t('item')+'</th><th>'+t('ref')+'</th>';
+ for(j=0;j<cols.length;j++){h+='<th>'+cols[j].label+'</th>';}
+ h+='<th>'+t('adviceT')+'</th></tr></thead><tbody>';
+ var gk=['A','B','C'];
+ for(j=0;j<gk.length;j++){
+  h+='<tr><td colspan="'+(cols.length+3)+'" style="color:var(--gold);font-weight:700;background:#10151e">'+nm(GROUPS[gk[j]])+'</td></tr>';
+  for(z=0;z<LABS.length;z++){var l=LABS[z];if(l.g!==gk[j])continue;
+   var any=false,lastV=null,c2;
+   for(c2=0;c2<cols.length;c2++){var cv2=cols[c2].items[l.k];if(cv2!==undefined&&cv2!==null){any=true;lastV=cv2;}}
+   if(!any)continue;
+   var f=flagL(l.k,lastV);
+   var adv=(f&&f!=='ok'&&ADV[l.k]&&ADV[l.k][f])?ADV[l.k][f][LANG]:t('betterOk');
+   h+='<tr class="clk" data-act="detail" data-val="lab:'+l.k+'"><td>'+nm(l)+' <span class="dim">'+l.u+'</span></td><td class="dim">'+refTxt(l)+'</td>';
+   for(c2=0;c2<cols.length;c2++){var v3=cols[c2].items[l.k];
+    h+='<td class="num '+((v3===undefined||v3===null)?'':flagL(l.k,v3))+'">'+((v3===undefined||v3===null)?'-':Number(v3).toFixed(l.dec))+'</td>';}
+   h+='<td style="white-space:normal;max-width:380px;font-size:12px" class="'+(f==='ok'?'dim':'')+'">'+adv+'</td></tr>';}}
+ h+='</tbody>';
+ E('histTable').innerHTML=h;
+ E('modeAll').className='btn '+(HMODE==='all'?'cy':'');
+ E('modeQ').className='btn '+(HMODE==='q'?'cy':'');
+
+ var qs={},qk=[],vq;
+ for(j=0;j<VITALS.length;j++){vq=vitQuarter(VITALS[j].k);
+  for(z=0;z<vq.length;z++){if(!qs[vq[z].d]){qs[vq[z].d]=1;qk.push(vq[z].d);}}}
+ qk.sort();
+ if(!qk.length){E('vitTable').innerHTML='<tbody><tr><td class="dim">'+t('noData')+'</td></tr></tbody>';return;}
+ var vh='<thead><tr><th>'+t('item')+'</th>';
+ for(j=0;j<qk.length;j++){vh+='<th>'+qk[j]+'</th>';}
+ vh+='</tr></thead><tbody>';
+ for(j=0;j<VITALS.length;j++){var map={};vq=vitQuarter(VITALS[j].k);
+  for(z=0;z<vq.length;z++){map[vq[z].d]=vq[z].v;}
+  vh+='<tr class="clk" data-act="detail" data-val="vit:'+VITALS[j].k+'"><td>'+nm(VITALS[j])+' <span class="dim">'+VITALS[j].u+'</span></td>';
+  for(z=0;z<qk.length;z++){var mv=map[qk[z]];
+   vh+='<td class="num '+(mv===undefined?'':flagV(VITALS[j].k,mv))+'">'+(mv===undefined?'-':mv.toFixed(VITALS[j].dec))+'</td>';}
+  vh+='</tr>';}
+ vh+='</tbody>';
+ E('vitTable').innerHTML=vh;
+}
+
+var MQ=false,MTYPE='lab',MKEY='egfr';
+function openDetail(type,key){MTYPE=type;MKEY=key;MQ=false;drawDetail();E('modal').className='modal on';}
+function drawDetail(){
+ var isLab=(MTYPE==='lab'),l=isLab?LM[MKEY]:VM[MKEY],j;
+ if(!l){E('modal').className='modal';return;}
+ var data=isLab?(MQ?labQuarter(MKEY):labSeries(MKEY)):(MQ?vitQuarter(MKEY):vitSeries(MKEY));
+ var fn=isLab?flagL:flagV;
+ var h='<div class="hrow"><h3 style="margin:0;color:var(--gold)">'+nm(l)+' <span class="dim">'+l.u+'</span></h3><div class="spacer"></div>'+
+  '<button class="btn '+(MQ?'':'cy')+'" data-act="dmode" data-val="all">'+t('modeAll')+'</button>'+
+  '<button class="btn '+(MQ?'cy':'')+'" data-act="dmode" data-val="q">'+t('modeQ')+'</button>'+
+  '<button class="btn mg" data-act="close">'+t('close')+'</button></div>'+
+  '<div class="sub" style="margin:6px 0 10px">'+t('ref')+' '+refTxt(l)+'</div>'+
+  '<div class="chart"><canvas id="dC"></canvas></div>'+
+  '<div class="scroll" style="margin-top:12px;max-height:38vh"><table><thead><tr><th>'+(MQ?t('qLabel'):t('date'))+'</th><th>'+t('value')+
+  '</th><th>'+t('trend')+'</th><th>'+t('ok')+'</th></tr></thead><tbody>';
+ var rev=data.slice().reverse();
+ for(j=0;j<rev.length;j++){var p=rev[j],f=fn(MKEY,p.v),n2=rev[j+1],df=n2?p.v-n2.v:null;
+  h+='<tr><td>'+(MQ?p.d:dTxt(p.d))+'</td><td class="num '+f+'">'+p.v.toFixed(l.dec)+'</td><td class="dim">'+
+   (df===null?'-':(df>0?'+':'')+df.toFixed(l.dec))+'</td><td><span class="pill '+f+'">'+
+   (f==='ok'?t('ok'):(f==='hi'?t('high'):t('low')))+'</span></td></tr>';}
+ h+='</tbody></table></div>';
+ var cur=data.length?data[data.length-1].v:null,cf=fn(MKEY,cur);
+ if(isLab&&cf&&cf!=='ok'&&ADV[MKEY]&&ADV[MKEY][cf]){h+='<div class="adv">'+ADV[MKEY][cf][LANG]+'</div>';}
+ else if(!isLab){var va=vitalAdvice();h+=va.length?va.join(''):'<div class="adv good">'+t('betterOk')+'</div>';}
+ else{h+='<div class="adv good">'+t('betterOk')+'</div>';}
+ E('mbox').innerHTML=h;
+ var lb=[],dt=[];
+ for(j=0;j<data.length;j++){lb.push(MQ?data[j].d:dShort(data[j].d));dt.push(data[j].v);}
+ drawChart(E('dC'),{labels:lb,values:data.length<=14,
+  bands:(l.min!==null&&l.max!==null)?[{from:l.min,to:l.max,color:'rgba(182,255,60,.10)'}]:[],
+  series:[{name:nm(l),color:'#4DE8FF',dec:l.dec,data:dt,dot:function(v){var f2=fn(MKEY,v);return f2==='ok'?'#B6FF3C':(f2==='hi'?'#FF4DD2':'#FFD75E');}}]});
+}
+
+function renderForm(){
+ var h='',gk=['A','B','C'],j,z;
+ for(j=0;j<gk.length;j++){h+='<div class="card"><h3>'+nm(GROUPS[gk[j]])+'</h3><div class="grid g3">';
+  for(z=0;z<LABS.length;z++){var l=LABS[z];if(l.g!==gk[j])continue;
+   h+='<div class="field"><label>'+nm(l)+' <span class="dim">'+l.u+' '+refTxt(l)+'</span></label><input type="number" step="any" id="in_'+l.k+'"></div>';}
+  h+='</div></div>';}
+ E('addForm').innerHTML=h;
+ if(!E('fDate').value)E('fDate').value=new Date().toISOString().slice(0,10);
+}
+function saveLab(){
+ var d=E('fDate').value;if(!d){alert(t('needDate'));return;}
+ var items={},any=false,j;
+ for(j=0;j<LABS.length;j++){var el2=E('in_'+LABS[j].k);
+  if(el2&&el2.value!==''){var v=parseFloat(el2.value);if(!isNaN(v)){items[LABS[j].k]=v;any=true;}}}
+ if(!any){alert(t('needVal'));return;}
+ var ex=null;
+ for(j=0;j<DB.records.length;j++){if(DB.records[j].date===d)ex=DB.records[j];}
+ if(ex){for(var k in items){if(items.hasOwnProperty(k))ex.items[k]=items[k];}}
+ else{DB.records.push({id:'r'+(new Date()).getTime(),date:d,note:E('fNote').value||'',items:items});}
+ save();renderAll();alert(t('saved'));go('dash');
+}
+function saveDaily(){
+ var d=E('dDate').value;if(!d){alert(t('needDate'));return;}
+ var lim=parseFloat(E('d_limit').value);
+ if(!isNaN(lim)&&lim>0)DB.settings.fluidLimit=lim;
+ var rec={id:'d'+(new Date()).getTime(),date:d},any=false,j;
+ for(j=0;j<VKEYS.length;j++){var el3=E('d_'+VKEYS[j]);
+  if(el3&&el3.value!==''){var v=parseFloat(el3.value);if(!isNaN(v)){rec[VKEYS[j]]=v;any=true;}}}
+ if(!any){alert(t('needVal'));return;}
+ var ex=null;
+ for(j=0;j<DB.daily.length;j++){if(DB.daily[j].date===d)ex=DB.daily[j];}
+ if(ex){for(j=0;j<VKEYS.length;j++){if(rec[VKEYS[j]]!==undefined)ex[VKEYS[j]]=rec[VKEYS[j]];}}
+ else{DB.daily.push(rec);}
+ save();
+ for(j=0;j<VKEYS.length;j++){E('d_'+VKEYS[j]).value='';}
+ renderAll();alert(t('saved'));
+}
+
+var PENDING=[];
+function findDate(txt){
+ var m=txt.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
+ if(m){var y=parseInt(m[3],10);if(y>2400)y-=543;
+  return y+'-'+('0'+parseInt(m[2],10)).slice(-2)+'-'+('0'+parseInt(m[1],10)).slice(-2);}
+ for(var j=0;j<THMON.length;j++){var pos=txt.indexOf(THMON[j]);
+  if(pos>0){var before=txt.slice(Math.max(0,pos-4),pos),after=txt.slice(pos+THMON[j].length,pos+THMON[j].length+6);
+   var dm=before.match(/(\d{1,2})\s*$/),ym=after.match(/(\d{4})/);
+   if(dm&&ym){var y2=parseInt(ym[1],10);if(y2>2400)y2-=543;
+    return y2+'-'+('0'+(j+1)).slice(-2)+'-'+('0'+parseInt(dm[1],10)).slice(-2);}}}
+ return null;
+}
+function parseText(txt){
+ var out={},lines=txt.split('\n'),j,z;
+ for(j=0;j<lines.length;j++){var low=' '+lines[j].toLowerCase().replace(/,/g,'')+' ';
+  for(z=0;z<LABS.length;z++){var l=LABS[z];
+   if(out[l.k]!==undefined)continue;
+   var hit=-1,a;
+   for(a=0;a<l.alias.length;a++){var ix=low.indexOf(l.alias[a]);if(ix>=0){hit=ix+l.alias[a].length;break;}}
+   if(hit<0)continue;
+   var m=low.slice(hit).match(/(\d+(\.\d+)?)/);
+   if(m){var v=parseFloat(m[1]);if(!isNaN(v))out[l.k]=v;}}}
+ return out;
+}
+function loadTess(cb){
+ if(window.Tesseract){cb();return;}
+ var s=document.createElement('script');
+ s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+ s.onload=function(){cb();};
+ s.onerror=function(){alert(t('ocrFail'));};
+ document.head.appendChild(s);
+}
+function runOCR(files){
+ loadTess(function(){
+  PENDING=[];E('ocrReview').innerHTML='';
+  window.Tesseract.createWorker(['tha','eng']).then(function(w){
+   var idx=0;
+   function next(){
+    if(idx>=files.length){w.terminate();E('pbar').style.width='100%';E('pstat').textContent='';showReview();return;}
+    E('pstat').textContent=t('reading')+' '+(idx+1)+' / '+files.length;
+    E('pbar').style.width=(idx/files.length*100)+'%';
+    w.recognize(files[idx]).then(function(res){
+     var txt=(res&&res.data&&res.data.text)?res.data.text:'';
+     var dd=findDate(txt)||new Date().toISOString().slice(0,10);
+     var items=parseText(txt);
+     var cnt=0;for(var k in items){if(items.hasOwnProperty(k))cnt++;}
+     if(cnt)PENDING.push({date:dd,items:items,file:files[idx].name});
+     idx++;next();
+    })['catch'](function(){idx++;next();});
+   }
+   next();
+  })['catch'](function(){alert(t('ocrFail'));});
+ });
+}
+function showReview(){
+ if(!PENDING.length){E('ocrReview').innerHTML='<div class="card"><div class="dim">'+t('noData')+'</div></div>';return;}
+ var h='<div class="card"><h3>'+t('review')+'</h3>',j;
+ for(j=0;j<PENDING.length;j++){var p=PENDING[j];
+  h+='<div style="border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px">'+
+     '<div class="hrow"><span class="badge">'+esc(p.file)+'</span><div class="spacer"></div>'+
+     '<input type="date" style="width:170px" data-act="ocrdate" data-val="'+j+'" value="'+p.date+'"></div><table>';
+  for(var k in p.items){if(!p.items.hasOwnProperty(k))continue;
+   h+='<tr><td>'+nm(LM[k])+'</td><td><input type="number" step="any" style="width:120px" data-act="ocrval" data-val="'+j+':'+k+
+      '" value="'+p.items[k]+'"></td><td class="dim">'+LM[k].u+'</td>'+
+      '<td><button class="btn mg" data-act="ocrdel" data-val="'+j+':'+k+'">'+t('del')+'</button></td></tr>';}
+  h+='</table></div>';}
+ h+='<button class="btn lm big" data-act="commit">'+t('confirm')+'</button></div>';
+ E('ocrReview').innerHTML=h;
+}
+function commitOCR(){
+ var j,z;
+ for(j=0;j<PENDING.length;j++){var p=PENDING[j],ex=null;
+  for(z=0;z<DB.records.length;z++){if(DB.records[z].date===p.date)ex=DB.records[z];}
+  if(ex){for(var k in p.items){if(p.items.hasOwnProperty(k))ex.items[k]=p.items[k];}}
+  else{DB.records.push({id:'r'+(new Date()).getTime()+j,date:p.date,note:'OCR',items:p.items});}}
+ save();PENDING=[];E('ocrReview').innerHTML='';renderAll();alert(t('saved'));go('dash');
+}
+
+var CURVIEW='dash';
+function go(v){
+ CURVIEW=v;
+ var nb=document.querySelectorAll('nav button'),j;
+ for(j=0;j<nb.length;j++){nb[j].className=(nb[j].getAttribute('data-val')===v)?'on':'';}
+ var vs=document.querySelectorAll('.view');
+ for(j=0;j<vs.length;j++){vs[j].className='view'+(vs[j].id===('v-'+v)?' on':'');}
+ window.scrollTo(0,0);
+ if(v==='dash')renderDash();
+ if(v==='daily')renderDaily();
+ if(v==='hist')renderHist();
+ if(v==='add')renderForm();
+ if(v==='data')renderStat();
+}
+function renderStat(){E('dbStat').textContent=DB.records.length+' '+t('records')+' / '+DB.daily.length+' '+t('dayrec');}
+function applyLang(){
+ document.documentElement.lang=LANG;
+ var ns=document.querySelectorAll('[data-i18n]'),j;
+ for(j=0;j<ns.length;j++){var v=I18N[LANG][ns[j].getAttribute('data-i18n')];if(v!==undefined)ns[j].innerHTML=v;}
+ E('langBtn').textContent=(LANG==='th')?'ENGLISH':'ไทย';
+ try{localStorage.setItem('ckd_lang',LANG);}catch(e){}
+}
+function renderAll(){applyLang();renderDash();renderDaily();renderHist();renderForm();renderStat();}
+
+function findAct(node){
+ while(node&&node!==document.body){
+  if(node.getAttribute&&node.getAttribute('data-act'))return node;
+  node=node.parentNode;}
+ return null;
+}
+document.addEventListener('click',function(ev){
+ var el4=findAct(ev.target||ev.srcElement);
+ if(!el4)return;
+ var act=el4.getAttribute('data-act'),val=el4.getAttribute('data-val')||'',j;
+ if(act==='nav'){go(val);}
+ else if(act==='lang'){LANG=(LANG==='th')?'en':'th';renderAll();go(CURVIEW);}
+ else if(act==='detail'){var pr=val.split(':');openDetail(pr[0]==='vit'?'vit':'lab',pr[1]);}
+ else if(act==='close'){E('modal').className='modal';}
+ else if(act==='dmode'){MQ=(val==='q');drawDetail();}
+ else if(act==='mode'){HMODE=val;renderHist();}
+ else if(act==='save-lab'){saveLab();}
+ else if(act==='save-daily'){saveDaily();}
+ else if(act==='fill-last'){var L=last();
+  if(L){for(j=0;j<LABS.length;j++){var e5=E('in_'+LABS[j].k);
+   if(e5)e5.value=(L.items[LABS[j].k]===undefined||L.items[LABS[j].k]===null)?'':L.items[LABS[j].k];}}}
+ else if(act==='del-daily'){var nd=[];
+  for(j=0;j<DB.daily.length;j++){if(DB.daily[j].id!==val)nd.push(DB.daily[j]);}
+  DB.daily=nd;save();renderAll();go('daily');}
+ else if(act==='pick'){E('file').click();}
+ else if(act==='commit'){commitOCR();}
+ else if(act==='ocrdel'){var q2=val.split(':');delete PENDING[parseInt(q2[0],10)].items[q2[1]];showReview();}
+ else if(act==='export'){
+  var blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='ckd-lab-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);}
+ else if(act==='import'){E('impFile').click();}
+ else if(act==='reset'){if(window.confirm(t('confirmReset'))){DB=seed();save();renderAll();go('dash');}}
+ else if(act==='clear'){if(window.confirm(t('confirmClear'))){DB={records:[],daily:[],settings:{fluidLimit:1500}};save();renderAll();go('dash');}}
+},false);
+document.addEventListener('change',function(ev){
+ var el6=ev.target||ev.srcElement;
+ if(!el6||!el6.getAttribute)return;
+ var act=el6.getAttribute('data-act'),val=el6.getAttribute('data-val')||'';
+ if(act==='ocrval'){var p2=val.split(':');PENDING[parseInt(p2[0],10)].items[p2[1]]=parseFloat(el6.value);}
+ else if(act==='ocrdate'){PENDING[parseInt(val,10)].date=el6.value;}
+},false);
+E('file').addEventListener('change',function(ev){
+ var f=[],fs=ev.target.files,j;
+ for(j=0;j<fs.length;j++){f.push(fs[j]);}
+ if(f.length)runOCR(f);
+},false);
+E('impFile').addEventListener('change',function(ev){
+ var f=ev.target.files[0];if(!f)return;
+ var rd=new FileReader();
+ rd.onload=function(){
+  try{var d=JSON.parse(rd.result);
+   if(d&&d.records){DB=d;if(!DB.daily)DB.daily=[];if(!DB.settings)DB.settings={fluidLimit:1500};
+    save();renderAll();alert(t('saved'));go('dash');}}
+  catch(x){alert('Invalid file');}};
+ rd.readAsText(f);
+},false);
+var dz=E('drop');
+dz.addEventListener('dragover',function(ev){ev.preventDefault();dz.className='drop hot';},false);
+dz.addEventListener('dragleave',function(ev){ev.preventDefault();dz.className='drop';},false);
+dz.addEventListener('drop',function(ev){
+ ev.preventDefault();dz.className='drop';
+ var f=[],j;
+ if(ev.dataTransfer&&ev.dataTransfer.files){var fs=ev.dataTransfer.files;
+  for(j=0;j<fs.length;j++){if(fs[j].type.indexOf('image')===0)f.push(fs[j]);}}
+ if(f.length)runOCR(f);
+},false);
+E('modal').addEventListener('click',function(ev){
+ if((ev.target||ev.srcElement).id==='modal')E('modal').className='modal';
+},false);
+window.addEventListener('resize',function(){
+ if(CURVIEW==='dash')renderDash();
+ if(CURVIEW==='daily')renderDaily();
+ if(E('modal').className.indexOf('on')>=0)drawDetail();
+},false);
+
+try{var mf={name:'CKD Lab Tracker',short_name:'CKD Lab',start_url:'./index.html',display:'standalone',
+ background_color:'#0B0E14',theme_color:'#0B0E14',icons:[{src:'app-icon.png',sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
+ var lk=document.createElement('link');lk.rel='manifest';
+ lk.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));
+ document.head.appendChild(lk);}catch(e){}
+
+renderAll();
+go('dash');
+
+}catch(err){showErr(err&&err.message?err.message:String(err));}
+})();
+</script>
+</body>
+</html>
