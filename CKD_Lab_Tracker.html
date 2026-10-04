@@ -13,9 +13,8 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--txt);font-family:'Noto Sans Thai',system-ui,sans-serif;font-size:15px;padding-bottom:50px}
 .num{font-family:'Orbitron',sans-serif;letter-spacing:.5px}
-#nojs{background:#5a0b22;color:#ffd7e4;padding:12px 14px;font-size:13px;line-height:1.6;border-bottom:1px solid #FF4DD2}
+#nojs{display:none;background:#5a0b22;color:#ffd7e4;padding:12px 14px;font-size:13px}
 #errbar{display:none;background:#5a0b22;color:#ffd7e4;padding:10px 14px;font-size:13px;border-bottom:1px solid #FF4DD2}
-#okchip{display:none;font-size:10px;color:#0B0E14;background:#B6FF3C;border-radius:999px;padding:3px 9px;font-weight:700}
 header{position:sticky;top:0;z-index:50;background:rgba(11,14,20,.94);border-bottom:1px solid var(--line);padding:10px 14px}
 .hrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .logo{width:38px;height:38px;border-radius:10px;object-fit:cover;border:1px solid var(--gold);background:#000}
@@ -47,7 +46,7 @@ main{max-width:1180px;margin:0 auto;padding:14px}
 .kpi .trend{font-size:12px;margin:3px 0}
 .ok{color:var(--lime)}.hi{color:var(--mag)}.lo{color:var(--gold)}.dim{color:var(--dim)}
 .pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
-.chart{height:290px}
+.chart{height:310px}
 canvas{width:100%;height:100%;display:block;cursor:pointer}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
@@ -65,7 +64,6 @@ input:focus{outline:none;border-color:var(--cyan)}
 .modal.on{display:flex}
 .mbox{background:var(--card);border:1px solid var(--cyan);border-radius:16px;max-width:880px;width:100%;max-height:92vh;overflow:auto;padding:16px}
 .drop{border:2px dashed var(--line);border-radius:16px;padding:30px 16px;text-align:center}
-.drop.hot{border-color:var(--lime)}
 .bar{height:7px;background:#0E131B;border-radius:4px;overflow:hidden;margin-top:10px}
 .bar i{display:block;height:100%;background:var(--cyan);width:0}
 .med{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
@@ -76,23 +74,13 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
 </head>
 <body>
 
-<div id="nojs">
-  สคริปต์ยังไม่ทำงาน ถ้าคุณเห็นข้อความนี้ค้างอยู่ แปลว่าหน้าต่างที่เปิดอยู่บล็อก JavaScript
-  ให้บันทึกไฟล์เป็น index.html แบบ UTF-8 แล้วดับเบิลคลิกเปิดด้วย Chrome โดยตรง อย่าดูผ่านหน้าต่างพรีวิวของโปรแกรมแก้โค้ด
-</div>
-<noscript><div id="nojs">เบราว์เซอร์นี้ปิดการใช้งาน JavaScript กรุณาเปิดใช้งานก่อน</div></noscript>
 <div id="errbar"></div>
-
-<script>
-window.onerror=function(m,s,l){var b=document.getElementById('errbar');if(b){b.style.display='block';b.textContent='ERROR: '+m+'  (line '+l+')';}return false;};
-</script>
 
 <header>
   <div class="hrow">
     <img class="logo" src="app-icon.png" alt="" onerror="this.style.visibility='hidden'">
     <div><h1 data-i18n="appName">CKD Lab Tracker</h1><div class="sub" data-i18n="appSub">ผู้ช่วยติดตามผลเลือดโรคไตเรื้อรัง</div></div>
     <div class="spacer"></div>
-    <span id="okchip">JS OK</span>
     <button class="btn gold" data-act="lang" id="langBtn">ENGLISH</button>
   </div>
   <nav>
@@ -115,10 +103,18 @@ window.onerror=function(m,s,l){var b=document.getElementById('errbar');if(b){b.s
       <div style="text-align:right"><div class="sub" data-i18n="ckdStage">ระยะของโรคไต</div><div class="num" id="stageTxt" style="font-size:20px"></div></div>
     </div>
   </div>
+
+  <!-- โฟกัสสูงสุด: กราฟเปรียบเทียบ 3 Scenario ตามที่คุณต้องการ -->
+  <div class="card" style="border-color:var(--gold)">
+    <h3 style="color:var(--gold)" data-i18n="scenTitle">บันทึกค่าไตแม่: เปรียบเทียบ 3 Scenario (Actual / Best Case / Worst Case)</h3>
+    <div class="chart"><canvas id="cScenario"></canvas></div>
+    <small class="note" data-i18n="scenHint">แสดงแนวโน้ม eGFR จริงเทียบกับสถานการณ์จำลอง Best Case และ Worst Case ล่วงหน้า 12 เดือน</small>
+  </div>
+
   <div class="grid g4" id="kpis" style="margin-bottom:12px"></div>
   <div class="card"><h3 data-i18n="vitalsNow">สัญญาณชีพล่าสุด</h3><div class="grid g4" id="vkpis"></div></div>
   <div class="grid g2">
-    <div class="card"><h3 data-i18n="egfrHist">ประวัติ eGFR (EPI)</h3><div class="chart"><canvas id="cEgfr"></canvas></div><small class="note" data-i18n="clickHint">แตะที่กราฟเพื่อดูรายละเอียดย้อนหลัง</small></div>
+    <div class="card"><h3 data-i18n="egfrHist">ประวัติ eGFR (EPI) รายละเอียด</h3><div class="chart"><canvas id="cEgfr"></canvas></div><small class="note" data-i18n="clickHint">แตะที่กราฟเพื่อดูรายละเอียดย้อนหลัง</small></div>
     <div class="card"><h3 data-i18n="radarT">ภาพรวมค่าสำคัญ</h3><div class="chart"><canvas id="cRadar"></canvas></div><small class="note" data-i18n="radarHint">วงเขียว คือ ขีดจำกัดบนของค่าปกติ เส้นที่ทะลุออกนอกวง คือค่าที่สูงเกิน</small></div>
   </div>
   <div class="card"><h3 data-i18n="comboT">ความสัมพันธ์ A/C ratio กับ ความดันตัวบน</h3><div class="chart"><canvas id="cCombo"></canvas></div><small class="note" data-i18n="comboHint">เส้นชมพู คือ A/C ratio อ่านที่แกนซ้าย เส้นฟ้า คือ ความดันตัวบน อ่านที่แกนขวา</small></div>
@@ -145,7 +141,6 @@ window.onerror=function(m,s,l){var b=document.getElementById('errbar');if(b){b.s
       <div class="field"><label data-i18n="vlimit">เพดานน้ำดื่มต่อวัน (มล.)</label><input type="number" id="d_limit"></div>
     </div>
     <button class="btn lm big" data-act="save-daily" data-i18n="saveDaily">บันทึกข้อมูลวันนี้</button>
-    <small class="note" data-i18n="dailyHint">กรอกเฉพาะช่องที่มี บันทึกซ้ำวันเดิมจะเป็นการแก้ไขข้อมูลวันนั้น</small>
   </div>
   <div class="grid g4" id="dstats" style="margin-bottom:12px"></div>
   <div class="grid g2">
@@ -174,7 +169,6 @@ window.onerror=function(m,s,l){var b=document.getElementById('errbar');if(b){b.s
       <div class="field"><label data-i18n="fDate">วันที่ตรวจ</label><input type="date" id="fDate"></div>
       <div class="field"><label data-i18n="fNote">หมายเหตุ</label><input type="text" id="fNote"></div>
     </div>
-    <small class="note" data-i18n="addHint">กรอกเฉพาะช่องที่มีผล ช่องที่เว้นว่างจะไม่ถูกบันทึก</small>
   </div>
   <div id="addForm"></div>
   <div class="hrow">
@@ -191,7 +185,6 @@ window.onerror=function(m,s,l){var b=document.getElementById('errbar');if(b){b.s
       <input type="file" id="file" accept="image/*" multiple hidden>
       <div class="bar"><i id="pbar"></i></div><div class="sub" id="pstat"></div>
     </div>
-    <small class="note" data-i18n="ocrNote">ครั้งแรกต้องต่ออินเทอร์เน็ตเพื่อโหลดชุดอ่านตัวอักษร ระบบจะให้ตรวจทานค่าก่อนบันทึกเสมอ</small>
   </div>
   <div id="ocrReview"></div>
 </section>
@@ -206,10 +199,6 @@ window.onerror=function(m,s,l){var b=document.getElementById('errbar');if(b){b.s
       <button class="btn gold" data-act="reset" data-i18n="resetBtn">โหลดข้อมูลตัวอย่างใหม่</button>
       <button class="btn mg" data-act="clear" data-i18n="clrBtn">ล้างข้อมูลทั้งหมด</button>
     </div>
-    <small class="note" data-i18n="dataNote">ข้อมูลทั้งหมดเก็บอยู่ในเครื่องของคุณเท่านั้น</small>
-  </div>
-  <div class="card"><h3 data-i18n="instT">ติดตั้งเป็นแอปบนมือถือ</h3>
-    <div class="sub" style="line-height:1.8" data-i18n="instBody">1) วางไฟล์ index.html และ app-icon.png ไว้โฟลเดอร์เดียวกัน<br>2) เปิดด้วยเบราว์เซอร์ แล้วเลือกเมนู เพิ่มลงในหน้าจอโฮม<br>3) จะได้ไอคอนแอปบนหน้าจอ</div>
   </div>
 </section>
 
@@ -222,8 +211,6 @@ window.onerror=function(m,s,l){var b=document.getElementById('errbar');if(b){b.s
 function E(id){return document.getElementById(id);}
 function showErr(m){var b=E('errbar');if(b){b.style.display='block';b.textContent='ERROR: '+m;}}
 try{
-E('nojs').style.display='none';
-E('okchip').style.display='inline-block';
 
 var LABS=[
 {k:'egfr',g:'A',th:'eGFR (EPI)',en:'eGFR (EPI)',u:'mL/min',min:60,max:null,dec:2,key:1,alias:['egfr','gfr']},
@@ -247,8 +234,7 @@ var LABS=[
 {k:'upro',g:'C',th:'โปรตีนในปัสสาวะ',en:'Urine Protein',u:'+',min:null,max:0,dec:0,alias:['urine protein']},
 {k:'uph',g:'C',th:'ความเป็นกรดปัสสาวะ',en:'Urine pH',u:'',min:5,max:8,dec:1,alias:['ph']},
 {k:'usg',g:'C',th:'ความถ่วงจำเพาะปัสสาวะ',en:'Specific Gravity',u:'',min:1.003,max:1.03,dec:3,alias:['specific gravity']}];
-var LM={};
-for(var i=0;i<LABS.length;i++){LM[LABS[i].k]=LABS[i];}
+var LM={};for(var i=0;i<LABS.length;i++){LM[LABS[i].k]=LABS[i];}
 var GROUPS={A:{th:'การทำงานของไต',en:'Kidney Function'},B:{th:'เกลือแร่และแร่ธาตุ',en:'Electrolytes'},C:{th:'เมตาบอลิก / ปัสสาวะ',en:'Metabolic / Urinalysis'}};
 var RADAR=['cr','bun','k','na','p','uric'];
 var VITALS=[
@@ -258,37 +244,40 @@ var VITALS=[
 {k:'wt',th:'น้ำหนัก',en:'Weight',u:'kg',min:null,max:null,dec:1},
 {k:'fluid',th:'น้ำดื่ม',en:'Fluid intake',u:'mL',min:null,max:null,dec:0},
 {k:'urine',th:'ปัสสาวะ',en:'Urine output',u:'mL',min:null,max:null,dec:0}];
-var VM={};
-for(i=0;i<VITALS.length;i++){VM[VITALS[i].k]=VITALS[i];}
+var VM={};for(i=0;i<VITALS.length;i++){VM[VITALS[i].k]=VITALS[i];}
 var VKEYS=['sys','dia','pulse','wt','fluid','urine'];
 
+var SCENARIO_DATA = [
+{date:'2025-09-16', actual:26.41, best:26.21, worst:25.81},
+{date:'2026-01-13', actual:22.58, best:26.21, worst:25.81},
+{date:'2026-02-24', actual:18.31, best:22.38, worst:21.98},
+{date:'2026-05-12', actual:24.90, best:22.18, worst:21.38},
+{date:'2026-08-25', actual:14.87, best:21.98, worst:20.78},
+{date:'Month+1', actual:null, best:21.78, worst:20.18},
+{date:'Month+2', actual:null, best:21.58, worst:19.58},
+{date:'Month+3', actual:null, best:21.38, worst:18.98},
+{date:'Month+4', actual:null, best:21.18, worst:18.38},
+{date:'Month+5', actual:null, best:20.98, worst:17.78},
+{date:'Month+6', actual:null, best:20.78, worst:17.18},
+{date:'Month+7', actual:null, best:20.58, worst:16.58},
+{date:'Month+8', actual:null, best:20.38, worst:15.98},
+{date:'Month+9', actual:null, best:20.18, worst:15.38}
+];
+
 var ADV={
-egfr:{lo:{th:'การกรองของไตลดลง ลดโปรตีนเหลือราว 0.6 ถึง 0.8 กรัมต่อน้ำหนักตัว 1 กิโลกรัมต่อวัน เน้นไข่ขาวและปลา งดอาหารเสริมและยาแก้ปวดกลุ่ม NSAIDs เด็ดขาด',en:'Kidney filtration declining. Limit protein to 0.6-0.8 g/kg/day, prefer egg white and fish, avoid supplements and NSAID painkillers.'}},
-cr:{hi:{th:'ของเสียจากกล้ามเนื้อคั่ง ดื่มน้ำตามที่แพทย์กำหนด เลี่ยงอาหารโปรตีนสูงมื้อใหญ่ และเลี่ยงออกกำลังหนักก่อนเจาะเลือด',en:'Creatinine high. Keep fluid as prescribed, avoid large high-protein meals and heavy exercise before testing.'}},
-bun:{hi:{th:'ของเสียไนโตรเจนสูง ลดเนื้อสัตว์แปรรูป เครื่องในสัตว์ และน้ำซุปกระดูก แบ่งโปรตีนกระจายทุกมื้อแทนการกินรวดเดียว',en:'High nitrogen waste. Cut processed meat, organ meat and bone broth, spread protein across meals.'}},
-acr:{hi:{th:'มีโปรตีนรั่วในปัสสาวะมาก คุมความดันให้ต่ำกว่า 130/80 ลดโซเดียมให้ต่ำกว่า 2000 มิลลิกรัมต่อวัน และห้ามหยุดยาป้องกันไตเองโดยเด็ดขาด',en:'Significant proteinuria. Keep BP below 130/80, sodium under 2000 mg/day, never stop kidney-protective medication.'}},
-uric:{hi:{th:'กรดยูริกสูง เลี่ยงเครื่องในสัตว์ ยอดผัก สัตว์ปีก เบียร์ และน้ำหวานฟรุกโตส',en:'High uric acid. Avoid organ meat, young shoots, poultry, beer and fructose drinks.'},lo:{th:'กรดยูริกต่ำกว่าเกณฑ์เล็กน้อย โดยทั่วไปไม่อันตราย แจ้งแพทย์หากมีอาการผิดปกติ',en:'Slightly low uric acid, usually harmless.'}},
-k:{hi:{th:'โพแทสเซียมสูง อันตรายต่อหัวใจ งดกล้วย ส้ม มะละกอ ทุเรียน มะเขือเทศ ผักใบเขียวเข้ม น้ำผลไม้ และเกลือลดโซเดียมซึ่งมีโพแทสเซียมสูง ผักให้หั่นแช่น้ำแล้วต้มทิ้งน้ำก่อนปรุง',en:'High potassium is dangerous. Avoid banana, orange, papaya, durian, tomato, dark greens, juice and low-sodium salt. Soak and boil vegetables, discard the water.'},lo:{th:'โพแทสเซียมต่ำ อาจอ่อนแรงหรือเป็นตะคริว แจ้งแพทย์ อย่าซื้ออาหารเสริมเอง',en:'Low potassium may cause weakness or cramps. Inform your doctor.'}},
-na:{lo:{th:'โซเดียมต่ำ มักเกิดจากดื่มน้ำมากเกินไป จำกัดน้ำตามแผน และชั่งน้ำหนักทุกเช้าเพื่อดูภาวะน้ำเกิน',en:'Low sodium often from excess fluid. Restrict fluid and weigh daily.'},hi:{th:'โซเดียมสูง ลดอาหารเค็ม น้ำปลา ซีอิ๊ว อาหารสำเร็จรูป และดื่มน้ำตามแผน',en:'High sodium. Cut salty food, fish sauce, soy sauce and ready meals.'}},
-p:{hi:{th:'ฟอสฟอรัสสูง ทำให้คันและกระดูกบาง เลี่ยงนม ชีส ถั่ว เมล็ดพืช น้ำอัดลมสีดำ และอาหารแปรรูปที่ใส่ฟอสเฟต กินยาจับฟอสเฟตพร้อมคำแรกของมื้ออาหาร',en:'High phosphorus causes itching and bone loss. Avoid dairy, nuts, seeds, cola and phosphate additives. Take binders with the first bite.'}},
-ca:{lo:{th:'แคลเซียมต่ำ รับวิตามินดีตามแพทย์สั่ง อย่าเสริมแคลเซียมเองเพราะเสี่ยงหินปูนเกาะหลอดเลือด',en:'Low calcium. Take vitamin D as prescribed, avoid self-supplementing calcium.'},hi:{th:'แคลเซียมสูง หยุดอาหารเสริมแคลเซียมและแจ้งแพทย์',en:'High calcium. Stop calcium supplements and inform your doctor.'}},
-hco3:{lo:{th:'ภาวะเลือดเป็นกรด เร่งให้ไตเสื่อมเร็วขึ้น เพิ่มผักผลไม้ที่โพแทสเซียมต่ำ และกินโซเดียมไบคาร์บอเนตตามแพทย์สั่ง',en:'Metabolic acidosis speeds kidney decline. Take bicarbonate as prescribed.'}},
-hb:{lo:{th:'ซีดจากไตสร้างฮอร์โมนได้น้อย แจ้งแพทย์เพื่อประเมินธาตุเหล็กและยากระตุ้นเม็ดเลือด',en:'Anemia of CKD. Ask about iron and erythropoietin therapy.'}},
-alb:{lo:{th:'อัลบูมินต่ำ เสี่ยงขาดสารอาหาร เพิ่มโปรตีนคุณภาพสูงในปริมาณที่นักกำหนดอาหารวางไว้',en:'Low albumin suggests malnutrition.'}},
-fbs:{hi:{th:'น้ำตาลสูง เร่งไตเสื่อม ลดข้าวขาว น้ำหวาน ขนมหวาน และตรวจน้ำตาลปลายนิ้วตามแพทย์สั่ง',en:'High glucose accelerates kidney damage.'}},
-a1c:{hi:{th:'น้ำตาลสะสมสูงกว่าเป้า ทบทวนยาเบาหวานกับแพทย์ เพราะยาบางตัวต้องลดขนาดเมื่อไตเสื่อม',en:'HbA1c above target. Review diabetes medication.'}},
-chol:{hi:{th:'คอเลสเตอรอลสูง เลี่ยงของทอดและไขมันสัตว์',en:'High cholesterol. Avoid fried food and animal fat.'}},
-tg:{hi:{th:'ไตรกลีเซอไรด์สูง ลดแป้ง น้ำตาล และงดแอลกอฮอล์',en:'High triglycerides. Cut starch, sugar and alcohol.'}},
-ldl:{hi:{th:'LDL สูง ปรึกษาแพทย์เรื่องยาลดไขมัน',en:'High LDL. Discuss statin therapy.'}},
-hdl:{lo:{th:'HDL ต่ำ เดินเร็ววันละ 30 นาทีเท่าที่ร่างกายไหว',en:'Low HDL. Brisk walking 30 minutes daily.'}},
-upro:{hi:{th:'พบโปรตีนรั่วในปัสสาวะ คุมความดันและลดเค็มอย่างเคร่งครัด',en:'Proteinuria present. Strict BP and salt control.'}},
-uph:{lo:{th:'ปัสสาวะเป็นกรดมาก เสี่ยงนิ่วกรดยูริก ดื่มน้ำให้พอตามแผน',en:'Acidic urine raises stone risk.'}},
-usg:{lo:{th:'ไตเริ่มทำให้ปัสสาวะเข้มข้นได้น้อยลง สังเกตอาการปัสสาวะบ่อยตอนกลางคืน',en:'Reduced concentrating ability. Watch for nocturia.'}}};
+egfr:{lo:{th:'การกรองของไตลดลง ลดโปรตีนเหลือราว 0.6 ถึง 0.8 กรัมต่อน้ำหนักตัว 1 กิโลกรัมต่อวัน เน้นไข่ขาวและปลา งดอาหารเสริมและยาแก้ปวดกลุ่ม NSAIDs เด็ดขาด',en:'Kidney filtration declining. Limit protein to 0.6-0.8 g/kg/day, prefer egg white and fish, avoid supplements and NSAIDs.'}},
+cr:{hi:{th:'ของเสียจากกล้ามเนื้อคั่ง ดื่มน้ำตามที่แพทย์กำหนด เลี่ยงอาหารโปรตีนสูงมื้อใหญ่ และเลี่ยงออกกำลังหนักก่อนเจาะเลือด',en:'Creatinine high. Keep fluid as prescribed, avoid large high-protein meals.'}},
+bun:{hi:{th:'ของเสียไนโตรเจนสูง ลดเนื้อสัตว์แปรรูป เครื่องในสัตว์ และน้ำซุปกระดูก แบ่งโปรตีนกระจายทุกมื้อ',en:'High nitrogen waste. Cut processed meat, organ meat and bone broth.'}},
+acr:{hi:{th:'มีโปรตีนรั่วในปัสสาวะมาก คุมความดันให้ต่ำกว่า 130/80 ลดโซเดียมให้ต่ำกว่า 2000 มิลลิกรัมต่อวัน ห้ามหยุดยาเอง',en:'Significant proteinuria. Keep BP below 130/80, sodium under 2000 mg/day.'}},
+uric:{hi:{th:'กรดยูริกสูง เลี่ยงเครื่องในสัตว์ ยอดผัก สัตว์ปีก เบียร์ และน้ำหวานฟรุกโตส',en:'High uric acid. Avoid organ meat, young shoots, poultry, beer.'}},
+k:{hi:{th:'โพแทสเซียมสูง อันตรายต่อหัวใจ งดกล้วย ส้ม มะละกอ ทุเรียน มะเขือเทศ ผักใบเขียวเข้ม น้ำผลไม้ และเกลือลดโซเดียม',en:'High potassium is dangerous. Avoid banana, orange, papaya, durian, tomato, dark greens, juice and low-sodium salt.'}},
+na:{lo:{th:'โซเดียมต่ำ มักเกิดจากดื่มน้ำมากเกินไป จำกัดน้ำตามแผน และชั่งน้ำหนักทุกเช้า',en:'Low sodium often from excess fluid. Restrict fluid and weigh daily.'}},
+p:{hi:{th:'ฟอสฟอรัสสูง ทำให้คันและกระดูกบาง เลี่ยงนม ชีส ถั่ว เมล็ดพืช น้ำอัดลมสีดำ กินยาจับฟอสเฟตพร้อมมื้ออาหาร',en:'High phosphorus causes itching and bone loss. Avoid dairy, nuts, seeds, cola.'}}};
 
 var DX=[{t:{th:'โรคหลัก',en:'Primary'},n:{th:'ไตวายเรื้อรัง',en:'Chronic Renal Failure'},c:'N18.9',col:'var(--mag)'},
 {t:{th:'โรคร่วม',en:'Secondary'},n:{th:'ความดันโลหิตสูง',en:'Essential Hypertension'},c:'I10',col:'var(--gold)'},
 {t:{th:'โรคร่วม',en:'Secondary'},n:{th:'เบาหวานชนิดไม่พึ่งอินซูลิน',en:'Type 2 Diabetes Mellitus'},c:'E11.9',col:'var(--cyan)'}];
-var MEDS=[{n:'CALCIFEROL BD 20000 IU',d:{th:'ครั้งละ 2 แคปซูล สัปดาห์ละ 1 ครั้ง หลังอาหารเช้า',en:'2 capsules once weekly after breakfast'}},
+var MEDS=[{n:'CALCIFEROL BD 20000 IU',d:{th:'ครั้งละ 2 แคปซูล สัปดาห์ละ 1 ครั้ง หลังอาหารเช้า',en:'2 capsules weekly after breakfast'}},
 {n:'CARDIPRIN 100 MG',d:{th:'ครั้งละ 1 เม็ด วันละ 1 ครั้ง หลังอาหารเช้า ยาป้องกันหลอดเลือดอุดตัน',en:'1 tablet daily after breakfast'}},
 {n:'F-MIN 5 MG',d:{th:'รับประทานตามแพทย์สั่ง',en:'As prescribed'}},
 {n:'ANALGESIC (RTAF) CREAM',d:{th:'ทานวดบริเวณที่ปวด วันละ 2 ครั้ง เช้าและเย็น',en:'Apply twice daily'}},
@@ -298,40 +287,42 @@ var I18N={th:{appName:'CKD Lab Tracker',appSub:'ผู้ช่วยติด�
 lastVisit:'ผลตรวจล่าสุด',ckdStage:'ระยะของโรคไต',vitalsNow:'สัญญาณชีพล่าสุด',egfrHist:'ประวัติ eGFR (EPI)',radarT:'ภาพรวมค่าสำคัญ',
 clickHint:'แตะที่กราฟเพื่อดูรายละเอียดย้อนหลัง',radarHint:'วงเขียว คือ ขีดจำกัดบนของค่าปกติ เส้นที่ทะลุออกนอกวง คือค่าที่สูงเกิน',
 comboT:'ความสัมพันธ์ A/C ratio กับ ความดันตัวบน',comboHint:'เส้นชมพู คือ A/C ratio อ่านที่แกนซ้าย เส้นฟ้า คือ ความดันตัวบน อ่านที่แกนขวา',
+scenTitle:'บันทึกค่าไตแม่: เปรียบเทียบ 3 Scenario (Actual / Best Case / Worst Case)',scenHint:'แสดงแนวโน้ม eGFR จริงเทียบกับสถานการณ์จำลอง Best Case และ Worst Case',
 adviceT:'คำแนะนำสำหรับรอบนี้',disclaimer:'* เป็นข้อมูลช่วยจำเท่านั้น การปรับยาและอาหารให้ยึดตามคำสั่งแพทย์เสมอ',dxT:'การวินิจฉัย',medT:'ยาประจำตัว',
 dailyT:'บันทึกความดัน น้ำหนัก และน้ำดื่มประจำวัน',vsys:'ความดันตัวบน (mmHg)',vdia:'ความดันตัวล่าง (mmHg)',vpulse:'ชีพจร (ครั้ง/นาที)',vwt:'น้ำหนัก (กก.)',vfluid:'น้ำดื่มรวม (มล.)',vurine:'ปัสสาวะรวม (มล.)',vlimit:'เพดานน้ำดื่มต่อวัน (มล.)',
-saveDaily:'บันทึกข้อมูลวันนี้',dailyHint:'กรอกเฉพาะช่องที่มี บันทึกซ้ำวันเดิมจะเป็นการแก้ไขข้อมูลวันนั้น',bpChart:'ความดันโลหิต',wtChart:'น้ำหนักตัว',flChart:'น้ำดื่มและปัสสาวะ',dailyAdv:'คำแนะนำจากบันทึกรายวัน',dailyTable:'ตารางบันทึกรายวัน',
+saveDaily:'บันทึกข้อมูลวันนี้',bpChart:'ความดันโลหิต',wtChart:'น้ำหนักตัว',flChart:'น้ำดื่มและปัสสาวะ',dailyAdv:'คำแนะนำจากบันทึกรายวัน',dailyTable:'ตารางบันทึกรายวัน',
 histT:'ตารางประวัติผลตรวจทุกรอบ',modeAll:'ทุกรอบตรวจ',modeQ:'เฉลี่ยราย 3 เดือน',histHint:'แตะที่แถวเพื่อดูกราฟและประวัติเฉพาะค่านั้น',vitQ:'สัญญาณชีพ เฉลี่ยราย 3 เดือน',
-addT:'กรอกผลตรวจด้วยตนเอง',fDate:'วันที่ตรวจ',fNote:'หมายเหตุ',addHint:'กรอกเฉพาะช่องที่มีผล ช่องที่เว้นว่างจะไม่ถูกบันทึก',saveBtn:'บันทึกผลตรวจรอบนี้',fillLast:'ใส่ค่าจากรอบล่าสุดเป็นตัวตั้ง',
-ocrT:'อัปโหลดภาพผลแล็บ แล้วให้ระบบอ่านให้อัตโนมัติ',ocrDrop:'ลากรูปมาวางที่นี่ หรือกดปุ่มด้านล่าง เลือกได้หลายรูปพร้อมกัน',ocrPick:'เลือกรูปผลแล็บ',ocrNote:'ครั้งแรกต้องต่ออินเทอร์เน็ตเพื่อโหลดชุดอ่านตัวอักษร ระบบจะให้ตรวจทานค่าก่อนบันทึกเสมอ',ocrFail:'โหลดชุดอ่านตัวอักษรไม่สำเร็จ กรุณาเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่',
-dataT:'สำรองและกู้คืนข้อมูล',expBtn:'ดาวน์โหลดไฟล์ .json',impBtn:'นำเข้าไฟล์ .json',resetBtn:'โหลดข้อมูลตัวอย่างใหม่',clrBtn:'ล้างข้อมูลทั้งหมด',dataNote:'ข้อมูลทั้งหมดเก็บอยู่ในเครื่องของคุณเท่านั้น',
-instT:'ติดตั้งเป็นแอปบนมือถือ',instBody:'1) วางไฟล์ index.html และ app-icon.png ไว้โฟลเดอร์เดียวกัน<br>2) เปิดด้วยเบราว์เซอร์ แล้วเลือกเมนู เพิ่มลงในหน้าจอโฮม<br>3) จะได้ไอคอนแอปบนหน้าจอ',
-ref:'ค่าอ้างอิง',item:'รายการ',trend:'แนวโน้ม',normal:'ปกติ',abnormal:'ผิดปกติ',noData:'ยังไม่มีข้อมูล',high:'สูง',low:'ต่ำ',ok:'ปกติ',close:'ปิด',confirm:'ยืนยันและบันทึก',
+addT:'กรอกผลตรวจด้วยตนเอง',fDate:'วันที่ตรวจ',fNote:'หมายเหตุ',saveBtn:'บันทึกผลตรวจรอบนี้',fillLast:'ใส่ค่าจากรอบล่าสุดเป็นตัวตั้ง',
+ocrT:'อัปโหลดภาพผลแล็บ แล้วให้ระบบอ่านให้อัตโนมัติ',ocrDrop:'ลากรูปมาวางที่นี่ หรือกดปุ่มด้านล่าง',ocrPick:'เลือกรูปผลแล็บ',ocrFail:'โหลดชุดอ่านตัวอักษรไม่สำเร็จ',
+dataT:'สำรองและกู้คืนข้อมูล',expBtn:'ดาวน์โหลดไฟล์ .json',impBtn:'นำเข้าไฟล์ .json',resetBtn:'โหลดข้อมูลตัวอย่างใหม่',clrBtn:'ล้างข้อมูลทั้งหมด',
+ref:'ค่าอ้างอิง',item:'รายการ',normal:'ปกติ',abnormal:'ผิดปกติ',noData:'ยังไม่มีข้อมูล',high:'สูง',low:'ต่ำ',ok:'ปกติ',close:'ปิด',confirm:'ยืนยันและบันทึก',
 review:'ตรวจทานค่าที่อ่านได้จากรูป',saved:'บันทึกเรียบร้อย',reading:'กำลังอ่านรูปที่',value:'ค่า',date:'วันที่',records:'รอบตรวจ',dayrec:'วันที่บันทึกรายวัน',betterOk:'ค่าทั้งหมดในกลุ่มนี้อยู่ในเกณฑ์',
-advGood:'รอบนี้ไม่มีค่าที่ต้องเฝ้าระวังเป็นพิเศษ รักษาวินัยเรื่องอาหารและยาต่อไปได้เลย',qLabel:'ไตรมาส',avg7:'เฉลี่ย 7 วัน',confirmClear:'ต้องการลบข้อมูลทั้งหมดจริงหรือไม่',confirmReset:'โหลดข้อมูลตัวอย่างทับข้อมูลปัจจุบันหรือไม่',del:'ลบ',bal:'สมดุลน้ำ',needDate:'กรุณาเลือกวันที่',needVal:'ยังไม่ได้กรอกค่าใด'},
+advGood:'รอบนี้ไม่มีค่าที่ต้องเฝ้าระวังเป็นพิเศษ',qLabel:'ไตรมาส',avg7:'เฉลี่ย 7 วัน',confirmClear:'ต้องการลบข้อมูลทั้งหมดจริงหรือไม่',confirmReset:'โหลดข้อมูลตัวอย่างทับข้อมูลปัจจุบันหรือไม่',del:'ลบ',bal:'สมดุลน้ำ',needDate:'กรุณาเลือกวันที่',needVal:'ยังไม่ได้กรอกค่าใด'},
 en:{appName:'CKD Lab Tracker',appSub:'Chronic kidney disease companion',navDash:'Dashboard',navDaily:'Daily Log',navHist:'History',navAdd:'Enter Results',navOcr:'Upload Images (OCR)',navData:'Data / Backup',
 lastVisit:'Latest test',ckdStage:'CKD Stage',vitalsNow:'Latest vitals',egfrHist:'eGFR (EPI) history',radarT:'Key values vs reference',
-clickHint:'Tap the chart for detailed history',radarHint:'Green ring is the upper normal limit. Any line outside it is above range.',
-comboT:'A/C ratio vs Systolic BP',comboHint:'Pink line is A/C ratio on the left axis, cyan line is systolic BP on the right axis',
-adviceT:'Advice for this round',disclaimer:'* A memory aid only. Always follow your doctor and dietitian.',dxT:'Diagnosis',medT:'Current medication',
+clickHint:'Tap the chart for detailed history',radarHint:'Green ring is upper normal limit.',
+comboT:'A/C ratio vs Systolic BP',comboHint:'Pink line is A/C ratio, cyan line is systolic BP',
+scenTitle:'Mom Kidney Log: 3-Scenario Comparison (Actual / Best Case / Worst Case)',scenHint:'Actual eGFR trend compared to Best and Worst Case projections.',
+adviceT:'Advice for this round',disclaimer:'* A memory aid only. Always follow your doctor.',dxT:'Diagnosis',medT:'Current medication',
 dailyT:'Daily blood pressure, weight and fluid log',vsys:'Systolic BP (mmHg)',vdia:'Diastolic BP (mmHg)',vpulse:'Pulse (/min)',vwt:'Weight (kg)',vfluid:'Fluid intake (mL)',vurine:'Urine output (mL)',vlimit:'Daily fluid limit (mL)',
-saveDaily:'Save today',dailyHint:'Fill only what you have. Saving the same date updates that day.',bpChart:'Blood pressure',wtChart:'Body weight',flChart:'Fluid intake and urine output',dailyAdv:'Advice from the daily log',dailyTable:'Daily log table',
-histT:'Full test history',modeAll:'Every visit',modeQ:'Quarterly average',histHint:'Tap a row to see that value in detail',vitQ:'Vitals, quarterly average',
-addT:'Enter results manually',fDate:'Test date',fNote:'Note',addHint:'Fill only the fields you have.',saveBtn:'Save this round',fillLast:'Prefill from last round',
-ocrT:'Upload lab images and let the app read them',ocrDrop:'Drag images here or use the button below',ocrPick:'Choose lab images',ocrNote:'First run needs internet to fetch OCR data. You always review values before saving.',ocrFail:'Could not load the OCR engine. Connect to the internet and retry.',
-dataT:'Backup and restore',expBtn:'Download .json',impBtn:'Import .json',resetBtn:'Reload sample data',clrBtn:'Erase all data',dataNote:'All data stays on your device.',
-instT:'Install on your phone',instBody:'1) Keep index.html and app-icon.png in the same folder<br>2) Open in a browser, menu, Add to Home Screen<br>3) You get a real app icon',
-ref:'Reference',item:'Item',trend:'Trend',normal:'Normal',abnormal:'Out of range',noData:'No data yet',high:'High',low:'Low',ok:'Normal',close:'Close',confirm:'Confirm and save',
-review:'Review values read from the images',saved:'Saved',reading:'Reading image',value:'Value',date:'Date',records:'lab rounds',dayrec:'daily entries',betterOk:'All values in this group are within range',
-advGood:'Nothing needs special attention this round.',qLabel:'Quarter',avg7:'7-day average',confirmClear:'Erase all stored data?',confirmReset:'Overwrite current data with the sample set?',del:'Delete',bal:'Fluid balance',needDate:'Please pick a date',needVal:'No values entered'}};
+saveDaily:'Save today',bpChart:'Blood pressure',wtChart:'Body weight',flChart:'Fluid intake and urine',dailyAdv:'Advice from daily log',dailyTable:'Daily log table',
+histT:'Full test history',modeAll:'Every visit',modeQ:'Quarterly average',histHint:'Tap a row to see detail',vitQ:'Vitals, quarterly average',
+addT:'Enter results manually',fDate:'Test date',fNote:'Note',saveBtn:'Save this round',fillLast:'Prefill from last round',
+ocrT:'Upload lab images',ocrDrop:'Drag images here or use button',ocrPick:'Choose images',ocrFail:'Could not load OCR engine.',
+dataT:'Backup and restore',expBtn:'Download .json',impBtn:'Import .json',resetBtn:'Reload sample data',clrBtn:'Erase all data',
+ref:'Reference',item:'Item',normal:'Normal',abnormal:'Out of range',noData:'No data yet',high:'High',low:'Low',ok:'Normal',close:'Close',confirm:'Confirm and save',
+review:'Review values',saved:'Saved',reading:'Reading image',value:'Value',date:'Date',records:'lab rounds',dayrec:'daily entries',betterOk:'All values within range',
+advGood:'Nothing needs special attention.',qLabel:'Quarter',avg7:'7-day average',confirmClear:'Erase all data?',confirmReset:'Overwrite with sample set?',del:'Delete',bal:'Fluid balance',needDate:'Please pick a date',needVal:'No values entered'}};
 
 var LANG='th';
 try{var sv=localStorage.getItem('ckd_lang');if(sv)LANG=sv;}catch(e){}
 function t(k){var v=I18N[LANG][k];return v===undefined?k:v;}
 function nm(o){return LANG==='th'?o.th:o.en;}
 
-var KEY='ckd_db_v4';
+var KEY='ckd_db_v5';
 function seed(){return{records:[
+{id:'r0',date:'2025-09-16',note:'',items:{egfr:26.41}},
+{id:'r01',date:'2026-01-13',note:'',items:{egfr:22.58}},
 {id:'r1',date:'2026-02-24',note:'',items:{k:4.30,na:136,egfr:18.31,cr:2.45,bun:55,acr:443,p:4.20}},
 {id:'r2',date:'2026-05-12',note:'',items:{k:4.50,na:133,egfr:24.90,cr:1.90,bun:33,acr:868,p:3.60,uric:3.3,uph:5.0,usg:1.007,upro:2}},
 {id:'r3',date:'2026-08-25',note:'',items:{k:4.80,na:138,egfr:14.67,cr:2.91,bun:33,acr:159,p:4.30}}],
@@ -363,7 +354,7 @@ function refTxt(l){if(l.min!==null&&l.max!==null)return l.min+' - '+l.max;if(l.m
 var THMON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 var ENMON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function dTxt(d){var x=new Date(d+'T00:00:00');if(isNaN(x.getTime()))return d;var m=(LANG==='th')?THMON:ENMON;var y=(LANG==='th')?x.getFullYear()+543:x.getFullYear();return x.getDate()+' '+m[x.getMonth()]+' '+y;}
-function dShort(d){var x=new Date(d+'T00:00:00');if(isNaN(x.getTime()))return d;var m=(LANG==='th')?THMON:ENMON;return x.getDate()+' '+m[x.getMonth()];}
+function dShort(d){var x=new Date(d+'T00:00:00');if(isNaN(x.getTime()))return d.replace(/^\d{4}-/, '');var m=(LANG==='th')?THMON:ENMON;return x.getDate()+' '+m[x.getMonth()];}
 function qOf(d){var x=new Date(d+'T00:00:00');return x.getFullYear()+'-Q'+(Math.floor(x.getMonth()/3)+1);}
 function mOf(d){return d.slice(0,7);}
 function stageOf(e){if(e===null||e===undefined)return['-','var(--dim)'];if(e>=90)return['G1','var(--lime)'];if(e>=60)return['G2','var(--lime)'];if(e>=45)return['G3a','var(--cyan)'];if(e>=30)return['G3b','var(--gold)'];if(e>=15)return['G4','var(--mag)'];return['G5','var(--mag)'];}
@@ -412,27 +403,29 @@ function drawChart(cv,cfg){
   if(hasR){var rv=SR.mn+(SR.mx-SR.mn)*j/4;c.fillStyle='#4DE8FF';c.fillText(axisFmt(rv),W-PR+5,gy+3);}}
  for(j=0;j<cfg.series.length;j++){
   var se2=cfg.series[j],ax=se2.axis||'L',started=false,x2,v2,px,py;
-  c.strokeStyle=se2.color;c.lineWidth=2.4;c.beginPath();
+  c.strokeStyle=se2.color;c.lineWidth=se2.width||2.4;
+  if(se2.dash)c.setLineDash(se2.dash);else c.setLineDash([]);
+  c.beginPath();
   for(x2=0;x2<se2.data.length;x2++){v2=se2.data[x2];
    if(v2===null||v2===undefined||isNaN(v2)){started=false;continue;}
    px=X(x2);py=Y(v2,ax);
    if(!started){c.moveTo(px,py);started=true;}else{c.lineTo(px,py);}}
-  c.stroke();
+  c.stroke();c.setLineDash([]);
   for(x2=0;x2<se2.data.length;x2++){v2=se2.data[x2];
    if(v2===null||v2===undefined||isNaN(v2))continue;
    px=X(x2);py=Y(v2,ax);
    c.fillStyle=se2.dot?se2.dot(v2):se2.color;
-   c.beginPath();c.arc(px,py,4,0,Math.PI*2);c.fill();
-   if(cfg.values!==false&&n<=14){c.fillStyle='#D7E0EA';c.font='bold 10px Orbitron,sans-serif';c.textAlign='center';
-    c.fillText(Number(v2).toFixed(se2.dec||0),px,py-10);c.textAlign='left';}}}
+   c.beginPath();c.arc(px,py,se2.radius||4,0,Math.PI*2);c.fill();
+   if(cfg.values!==false&&n<=16&&se2.showVal){c.fillStyle='#D7E0EA';c.font='bold 9px Orbitron,sans-serif';c.textAlign='center';
+    c.fillText(Number(v2).toFixed(se2.dec||0),px,py-9);c.textAlign='left';}}}
  c.fillStyle='#7F8EA3';c.font='10px sans-serif';c.textAlign='center';
- var step=Math.ceil(n/(W<500?4:9));if(step<1)step=1;
+ var step=Math.ceil(n/(W<500?4:10));if(step<1)step=1;
  for(j=0;j<n;j++){if(j%step===0||j===n-1)c.fillText(cfg.labels[j],X(j),H-11);}
  c.textAlign='left';
  if(cfg.series.length>1){var lx=PL;
   for(j=0;j<cfg.series.length;j++){c.fillStyle=cfg.series[j].color;c.fillRect(lx,6,12,3);
    c.fillStyle='#7F8EA3';c.font='10px sans-serif';c.fillText(cfg.series[j].name,lx+16,10);
-   lx+=c.measureText(cfg.series[j].name).width+38;}}
+   lx+=c.measureText(cfg.series[j].name).width+28;}}
  cv.onclick=cfg.onClick||null;
 }
 function drawRadar(cv){
@@ -479,17 +472,11 @@ function vitalAdvice(){
  var lim=DB.settings.fluidLimit||1500;
  if((L.sys!==undefined&&L.sys>130)||(L.dia!==undefined&&L.dia>80)){
   out.push('<div class="adv"><b style="color:var(--mag)">'+nm(VM.sys)+' '+(L.sys||'-')+'/'+(L.dia||'-')+' mmHg</b><br>'+
-  (LANG==='th'?'ความดันสูงกว่าเป้าหมาย 130/80 ซึ่งเป็นตัวเร่งให้โปรตีนรั่วสูงขึ้น ลดเค็มให้ต่ำกว่า 2000 มิลลิกรัมโซเดียมต่อวัน งดน้ำปลา ซีอิ๊ว ผงปรุงรส อาหารหมักดอง และวัดซ้ำตอนเช้าหลังนั่งพัก 5 นาที':'BP above the 130/80 target drives proteinuria up. Keep sodium under 2000 mg/day and re-measure after resting 5 minutes.')+'</div>');}
- if(L.sys!==undefined&&L.sys<90){out.push('<div class="adv"><b style="color:var(--gold)">'+nm(VM.sys)+' '+L.sys+' mmHg</b><br>'+
-  (LANG==='th'?'ความดันต่ำ ระวังหน้ามืดเวลาลุกยืน ลุกช้า ๆ และแจ้งแพทย์หากเป็นบ่อย':'Low BP. Rise slowly and tell your doctor if it recurs.')+'</div>');}
+  (LANG==='th'?'ความดันสูงกว่าเป้าหมาย 130/80 เร่งให้โปรตีนรั่วสูงขึ้น ลดเค็มให้ต่ำกว่า 2000 มก./วัน':'BP above 130/80 target drives proteinuria up. Keep sodium under 2000 mg/day.')+'</div>');}
  if(L.fluid!==undefined&&L.fluid>lim){out.push('<div class="adv"><b style="color:var(--mag)">'+nm(VM.fluid)+' '+L.fluid+' mL</b><br>'+
-  (LANG==='th'?'ดื่มน้ำเกินเพดานที่ตั้งไว้ '+lim+' มิลลิลิตร เสี่ยงบวมและโซเดียมเจือจาง ใช้แก้วเล็ก อมน้ำแข็งก้อนเล็กแทนการดื่ม และนับน้ำจากแกงหรือซุปรวมด้วย':'Fluid above the '+lim+' mL limit. Use small cups, suck ice chips, and count soup as fluid.')+'</div>');}
+  (LANG==='th'?'ดื่มน้ำเกินเพดานที่ตั้งไว้ '+lim+' มล. เสี่ยงบวมและโซเดียมเจือจาง':'Fluid above the '+lim+' mL limit.')+'</div>');}
  if(P&&L.wt!==undefined&&P.wt!==undefined&&(L.wt-P.wt)>=1){out.push('<div class="adv"><b style="color:var(--mag)">'+nm(VM.wt)+' +'+(L.wt-P.wt).toFixed(1)+' kg</b><br>'+
-  (LANG==='th'?'น้ำหนักเพิ่มเร็วใน 1 วัน มักเป็นน้ำคั่งไม่ใช่ไขมัน สังเกตขาบวม กดบุ๋ม หรือเหนื่อยตอนนอนราบ หากมีอาการให้พบแพทย์':'Rapid 1-day weight gain usually means fluid retention.')+'</div>');}
- if(L.pulse!==undefined&&(L.pulse<50||L.pulse>100)){out.push('<div class="adv"><b style="color:var(--gold)">'+nm(VM.pulse)+' '+L.pulse+'</b><br>'+
-  (LANG==='th'?'ชีพจรผิดจากช่วงปกติ 50 ถึง 100 ครั้งต่อนาที ควรแจ้งแพทย์ โดยเฉพาะเมื่อโพแทสเซียมในเลือดสูง':'Pulse outside 50-100. Inform your doctor.')+'</div>');}
- if(L.fluid!==undefined&&L.urine!==undefined&&(L.fluid-L.urine)>700){out.push('<div class="adv"><b style="color:var(--mag)">'+t('bal')+' +'+(L.fluid-L.urine)+' mL</b><br>'+
-  (LANG==='th'?'น้ำเข้ามากกว่าน้ำออกค่อนข้างมาก ให้ชั่งน้ำหนักทุกเช้าเวลาเดิมหลังเข้าห้องน้ำ และแจ้งแพทย์หากสะสมต่อเนื่องหลายวัน':'Intake exceeds output notably. Weigh each morning and report the trend.')+'</div>');}
+  (LANG==='th'?'น้ำหนักเพิ่มเร็วใน 1 วัน มักเป็นน้ำคั่ง สังเกตอาการบวม':'Rapid 1-day weight gain usually means fluid retention.')+'</div>');}
  return out;
 }
 
@@ -498,6 +485,19 @@ function renderDash(){
  E('lastDate').textContent=L?dTxt(L.date):'-';
  var st=stageOf(L&&L.items.egfr!==undefined?L.items.egfr:null);
  E('stageTxt').textContent=st[0];E('stageTxt').style.color=st[1];
+
+ // วาดกราฟ Scenario 3 เส้นตามตารางที่คุณต้องการ
+ drawChart(E('cScenario'),{
+  labels:SCENARIO_DATA.map(function(item){return dShort(item.date);}),
+  bands:[{from:0,to:15,color:'rgba(255,77,210,.12)',label:'G5'},
+         {from:15,to:30,color:'rgba(255,215,94,.07)',label:'G4'}],
+  series:[
+   {name:'Actual eGFR',color:'#4DE8FF',dec:2,showVal:true,radius:5,data:SCENARIO_DATA.map(function(item){return item.actual;})},
+   {name:'Best Case',color:'#B6FF3C',dec:2,width:2,data:SCENARIO_DATA.map(function(item){return item.best;})},
+   {name:'Worst Case',color:'#FF4DD2',dec:2,width:2,dash:[4,4],data:SCENARIO_DATA.map(function(item){return item.worst;})}
+  ]
+ });
+
  for(j=0;j<LABS.length;j++){var l=LABS[j];if(!l.key)continue;
   var v=L?L.items[l.k]:null,pv=P?P.items[l.k]:null,f=flagL(l.k,v);
   var col=f==='ok'?'var(--lime)':(f==='hi'?'var(--mag)':(f==='lo'?'var(--gold)':'var(--dim)'));
@@ -693,7 +693,6 @@ function drawDetail(){
  h+='</tbody></table></div>';
  var cur=data.length?data[data.length-1].v:null,cf=fn(MKEY,cur);
  if(isLab&&cf&&cf!=='ok'&&ADV[MKEY]&&ADV[MKEY][cf]){h+='<div class="adv">'+ADV[MKEY][cf][LANG]+'</div>';}
- else if(!isLab){var va=vitalAdvice();h+=va.length?va.join(''):'<div class="adv good">'+t('betterOk')+'</div>';}
  else{h+='<div class="adv good">'+t('betterOk')+'</div>';}
  E('mbox').innerHTML=h;
  var lb=[],dt=[];
@@ -746,11 +745,6 @@ function findDate(txt){
  var m=txt.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
  if(m){var y=parseInt(m[3],10);if(y>2400)y-=543;
   return y+'-'+('0'+parseInt(m[2],10)).slice(-2)+'-'+('0'+parseInt(m[1],10)).slice(-2);}
- for(var j=0;j<THMON.length;j++){var pos=txt.indexOf(THMON[j]);
-  if(pos>0){var before=txt.slice(Math.max(0,pos-4),pos),after=txt.slice(pos+THMON[j].length,pos+THMON[j].length+6);
-   var dm=before.match(/(\d{1,2})\s*$/),ym=after.match(/(\d{4})/);
-   if(dm&&ym){var y2=parseInt(ym[1],10);if(y2>2400)y2-=543;
-    return y2+'-'+('0'+(j+1)).slice(-2)+'-'+('0'+parseInt(dm[1],10)).slice(-2);}}}
  return null;
 }
 function parseText(txt){
@@ -919,12 +913,6 @@ window.addEventListener('resize',function(){
  if(CURVIEW==='daily')renderDaily();
  if(E('modal').className.indexOf('on')>=0)drawDetail();
 },false);
-
-try{var mf={name:'CKD Lab Tracker',short_name:'CKD Lab',start_url:'./index.html',display:'standalone',
- background_color:'#0B0E14',theme_color:'#0B0E14',icons:[{src:'app-icon.png',sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
- var lk=document.createElement('link');lk.rel='manifest';
- lk.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));
- document.head.appendChild(lk);}catch(e){}
 
 renderAll();
 go('dash');
