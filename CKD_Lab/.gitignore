@@ -1,0 +1,14 @@
+.venv/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.local
+*.tmp
+Screenshot_*.jpg
+Screenshot_*.jpeg
+Screenshot_*.png
+Screenshot_*.webp
+.DS_Store
