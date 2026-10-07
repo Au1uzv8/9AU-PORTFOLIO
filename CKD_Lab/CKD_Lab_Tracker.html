@@ -68,7 +68,7 @@ input:focus{outline:none;border-color:var(--cyan)}
 .field{margin-bottom:10px}
 .modal{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(5,7,11,.85);z-index:100;display:none;align-items:center;justify-content:center;padding:12px}
 .modal.on{display:flex}
-.mbox{background:var(--card);border:1px solid var(--cyan);border-radius:16px;max-width:900px;width:100%;max-height:92vh;overflow:auto;padding:16px}
+.mbox{background:var(--card);border:1px solid var(--cyan);border-radius:16px;max-width:880px;width:100%;max-height:92vh;overflow:auto;padding:16px}
 .drop{border:2px dashed var(--line);border-radius:16px;padding:30px 16px;text-align:center}
 .bar{height:7px;background:#0E131B;border-radius:4px;overflow:hidden;margin-top:10px}
 .bar i{display:block;height:100%;background:var(--cyan);width:0}
@@ -79,12 +79,6 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
 .slot{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;background:#10151e}
 .slot b{color:var(--gold);font-size:13px}
 .tick{width:20px;height:20px;vertical-align:middle;cursor:pointer}
-.gsec{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#10151e}
-.gsec h4{margin:0 0 7px;font-size:14px;color:var(--cyan)}
-.gsec ol{margin:0;padding-left:20px;font-size:13px;line-height:1.75}
-.gsec li{margin-bottom:4px}
-.gwarn{border-left:3px solid var(--mag)}
-.gwarn h4{color:var(--mag)}
 #printArea{display:none}
 @media print{
  body{background:#fff;color:#000;padding:0}
@@ -92,11 +86,9 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
  #printArea{display:block !important;color:#000;background:#fff;padding:10px;font-size:12px}
  #printArea h2{font-size:17px;margin:0 0 4px}
  #printArea h3{font-size:13px;margin:14px 0 5px;border-bottom:1px solid #000;padding-bottom:3px}
- #printArea h4{font-size:12px;margin:8px 0 3px}
- #printArea ol{padding-left:18px;line-height:1.6}
  #printArea table{width:100%;border-collapse:collapse;margin-bottom:6px}
  #printArea th,#printArea td{border:1px solid #888;padding:4px 6px;color:#000;background:#fff;font-size:11px;position:static;white-space:normal}
- #printArea .pbox,#printArea .gsec{border:1px solid #888;padding:6px;margin-bottom:6px;background:#fff;color:#000}
+ #printArea .pbox{border:1px solid #888;padding:6px;margin-bottom:6px}
 }
 </style>
 </head>
@@ -109,7 +101,6 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
     <img class="logo" src="app-icon.png" alt="" onerror="this.style.visibility='hidden'">
     <div><h1 data-i18n="appName">Health Tracker</h1><div class="sub" data-i18n="appSub">ผู้ช่วยติดตามสุขภาพโรคไตเรื้อรังและจักษุ</div></div>
     <div class="spacer"></div>
-    <button class="btn cy" data-act="guide" data-i18n="guideBtn">คู่มือใช้งาน</button>
     <button class="btn lm" data-act="print" data-i18n="printBtn">พิมพ์รายงาน</button>
     <button class="btn gold" data-act="lang" id="langBtn">ENGLISH</button>
   </div>
@@ -131,18 +122,6 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
 <main>
 
 <section class="view on" id="v-dash">
-
-  <div class="card" style="border-color:var(--cyan)">
-    <div class="hrow">
-      <div>
-        <h3 style="margin:0;color:var(--cyan)" data-i18n="guideCardT">คู่มือใช้งานแอป</h3>
-        <div class="sub" data-i18n="guideCardS">เปิดอ่านวิธีใช้ทีละขั้นตอน ตั้งแต่ติดตั้งจนถึงการแก้ปัญหา</div>
-      </div>
-      <div class="spacer"></div>
-      <button class="btn cy big" data-act="guide" data-i18n="guideOpen">เปิดคู่มือใช้งาน</button>
-    </div>
-  </div>
-
   <div class="card" id="cHead">
     <div class="hrow">
       <div><div class="sub" data-i18n="lastVisit">ผลตรวจล่าสุด</div><div class="num" id="lastDate" style="font-size:20px;color:var(--gold)"></div></div>
@@ -159,6 +138,9 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
 
   <div class="grid g2" id="cDeptCards"></div>
   <div class="card" id="cLinkBox"><h3 data-i18n="linkT">จุดเชื่อมโยงระหว่างสองแผนก</h3><div id="linkBody"></div></div>
+  <div class="card" id="cChangeBox"><h3 data-i18n="changeT">สิ่งที่เปลี่ยนจากรอบก่อน</h3><div id="changeBody"></div><small class="note" data-i18n="changeHint">เป็นการตรวจจับความเปลี่ยนแปลงจากข้อมูลที่บันทึกไว้ ไม่ใช่การวินิจฉัย</small></div>
+  <div class="card" id="cAttentionBox"><h3 data-i18n="attentionT">จุดที่ควรตรวจสอบ</h3><div id="attentionBody"></div><small class="note" data-i18n="attentionHint">เป็นการคัดกรองจากข้อมูลที่บันทึกไว้ ไม่ใช่การวินิจฉัย และไม่แทนคำแนะนำจากแพทย์</small></div>
+  <div class="card" id="cTimelineBox"><h3 data-i18n="timelineT">Medical Timeline</h3><div id="timelineBody"></div></div>
 
   <div class="grid g4" id="kpis" style="margin-bottom:12px"></div>
   <div class="card" id="cVitBox"><h3 data-i18n="vitalsNow">สัญญาณชีพล่าสุด</h3><div class="grid g4" id="vkpis"></div></div>
@@ -173,7 +155,7 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
     <div class="card"><h3 data-i18n="iopT">ความดันลูกตา ตาขวาเทียบตาซ้าย</h3><div class="chart"><canvas id="cIop"></canvas></div><small class="note" data-i18n="iopHint">แถบเขียว คือ ช่วงปกติ 10 ถึง 21 mmHg</small></div>
     <div class="card"><h3 data-i18n="cdrT">สัดส่วนขั้วประสาทตา (CDR)</h3><div class="chart"><canvas id="cCdr"></canvas></div><small class="note" data-i18n="cdrHint">ค่ายิ่งสูง แปลว่าขั้วประสาทตาถูกทำลายมากขึ้น</small></div>
   </div>
-  <div class="card" id="cLinkChartBox"><h3 data-i18n="lnkChT">น้ำตาลสะสม HbA1c เทียบ ความดันลูกตาเฉลี่ย</h3><div class="chart"><canvas id="cLinkCh"></canvas></div><small class="note" data-i18n="lnkChHint">เส้นทอง คือ HbA1c อ่านที่แกนซ้าย เส้นชมพู คือ IOP เฉลี่ยสองข้าง อ่านที่แกนขวา</small></div>
+  <div class="card" id="cLinkChartBox"><h3 data-i18n="lnkChT">น้ำตาลสะสม HbA1c เทียบ ความดันลูกตาเฉลี่ย</h3><div class="chart"><canvas id="cLinkCh"></canvas></div><small class="note" data-i18n="lnkChHint">เส้นทอง คือ HbA1c และเส้นชมพู คือ IOP เฉลี่ย ใช้ดูแนวโน้มร่วมตามเวลา ไม่ใช่การพิสูจน์เหตุและผล</small></div>
 
   <div class="card" id="cDropBox"><h3 data-i18n="dropT">ตารางเวลาหยอดตาประจำวัน</h3><div id="dropBody"></div>
     <small class="note" data-i18n="dropHint">เว้นระยะห่างระหว่างยาหยอดตาแต่ละตัวอย่างน้อย 5 นาที เพื่อไม่ให้ยาตัวหลังชะยาตัวแรกออก</small></div>
@@ -312,15 +294,20 @@ var LABS=[
 {k:'vf_os',g:'E',dp:'eye',th:'ลานสายตา ซ้าย (VF MD)',en:'Visual Field MD Left',u:'dB',min:-6,max:null,dec:1,alias:['vf md os']},
 {k:'va_od',g:'E',dp:'eye',th:'ระดับสายตา ขวา (VA)',en:'Visual Acuity Right',u:'',min:0.5,max:null,dec:2,alias:['va od']},
 {k:'va_os',g:'E',dp:'eye',th:'ระดับสายตา ซ้าย (VA)',en:'Visual Acuity Left',u:'',min:0.5,max:null,dec:2,alias:['va os']},
-{k:'dr',g:'E',dp:'eye',th:'ระดับเบาหวานขึ้นจอตา (DR)',en:'Diabetic Retinopathy Stage',u:'0-4',min:null,max:0,dec:0,alias:['dr stage']}];
+{k:'dr',g:'F',dp:'eye',th:'ระดับเบาหวานขึ้นจอตา (DR)',en:'Diabetic Retinopathy Stage',u:'0-4',min:null,max:0,dec:0,alias:['dr stage']}];
 var LM={};for(var i=0;i<LABS.length;i++){LM[LABS[i].k]=LABS[i];}
 var GROUPS={
 A:{dp:'med',th:'การทำงานของไต',en:'Kidney Function'},
 B:{dp:'med',th:'เกลือแร่และแร่ธาตุ',en:'Electrolytes'},
 C:{dp:'med',th:'เมตาบอลิก / ปัสสาวะ',en:'Metabolic / Urinalysis'},
-D:{dp:'eye',th:'ความดันลูกตาและขั้วประสาทตา',en:'Eye Pressure and Optic Disc'},
-E:{dp:'eye',th:'โครงสร้างตาและการมองเห็น',en:'Eye Structure and Vision'}};
-var GKEYS=['A','B','C','D','E'];
+D:{dp:'eye',domain:'glaucoma',th:'ต้อหิน / ความดันลูกตาและขั้วประสาทตา',en:'Glaucoma / Eye Pressure and Optic Disc'},
+E:{dp:'eye',domain:'vision',th:'โครงสร้างตาและการมองเห็น',en:'Eye Structure and Vision'},
+F:{dp:'eye',domain:'diabetic_retina',th:'เบาหวานขึ้นจอตา',en:'Diabetic Retinopathy'}};
+var GKEYS=['A','B','C','D','E','F'];
+var CONDITION_DOMAIN={iop_od:'glaucoma',iop_os:'glaucoma',cdr_od:'glaucoma',cdr_os:'glaucoma',rnfl_od:'glaucoma',rnfl_os:'glaucoma',vf_od:'glaucoma',vf_os:'glaucoma',va_od:'vision',va_os:'vision',dr:'diabetic_retina'};
+function domainForItem(k){return CONDITION_DOMAIN[k]||'general';}
+function domainsForItems(items){var out={},k,d;for(k in (items||{})){if(items.hasOwnProperty(k)){d=domainForItem(k);out[d]=true;}}var a=[];for(k in out)if(out.hasOwnProperty(k))a.push(k);return a;}
+
 var RADAR=['cr','bun','k','na','p','uric'];
 var VITALS=[
 {k:'sys',th:'ความดันตัวบน',en:'Systolic BP',u:'mmHg',min:90,max:130,dec:0},
@@ -360,30 +347,29 @@ uric:{hi:{th:'กรดยูริกสูง เลี่ยงเครื�
 k:{hi:{th:'โพแทสเซียมสูง อันตรายต่อหัวใจ งดกล้วย ส้ม มะละกอ ทุเรียน มะเขือเทศ ผักใบเขียวเข้ม น้ำผลไม้ และเกลือลดโซเดียม',en:'High potassium is dangerous. Avoid banana, orange, papaya, durian, tomato, dark greens and low-sodium salt.'}},
 na:{lo:{th:'โซเดียมต่ำ มักเกิดจากดื่มน้ำมากเกินไป จำกัดน้ำตามแผน และชั่งน้ำหนักทุกเช้า',en:'Low sodium often from excess fluid. Restrict fluid and weigh daily.'}},
 p:{hi:{th:'ฟอสฟอรัสสูง ทำให้คันและกระดูกบาง เลี่ยงนม ชีส ถั่ว เมล็ดพืช น้ำอัดลมสีดำ กินยาจับฟอสเฟตพร้อมมื้ออาหาร',en:'High phosphorus causes itching and bone loss. Avoid dairy, nuts, seeds and cola.'}},
-a1c:{hi:{th:'น้ำตาลสะสมสูงกว่าเป้า เป็นตัวเร่งทั้งไตเสื่อมและเบาหวานขึ้นจอตาพร้อมกัน ควรทบทวนยาเบาหวานกับแพทย์ เพราะยาบางตัวต้องลดขนาดเมื่อไตเสื่อม',en:'HbA1c above target accelerates both kidney decline and retinopathy.'}},
-iop_od:{hi:{th:'ความดันลูกตาขวาสูงเกิน 21 mmHg เสี่ยงทำลายขั้วประสาทตาถาวร ห้ามขาดยาหยอดแม้แต่ครั้งเดียว และแจ้งจักษุแพทย์',en:'Right eye pressure above 21 mmHg. Never miss eye drops.'}},
-iop_os:{hi:{th:'ความดันลูกตาซ้ายสูงเกิน 21 mmHg เสี่ยงทำลายขั้วประสาทตาถาวร ห้ามขาดยาหยอดแม้แต่ครั้งเดียว และแจ้งจักษุแพทย์',en:'Left eye pressure above 21 mmHg. Never miss eye drops.'}},
+a1c:{hi:{th:'น้ำตาลสะสมสูงกว่าเป้า เป็นตัวเร่งทั้งไตเสื่อมและเบาหวานขึ้นจอตาพร้อมกัน ควรทบทวนยาเบาหวานกับแพทย์ เพราะยาบางตัวต้องลดขนาดเมื่อไตเสื่อม',en:'HbA1c above target accelerates both kidney decline and retinopathy. Review diabetes medication.'}},
+iop_od:{hi:{th:'ความดันลูกตาขวาสูงเกิน 21 mmHg เสี่ยงทำลายขั้วประสาทตาถาวร ห้ามขาดยาหยอดแม้แต่ครั้งเดียว และแจ้งจักษุแพทย์',en:'Right eye pressure above 21 mmHg. Never miss eye drops and inform your ophthalmologist.'}},
+iop_os:{hi:{th:'ความดันลูกตาซ้ายสูงเกิน 21 mmHg เสี่ยงทำลายขั้วประสาทตาถาวร ห้ามขาดยาหยอดแม้แต่ครั้งเดียว และแจ้งจักษุแพทย์',en:'Left eye pressure above 21 mmHg. Never miss eye drops and inform your ophthalmologist.'}},
 cdr_od:{hi:{th:'ขั้วประสาทตาขวากว้างกว่าเกณฑ์ บ่งชี้การลุกลามของต้อหิน ควรตรวจลานสายตาตามนัดอย่างเคร่งครัด',en:'Right cup/disc ratio above target suggests glaucoma progression.'}},
 cdr_os:{hi:{th:'ขั้วประสาทตาซ้ายกว้างกว่าเกณฑ์ บ่งชี้การลุกลามของต้อหิน ควรตรวจลานสายตาตามนัดอย่างเคร่งครัด',en:'Left cup/disc ratio above target suggests glaucoma progression.'}},
-rnfl_od:{lo:{th:'เส้นประสาทตาขวาบางลง เป็นความเสียหายที่ย้อนกลับไม่ได้ เป้าหมายคือคุมความดันตาไม่ให้บางลงอีก',en:'Right nerve fibre layer thinning is irreversible.'}},
-rnfl_os:{lo:{th:'เส้นประสาทตาซ้ายบางลง เป็นความเสียหายที่ย้อนกลับไม่ได้ เป้าหมายคือคุมความดันตาไม่ให้บางลงอีก',en:'Left nerve fibre layer thinning is irreversible.'}},
+rnfl_od:{lo:{th:'เส้นประสาทตาขวาบางลง เป็นความเสียหายที่ย้อนกลับไม่ได้ เป้าหมายคือคุมความดันตาไม่ให้บางลงอีก',en:'Right nerve fibre layer thinning is irreversible. Focus on pressure control.'}},
+rnfl_os:{lo:{th:'เส้นประสาทตาซ้ายบางลง เป็นความเสียหายที่ย้อนกลับไม่ได้ เป้าหมายคือคุมความดันตาไม่ให้บางลงอีก',en:'Left nerve fibre layer thinning is irreversible. Focus on pressure control.'}},
 vf_od:{lo:{th:'ลานสายตาขวาแคบลง ระวังการเดินชนสิ่งกีดขวางด้านข้าง จัดบ้านให้โล่งและมีแสงสว่างพอ',en:'Right visual field narrowing. Keep the home clear and well lit.'}},
 vf_os:{lo:{th:'ลานสายตาซ้ายแคบลง ระวังการเดินชนสิ่งกีดขวางด้านข้าง จัดบ้านให้โล่งและมีแสงสว่างพอ',en:'Left visual field narrowing. Keep the home clear and well lit.'}},
-va_od:{lo:{th:'ระดับการมองเห็นตาขวาลดลง ควรแจ้งจักษุแพทย์และตรวจประเมินแว่นใหม่',en:'Right visual acuity reduced.'}},
-va_os:{lo:{th:'ระดับการมองเห็นตาซ้ายลดลง ควรแจ้งจักษุแพทย์และตรวจประเมินแว่นใหม่',en:'Left visual acuity reduced.'}},
-dr:{hi:{th:'พบเบาหวานขึ้นจอตา ต้องคุมน้ำตาลและความดันให้เข้าเป้าอย่างเคร่งครัด และตรวจตาตามนัดทุกครั้ง',en:'Diabetic retinopathy present. Strict glucose and BP control.'}}};
+va_od:{lo:{th:'ระดับการมองเห็นตาขวาลดลง ควรแจ้งจักษุแพทย์และตรวจประเมินแว่นใหม่',en:'Right visual acuity reduced. Inform your ophthalmologist.'}},
+va_os:{lo:{th:'ระดับการมองเห็นตาซ้ายลดลง ควรแจ้งจักษุแพทย์และตรวจประเมินแว่นใหม่',en:'Left visual acuity reduced. Inform your ophthalmologist.'}},
+dr:{hi:{th:'พบเบาหวานขึ้นจอตา ต้องคุมน้ำตาลและความดันให้เข้าเป้าอย่างเคร่งครัด และตรวจตาตามนัดทุกครั้ง',en:'Diabetic retinopathy present. Strict glucose and BP control, never miss eye follow-up.'}}};
 
 /* ========== 3. ข้อความสองภาษา ========== */
 var I18N={th:{appName:'Health Tracker',appSub:'ผู้ช่วยติดตามสุขภาพโรคไตเรื้อรังและจักษุ',navDash:'แดชบอร์ด',navDaily:'บันทึกรายวัน',navHist:'ประวัติย้อนหลัง',navAdd:'กรอกผลตรวจ',navOcr:'อัปโหลดรูป (OCR)',navData:'ข้อมูล/สำรอง',
 deptAll:'ภาพรวมทั้งหมด',deptMed:'อายุรกรรม (คุ้มเกศ)',deptEye:'จักษุกรรม (คุ้มเกล้า)',printBtn:'พิมพ์รายงาน',
-guideBtn:'คู่มือใช้งาน',guideOpen:'เปิดคู่มือใช้งาน',guideCardT:'คู่มือใช้งานแอป',guideCardS:'เปิดอ่านวิธีใช้ทีละขั้นตอน ตั้งแต่ติดตั้งจนถึงการแก้ปัญหา',guideT:'คู่มือใช้งาน Health Tracker',printGuide:'พิมพ์คู่มือ',
 lastVisit:'ผลตรวจล่าสุด',ckdStage:'ระยะของโรคไต',eyeStat:'สถานะความดันลูกตา',vitalsNow:'สัญญาณชีพล่าสุด',egfrHist:'ประวัติ eGFR (EPI)',radarT:'ภาพรวมค่าสำคัญ',
 clickHint:'แตะที่กราฟเพื่อดูรายละเอียดย้อนหลัง',radarHint:'วงเขียว คือ ขีดจำกัดบนของค่าปกติ',
 comboT:'ความสัมพันธ์ A/C ratio กับ ความดันตัวบน',scenTitle:'บันทึกค่าไตแม่ เปรียบเทียบ 3 Scenario (Actual / Best Case / Worst Case)',
 scenHint:'แสดงแนวโน้ม eGFR จริงเทียบกับสถานการณ์จำลอง Best Case และ Worst Case',
 iopT:'ความดันลูกตา ตาขวาเทียบตาซ้าย',iopHint:'แถบเขียว คือ ช่วงปกติ 10 ถึง 21 mmHg',cdrT:'สัดส่วนขั้วประสาทตา (CDR)',cdrHint:'ค่ายิ่งสูง แปลว่าขั้วประสาทตาถูกทำลายมากขึ้น',
-lnkChT:'น้ำตาลสะสม HbA1c เทียบ ความดันลูกตาเฉลี่ย',lnkChHint:'เส้นทอง คือ HbA1c อ่านที่แกนซ้าย เส้นชมพู คือ IOP เฉลี่ยสองข้าง อ่านที่แกนขวา',
-linkT:'จุดเชื่อมโยงระหว่างสองแผนก',dropT:'ตารางเวลาหยอดตาประจำวัน',dropHint:'เว้นระยะห่างระหว่างยาหยอดตาแต่ละตัวอย่างน้อย 5 นาที เพื่อไม่ให้ยาตัวหลังชะยาตัวแรกออก',dropTick:'ติ๊กเมื่อหยอดตาแล้ววันนี้',
+lnkChT:'น้ำตาลสะสม HbA1c เทียบ ความดันลูกตาเฉลี่ย',lnkChHint:'เส้นทอง คือ HbA1c และเส้นชมพู คือ IOP เฉลี่ย ใช้ดูแนวโน้มร่วมตามเวลา ไม่ใช่การพิสูจน์เหตุและผล',
+linkT:'จุดเชื่อมโยงระหว่างสองแผนก',changeT:'สิ่งที่เปลี่ยนจากรอบก่อน',changeHint:'เป็นการตรวจจับความเปลี่ยนแปลงจากข้อมูลที่บันทึกไว้ ไม่ใช่การวินิจฉัย',attentionT:'จุดที่ควรตรวจสอบ',attentionHint:'เป็นการคัดกรองจากข้อมูลที่บันทึกไว้ ไม่ใช่การวินิจฉัย และไม่แทนคำแนะนำจากแพทย์',timelineT:'Medical Timeline',dropT:'ตารางเวลาหยอดตาประจำวัน',dropHint:'เว้นระยะห่างระหว่างยาหยอดตาแต่ละตัวอย่างน้อย 5 นาที เพื่อไม่ให้ยาตัวหลังชะยาตัวแรกออก',dropTick:'ติ๊กเมื่อหยอดตาแล้ววันนี้',
 adviceT:'คำแนะนำสำหรับรอบนี้',disclaimer:'* เป็นข้อมูลช่วยจำเท่านั้น การปรับยาและอาหารให้ยึดตามคำสั่งแพทย์เสมอ',visitT:'การมาพบแพทย์',dxT:'การวินิจฉัย',medT:'ยาและเวชภัณฑ์',
 dailyT:'บันทึกความดัน น้ำหนัก และน้ำดื่มประจำวัน',vsys:'ความดันตัวบน (mmHg)',vdia:'ความดันตัวล่าง (mmHg)',vpulse:'ชีพจร (ครั้ง/นาที)',vwt:'น้ำหนัก (กก.)',vfluid:'น้ำดื่มรวม (มล.)',vurine:'ปัสสาวะรวม (มล.)',vlimit:'เพดานน้ำดื่มต่อวัน (มล.)',
 saveDaily:'บันทึกข้อมูลวันนี้',bpChart:'ความดันโลหิต',wtChart:'น้ำหนักตัว',flChart:'น้ำดื่มและปัสสาวะ',dailyAdv:'คำแนะนำจากบันทึกรายวัน',dailyTable:'ตารางบันทึกรายวัน',
@@ -391,21 +377,20 @@ histT:'ตารางประวัติผลตรวจทุกรอบ'
 addT:'กรอกผลตรวจด้วยตนเอง',addHint:'แบบฟอร์มจะแสดงเฉพาะรายการของแผนกที่เลือกไว้ด้านบน',fDate:'วันที่ตรวจ',fNote:'หมายเหตุ',saveBtn:'บันทึกผลตรวจรอบนี้',fillLast:'ใส่ค่าจากรอบล่าสุดเป็นตัวตั้ง',
 ocrT:'อัปโหลดภาพผลตรวจ แล้วให้ระบบอ่านให้อัตโนมัติ',ocrDrop:'ลากรูปมาวางที่นี่ หรือกดปุ่มด้านล่าง',ocrPick:'เลือกรูปผลตรวจ',ocrNote:'ค่าที่อ่านได้จะถูกบันทึกเข้าแผนกที่เลือกไว้ด้านบน',ocrFail:'โหลดชุดอ่านตัวอักษรไม่สำเร็จ',
 dataT:'สำรองและกู้คืนข้อมูล',expBtn:'ดาวน์โหลดไฟล์ .json',impBtn:'นำเข้าไฟล์ .json',resetBtn:'โหลดข้อมูลตัวอย่างใหม่',clrBtn:'ล้างข้อมูลทั้งหมด',dataNote:'ข้อมูลทั้งหมดเก็บอยู่ในเครื่องของคุณเท่านั้น',
-ref:'ค่าอ้างอิง',item:'รายการ',normal:'ปกติ',abnormal:'ผิดปกติ',noData:'ยังไม่มีข้อมูล',high:'สูง',low:'ต่ำ',ok:'ปกติ',close:'ปิด',confirm:'ยืนยันและบันทึก',trend:'แนวโน้ม',
-review:'ตรวจทานค่าที่อ่านได้จากรูป',saved:'บันทึกเรียบร้อย',reading:'กำลังอ่านรูปที่',value:'ค่า',date:'วันที่',records:'รอบตรวจ',dayrec:'วันที่บันทึกรายวัน',betterOk:'ค่าทั้งหมดในกลุ่มนี้อยู่ในเกณฑ์',
+ref:'ค่าอ้างอิง',item:'รายการ',normal:'ปกติ',abnormal:'ผิดปกติ',noData:'ยังไม่มีข้อมูล',high:'สูง',low:'ต่ำ',ok:'ปกติ',close:'ปิด',confirm:'ยืนยันและบันทึก',trend:'แนวโน้ม',notableChange:'เปลี่ยนแปลงเด่นชัด',minorChange:'เปลี่ยนแปลงเล็กน้อย',timelineLab:'ผลตรวจ',timelineVisit:'พบแพทย์',timelineDx:'วินิจฉัย',
+review:'ตรวจทานค่าที่อ่านได้จากรูป',confirmHigh:'ยืนยันค่าที่มั่นใจสูง',noHighConfidence:'ยังไม่มีค่าที่มีความมั่นใจสูงพอ',confirmedHigh:'ทำเครื่องหมายยืนยันแล้ว',saved:'บันทึกเรียบร้อย',reading:'กำลังอ่านรูปที่',value:'ค่า',date:'วันที่',records:'รอบตรวจ',dayrec:'วันที่บันทึกรายวัน',betterOk:'ค่าทั้งหมดในกลุ่มนี้อยู่ในเกณฑ์',
 advGood:'รอบนี้ไม่มีค่าที่ต้องเฝ้าระวังเป็นพิเศษ',qLabel:'ไตรมาส',avg7:'เฉลี่ย 7 วัน',confirmClear:'ต้องการลบข้อมูลทั้งหมดจริงหรือไม่',confirmReset:'โหลดข้อมูลตัวอย่างทับข้อมูลปัจจุบันหรือไม่',del:'ลบ',bal:'สมดุลน้ำ',needDate:'กรุณาเลือกวันที่',needVal:'ยังไม่ได้กรอกค่าใด',
 doctor:'แพทย์',place:'สถานที่',symptom:'อาการ',ptype:'ประเภทผู้ป่วย',right:'สิทธิการรักษา',primary:'โรคหลัก',secondary:'โรครอง',
-reportT:'รายงานสรุปผลสุขภาพ',patient:'ผู้ป่วย',printedOn:'พิมพ์เมื่อ',sigDoc:'ลงชื่อแพทย์',noDrops:'แผนกนี้ไม่มียาหยอดตา'},
+reportT:'รายงานสรุปผลสุขภาพ',patient:'ผู้ป่วย',printedOn:'พิมพ์เมื่อ',sigDoc:'ลงชื่อแพทย์',noDrops:'แผนกนี้ไม่มียาหยอดตา',reportDisclaimer:'ข้อมูลนี้เป็นสรุปจากข้อมูลที่บันทึกในระบบ ไม่ใช่การวินิจฉัยทางการแพทย์'},
 en:{appName:'Health Tracker',appSub:'CKD and ophthalmology companion',navDash:'Dashboard',navDaily:'Daily Log',navHist:'History',navAdd:'Enter Results',navOcr:'Upload Images (OCR)',navData:'Data / Backup',
 deptAll:'All Departments',deptMed:'Internal Medicine',deptEye:'Ophthalmology',printBtn:'Print report',
-guideBtn:'User guide',guideOpen:'Open user guide',guideCardT:'Application user guide',guideCardS:'Step by step instructions from setup to troubleshooting',guideT:'Health Tracker User Guide',printGuide:'Print guide',
 lastVisit:'Latest test',ckdStage:'CKD Stage',eyeStat:'Eye pressure status',vitalsNow:'Latest vitals',egfrHist:'eGFR (EPI) history',radarT:'Key values vs reference',
 clickHint:'Tap the chart for detail',radarHint:'Green ring is the upper normal limit',
 comboT:'A/C ratio vs Systolic BP',scenTitle:'Kidney Log: 3-Scenario Comparison (Actual / Best / Worst)',
 scenHint:'Actual eGFR compared with Best and Worst Case projections',
 iopT:'Eye pressure, right vs left',iopHint:'Green band is the normal range 10-21 mmHg',cdrT:'Cup/Disc Ratio',cdrHint:'Higher value means more optic nerve damage',
-lnkChT:'HbA1c vs average eye pressure',lnkChHint:'Gold line is HbA1c on the left axis, pink line is mean IOP on the right axis',
-linkT:'Cross-department links',dropT:'Daily eye drop schedule',dropHint:'Wait at least 5 minutes between different eye drops',dropTick:'Tick when drops are done today',
+lnkChT:'HbA1c vs average eye pressure',lnkChHint:'Gold line is HbA1c and pink line is mean IOP; temporal comparison, not proof of causation',
+linkT:'Cross-department links',changeT:'What changed since the previous visit',changeHint:'Change detection from recorded data only; not a diagnosis.',attentionT:'Things to check',attentionHint:'Screening from recorded data only; not a diagnosis and not a substitute for medical advice.',timelineT:'Medical Timeline',dropT:'Daily eye drop schedule',dropHint:'Wait at least 5 minutes between different eye drops',dropTick:'Tick when drops are done today',
 adviceT:'Advice for this round',disclaimer:'* A memory aid only. Always follow your doctor.',visitT:'Clinic visits',dxT:'Diagnosis',medT:'Medication and supplies',
 dailyT:'Daily BP, weight and fluid log',vsys:'Systolic BP (mmHg)',vdia:'Diastolic BP (mmHg)',vpulse:'Pulse (/min)',vwt:'Weight (kg)',vfluid:'Fluid intake (mL)',vurine:'Urine output (mL)',vlimit:'Daily fluid limit (mL)',
 saveDaily:'Save today',bpChart:'Blood pressure',wtChart:'Body weight',flChart:'Fluid and urine',dailyAdv:'Advice from daily log',dailyTable:'Daily log table',
@@ -413,152 +398,18 @@ histT:'Full test history',modeAll:'Every visit',modeQ:'Quarterly average',histHi
 addT:'Enter results manually',addHint:'The form shows only items of the selected department',fDate:'Test date',fNote:'Note',saveBtn:'Save this round',fillLast:'Prefill from last round',
 ocrT:'Upload result images',ocrDrop:'Drag images here or use the button',ocrPick:'Choose images',ocrNote:'Values are saved into the selected department',ocrFail:'Could not load OCR engine',
 dataT:'Backup and restore',expBtn:'Download .json',impBtn:'Import .json',resetBtn:'Reload sample data',clrBtn:'Erase all data',dataNote:'All data stays on your device',
-ref:'Reference',item:'Item',normal:'Normal',abnormal:'Out of range',noData:'No data yet',high:'High',low:'Low',ok:'Normal',close:'Close',confirm:'Confirm and save',trend:'Trend',
-review:'Review values',saved:'Saved',reading:'Reading image',value:'Value',date:'Date',records:'lab rounds',dayrec:'daily entries',betterOk:'All values within range',
+ref:'Reference',item:'Item',normal:'Normal',abnormal:'Out of range',noData:'No data yet',high:'High',low:'Low',ok:'Normal',close:'Close',confirm:'Confirm and save',trend:'Trend',notableChange:'Notable change',minorChange:'Minor change',timelineLab:'Lab',timelineVisit:'Visit',timelineDx:'Diagnosis',
+review:'Review values',confirmHigh:'Confirm high-confidence values',noHighConfidence:'No sufficiently high-confidence values',confirmedHigh:'Marked as confirmed',saved:'Saved',reading:'Reading image',value:'Value',date:'Date',records:'lab rounds',dayrec:'daily entries',betterOk:'All values within range',
 advGood:'Nothing needs special attention',qLabel:'Quarter',avg7:'7-day average',confirmClear:'Erase all data?',confirmReset:'Overwrite with sample set?',del:'Delete',bal:'Fluid balance',needDate:'Please pick a date',needVal:'No values entered',
 doctor:'Doctor',place:'Location',symptom:'Complaint',ptype:'Patient type',right:'Coverage',primary:'Primary',secondary:'Secondary',
-reportT:'Health Summary Report',patient:'Patient',printedOn:'Printed on',sigDoc:'Doctor signature',noDrops:'No eye drops in this department'}};
+reportT:'Health Summary Report',patient:'Patient',printedOn:'Printed on',sigDoc:'Doctor signature',noDrops:'No eye drops in this department',reportDisclaimer:'This report summarizes recorded data and is not a medical diagnosis.'}};
 
 var LANG='th',DEPT='all';
 try{var sv=localStorage.getItem('ckd_lang');if(sv)LANG=sv;var sd=localStorage.getItem('ckd_dept');if(sd)DEPT=sd;}catch(e){}
 function t(k){var v=I18N[LANG][k];return v===undefined?k:v;}
 function nm(o){return LANG==='th'?o.th:o.en;}
 
-/* ========== 4. เนื้อหาคู่มือใช้งาน ========== */
-function guideSections(){
- if(LANG==='th'){return [
- {h:'1. การติดตั้งและเปิดใช้งานครั้งแรก',li:[
- 'บันทึกไฟล์โค้ดเป็นชื่อ index.html โดยเลือกการเข้ารหัสเป็น UTF-8 เท่านั้น',
- 'วางไฟล์รูปไอคอนชื่อ app-icon.png ไว้ในโฟลเดอร์เดียวกัน',
- 'คลิกขวาที่ index.html เลือก Open with แล้วเลือก Chrome หรือ Edge',
- 'ห้ามทดสอบในหน้าต่างพรีวิวของโปรแกรมแก้โค้ด เพราะมักบล็อก JavaScript ทำให้ปุ่มกดไม่ได้',
- 'บนมือถือ ส่งไฟล์เข้าเครื่อง เปิดด้วยเบราว์เซอร์ แล้วเลือกเมนู เพิ่มลงในหน้าจอโฮม จะได้ไอคอนแอปเหมือนแอปจริง']},
- {h:'2. ทำความเข้าใจโครงสร้าง 3 ชั้น',li:[
- 'ชั้นที่ 1 แถบเมนูบนสุด คือหน้าหลัก 6 หน้า แดชบอร์ด บันทึกรายวัน ประวัติย้อนหลัง กรอกผลตรวจ อัปโหลดรูป และข้อมูลสำรอง',
- 'ชั้นที่ 2 แถบเลือกแผนก มี 3 ปุ่ม ภาพรวมทั้งหมดสีทอง อายุรกรรมสีฟ้า จักษุกรรมสีชมพู',
- 'ชั้นที่ 3 หมวดย่อยในแต่ละแผนก ได้แก่ สัญญาณชีพ การวินิจฉัย ยาและเวชภัณฑ์ และผลห้องปฏิบัติการ',
- 'เมื่อเลือกแผนกใด ทุกหน้าจะกรองข้อมูลเฉพาะแผนกนั้นทันที ทั้งกราฟ ตาราง รายการยา และคำแนะนำ']},
- {h:'3. วิธีใช้หน้าแดชบอร์ด',li:[
- 'แถวบนสุดบอกวันที่ตรวจล่าสุด และระยะของโรคไต หรือสถานะความดันลูกตาเมื่ออยู่ในแผนกจักษุ',
- 'กราฟ 3 Scenario เปรียบเทียบค่า eGFR จริง กับเส้นคาดการณ์ Best Case และ Worst Case ล่วงหน้า',
- 'การ์ด KPI สี่ใบ แสดงค่าสำคัญของแผนกที่เลือก แตะที่การ์ดเพื่อเปิดประวัติย้อนหลังของค่านั้น',
- 'กราฟเส้นและ Radar แตะได้ทุกกราฟ เพื่อเปิดหน้าต่างรายละเอียด',
- 'การ์ดจุดเชื่อมโยง อธิบายว่าเบาหวาน E11.9 ส่งผลต่อทั้งไตและจอประสาทตาอย่างไร']},
- {h:'4. การอ่านสีและสัญลักษณ์',li:[
- 'สีเขียวมะนาว หมายถึง ค่าอยู่ในเกณฑ์ปกติ',
- 'สีชมพู หมายถึง ค่าสูงเกินเกณฑ์ ต้องเฝ้าระวัง',
- 'สีทอง หมายถึง ค่าต่ำกว่าเกณฑ์',
- 'ตัวเลขใต้การ์ด KPI คือผลต่างเทียบกับรอบตรวจก่อนหน้า เครื่องหมายบวกคือเพิ่มขึ้น',
- 'แถบสีพื้นหลังในกราฟ eGFR คือระยะของโรคไต G3a ถึง G5']},
- {h:'5. วิธีกรอกผลตรวจด้วยตนเอง',li:[
- 'เลือกแผนกที่ต้องการก่อน แล้วกดแท็บ กรอกผลตรวจ',
- 'เลือกวันที่ตรวจให้ตรงกับใบผลแล็บ แล้วใส่หมายเหตุถ้าต้องการ',
- 'กรอกเฉพาะช่องที่มีผลจริง ช่องที่เว้นว่างจะไม่ถูกบันทึก',
- 'กดปุ่ม ใส่ค่าจากรอบล่าสุดเป็นตัวตั้ง เมื่อต้องการแก้ไขค่าเดิมเพียงบางรายการ',
- 'กดปุ่ม บันทึกผลตรวจรอบนี้ ถ้ามีข้อมูลวันเดียวกันอยู่แล้ว ระบบจะเขียนทับเฉพาะรายการที่กรอกใหม่']},
- {h:'6. วิธีใช้ระบบอ่านภาพอัตโนมัติ OCR',li:[
- 'เลือกแผนกปลายทางก่อนเสมอ เพราะค่าที่อ่านได้จะถูกบันทึกเข้าแผนกนั้น',
- 'กดแท็บ อัปโหลดรูป แล้วลากรูปมาวาง หรือกดปุ่มเลือกไฟล์ เลือกพร้อมกันได้หลายรูป',
- 'ครั้งแรกต้องต่ออินเทอร์เน็ตเพื่อดาวน์โหลดชุดอ่านตัวอักษร หลังจากนั้นใช้งานออฟไลน์ได้',
- 'รอจนแถบความคืบหน้าเต็ม ระบบจะแสดงตารางค่าที่อ่านได้ให้ตรวจทาน',
- 'แก้ตัวเลขที่อ่านผิดได้ทันที หรือกดปุ่มลบรายการที่ไม่ต้องการ แล้วกด ยืนยันและบันทึก']},
- {h:'7. วิธีใช้หน้าบันทึกรายวัน',li:[
- 'เลือกวันที่ แล้วกรอกความดันตัวบน ตัวล่าง ชีพจร น้ำหนัก น้ำดื่ม และปัสสาวะ',
- 'ตั้งเพดานน้ำดื่มต่อวันตามที่แพทย์กำหนด ระบบจะเตือนอัตโนมัติเมื่อดื่มเกิน',
- 'ติ๊กช่องหยอดตาเมื่อหยอดครบในแต่ละช่วงเวลา',
- 'บันทึกวันเดิมซ้ำได้ ระบบจะถือเป็นการแก้ไขข้อมูลของวันนั้น',
- 'ดูคอลัมน์สมดุลน้ำในตาราง ถ้าน้ำเข้ามากกว่าน้ำออกเกิน 700 มิลลิลิตรจะขึ้นสีชมพู']},
- {h:'8. วิธีดูประวัติย้อนหลัง',li:[
- 'กดแท็บ ประวัติย้อนหลัง จะเห็นตารางผลตรวจทุกรอบเรียงตามวันที่',
- 'สลับปุ่มเป็น เฉลี่ยราย 3 เดือน เพื่อดูแนวโน้มระยะยาวแบบรายไตรมาส',
- 'แตะที่แถวใดก็ได้ เพื่อเปิดกราฟและตารางเฉพาะค่านั้น',
- 'ในหน้าต่างรายละเอียด สลับได้ระหว่างทุกรอบตรวจ และค่าเฉลี่ยราย 3 เดือน',
- 'ตารางด้านล่างแสดงสัญญาณชีพเฉลี่ยรายไตรมาส']},
- {h:'9. การพิมพ์รายงานและการสำรองข้อมูล',li:[
- 'เลือกแผนกที่ต้องการก่อน แล้วกดปุ่ม พิมพ์รายงาน มุมขวาบน',
- 'เลือกภาพรวมทั้งหมด จะได้รายงานของทั้งสองแผนกในชุดเดียว',
- 'รายงานพิมพ์เป็นพื้นขาวตัวอักษรดำ มีข้อมูลการพบแพทย์ การวินิจฉัย ผลตรวจ ยา และช่องลงชื่อแพทย์',
- 'กดแท็บ ข้อมูลสำรอง แล้วเลือก ดาวน์โหลดไฟล์ .json เพื่อสำรองข้อมูลเก็บไว้',
- 'เมื่อเปลี่ยนเครื่องหรือล้างเบราว์เซอร์ ให้ใช้ปุ่ม นำเข้าไฟล์ .json เพื่อกู้คืนข้อมูลเดิม']},
- {h:'10. การแก้ปัญหาที่พบบ่อย',w:1,li:[
- 'กดปุ่มแล้วไม่มีอะไรเกิดขึ้น ให้ปิดพรีวิวแล้วเปิดไฟล์ด้วย Chrome โดยตรง',
- 'ข้อความไทยเพี้ยนเป็นสัญลักษณ์ แปลว่าบันทึกไฟล์ผิดการเข้ารหัส ให้บันทึกใหม่เป็น UTF-8',
- 'เห็นแถบสีแดงด้านบน ให้ถ่ายภาพข้อความและเลขบรรทัดไว้ เพื่อใช้ตรวจสอบจุดผิดพลาด',
- 'กราฟไม่ขึ้น แปลว่ายังไม่มีข้อมูลในแผนกนั้น ให้กรอกผลตรวจอย่างน้อย 1 รอบก่อน',
- 'ข้อมูลหาย มักเกิดจากการล้างข้อมูลเบราว์เซอร์ ให้กู้คืนจากไฟล์ .json ที่สำรองไว้',
- 'ข้อควรจำ แอปนี้เป็นเพียงเครื่องมือช่วยจำและติดตาม การปรับยาและอาหารต้องยึดตามคำสั่งแพทย์และนักกำหนดอาหารเสมอ']}];}
- return [
- {h:'1. Installation and first run',li:[
- 'Save the code as index.html using UTF-8 encoding only.',
- 'Place the icon file named app-icon.png in the same folder.',
- 'Right click index.html, choose Open with, then Chrome or Edge.',
- 'Do not test inside a code editor preview pane, it usually blocks JavaScript.',
- 'On mobile, open the file in a browser and choose Add to Home Screen.']},
- {h:'2. The three layer structure',li:[
- 'Layer 1 is the top menu with six pages.',
- 'Layer 2 is the department selector: All, Internal Medicine, Ophthalmology.',
- 'Layer 3 is the four sub sections: vitals, diagnosis, medication, laboratory results.',
- 'Selecting a department filters every chart, table and advice on all pages.']},
- {h:'3. Using the dashboard',li:[
- 'The top row shows the latest test date and the CKD stage or eye pressure status.',
- 'The 3-Scenario chart compares actual eGFR with Best and Worst Case projections.',
- 'The four KPI cards show the key values of the selected department.',
- 'Every card and chart is tappable and opens a detailed history window.',
- 'The cross-department card explains how diabetes affects kidney and retina together.']},
- {h:'4. Reading colours',li:[
- 'Lime means the value is within range.',
- 'Pink means the value is above range.',
- 'Gold means the value is below range.',
- 'The small number under a KPI is the change from the previous round.',
- 'Background bands on the eGFR chart mark CKD stages G3a to G5.']},
- {h:'5. Entering results manually',li:[
- 'Select the department first, then open the Enter Results tab.',
- 'Pick the test date and add a note if needed.',
- 'Fill only the fields you have, blank fields are not saved.',
- 'Use Prefill from last round when editing only a few values.',
- 'Saving the same date updates the existing record.']},
- {h:'6. Using OCR image reading',li:[
- 'Always select the target department first.',
- 'Open the Upload Images tab and drag files in, or use the button.',
- 'The first run needs internet to fetch the OCR engine, afterwards it works offline.',
- 'Review the extracted values, correct or delete any of them.',
- 'Press Confirm and save to write them into the database.']},
- {h:'7. Using the daily log',li:[
- 'Pick a date, then record BP, pulse, weight, fluid intake and urine output.',
- 'Set the daily fluid limit as prescribed, the app warns when exceeded.',
- 'Tick each eye drop time slot once completed.',
- 'Saving the same date updates that day.',
- 'The fluid balance column turns pink when intake exceeds output by over 700 mL.']},
- {h:'8. Viewing history',li:[
- 'Open the History tab to see every test round by date.',
- 'Switch to Quarterly average for the long term trend.',
- 'Tap any row to open its own chart and table.',
- 'Inside the detail window you can switch between every visit and quarterly average.',
- 'The lower table shows quarterly average vitals.']},
- {h:'9. Printing and backup',li:[
- 'Select a department, then press Print report at the top right.',
- 'Choosing All Departments prints both departments in one document.',
- 'The report prints black on white with visit, diagnosis, results, medication and a signature line.',
- 'Use Download .json in the Data tab to back up.',
- 'Use Import .json to restore on a new device.']},
- {h:'10. Troubleshooting',w:1,li:[
- 'Buttons do nothing: open the file directly in Chrome instead of a preview pane.',
- 'Garbled Thai text: the file was saved with the wrong encoding, save again as UTF-8.',
- 'A red bar appears: note the message and line number for debugging.',
- 'Empty charts: that department has no data yet, enter at least one round.',
- 'Lost data: restore from your .json backup after clearing browser data.',
- 'Remember, this app is a memory aid only. Always follow your doctor and dietitian.']}];
-}
-function guideHTML(){
- var s=guideSections(),h='',j,z;
- for(j=0;j<s.length;j++){
-  h+='<div class="gsec'+(s[j].w?' gwarn':'')+'"><h4>'+s[j].h+'</h4><ol>';
-  for(z=0;z<s[j].li.length;z++){h+='<li>'+s[j].li[z]+'</li>';}
-  h+='</ol></div>';}
- return h;
-}
-
-/* ========== 5. ฐานข้อมูล ========== */
+/* ========== 4. ฐานข้อมูล ========== */
 var KEY='ckd_db_v6';
 function seed(){return{
 patient:{name:'คุณแม่',hn:''},
@@ -567,7 +418,7 @@ records:[
 {id:'r01',date:'2026-01-13',dept:'med',note:'',items:{egfr:22.58}},
 {id:'r1',date:'2026-02-24',dept:'med',note:'',items:{k:4.30,na:136,egfr:18.31,cr:2.45,bun:55,acr:443,p:4.20,a1c:7.8}},
 {id:'r2',date:'2026-05-12',dept:'med',note:'',items:{k:4.50,na:133,egfr:24.90,cr:1.90,bun:33,acr:868,p:3.60,uric:3.3,uph:5.0,usg:1.007,upro:2,a1c:7.2}},
-{id:'r3',date:'2026-08-25',dept:'med',note:'',items:{k:4.80,na:138,egfr:14.67,cr:2.91,bun:33,acr:159,p:4.30,a1c:6.9}},
+{id:'r3',date:'2026-08-25',dept:'med',note:'',items:{k:4.80,na:138,egfr:14.87,cr:2.91,bun:33,acr:159,p:4.30,a1c:6.9}},
 {id:'e1',date:'2025-07-22',dept:'eye',note:'ตัวอย่าง',items:{iop_od:22.0,iop_os:20.0,cdr_od:0.65,cdr_os:0.55,rnfl_od:78,rnfl_os:86,vf_od:-7.2,vf_os:-4.1,va_od:0.5,va_os:0.6,dr:0}},
 {id:'e2',date:'2025-10-21',dept:'eye',note:'ตัวอย่าง',items:{iop_od:19.0,iop_os:18.0,cdr_od:0.67,cdr_os:0.56,rnfl_od:76,rnfl_os:85,vf_od:-7.6,vf_os:-4.3,va_od:0.5,va_os:0.6,dr:0}},
 {id:'e3',date:'2026-01-28',dept:'eye',note:'ตัวอย่าง',items:{iop_od:17.0,iop_os:16.0,cdr_od:0.68,cdr_os:0.57,rnfl_od:75,rnfl_os:84,vf_od:-7.9,vf_os:-4.4,va_od:0.5,va_os:0.63,dr:0}}],
@@ -591,7 +442,7 @@ meds:[
 {id:'m6',dept:'eye',n:'AZARGA EYE DROP',th:'หยอดตา 1 หยด วันละ 2 ครั้ง เช้า และ เย็น',en:'1 drop twice daily, morning and evening',slots:['morning','evening']},
 {id:'m7',dept:'eye',n:'PATADAY 0.2% EYE DROP',th:'หยอดตา 1 หยด วันละ 1 ครั้ง ตอนเช้า',en:'1 drop once daily in the morning',slots:['morning']},
 {id:'m8',dept:'eye',n:'TRANCELTEAR EYE DROP',th:'หยอดตา 1 หยด วันละ 4 ครั้ง เช้า กลางวัน เย็น และก่อนนอน',en:'1 drop four times daily',slots:['morning','noon','evening','bed']},
-{id:'m9',dept:'eye',n:'XALATAN 0.005% EYE DROP',th:'หยอดตา 2 ข้าง ข้างละ 1 หยด เวลาประมาณ 20:00 น. ยารักษาโรคต้อหิน',en:'1 drop in each eye at about 20:00',slots:['n20']}],
+{id:'m9',dept:'eye',n:'XALATAN 0.005% EYE DROP',th:'หยอดตา 2 ข้าง ข้างละ 1 หยด เวลาประมาณ 20:00 น. ยารักษาโรคต้อหิน',en:'1 drop in each eye at about 20:00, glaucoma treatment',slots:['n20']}],
 daily:[
 {id:'d1',date:'2026-08-20',sys:148,dia:84,pulse:78,wt:56.4,fluid:1450,urine:900},
 {id:'d2',date:'2026-08-21',sys:142,dia:80,pulse:76,wt:56.2,fluid:1300,urine:950},
@@ -602,7 +453,44 @@ daily:[
 settings:{fluidLimit:1500}};}
 
 var DB;
-try{var raw=localStorage.getItem(KEY);DB=raw?JSON.parse(raw):seed();}catch(e){DB=seed();}
+function normalizeMedicalDomains(){
+ var i,r,ds;
+ DB.records=DB.records||[];
+ for(i=0;i<DB.records.length;i++){r=DB.records[i];ds=domainsForItems(r.items||{});if(r.dept==='eye'&&ds.length){r.domains=ds;}else if(!r.domains){r.domains=r.dept==='eye'?['general']:['kidney_metabolic'];}}
+ DB.diagnoses=DB.diagnoses||[];
+ for(i=0;i<DB.diagnoses.length;i++){r=DB.diagnoses[i];if(r.code==='H40.1')r.domain='glaucoma';else if(r.code==='E11.9')r.domain='diabetes';else if(r.code==='N18.9')r.domain='ckd';else if(r.code==='I10')r.domain='hypertension';else if(r.code==='H02.4')r.domain='vision';else if(r.code==='Z13.1')r.domain='diabetes_screening';}
+}
+(function(){
+ function hasRecords(obj){return !!obj && Array.isArray(obj.records) && obj.records.length > 0;}
+ function parseJSON(raw){try{return raw?JSON.parse(raw):null;}catch(e){return null;}}
+ function bootstrapFromPayload(){
+  if(typeof fetch!=='function')return Promise.resolve(false);
+  return fetch('app_db_payload.json',{cache:'no-store'}).then(function(res){
+   if(!res.ok)return false;
+   return res.json();
+  }).then(function(payload){
+   if(!payload || !payload.DB || !Array.isArray(payload.DB.records))return false;
+   try{
+    localStorage.setItem('DB', JSON.stringify(payload.DB));
+    localStorage.setItem('LABS', JSON.stringify(Array.isArray(payload.LABS)?payload.LABS:[]));
+    localStorage.setItem('GROUPS', JSON.stringify(Array.isArray(payload.GROUPS)?payload.GROUPS:[]));
+    return true;
+   }catch(e){return false;}
+  }).catch(function(){return false;});
+ }
+ var stored=parseJSON(localStorage.getItem(KEY));
+ if(!hasRecords(stored)){
+  bootstrapFromPayload().then(function(ok){
+   if(ok && typeof renderAll === 'function'){
+    DB=migrate(parseJSON(localStorage.getItem(KEY)) || seed());
+    save();
+    renderAll();
+    go('dash');
+   }
+  });
+ }
+ try{var raw=localStorage.getItem(KEY);DB=raw?JSON.parse(raw):seed();}catch(e){DB=seed();}
+})();
 function migrate(d){
  if(!d||!d.records)return seed();
  if(!d.patient)d.patient={name:'คุณแม่',hn:''};
@@ -614,6 +502,7 @@ function migrate(d){
  for(var j=0;j<d.records.length;j++){if(!d.records[j].dept)d.records[j].dept='med';}
  return d;}
 DB=migrate(DB);
+normalizeMedicalDomains();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}}
 function byDate(a,b){return a.date<b.date?-1:1;}
 function inDept(x){return DEPT==='all'||x.dept===DEPT;}
@@ -625,7 +514,7 @@ function prevR(dp){var r=recs(dp);return r.length>1?r[r.length-2]:null;}
 function lastDay(){var d=days();return d.length?d[d.length-1]:null;}
 function medsOf(dp){var o=[],j;for(j=0;j<DB.meds.length;j++){if(dp==='any'||(dp?DB.meds[j].dept===dp:inDept(DB.meds[j])))o.push(DB.meds[j]);}return o;}
 
-/* ========== 6. ยูทิลิตี ========== */
+/* ========== 5. ยูทิลิตี ========== */
 function flagL(k,v){var l=LM[k];if(!l||v===null||v===undefined||isNaN(v))return'';if(l.max!==null&&v>l.max)return'hi';if(l.min!==null&&v<l.min)return'lo';return'ok';}
 function flagV(k,v){var l=VM[k];if(!l||v===null||v===undefined||isNaN(v))return'';if(l.max!==null&&v>l.max)return'hi';if(l.min!==null&&v<l.min)return'lo';return'ok';}
 function fmtL(k,v){var l=LM[k];return(v===null||v===undefined||isNaN(v))?'-':Number(v).toFixed(l.dec);}
@@ -647,8 +536,74 @@ function vitQuarter(k){return groupAvg(vitSeries(k),qOf);}
 function vitMonth(k){return groupAvg(vitSeries(k),mOf);}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function show(id,on){var e=E(id);if(e)e.style.display=on?'':'none';}
+function changeThreshold(k){
+ var m={egfr:{abs:5,pct:20},cr:{abs:.3,pct:15},bun:{abs:10,pct:20},acr:{abs:100,pct:30},uric:{abs:1,pct:20},k:{abs:.5,pct:10},na:{abs:5,pct:4},p:{abs:.7,pct:15},ca:{abs:.7,pct:7},hco3:{abs:3,pct:10},hb:{abs:1,pct:8},alb:{abs:.3,pct:7},fbs:{abs:20,pct:15},a1c:{abs:.5,pct:8},chol:{abs:30,pct:15},tg:{abs:30,pct:20},hdl:{abs:10,pct:15},ldl:{abs:20,pct:15},iop_od:{abs:3,pct:15},iop_os:{abs:3,pct:15},cdr_od:{abs:.05,pct:8},cdr_os:{abs:.05,pct:8},rnfl_od:{abs:5,pct:6},rnfl_os:{abs:5,pct:6},vf_od:{abs:2,pct:20},vf_os:{abs:2,pct:20},va_od:{abs:.1,pct:15},va_os:{abs:.1,pct:15},dr:{abs:1,pct:100}};
+ return m[k]||{abs:null,pct:20};
+}
+function changeLabel(k,cur,prev){
+ if(cur===null||cur===undefined||prev===null||prev===undefined||isNaN(cur)||isNaN(prev))return null;
+ var d=Number(cur)-Number(prev), pct=prev===0?null:(Math.abs(d)/Math.abs(Number(prev)))*100, th=changeThreshold(k);
+ var notable=(th.abs!==null&&Math.abs(d)>=th.abs)||(pct!==null&&pct>=th.pct);
+ return {delta:d,pct:pct,notable:notable,direction:d>0?'up':(d<0?'down':'same')};
+}
+function changeSeverity(k,cur,prev){
+ var c=changeLabel(k,cur,prev);if(!c)return null;
+ return c.notable?'notable':'minor';
+}
+function renderChangeDetection(){
+ var box=E('cChangeBox'),body=E('changeBody');if(!box||!body)return;
+ var dp=DEPT==='all'?'any':DEPT,r=recs(dp),rows=[],j,k;
+ if(r.length<2){body.innerHTML='<div class="adv good">'+t('noData')+'</div>';return;}
+ var cur=r[r.length-1],prev=r[r.length-2];
+ var keys={};
+ for(j=0;j<r.length;j++){for(k in (r[j].items||{})){if(r[j].items.hasOwnProperty(k))keys[k]=true;}}
+ for(k in keys){var c=changeLabel(k,cur.items[k],prev.items[k]);if(c){rows.push({k:k,c:c,cur:cur.items[k],prev:prev.items[k]});}}
+ rows.sort(function(a,b){return (b.c.notable?1:0)-(a.c.notable?1:0)||Math.abs(b.c.delta)-Math.abs(a.c.delta);});
+ var h='<div class="grid g3">';
+ for(j=0;j<rows.length;j++){var x=rows[j],l=LM[x.k],col=x.c.notable?'var(--gold)':'var(--dim)',sg=x.c.delta>0?'+':'';
+  if(!l)continue;
+  h+='<div class="card" style="margin:0;border-color:'+col+'"><div class="lbl">'+nm(l)+'</div><div class="num" style="color:'+col+'">'+fmtL(x.k,x.cur)+'</div><div class="sub">'+dTxt(prev.date)+' → '+dTxt(cur.date)+'</div><div class="trend">'+sg+x.c.delta.toFixed(l.dec)+(x.c.pct===null?'':' ('+sg+(x.c.delta<0?'-':'')+x.c.pct.toFixed(0)+'%)')+' · '+(x.c.notable?t('notableChange'):t('minorChange'))+'</div></div>';
+ }
+ h+='</div>';
+ body.innerHTML=h;
+}
+function renderAttention(){
+ var box=E('cAttentionBox'),body=E('attentionBody');if(!box||!body)return;
+ var dp=DEPT==='all'?'any':DEPT,r=recs(dp),items=[],seen={},j,k,l,v,flag;
+ if(!r.length){body.innerHTML='<div class="adv good">'+t('noData')+'</div>';return;}
+ var latest=r[r.length-1];
+ for(k in (latest.items||{})){
+  if(!latest.items.hasOwnProperty(k)||!LM[k])continue;
+  l=LM[k];v=Number(latest.items[k]);flag=flagL(k,v);
+  if(flag==='hi'||flag==='lo')items.push({type:'range',k:k,label:nm(l),value:v,flag:flag});
+ }
+ var c=latest.ocr_canonical;
+ if(c&&c.field_meta){for(k in c.field_meta){if(!c.field_meta.hasOwnProperty(k)||seen[k])continue;var fm=c.field_meta[k];if(fm.needs_review||((fm.validation||{}).status==='suspicious')){items.push({type:'ocr',k:k,label:LM[k]?nm(LM[k]):k,value:latest.items[k],flag:'review'});seen[k]=true;}}}
+ if(latest.ocr_canonical&&(!latest.date||!(latest.source_images||[]).length))items.push({type:'source',label:t('date'),value:'?',flag:'review'});
+ if(!items.length){body.innerHTML='<div class="adv good">'+t('advGood')+'</div>';return;}
+ var h='<div class="grid g3">';
+ for(j=0;j<items.length;j++){var x=items[j],col=x.flag==='review'?'var(--mag)':(x.flag==='hi'?'var(--mag)':'var(--gold)'),txt=x.type==='ocr'?t('review'):(x.type==='source'?t('needDate'):(x.flag==='hi'?t('high'):t('low')));
+  h+='<div class="card" style="margin:0;border-color:'+col+'"><div class="hrow"><b style="color:'+col+'">'+esc(x.label||'-')+'</b><div class="spacer"></div><span class="badge">'+esc(txt)+'</span></div><div class="num" style="margin-top:6px;color:'+col+'">'+(x.value===undefined||x.value===null?'—':fmtL(x.k,x.value))+'</div></div>';}
+ h+='</div>';body.innerHTML=h;
+}
+function renderTimeline(){
+ var box=E('cTimelineBox'),body=E('timelineBody');if(!box||!body)return;
+ var rs=recs(DEPT==='all'?'any':DEPT).slice().reverse(),vs=(DB.visits||[]).slice().sort(function(a,b){return a.date<b.date?1:-1;}),ds=(DB.diagnoses||[]).slice().sort(function(a,b){return a.date<b.date?1:-1;});
+ var map={},j,key;
+ for(j=0;j<rs.length;j++){key=rs[j].date+'|lab';if(!map[key])map[key]={date:rs[j].date,type:'lab',dept:rs[j].dept,items:rs[j].items||{}};}
+ for(j=0;j<vs.length;j++){if(DEPT!=='all'&&vs[j].dept!==DEPT)continue;key=vs[j].date+'|visit|'+j;map[key]={date:vs[j].date,type:'visit',dept:vs[j].dept,doctor:vs[j].doctor,place:vs[j].place};}
+ for(j=0;j<ds.length;j++){if(DEPT!=='all'&&ds[j].dept!==DEPT)continue;key=ds[j].date+'|dx|'+j;map[key]={date:ds[j].date,type:'dx',dept:ds[j].dept,code:ds[j].code,th:ds[j].th,en:ds[j].en};}
+ var a=[],k;for(k in map)if(map.hasOwnProperty(k))a.push(map[k]);a.sort(function(x,y){return x.date<y.date?1:-1;});
+ if(!a.length){body.innerHTML='<div class="adv good">'+t('noData')+'</div>';return;}
+ var h='';for(j=0;j<a.length&&j<20;j++){var x=a[j],label=x.type==='lab'?t('timelineLab'):(x.type==='visit'?t('timelineVisit'):t('timelineDx')),detail='';
+  if(x.type==='lab'){var parts=[],kk;for(kk in x.items){if(x.items.hasOwnProperty(kk)&&LM[kk])parts.push(nm(LM[kk])+' '+fmtL(kk,x.items[kk]));}detail=parts.slice(0,6).join(' · ');}
+  else if(x.type==='visit'){detail=(x.doctor?x.doctor+' · ':'')+(x.place||'');}
+  else{detail=(x.code||'')+' '+(LANG==='th'?x.th:x.en);}
+  h+='<div style="display:grid;grid-template-columns:105px 120px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid #232D3C"><div class="num" style="color:var(--gold)">'+dTxt(x.date)+'</div><div><span class="pill ok">'+label+'</span></div><div>'+esc(detail||'-')+'</div></div>';}
+ body.innerHTML=h;
+}
 
-/* ========== 7. กราฟ ========== */
+/* ========== 6. กราฟ ========== */
 function axisFmt(v){var a=Math.abs(v);return a>=100?v.toFixed(0):(a>=10?v.toFixed(1):v.toFixed(2));}
 function drawChart(cv,cfg){
  if(!cv)return;
@@ -747,7 +702,7 @@ function drawRadar(cv){
  cv.onclick=function(){openDetail('lab','cr');};
 }
 
-/* ========== 8. คำแนะนำรวม ========== */
+/* ========== 7. คำแนะนำรวม ========== */
 function vitalAdvice(){
  var out=[],d=days();if(!d.length)return out;
  var L=d[d.length-1],P=d.length>1?d[d.length-2]:null;
@@ -769,26 +724,26 @@ function labAdvice(dp){
  return out;
 }
 function linkAdvice(){
- var out=[],a=last('med');
+ var out=[],a=last('med'),e=last('eye');
  var a1c=a?a.items.a1c:null;
  var txt=(LANG==='th')
-  ?'เบาหวานชนิดที่ 2 (E11.9) ปรากฏเป็นโรคร่วมทั้งแผนกอายุรกรรมและจักษุกรรม น้ำตาลที่คุมไม่ได้ทำลายหลอดเลือดฝอยทั้งที่ไตและที่จอประสาทตาพร้อมกัน การคุมน้ำตาลและความดันจึงเป็นการรักษาสองอวัยวะในคราวเดียว'
-  :'Type 2 diabetes (E11.9) is shared by both departments and damages the small vessels of the kidney and the retina at the same time.';
+  ?'เบาหวานชนิดที่ 2 (E11.9) ปรากฏในข้อมูลทั้งอายุรกรรมและจักษุกรรม ระบบจะแสดง HbA1c ควบคู่กับตัวชี้วัดไตและจอตาเพื่อดูแนวโน้มตามเวลา โดยไม่สรุปว่าแนวโน้มหนึ่งเป็นสาเหตุโดยตรงของอีกแนวโน้ม'
+  :'Type 2 diabetes (E11.9) appears in records from both departments. The dashboard compares HbA1c with kidney and retinal indicators as a temporal association; it does not infer direct causation.';
  out.push('<div class="adv link"><b style="color:var(--gold)">E11.9 '+(LANG==='th'?'เบาหวานชนิดไม่พึ่งอินซูลิน':'Type 2 Diabetes Mellitus')+'</b><br>'+txt+'</div>');
  if(a1c!==undefined&&a1c!==null){
   out.push('<div class="adv '+(a1c>7?'':'good')+'"><b>'+nm(LM.a1c)+' '+Number(a1c).toFixed(1)+' %</b><br>'+
   (LANG==='th'?(a1c>7?'ยังสูงกว่าเป้า ควรทบทวนยากับแพทย์ทั้งสองแผนก':'อยู่ในเป้าหมายแล้ว ช่วยชะลอทั้งไตเสื่อมและเบาหวานขึ้นจอตา'):(a1c>7?'Above target, review with both teams.':'At target, protecting both kidney and retina.'))+'</div>');}
  out.push('<div class="adv link"><b style="color:var(--gold)">'+(LANG==='th'?'ข้อควรระวังร่วมสองแผนก':'Shared precautions')+'</b><br>'+
- (LANG==='th'?'เลี่ยงการก้มศีรษะต่ำนาน ยกของหนัก และเบ่งถ่าย เพราะเพิ่มความดันลูกตา ส่วนยาหยอดตากลุ่มเบต้าบล็อกเกอร์ดูดซึมเข้ากระแสเลือดได้ หากมีใจสั่นหรือชีพจรช้าผิดปกติ ให้แจ้งแพทย์ทั้งสองแผนก':'Avoid prolonged head-down posture, heavy lifting and straining, which raise eye pressure.')+'</div>');
+ (LANG==='th'?'เลี่ยงการก้มศีรษะต่ำนาน ยกของหนัก และเบ่งถ่าย เพราะเพิ่มความดันลูกตา ส่วนยาหยอดตากลุ่มเบต้าบล็อกเกอร์ดูดซึมเข้ากระแสเลือดได้ หากมีใจสั่นหรือชีพจรช้าผิดปกติ ให้แจ้งแพทย์ทั้งสองแผนก':'Avoid prolonged head-down posture, heavy lifting and straining, which raise eye pressure. Beta-blocker eye drops can be absorbed systemically.')+'</div>');
  return out;
 }
 
-/* ========== 9. แดชบอร์ด ========== */
+/* ========== 8. แดชบอร์ด ========== */
 function renderDash(){
  var j,h='';
  var isAll=(DEPT==='all'),isMed=(DEPT==='med'),isEye=(DEPT==='eye');
  var Lm=last('med'),Le=last('eye');
- var L=last();
+ var L=last(),P=prevR();
  E('lastDate').textContent=L?dTxt(L.date):'-';
  if(isEye){
   E('headRLbl').textContent=t('eyeStat');
@@ -889,7 +844,7 @@ function renderDash(){
   drawChart(E('cCdr'),{labels:elb,bands:[{from:0,to:0.6,color:'rgba(182,255,60,.10)'}],
    series:[{name:'CDR OD',color:'#FF4DD2',dec:2,data:cod},{name:'CDR OS',color:'#B6FF3C',dec:2,data:cos}],
    onClick:function(){openDetail('lab','cdr_od');}});
-  var a1s=labSeries('a1c'),iopLbl={},kset={},kk2=[];
+  var a1s=labSeries('a1c'),iopAvg=[],iopLbl={},kset={},kk2=[];
   for(j=0;j<a1s.length;j++){var mA=mOf(a1s[j].d);if(!kset[mA]){kset[mA]=1;kk2.push(mA);}}
   for(j=0;j<er.length;j++){var mE=mOf(er[j].date);if(!kset[mE]){kset[mE]=1;kk2.push(mE);}
    var vv2=[];if(er[j].items.iop_od!==undefined)vv2.push(Number(er[j].items.iop_od));
@@ -944,8 +899,10 @@ function renderDash(){
  for(j=0;j<ml.length;j++){mh+='<div class="med"><div class="dot" style="background:'+(ml[j].dept==='eye'?'var(--mag)':'var(--cyan)')+'"></div><div><b>'+
   esc(ml[j].n)+'</b><br><span class="dim" style="font-size:12px">'+(LANG==='th'?ml[j].th:ml[j].en)+'</span></div></div>';}
  E('medList').innerHTML=mh||'<div class="dim">'+t('noData')+'</div>';
+ renderChangeDetection();
+ renderAttention();
+ renderTimeline();
 }
-
 function renderDrops(){
  var el=medsOf('eye'),h='',j,z;
  if(!el.length){E('dropBody').innerHTML='<div class="dim">'+t('noDrops')+'</div>';return;}
@@ -957,7 +914,7 @@ function renderDrops(){
  E('dropBody').innerHTML=h;
 }
 
-/* ========== 10. บันทึกรายวัน ========== */
+/* ========== 9. บันทึกรายวัน ========== */
 function renderDaily(){
  var j;
  if(!E('dDate').value)E('dDate').value=new Date().toISOString().slice(0,10);
@@ -1016,7 +973,7 @@ function renderDaily(){
  E('dTable').innerHTML=th;
 }
 
-/* ========== 11. ประวัติ ========== */
+/* ========== 10. ประวัติ ========== */
 var HMODE='all';
 function renderHist(){
  var cols=[],j,z,r=recs();
@@ -1068,18 +1025,9 @@ function renderHist(){
  E('vitTable').innerHTML=vh;
 }
 
-/* ========== 12. Modal รายละเอียด และคู่มือ ========== */
-var MQ=false,MTYPE='lab',MKEY='egfr',MMODE='detail';
-function openDetail(type,key){MMODE='detail';MTYPE=type;MKEY=key;MQ=false;drawDetail();E('modal').className='modal on';}
-function openGuide(){
- MMODE='guide';
- E('mbox').innerHTML='<div class="hrow"><h3 style="margin:0;color:var(--gold);font-size:15px">'+t('guideT')+'</h3><div class="spacer"></div>'+
-  '<button class="btn lm" data-act="printguide">'+t('printGuide')+'</button>'+
-  '<button class="btn mg" data-act="close">'+t('close')+'</button></div>'+
-  '<div style="margin-top:12px">'+guideHTML()+'</div>'+
-  '<small class="note">'+t('disclaimer')+'</small>';
- E('modal').className='modal on';
-}
+/* ========== 11. Modal ========== */
+var MQ=false,MTYPE='lab',MKEY='egfr';
+function openDetail(type,key){MTYPE=type;MKEY=key;MQ=false;drawDetail();E('modal').className='modal on';}
 function drawDetail(){
  var isLab=(MTYPE==='lab'),l=isLab?LM[MKEY]:VM[MKEY],j;
  if(!l){E('modal').className='modal';return;}
@@ -1110,7 +1058,7 @@ function drawDetail(){
   series:[{name:nm(l),color:'#4DE8FF',dec:l.dec,data:dt,dot:function(v){var f2=fn(MKEY,v);return f2==='ok'?'#B6FF3C':(f2==='hi'?'#FF4DD2':'#FFD75E');}}]});
 }
 
-/* ========== 13. ฟอร์ม ========== */
+/* ========== 12. ฟอร์ม ========== */
 function renderForm(){
  var h='',j,z;
  for(j=0;j<GKEYS.length;j++){var g=GKEYS[j];
@@ -1162,16 +1110,60 @@ function toggleDrop(slot,on){
  save();
 }
 
-/* ========== 14. OCR ========== */
+/* ========== 13. OCR ========== */
 var PENDING=[];
 function findDate(txt){
- var m=txt.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
- if(m){var y=parseInt(m[3],10);if(y>2400)y-=543;
-  return y+'-'+('0'+parseInt(m[2],10)).slice(-2)+'-'+('0'+parseInt(m[1],10)).slice(-2);}
+ var m=txt.match(/\b(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})\b/);
+ if(m){var y=parseInt(m[1],10),mo=parseInt(m[2],10),d=parseInt(m[3],10);if(y>=1900&&y<=2100&&mo>=1&&mo<=12&&d>=1&&d<=31)return y+'-'+('0'+mo).slice(-2)+'-'+('0'+d).slice(-2);}
+ m=txt.match(/\b(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})\b/);
+ if(m){var d2=parseInt(m[1],10),mo2=parseInt(m[2],10),y2=parseInt(m[3],10);if(y2>2400)y2-=543;if(y2>=1900&&y2<=2100&&mo2>=1&&mo2<=12&&d2>=1&&d2<=31)return y2+'-'+('0'+mo2).slice(-2)+'-'+('0'+d2).slice(-2);}
  return null;
 }
+function ocrSignature(date,items){
+ var keys=[],k,out=[];
+ for(k in items){if(items.hasOwnProperty(k))keys.push(k);}
+ keys.sort();
+ for(var i=0;i<keys.length;i++)out.push(keys[i]+'='+Number(items[keys[i]]));
+ return (date||'')+'|'+out.join('|');
+}
+function extractOCRReferenceRange(line){
+ var m=line.match(/(?:reference|ref|normal)\s*(?:range)?\s*[:=]?\s*(\d+(?:\.\d+)?)\s*(?:-|–|—|to)\s*(\d+(?:\.\d+)?)/i);
+ if(m)return {type:'range',low:parseFloat(m[1]),high:parseFloat(m[2]),source:'ocr'};
+ m=line.match(/(?:reference|ref|normal)\s*(?:range)?\s*[:=]?\s*(<|<=|>|>=)\s*(\d+(?:\.\d+)?)/i);
+ if(m)return {type:'threshold',operator:m[1],value:parseFloat(m[2]),source:'ocr'};
+ return null;
+}
+function canonicalOCR(dept,date,items,meta,sourceFiles,rawText){
+ var canonicalMeta={},k,m,validation;
+ for(k in items){if(!items.hasOwnProperty(k))continue;
+  m=meta[k]||{};
+  validation={status:m.validation||'plausible',message:m.validation||'Within configured plausibility range'};
+  canonicalMeta[k]={confidence:m.confidence!==undefined?Number(m.confidence):0,
+   validation:validation,needs_review:!!m.needsReview||validation.status==='suspicious',
+   unit:(LM[k]&&LM[k].u)||'',reference_range:m.referenceRange||null,source_files:(m.sourceFiles||sourceFiles||[]).slice(0)};
+ }
+ return {schema_version:'ocr-canonical-1',department:dept,date:date||null,fields:items,field_meta:canonicalMeta,
+  source_images:(sourceFiles||[]).slice(0),raw_text:rawText||'',visit_key:dept+'_'+(date||'unknown'),
+  content_fingerprint:ocrSignature(date,items),
+  needs_review:!date||!Object.keys(items).length||Object.keys(canonicalMeta).some(function(x){return canonicalMeta[x].needs_review;})};
+}
+function findPendingDuplicate(date,items){
+ var sig=ocrSignature(date,items),j;
+ for(j=0;j<PENDING.length;j++){if(PENDING[j].signature===sig)return j;}
+ return -1;
+}
+function findExistingOCRDuplicate(date,dept,items){
+ var j,k,r,matched=false,count=0;
+ if(!date||!items)return -1;
+ for(j=0;j<DB.records.length;j++){r=DB.records[j];if(r.date!==date||r.dept!==dept)continue;
+  matched=true;count=0;
+  for(k in items){if(items.hasOwnProperty(k)&&r.items&&r.items[k]!==undefined&&Number(r.items[k])===Number(items[k]))count++;}
+  if(count===Object.keys(items).length)return j;
+ }
+ return -1;
+}
 function parseText(txt){
- var out={},lines=txt.split('\n'),j,z;
+ var out={},meta={},lines=txt.split('\n'),j,z;
  for(j=0;j<lines.length;j++){var low=' '+lines[j].toLowerCase().replace(/,/g,'')+' ';
   for(z=0;z<LABS.length;z++){var l=LABS[z];
    if(DEPT!=='all'&&l.dp!==DEPT)continue;
@@ -1180,8 +1172,16 @@ function parseText(txt){
    for(a=0;a<l.alias.length;a++){var ix=low.indexOf(l.alias[a]);if(ix>=0){hit=ix+l.alias[a].length;break;}}
    if(hit<0)continue;
    var m=low.slice(hit).match(/(-?\d+(\.\d+)?)/);
-   if(m){var v=parseFloat(m[1]);if(!isNaN(v))out[l.k]=v;}}}
- return out;
+   if(m){var v=parseFloat(m[1]);if(!isNaN(v)){
+    out[l.k]=v;
+    var plausible=true;
+    if(l.min!==null&&l.min!==undefined&&v<l.min)plausible=false;
+    if(l.max!==null&&l.max!==undefined&&v>l.max)plausible=false;
+    var rr=extractOCRReferenceRange(lines[j]);
+    meta[l.k]={confidence:plausible?0.9:0.2,needsReview:!plausible,validation:plausible?'plausible':'suspicious',referenceRange:rr};
+   }}
+  }}
+ return {items:out,meta:meta};
 }
 function loadTess(cb){
  if(window.Tesseract){cb();return;}
@@ -1202,10 +1202,18 @@ function runOCR(files){
     E('pbar').style.width=(idx/files.length*100)+'%';
     w.recognize(files[idx]).then(function(res){
      var txt=(res&&res.data&&res.data.text)?res.data.text:'';
-     var dd=findDate(txt)||new Date().toISOString().slice(0,10);
-     var items=parseText(txt),cnt=0;
+     var parsed=parseText(txt),items=parsed.items,meta=parsed.meta,cnt=0,date=findDate(txt),duplicateOf=-1,existingDuplicate=-1,canonical;
      for(var k in items){if(items.hasOwnProperty(k))cnt++;}
-     if(cnt)PENDING.push({date:dd,items:items,file:files[idx].name});
+     if(cnt){
+      var signature=ocrSignature(date,items);
+      duplicateOf=findPendingDuplicate(date,items);
+      var inferredDept=(DEPT==='all')?(function(){var eye=false,kk;for(kk in items){if(items.hasOwnProperty(kk)&&LM[kk]&&LM[kk].dp==='eye')eye=true;}return eye?'eye':'med';})():DEPT;
+      existingDuplicate=findExistingOCRDuplicate(date,inferredDept,items);
+      canonical=canonicalOCR(inferredDept,date,items,meta,[files[idx].name],txt);
+      PENDING.push({date:date,items:items,meta:meta,file:files[idx].name,sourceFiles:[files[idx].name],rawText:txt,
+       department:inferredDept,signature:signature,duplicateOf:duplicateOf,existingDuplicate:existingDuplicate,canonical:canonical,
+       needsReview:canonical.needs_review||duplicateOf>=0||existingDuplicate>=0});
+     }
      idx++;next();
     })['catch'](function(){idx++;next();});}
    next();
@@ -1214,78 +1222,118 @@ function runOCR(files){
 function showReview(){
  if(!PENDING.length){E('ocrReview').innerHTML='<div class="card"><div class="dim">'+t('noData')+'</div></div>';return;}
  var h='<div class="card"><h3>'+t('review')+'</h3>',j;
- for(j=0;j<PENDING.length;j++){var p=PENDING[j];
-  h+='<div style="border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px">'+
+ for(j=0;j<PENDING.length;j++){var p=PENDING[j],dateVal=p.date||'',warn=p.needsReview,dup=(p.duplicateOf>=0||p.existingDuplicate>=0);
+  h+='<div style="border:1px solid '+(warn?'var(--mag)':'var(--line)')+';border-radius:12px;padding:10px;margin-bottom:10px">'+
      '<div class="hrow"><span class="badge">'+esc(p.file)+'</span><div class="spacer"></div>'+
-     '<input type="date" style="width:170px" data-act="ocrdate" data-val="'+j+'" value="'+p.date+'"></div><table>';
-  for(var k in p.items){if(!p.items.hasOwnProperty(k))continue;
+     '<input type="date" style="width:170px" data-act="ocrdate" data-val="'+j+'" value="'+dateVal+'">'+
+     (dup?'<span class="badge mg">'+(p.duplicateOf>=0?('ซ้ำกับรูปที่ '+(p.duplicateOf+1)):'ซ้ำกับข้อมูลเดิม')+'</span>':(warn?'<span class="badge mg">ตรวจสอบ</span>':''))+'</div>'+
+     '<div class="dim" style="margin:6px 0">'+esc((p.sourceFiles||[p.file]).join(', '))+'</div><table>';
+  for(var k in p.items){if(!p.items.hasOwnProperty(k))continue;var mm=p.meta[k]||{};
    h+='<tr><td>'+nm(LM[k])+'</td><td><input type="number" step="any" style="width:120px" data-act="ocrval" data-val="'+j+':'+k+
-      '" value="'+p.items[k]+'"></td><td class="dim">'+LM[k].u+'</td>'+
+      '" value="'+p.items[k]+'"></td><td class="dim">'+LM[k].u+'</td><td class="dim">'+(mm.confidence!==undefined?Math.round(mm.confidence*100)+'%':'-')+(mm.confirmed?' ✓':'')+'</td>'+ 
       '<td><button class="btn mg" data-act="ocrdel" data-val="'+j+':'+k+'">'+t('del')+'</button></td></tr>';}
   h+='</table></div>';}
- h+='<button class="btn lm big" data-act="commit">'+t('confirm')+'</button></div>';
+ h+='<div class="hrow"><button class="btn cy" data-act="ocrconfirmhigh">'+t('confirmHigh')+'</button><div class="spacer"></div><button class="btn lm big" data-act="commit">'+t('confirm')+'</button></div></div>';
  E('ocrReview').innerHTML=h;
+}
+function confirmHighConfidence(){
+ var changed=0,j,k,m,p;
+ for(j=0;j<PENDING.length;j++){p=PENDING[j];if(!p||p.duplicateOf>=0||p.existingDuplicate>=0)continue;
+  for(k in p.items){if(!p.items.hasOwnProperty(k))continue;m=p.meta[k]||{};
+   if(Number(m.confidence)>=0.9&&!m.needsReview&&m.validation!=='suspicious'){m.confirmed=true;if(p.canonical&&p.canonical.field_meta&&p.canonical.field_meta[k])p.canonical.field_meta[k].confirmed=true;changed++;}
+  }
+ }
+ for(j=0;j<PENDING.length;j++){p=PENDING[j];if(!p||!p.items)continue;var all=true,kk;for(kk in p.items){if(p.items.hasOwnProperty(kk)&&!((p.meta[kk]||{}).confirmed)){all=false;break;}}if(p.date&&all&&p.duplicateOf<0&&p.existingDuplicate<0)p.needsReview=false;}
+ showReview();
+ if(changed===0)alert(t('noHighConfidence'));else alert(t('confirmedHigh')+' '+changed);
 }
 function commitOCR(){
  var j,z;
  for(j=0;j<PENDING.length;j++){var p=PENDING[j],mI={},eI={},anyM=false,anyE=false;
+  if(!p.date||p.duplicateOf>=0||p.existingDuplicate>=0||p.needsReview){continue;}
   for(var k in p.items){if(!p.items.hasOwnProperty(k))continue;
+   if(!LM[k])continue;
    if(LM[k].dp==='eye'){eI[k]=p.items[k];anyE=true;}else{mI[k]=p.items[k];anyM=true;}}
   function put(dp,items){var ex=null;
    for(z=0;z<DB.records.length;z++){if(DB.records[z].date===p.date&&DB.records[z].dept===dp)ex=DB.records[z];}
    if(ex){for(var q in items){if(items.hasOwnProperty(q))ex.items[q]=items[q];}}
-   else{DB.records.push({id:'r'+(new Date()).getTime()+dp+j,date:p.date,dept:dp,note:'OCR',items:items});}}
+   else{DB.records.push({id:'r'+(new Date()).getTime()+dp+j,date:p.date,dept:dp,note:'OCR',items:items,source_images:p.sourceFiles||[],ocr_canonical:p.canonical||null,review_status:'confirmed',domains:dp==='eye'?domainsForItems(items):['kidney_metabolic']});}}
   if(anyM)put('med',mI);
   if(anyE)put('eye',eI);}
  save();PENDING=[];E('ocrReview').innerHTML='';renderAll();alert(t('saved'));go('dash');
 }
 
-/* ========== 15. รายงานและคู่มือสำหรับพิมพ์ ========== */
+/* ========== 14. รายงานสำหรับพิมพ์ ========== */
 function buildReport(){
- var j,z,h='';
- var depts=(DEPT==='all')?['med','eye']:[DEPT];
+ var j,h='',depts=(DEPT==='all')?['med','eye']:[DEPT],today=dTxt(new Date().toISOString().slice(0,10));
  h+='<h2>'+t('reportT')+'</h2>';
- h+='<div>'+t('patient')+' : '+esc(DB.patient.name||'-')+' &nbsp; | &nbsp; '+t('printedOn')+' : '+dTxt(new Date().toISOString().slice(0,10))+'</div>';
+ h+='<div>'+t('patient')+' : '+esc(DB.patient.name||'-')+' &nbsp; | &nbsp; '+t('printedOn')+' : '+today+'</div>';
+ h+='<div class="pbox"><b>'+t('changeT')+'</b><br>'+buildReportChangeSummary()+'</div>';
  for(var di=0;di<depts.length;di++){
   var dp=depts[di];
   h+='<h3>'+(dp==='eye'?t('deptEye'):t('deptMed'))+'</h3>';
   var vs=DB.visits.slice().sort(byDate).reverse(),vFound=null;
   for(j=0;j<vs.length;j++){if(vs[j].dept===dp&&!vFound)vFound=vs[j];}
-  if(vFound){h+='<div class="pbox">'+t('date')+' : '+dTxt(vFound.date)+' '+esc(vFound.time)+
-   ' | '+t('doctor')+' : '+esc(vFound.doctor||'-')+'<br>'+t('place')+' : '+esc(vFound.place)+
-   ' | '+t('symptom')+' : '+esc(vFound.symptom)+'<br>'+t('ptype')+' : '+esc(vFound.ptype)+' | '+t('right')+' : '+esc(vFound.right)+'</div>';}
+  if(vFound){h+='<div class="pbox">'+t('date')+' : '+dTxt(vFound.date)+' '+esc(vFound.time||'')+
+   ' | '+t('doctor')+' : '+esc(vFound.doctor||'-')+'<br>'+t('place')+' : '+esc(vFound.place||'-')+
+   ' | '+t('symptom')+' : '+esc(vFound.symptom||'-')+'<br>'+t('ptype')+' : '+esc(vFound.ptype||'-')+' | '+t('right')+' : '+esc(vFound.right||'-')+'</div>';}
   var dxs=DB.diagnoses.slice().sort(byDate).reverse(),dh='';
   for(j=0;j<dxs.length;j++){if(dxs[j].dept!==dp)continue;
-   dh+='<tr><td>'+dxs[j].code+'</td><td>'+(LANG==='th'?dxs[j].th:dxs[j].en)+'</td><td>'+(dxs[j].lv==='p'?t('primary'):t('secondary'))+'</td><td>'+dTxt(dxs[j].date)+'</td></tr>';}
+   dh+='<tr><td>'+esc(dxs[j].code||'')+'</td><td>'+esc(LANG==='th'?dxs[j].th:dxs[j].en)+'</td><td>'+(dxs[j].lv==='p'?t('primary'):t('secondary'))+'</td><td>'+dTxt(dxs[j].date)+'</td></tr>';}
   if(dh)h+='<table><tr><th>ICD</th><th>'+t('dxT')+'</th><th>-</th><th>'+t('date')+'</th></tr>'+dh+'</table>';
   var R=last(dp),Rp=prevR(dp);
   if(R){var lh='';
    for(j=0;j<LABS.length;j++){var l=LABS[j];if(l.dp!==dp)continue;
     var v=R.items[l.k];if(v===undefined||v===null)continue;
-    var pv=Rp?Rp.items[l.k]:null,f=flagL(l.k,v);
-    lh+='<tr><td>'+nm(l)+'</td><td>'+fmtL(l.k,v)+' '+l.u+'</td><td>'+refTxt(l)+'</td><td>'+
-     ((pv===undefined||pv===null)?'-':Number(pv).toFixed(l.dec))+'</td><td>'+(f==='ok'?t('ok'):(f==='hi'?t('high'):t('low')))+'</td></tr>';}
+    var pv=Rp?Rp.items[l.k]:null,f=flagL(l.k,v),srcRef=l.reference_range||l.ref||refTxt(l);
+    lh+='<tr><td>'+nm(l)+'</td><td>'+fmtL(l.k,v)+' '+l.u+'</td><td>'+esc(String(srcRef||'-'))+'</td><td>'+((pv===undefined||pv===null)?'-':Number(pv).toFixed(l.dec))+'</td><td>'+(f==='ok'?t('ok'):(f==='hi'?t('high'):t('low')))+'</td></tr>';}
    if(lh)h+='<table><tr><th>'+t('item')+'</th><th>'+dTxt(R.date)+'</th><th>'+t('ref')+'</th><th>'+(Rp?dTxt(Rp.date):'-')+'</th><th>-</th></tr>'+lh+'</table>';}
+  var changes=reportDeptChanges(dp);
+  if(changes.length){h+='<h3>'+t('changeT')+'</h3><table><tr><th>'+t('item')+'</th><th>'+t('date')+'</th><th>Δ</th><th>%</th><th>-</th></tr>';
+   for(j=0;j<changes.length;j++){var c=changes[j];h+='<tr><td>'+esc(c.name)+'</td><td>'+dTxt(c.date)+'</td><td>'+c.delta+'</td><td>'+c.pct+'</td><td>'+esc(c.label)+'</td></tr>';}
+   h+='</table>';}
   var ml=medsOf(dp),mh='';
-  for(j=0;j<ml.length;j++){mh+='<tr><td>'+esc(ml[j].n)+'</td><td>'+(LANG==='th'?ml[j].th:ml[j].en)+'</td></tr>';}
+  for(j=0;j<ml.length;j++){mh+='<tr><td>'+esc(ml[j].n)+'</td><td>'+esc(LANG==='th'?ml[j].th:ml[j].en)+'</td></tr>';}
   if(mh)h+='<table><tr><th>'+t('medT')+'</th><th>-</th></tr>'+mh+'</table>';
-  var ad=labAdvice(dp);
-  if(dp==='med')ad=ad.concat(vitalAdvice());
-  if(ad.length){h+='<div class="pbox"><b>'+t('adviceT')+'</b><br>'+ad.join('').replace(/<div class="adv[^"]*">/g,'- ').replace(/<\/div>/g,'<br>')+'</div>';}
+  var ad=labAdvice(dp);if(dp==='med')ad=ad.concat(vitalAdvice());
+  if(ad.length){h+='<div class="pbox"><b>'+t('adviceT')+'</b><br>'+ad.join('').replace(/<div class="adv[^\"]*">/g,'- ').replace(/<\/div>/g,'<br>')+'</div>';}
  }
+ h+='<h3>'+t('timelineT')+'</h3><div class="pbox">'+buildReportTimeline()+'</div>';
+ h+='<h3>'+t('trend')+'</h3>'+buildReportCharts();
+ h+='<div class="pbox"><b>'+t('changeHint')+'</b><br>'+esc(t('reportDisclaimer'))+'</div>';
  var D=lastDay();
- if(D){h+='<h3>'+t('vitalsNow')+'</h3><table><tr><th>'+t('date')+'</th><th>BP</th><th>'+nm(VM.pulse)+'</th><th>'+nm(VM.wt)+'</th><th>'+nm(VM.fluid)+'</th><th>'+nm(VM.urine)+'</th></tr>'+
-  '<tr><td>'+dTxt(D.date)+'</td><td>'+(D.sys||'-')+'/'+(D.dia||'-')+'</td><td>'+(D.pulse||'-')+'</td><td>'+(D.wt||'-')+'</td><td>'+(D.fluid||'-')+'</td><td>'+(D.urine||'-')+'</td></tr></table>';}
+ if(D){h+='<h3>'+t('vitalsNow')+'</h3><table><tr><th>'+t('date')+'</th><th>BP</th><th>'+nm(VM.pulse)+'</th><th>'+nm(VM.wt)+'</th><th>'+nm(VM.fluid)+'</th><th>'+nm(VM.urine)+'</th></tr>'+ '<tr><td>'+dTxt(D.date)+'</td><td>'+(D.sys||'-')+'/'+(D.dia||'-')+'</td><td>'+(D.pulse||'-')+'</td><td>'+(D.wt||'-')+'</td><td>'+(D.fluid||'-')+'</td><td>'+(D.urine||'-')+'</td></tr></table>';}
  h+='<div style="margin-top:26px">'+t('sigDoc')+' ............................................................</div>';
  E('printArea').innerHTML=h;
 }
-function doPrint(){buildReport();window.print();}
-function doPrintGuide(){
- E('printArea').innerHTML='<h2>'+t('guideT')+'</h2><div>'+t('printedOn')+' : '+dTxt(new Date().toISOString().slice(0,10))+'</div>'+guideHTML();
- window.print();
+function reportDeptChanges(dp){
+ var r=recs(dp);if(r.length<2)return[];var cur=r[r.length-1],prev=r[r.length-2],out=[],j;
+ for(j=0;j<LABS.length;j++){var l=LABS[j];if(l.dp!==dp)continue;var a=prev.items[l.k],b=cur.items[l.k];
+  if(a===undefined||a===null||b===undefined||b===null)continue;var c=changeLabel(l.k,b,a);if(c)out.push({name:nm(l),date:cur.date,delta:(c.delta>0?'+':'')+c.delta.toFixed(l.dec),pct:c.pct===null?'-':(c.pct>0?'+':'')+c.pct.toFixed(0)+'%',label:c.notable?t('notableChange'):t('minorChange'),score:c.notable?1:0});}
+ out.sort(function(a,b){return b.score-a.score;});return out;
 }
+function buildReportChangeSummary(){
+ var a=[],dpList=DEPT==='all'?['med','eye']:[DEPT],j,k;
+ for(j=0;j<dpList.length;j++){var c=reportDeptChanges(dpList[j]);for(k=0;k<c.length;k++)a.push((dpList[j]==='eye'?t('deptEye'):t('deptMed'))+' — '+c[k].name+' '+c[k].delta+' ('+c[k].pct+') · '+c[k].label);}
+ return a.length?a.slice(0,12).map(esc).join('<br>'):t('noData');
+}
+function buildReportTimeline(){
+ var a=[],rs=recs(DEPT==='all'?'any':DEPT),j,k;
+ for(j=0;j<rs.length;j++)a.push({date:rs[j].date,text:t('timelineLab')+' · '+(rs[j].dept==='eye'?t('deptEye'):t('deptMed'))});
+ for(j=0;j<(DB.visits||[]).length;j++){if(DEPT!=='all'&&DB.visits[j].dept!==DEPT)continue;a.push({date:DB.visits[j].date,text:t('timelineVisit')+' · '+(DB.visits[j].doctor||DB.visits[j].place||'-')});}
+ for(j=0;j<(DB.diagnoses||[]).length;j++){if(DEPT!=='all'&&DB.diagnoses[j].dept!==DEPT)continue;a.push({date:DB.diagnoses[j].date,text:t('timelineDx')+' · '+(DB.diagnoses[j].code||'')+' '+(LANG==='th'?DB.diagnoses[j].th:DB.diagnoses[j].en)});}
+ a.sort(function(x,y){return x.date<y.date?1:-1;});return a.slice(0,20).map(function(x){return '<div style="padding:4px 0;border-bottom:1px solid #ccc"><b>'+dTxt(x.date)+'</b> · '+esc(x.text)+'</div>';}).join('')||t('noData');
+}
+function reportCanvas(id){var c=E(id);if(!c||!c.width||!c.height)return'';try{return '<img src="'+c.toDataURL('image/png')+'" style="max-width:100%;height:auto;margin:4px 0 10px">';}catch(e){return'';}}
+function buildReportCharts(){
+ var h='';
+ if(DEPT!=='eye')h+=reportCanvas('cScenario')+reportCanvas('cEgfr')+reportCanvas('cCombo');
+ if(DEPT!=='med')h+=reportCanvas('cIop')+reportCanvas('cCdr')+reportCanvas('cLinkCh');
+ return h||'<div class="pbox">'+t('noData')+'</div>';
+}
+function doPrint(){buildReport();window.print();}
 
-/* ========== 16. นำทาง ========== */
+/* ========== 15. นำทาง ========== */
 var CURVIEW='dash';
 function go(v){
  CURVIEW=v;
@@ -1328,10 +1376,7 @@ document.addEventListener('click',function(ev){
  var act=el4.getAttribute('data-act'),val=el4.getAttribute('data-val')||'',j;
  if(act==='nav'){go(val);}
  else if(act==='dept'){setDept(val);}
- else if(act==='lang'){LANG=(LANG==='th')?'en':'th';renderAll();go(CURVIEW);
-  if(E('modal').className.indexOf('on')>=0&&MMODE==='guide')openGuide();}
- else if(act==='guide'){openGuide();}
- else if(act==='printguide'){doPrintGuide();}
+ else if(act==='lang'){LANG=(LANG==='th')?'en':'th';renderAll();go(CURVIEW);}
  else if(act==='print'){doPrint();}
  else if(act==='detail'){var pr=val.split(':');openDetail(pr[0]==='vit'?'vit':'lab',pr[1]);}
  else if(act==='close'){E('modal').className='modal';}
@@ -1391,7 +1436,7 @@ E('modal').addEventListener('click',function(ev){
 window.addEventListener('resize',function(){
  if(CURVIEW==='dash')renderDash();
  if(CURVIEW==='daily')renderDaily();
- if(E('modal').className.indexOf('on')>=0&&MMODE==='detail')drawDetail();},false);
+ if(E('modal').className.indexOf('on')>=0)drawDetail();},false);
 
 setDept(DEPT);
 go('dash');
