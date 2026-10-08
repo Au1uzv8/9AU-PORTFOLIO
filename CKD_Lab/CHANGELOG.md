@@ -1,3 +1,14 @@
+
+## 2026-10-08 — P3 Appointment / Medical Events / eGFR Scenario UX
+- Added dashboard latest appointment card. Primary appointment date is the Internal Medicine visit date; lab/venipuncture date is stored separately.
+- Added Thai Buddhist date parsing and appointment extraction from OCR text, including snapshot-date priority and source ordering.
+- Added extensible Medical Events storage/UI for occasional events (fall, head injury, accident, emergency, surgery, orthopedics, neurology, other).
+- Reworked eGFR scenario chart to use Actual + Stable + Observed Trend + statistical projection range instead of fixed Best/Worst linear values. The projection is explicitly informational, not a dialysis decision rule.
+- Added a separate Kidney Risk / KFRE information panel; it is intentionally not drawn inside the main eGFR chart. The current build withholds a numeric KFRE percentage until region/calibration is explicitly specified.
+- Stored patient birth date/sex fields needed for future validated risk calculation.
+- Added migration support for `appointments` and `events` without changing the existing localStorage key.
+- Regression tests: 30/30 passed; embedded JavaScript syntax check passed; appointment OCR parser spot test passed.
+
 # CHANGELOG
 
 ## 2026-10-06 — P0 OCR reliability pass

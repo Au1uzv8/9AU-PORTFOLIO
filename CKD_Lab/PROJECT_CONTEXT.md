@@ -76,3 +76,12 @@ Medical Timeline and Change Detection are implemented in the dashboard. The chan
 
 ### P1-7 status (2026-10-06)
 Doctor Report now combines latest department data, diagnosis/visit context, previous-vs-current lab changes, medical timeline, current vitals, advice, and dashboard chart snapshots. Report is explicitly a recorded-data summary and not a diagnosis.
+
+
+### P3 baseline (2026-10-08)
+- Appointment: use the Internal Medicine visit date as the primary appointment date; keep lab date separately; latest clear screenshot/source snapshot has highest priority.
+- Future paper records: screenshots and A5/A4 scans are treated as the same document-source concept.
+- Medical events: extensible generic event record supports occasional cross-department events without creating a new schema for every specialty.
+- eGFR graph: Actual remains visually dominant. The main chart now separates Stable, Observed Trend, and a statistical projection range; no fixed Best/Worst linear scenario is used.
+- KFRE: risk information is a separate data panel, not overlaid on the main graph, to preserve readability. Numeric risk is intentionally withheld until appropriate calibration/region handling is implemented.
+- Patient risk inputs: birthDate and sex are stored in the patient profile for future validated risk calculation.

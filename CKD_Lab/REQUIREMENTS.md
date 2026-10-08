@@ -49,3 +49,13 @@
 - [x] High-confidence OCR confirmation workflow.
 - [x] Block OCR commit while unresolved review items remain.
 - [x] Preserve graph-first dashboard and existing graph coverage.
+
+
+## P3 requirements — confirmed 2026-10-08
+1. Appointment date must use the Internal Medicine visit date as the primary appointment date; lab date remains separate.
+2. Appointment OCR must tolerate hospital app screenshots, Thai Buddhist dates, and rescheduled appointments.
+3. Latest screenshot/source snapshot must have priority when appointment information changes.
+4. Medical Events must support rare cross-department events without bloating the core lab model.
+5. eGFR graph must keep Actual visually dominant and must not use arbitrary Best/Worst linear projections.
+6. KFRE/Risk must be displayed separately from the main eGFR graph.
+7. Original documents remain source-of-truth; OCR output is structured data, not the sole evidence.
