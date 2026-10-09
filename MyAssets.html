@@ -530,9 +530,9 @@ function renderRiskMonitor(sum) {
   body.innerHTML = risky.map(function(p) {
     const d = p.diffPct;
     let cls = '', label = '';
-    if      (d <= -20) { cls = 'rm-sl20';  label = 'SL-20%'; }
-    else if (d <= -15) { cls = 'rm-sl15';  label = 'SL-15%'; }
-    else if (d <= -10) { cls = 'rm-watch'; label = 'WATCH'; }
+    if      (d <= -15) { cls = 'rm-sl15';  label = 'SL-15%'; }
+    else if (d <= -12) { cls = 'rm-sl12';  label = 'SL-12%'; }
+    else if (d <= -8) { cls = 'rm-watch'; label = 'WATCH'; }
     else if (d >= 60)  { cls = 'rm-tp-str';label = 'TP+60%'; }
     else if (d >= 50)  { cls = 'rm-tp-str';label = 'TP+50%'; }
     else               { cls = 'rm-tp';    label = 'TP+40%'; }
