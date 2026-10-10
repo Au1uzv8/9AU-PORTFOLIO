@@ -1,3 +1,14 @@
+
+## 2026-10-08 — P3 Appointment / Medical Events / eGFR Scenario UX
+- Added dashboard latest appointment card. Primary appointment date is the Internal Medicine visit date; lab/venipuncture date is stored separately.
+- Added Thai Buddhist date parsing and appointment extraction from OCR text, including snapshot-date priority and source ordering.
+- Added extensible Medical Events storage/UI for occasional events (fall, head injury, accident, emergency, surgery, orthopedics, neurology, other).
+- Reworked eGFR scenario chart to use Actual + Stable + Observed Trend + statistical projection range instead of fixed Best/Worst linear values. The projection is explicitly informational, not a dialysis decision rule.
+- Added a separate Kidney Risk / KFRE information panel; it is intentionally not drawn inside the main eGFR chart. The current build withholds a numeric KFRE percentage until region/calibration is explicitly specified.
+- Stored patient birth date/sex fields needed for future validated risk calculation.
+- Added migration support for `appointments` and `events` without changing the existing localStorage key.
+- Regression tests: 30/30 passed; embedded JavaScript syntax check passed; appointment OCR parser spot test passed.
+
 # CHANGELOG
 
 ## 2026-10-06 — P0 OCR reliability pass
@@ -65,3 +76,13 @@
 - Added high-confidence OCR confirmation action so users can mark only sufficiently confident fields without manually retyping them.
 - Preserved graph-first dashboard and existing chart coverage.
 - Updated requirements to mark canonical OCR and graph readability work complete.
+
+## 2026-10-10 — P4 HTML recovery and safe merge
+- Compared the supplied old/new HTML files directly. The newer file had dropped the original database bootstrap, schema migration, persistence, record selection/aggregation helpers, and language/advice dictionaries while retaining references to those dependencies.
+- Rebuilt from the older baseline instead of patching the broken file, then merged appointment, KFRE panel, Medical Events, and revised eGFR graph features.
+- Added Thai Buddhist-date support to browser OCR date extraction and tightened appointment parsing so a nearby later ophthalmology appointment cannot be mistaken for the Internal Medicine appointment. The primary appointment, lab date, time, and location passed a regression test.
+- Added backward-compatible schema defaults for appointments/events/risk and retained the existing localStorage key `ckd_db_v6`.
+- Fixed payload bootstrap to write the payload to `ckd_db_v6`, preserving the legacy `DB` key too.
+- Preserved the original HTML as `CKD_Lab_Tracker_BASELINE_OLD.html` for rollback.
+- Tests: JS syntax pass; HTML ID uniqueness pass; fake-DOM startup pass; event save pass; existing-record migration pass; appointment/date parser pass; 30/30 Python OCR tests pass.
+- Not verified: full real-browser visual and interaction test. Headless Chromium timed out in the current environment.

@@ -76,3 +76,30 @@ Medical Timeline and Change Detection are implemented in the dashboard. The chan
 
 ### P1-7 status (2026-10-06)
 Doctor Report now combines latest department data, diagnosis/visit context, previous-vs-current lab changes, medical timeline, current vitals, advice, and dashboard chart snapshots. Report is explicitly a recorded-data summary and not a diagnosis.
+
+
+### P3 baseline (2026-10-08)
+- Appointment: use the Internal Medicine visit date as the primary appointment date; keep lab date separately; latest clear screenshot/source snapshot has highest priority.
+- Future paper records: screenshots and A5/A4 scans are treated as the same document-source concept.
+- Medical events: extensible generic event record supports occasional cross-department events without creating a new schema for every specialty.
+- eGFR graph: Actual remains visually dominant. The main chart now separates Stable, Observed Trend, and a statistical projection range; no fixed Best/Worst linear scenario is used.
+- KFRE: risk information is a separate data panel, not overlaid on the main graph, to preserve readability. Numeric risk is intentionally withheld until appropriate calibration/region handling is implemented.
+- Patient risk inputs: birthDate and sex are stored in the patient profile for future validated risk calculation.
+
+## P4 recovery checkpoint — 2026-10-10
+- The user supplied two HTML snapshots: `CKD_Lab_Tracker.txt` (older baseline) and `CKD_Lab_Tracker_(ใหม่).txt` (newer but incomplete).
+- Direct comparison showed the newer file had removed core functions and state: `seed`, `migrate`, `save`, `recs`, `avg`, `I18N`, `ADV`, `LANG`, `DEPT`, `KEY`, and `DB`, while other code still depended on them. Do not use that newer file as the base.
+- Recovery strategy: restore the older HTML as the application baseline and transplant only the newer feature surfaces and functions. The package's `CKD_Lab_Tracker.html` is the merged candidate; `CKD_Lab_Tracker_BASELINE_OLD.html` is the rollback baseline.
+- Restored/preserved core state and functions, existing dashboard charts, lab history, daily entries, manual entry, OCR review/commit, JSON import/export, print report, and language handling.
+- Added the latest appointment card and OCR extraction. Internal Medicine date is primary; blood-draw date is separate; Thai Buddhist dates are parsed; the most recent screenshot snapshot date takes priority. The OCR parser regression sample correctly selected 27 Oct 2026 Internal Medicine, 26 Oct 2026 blood draw, 09:00, and room `ห้องตรวจอายุรกรรม (คุ้มเกศ) ชั้น 1` from a sample OCR text containing a later ophthalmology appointment.
+- Added extensible Medical Events UI and backward-compatible `DB.events` migration.
+- Added separate KFRE information panel and migration-safe `DB.risk` defaults; numeric risk percentage remains withheld until appropriate calibration is specified.
+- Replaced fixed Best/Worst eGFR scenario series with observed Actual data, stable line, observed trend, and a statistical projection band. The projection is illustrative only, not a clinical prediction.
+- Added Thai Buddhist date parsing to browser OCR's lab-date detection.
+- Fixed payload bootstrap to save imported `payload.DB` to the app's actual localStorage key (`ckd_db_v6`) as well as the legacy `DB` key, preventing payload data from being ignored on first load.
+- Added bilingual labels for new features without replacing the original translation dictionaries.
+- Validation: embedded JavaScript `node --check` passed; no duplicate HTML IDs; fake-DOM initialization smoke test passed; Medical Event save flow passed; existing-record migration test confirmed prior records are preserved; appointment OCR/date regression test passed; scenario builder returned 5 actual points + 6 projections for the current sample dataset; Python OCR tests passed 30/30 using `pytest --import-mode=importlib`.
+- Limitation: real browser visual verification was not completed because headless Chromium hung in this execution environment. Treat this as a candidate for local browser verification, not as a claim that every UI interaction has been fully tested in a real browser.
+
+## Mandatory development protocol
+Before every code change, write a concise plan covering: baseline/version, objective, exact scope, protected behavior/data, acceptance tests, and rollback. Never patch the only known-good file in place. Update `PROJECT_CONTEXT.md`, `REQUIREMENTS.md`, and `CHANGELOG.md` at each meaningful milestone. Prefer existing project files and context over asking the user to upload files again. If context is at risk of being lost, checkpoint the current state before proceeding.
