@@ -797,12 +797,8 @@ function renderTicker() {
       <span class="text-white font-bold">${val > 0 ? unit + fmtN(val, 0) : '--'}</span>${extra || ''}
     </span>`;
 
-  let btcExtra = '';
-  if (btcLive) {
-    const c = btcLive.chg;
-    btcExtra = `<span class="${c >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${c >= 0 ? '+' : ''}${fmtN(c, 2)}%</span>`;
-  }
-  const html = chip('BTC/USD', btc, '$', btcExtra) + chip('Gold Spot', gold, '$') + chip('Thai Gold', thai, '฿');
+  /* v9: แสดงเฉพาะราคาปัจจุบัน ไม่แสดง % change 24h */
+  const html = chip('BTC/USD', btc, '$') + chip('Gold Spot', gold, '$') + chip('Thai Gold', thai, '฿');
   ['tickerTop','tickerStrip'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = html; });
 }
 
