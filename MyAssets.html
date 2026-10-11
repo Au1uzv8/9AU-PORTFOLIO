@@ -45,7 +45,7 @@
       <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
     </div>
     <h2 class="text-xl font-bold text-white fb mb-1">PORTFOLIO ACCESS</h2>
-    <p class="text-xs text-gray-400 mb-6">กรุณากรอกรหัสความปลอดภัย 6 หลัก</p>
+    <p id="pinSubtitle" class="text-xs text-gray-400 mb-6">กรุณากรอกรหัสความปลอดภัย 6 หลัก</p>
     <div class="flex justify-center gap-3 mb-8">
       <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-600 bg-transparent transition-all"></div>
       <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-600 bg-transparent transition-all"></div>
@@ -306,6 +306,17 @@
   </div>
 </div>
 
+<!-- ── RENEW BANNER (v9: auto token-renewal indicator) ─────── -->
+<div id="renewBanner" class="hidden fixed top-16 inset-x-0 z-40 flex justify-center pointer-events-none">
+  <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-900/80 border border-amber-500/40 text-amber-300 text-xs backdrop-blur shadow-lg">
+    <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+    </svg>
+    <span>กำลังต่ออายุ session... (ครั้งเดียวทุก 3 วัน)</span>
+  </div>
+</div>
+
 <!-- ── SCRIPT ──────────────────────────────────────────────── -->
 <script>
 'use strict';
@@ -323,7 +334,18 @@ const FB_CFG  = {
 };
 
 /* ── State ───────────────────────────────────────────────── */
-let currentToken = localStorage.getItem('portfolio_token') || '';
+/* v9: Local PIN + session cache keys */
+const LS_PIN_HASH  = '9au_pin_hash';
+const LS_PIN_SALT  = '9au_pin_salt';
+const LS_PIN_EXP   = '9au_pin_expiry';
+const LS_SESS_TOK  = 'portfolio_token';
+const LS_SESS_EXP  = '9au_sess_expiry';
+const SS_CACHE     = '9au_bscache';
+const CACHE_TTL_MS = 5  * 60 * 1000;    /* sessionStorage: 5 min */
+const PIN_TTL_MS   = 12 * 3600 * 1000;  /* local PIN: 12 h */
+const SESS_TTL_MS  = 72 * 3600 * 1000;  /* token: 72 h */
+
+let currentToken = localStorage.getItem(LS_SESS_TOK) || '';
 let enteredPin   = '';
 let appData      = null;          // bootstrap data (history / accounts)
 let rtData       = null;          // Firebase realtime snapshot
@@ -337,22 +359,36 @@ let chartTrend   = null;
 firebase.initializeApp(FB_CFG);
 const db = firebase.database();
 
+/* v9: ใช้ .once() ต่อ cycle แทน .on() persistent ─ ตัด WebSocket overhead
+   ดึงใหม่ทุก 5 นาทีตรงกับ pushToFirebase_() trigger ใน Code.gs       */
 function startFirebaseListen() {
   fetchBtcLive();
   setInterval(fetchBtcLive, 60000);
-  const statusEl = document.getElementById('fbStatus');
-  db.ref('realtime').on('value', snap => {
-    rtData = snap.val();
-    if (rtData) {
-      statusEl.textContent = 'FB live';
-      statusEl.className   = 'fb-badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-      document.getElementById('hFx').textContent = fmtN(rtData.fxRate || 33.14, 2);
-      renderDashboard();
-    }
-  }, err => {
-    statusEl.textContent = 'FB offline';
-    statusEl.className   = 'fb-badge bg-rose-500/10 text-rose-400 border border-rose-500/20';
-  });
+
+  function fetchRt() {
+    const statusEl = document.getElementById('fbStatus');
+    db.ref('realtime').once('value')
+      .then(snap => {
+        rtData = snap.val();
+        if (!rtData) return;
+        if (statusEl) {
+          statusEl.textContent = 'FB live';
+          statusEl.className   = 'fb-badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+        }
+        const hFx = document.getElementById('hFx');
+        if (hFx) hFx.textContent = fmtN(rtData.fxRate || 33.14, 2);
+        renderDashboard();
+      })
+      .catch(() => {
+        if (statusEl) {
+          statusEl.textContent = 'FB offline';
+          statusEl.className   = 'fb-badge bg-rose-500/10 text-rose-400 border border-rose-500/20';
+        }
+      });
+  }
+
+  fetchRt();
+  setInterval(fetchRt, 5 * 60 * 1000); /* sync กับ pushToFirebase_() ทุก 5 นาที */
 }
 
 /* ── JSONP (Bootstrap — history / accounts only) ─────────── */
@@ -381,6 +417,89 @@ function apiCall(action, payload, cb) {
   }
 }
 
+/* ── v9: Local PIN + Session Cache ──────────────────────── */
+
+/* PBKDF2 — Web Crypto API native, ไม่ต้องลง library
+   ใช้เวลา ~150 ms ต่อครั้ง — เกิดแค่เมื่อ login + ทุก 12 h */
+async function hashPIN(pin, salt) {
+  const enc  = new TextEncoder();
+  const key  = await crypto.subtle.importKey(
+    'raw', enc.encode(pin), { name:'PBKDF2' }, false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name:'PBKDF2', salt:enc.encode(salt), iterations:100_000, hash:'SHA-256' },
+    key, 256);
+  return btoa(String.fromCharCode(...new Uint8Array(bits)));
+}
+
+/* คืนค่า: false = ต้อง login ครั้งแรก, 'need_pin' = มี cache ให้ verify local */
+async function tryLocalUnlock() {
+  const pinHash = localStorage.getItem(LS_PIN_HASH);
+  const pinSalt = localStorage.getItem(LS_PIN_SALT);
+  const pinExp  = Number(localStorage.getItem(LS_PIN_EXP) || 0);
+  const tok     = localStorage.getItem(LS_SESS_TOK) || '';
+  if (!pinHash || !pinSalt || !tok) return false;   /* ไม่มี cache */
+  if (Date.now() > pinExp) return false;             /* PIN cache หมดอายุ */
+  return 'need_pin';                                 /* มี cache — แสดง keypad verify local */
+}
+
+/* ต่ออายุ token background — ไม่รบกวน UI */
+function autoRenewToken(cb) {
+  const banner = document.getElementById('renewBanner');
+  if (banner) banner.classList.remove('hidden');
+  apiCall('renewToken', {}, res => {
+    if (banner) banner.classList.add('hidden');
+    if (res.ok && res.data?.token) {
+      currentToken = res.data.token;
+      localStorage.setItem(LS_SESS_TOK, currentToken);
+      localStorage.setItem(LS_SESS_EXP, String(Date.now() + SESS_TTL_MS));
+      cb(true);
+    } else {
+      /* grace period หมด — ต้อง full login */
+      logout();
+    }
+  });
+}
+
+/* sequence หลังยืนยันตัวตนสำเร็จ — ทั้ง login ครั้งแรก และ local verify */
+function unlockApp() {
+  document.getElementById('pinOverlay').classList.add('hidden');
+  const sessExp = Number(localStorage.getItem(LS_SESS_EXP) || 0);
+  if (currentToken && Date.now() > sessExp) {
+    /* token หมดอายุ — ต่อ session แบบ silent ก่อน unlock */
+    autoRenewToken(ok => { if (ok) { startFirebaseListen(); bootstrapOnce(); } });
+    return;
+  }
+  startFirebaseListen();
+  bootstrapOnce();
+}
+
+/* bootstrap พร้อม sessionStorage cache — โหลดครั้งเดียวต่อ session
+   ครั้งถัดไปที่เปิด page ใหม่ภายใน 5 นาที → restore จาก cache ทันที */
+function bootstrapOnce(forceRefresh) {
+  if (!forceRefresh) {
+    try {
+      const raw   = sessionStorage.getItem(SS_CACHE);
+      const cache = raw ? JSON.parse(raw) : null;
+      if (cache?.data && (Date.now() - cache.ts) < CACHE_TTL_MS) {
+        appData = cache.data;
+        populateAccounts();
+        renderDashboard();
+        return; /* ใช้ cache — ไม่ไป network */
+      }
+    } catch(e) { /* cache corrupt — fetch ใหม่ */ }
+  }
+  loadBootstrap(() => {
+    try {
+      sessionStorage.setItem(SS_CACHE, JSON.stringify({ data: appData, ts: Date.now() }));
+    } catch(e) { /* sessionStorage เต็ม — ข้ามได้ */ }
+  });
+}
+
+/* ล้าง cache เพื่อบังคับ re-fetch หลัง write ops */
+function invalidateCache() {
+  try { sessionStorage.removeItem(SS_CACHE); } catch(e) {}
+}
+
 /* ── PIN Logic ───────────────────────────────────────────── */
 function pressPin(n) {
   if (enteredPin.length < 6) { enteredPin += n; updateDots(); if (enteredPin.length===6) submitPin(); }
@@ -394,16 +513,46 @@ function updateDots() {
   });
 }
 function submitPin() {
-  const err = document.getElementById('pinError');
+  const err  = document.getElementById('pinError');
+  const pin  = enteredPin;
+  const hash = localStorage.getItem(LS_PIN_HASH);
+  const salt = localStorage.getItem(LS_PIN_SALT);
+  const pExp = Number(localStorage.getItem(LS_PIN_EXP) || 0);
+
+  /* ── Case A: มี local hash ยังไม่หมดอายุ → verify ใน browser (0 ms network) ── */
+  if (hash && salt && Date.now() < pExp) {
+    err.textContent = 'กำลังตรวจสอบ (local)...';
+    hashPIN(pin, salt).then(computed => {
+      if (computed === hash) {
+        localStorage.setItem(LS_PIN_EXP, String(Date.now() + PIN_TTL_MS)); /* ต่ออายุ PIN */
+        err.textContent = '';
+        enteredPin = ''; updateDots();
+        unlockApp();
+      } else {
+        err.textContent = 'รหัสผ่านไม่ถูกต้อง';
+        enteredPin = ''; updateDots();
+      }
+    });
+    return;
+  }
+
+  /* ── Case B: ไม่มี cache หรือ หมดอายุ → ตรวจกับ Code.gs (ครั้งแรก / ทุก 12 h) ── */
   err.textContent = 'กำลังตรวจสอบ...';
-  apiCall('login', { pin: enteredPin }, res => {
+  apiCall('login', { pin }, res => {
     if (res.ok && res.data?.token) {
       currentToken = res.data.token;
-      localStorage.setItem('portfolio_token', currentToken);
+      localStorage.setItem(LS_SESS_TOK, currentToken);
+      localStorage.setItem(LS_SESS_EXP, String(Date.now() + SESS_TTL_MS));
+      /* สร้าง PBKDF2 hash สำหรับครั้งถัดไป — async, ไม่บล็อก UI */
+      const newSalt = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()));
+      hashPIN(pin, newSalt).then(h => {
+        localStorage.setItem(LS_PIN_HASH, h);
+        localStorage.setItem(LS_PIN_SALT, newSalt);
+        localStorage.setItem(LS_PIN_EXP,  String(Date.now() + PIN_TTL_MS));
+      });
       err.textContent = '';
-      document.getElementById('pinOverlay').classList.add('hidden');
-      startFirebaseListen();
-      loadBootstrap();
+      enteredPin = ''; updateDots();
+      unlockApp();
     } else {
       err.textContent = res.error || 'รหัสผ่านไม่ถูกต้อง';
       enteredPin = ''; updateDots();
@@ -411,7 +560,10 @@ function submitPin() {
   });
 }
 function logout() {
-  currentToken = ''; localStorage.removeItem('portfolio_token'); location.reload();
+  currentToken = '';
+  [LS_SESS_TOK, LS_SESS_EXP, LS_PIN_HASH, LS_PIN_SALT, LS_PIN_EXP].forEach(k => localStorage.removeItem(k));
+  invalidateCache();
+  location.reload();
 }
 
 /* ── Bootstrap (history, accounts, snapshot) ─────────────── */
@@ -826,13 +978,13 @@ function submitUpdateAccount() {
   const id  = document.getElementById('accSelect').value;
   const bal = Number(document.getElementById('accBalance').value);
   apiCall('updateAccount',{id,openingBalance:bal},res=>{
-    if (res.ok) { closeModal('modalAccount'); loadBootstrap(); }
+    if (res.ok) { closeModal('modalAccount'); invalidateCache(); loadBootstrap(); }
     else alert('ผิดพลาด: '+res.error);
   });
 }
 function triggerSnapshot() {
   if (!confirm('บันทึก Snapshot วันนี้?')) return;
-  apiCall('saveSnapshot',{},res=>{ if(res.ok){alert('บันทึกสำเร็จ');loadBootstrap();} });
+  apiCall('saveSnapshot',{},res=>{ if(res.ok){alert('บันทึกสำเร็จ');invalidateCache();loadBootstrap();} });
 }
 
 /* ── Helpers ─────────────────────────────────────────────── */
@@ -849,13 +1001,32 @@ function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 /* ── Init ────────────────────────────────────────────────── */
 window.onLangChange = function() { if (typeof appData !== 'undefined' && appData) { renderDashboard(); } };
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (currentToken) {
-    document.getElementById('pinOverlay').classList.add('hidden');
-    startFirebaseListen();
-    loadBootstrap();
+document.addEventListener('DOMContentLoaded', async () => {
+  const overlay   = document.getElementById('pinOverlay');
+  const subtitle  = document.getElementById('pinSubtitle');
+  const cacheState = await tryLocalUnlock();
+
+  if (cacheState === 'need_pin') {
+    /* มี local PIN hash — แสดง keypad แต่ verify ใน browser (ไม่ไป network) */
+    if (subtitle) subtitle.textContent = 'กรอกรหัสเพื่อปลดล็อก (verify local — 0 ms)';
+    overlay.classList.remove('hidden');
+    /* pre-load sessionStorage cache แบบ silent ถ้ายังไม่หมดอายุ
+       เพื่อให้ renderDashboard() พร้อมทันทีหลัง PIN ผ่าน */
+    try {
+      const raw = sessionStorage.getItem(SS_CACHE);
+      if (raw) {
+        const c = JSON.parse(raw);
+        if (c?.data && (Date.now() - c.ts) < CACHE_TTL_MS) appData = c.data;
+      }
+    } catch(e) {}
+  } else if (currentToken) {
+    /* token ยังใช้ได้ แต่ไม่มี local PIN cache (เครื่องใหม่ / localStorage cleared) */
+    overlay.classList.add('hidden');
+    unlockApp();
   } else {
-    document.getElementById('pinOverlay').classList.remove('hidden');
+    /* ไม่มีอะไรเลย — first visit */
+    if (subtitle) subtitle.textContent = 'กรุณากรอกรหัสความปลอดภัย 6 หลัก';
+    overlay.classList.remove('hidden');
   }
 });
 </script>
