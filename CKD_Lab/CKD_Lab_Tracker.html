@@ -106,6 +106,7 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
     <img class="logo" src="app-icon.png" alt="" onerror="this.style.visibility='hidden'">
     <div><h1 data-i18n="appName">Health Tracker</h1><div class="sub" data-i18n="appSub">ผู้ช่วยติดตามสุขภาพโรคไตเรื้อรังและจักษุ</div></div>
     <div class="spacer"></div>
+    <button class="btn lm" data-act="user-guide" data-i18n="guideButton">เปิดคู่มือ</button>
     <button class="btn lm" data-act="print" data-i18n="printBtn">พิมพ์รายงาน</button>
     <button class="btn" data-act="admin-pin" id="adminPinBtn">Admin: Locked</button>
     <span class="badge" id="firebaseStatus">Cloud: setup required</span>
@@ -438,6 +439,11 @@ I18N.en.appointmentHint='Shows the next three saved items across sources, with b
 I18N.th.scenHint='Actual ต้องเด่นที่สุด · แสดงแนวโน้มที่สังเกตได้และสถานการณ์เพื่อการทำความเข้าใจ ไม่ใช่คำพยากรณ์หรือเกณฑ์ตัดสินการฟอกไต';
 I18N.en.scenHint='Actual values are emphasized. Observed trend and illustrative scenarios are informational, not a forecast or a dialysis decision rule.';
 I18N.th.kidneyRiskT='ความเสี่ยงไตวาย · KFRE'; I18N.en.kidneyRiskT='Kidney Risk · KFRE';
+
+I18N.th.guideTitle='คู่มือการใช้งาน'; I18N.en.guideTitle='User Guide';
+I18N.th.guideHint='ที่มา วิธีบันทึกข้อมูล OCR รายงาน และ Firebase Sync'; I18N.en.guideHint='Project background, data entry, OCR, reports, and Firebase Sync';
+I18N.th.guideButton='เปิดคู่มือ'; I18N.en.guideButton='Open Guide';
+
 I18N.th.kidneyRiskHint='เก็บเป็นข้อมูลประกอบแยกจากกราฟ เพื่อไม่ให้กราฟหลักอ่านยาก และจะคำนวณเมื่อข้อมูลที่จำเป็นครบและตรวจสอบได้';
 I18N.en.kidneyRiskHint='Keep risk information separate from the main graph. Calculate only when required inputs and suitable calibration are verified.';
 I18N.th.eventT='เหตุการณ์ทางการแพทย์ล่าสุด'; I18N.en.eventT='Latest Medical Event';
@@ -1504,6 +1510,30 @@ function commitOCR(){
 
 /* ========== 14. รายงานสำหรับพิมพ์ ========== */
 var REPORT_MODE='all';
+function showUserGuide(){
+ var box=E('mbox'),th=LANG==='th',h='';
+ h+='<div class="hrow"><h2 style="margin:0;color:var(--lime)">'+(th?'คู่มือการใช้งาน CKD Lab Tracker':'CKD Lab Tracker User Guide')+'</h2><div class="spacer"></div><button class="btn" data-act="close">'+(th?'ปิด':'Close')+'</button></div>';
+ if(th){
+  h+='<p>คู่มือฉบับนี้รวบรวมที่มา พัฒนาการ และวิธีใช้ Tracker รุ่นปัจจุบัน</p>';
+  h+='<h3>1. ที่มาและเป้าหมาย</h3><p>เริ่มจากแนวคิดทำเครื่องมือช่วยติดตามผลตรวจและสุขภาพของคุณแม่ที่เป็นโรคไตเรื้อรัง โดยรวบรวมข้อมูลจากอายุรกรรมและจักษุกรรมไว้ในที่เดียว เพื่อดูแนวโน้ม เตรียมพบแพทย์ และลดการค้นข้อมูลจากหลายแหล่ง</p>';
+  h+='<h3>2. พัฒนาการของแอป</h3><ul><li>ต่อยอดจากไฟล์ HTML เดิม โดยคงการเก็บข้อมูลใน browser และเพิ่มกราฟไต สัญญาณชีพ ประวัติผลตรวจ ยา การวินิจฉัย และเหตุการณ์ทางการแพทย์</li><li>เพิ่ม OCR สำหรับอ่านภาพผลตรวจ และดึงวันนัดจากภาพของแอปโรงพยาบาล/ศูนย์โรคไต โดยให้ตรวจทานก่อนบันทึก</li><li>Dashboard แสดงนัดหมายล่วงหน้าสูงสุด 3 รายการ รวมวันเจาะเลือดแยกจากวันพบแพทย์</li><li>เพิ่มรายงาน A ภาพรวม, B อายุรกรรม, C จักษุกรรม พร้อมปรับ Contrast กราฟรายงานให้อ่านง่ายขึ้น</li><li>แก้ PIN ให้รับตัวเลข 6 หลัก เช่น 197382; ใช้ PIN ในเครื่องเป็นด่านปลดล็อก โดยไม่มี Firebase Authentication ซ้อน</li><li>เชื่อม Firebase Realtime Database ที่ path <code>ckd_tracker</code> และรวมข้อมูลด้วย transaction; ภาพ Firebase ล่าสุดยืนยันว่ามีโครงสร้างข้อมูลแล้ว</li></ul>';
+  h+='<h3>3. เริ่มใช้งานและ PIN</h3><ol><li>เปิดหน้าเว็บบนอุปกรณ์ที่ต้องการใช้</li><li>กดปุ่ม PIN บนแถบด้านบน ครั้งแรกตั้ง PIN 6 หลักและกรอกยืนยัน ครั้งต่อไปกรอก PIN เดิมเพื่อปลดล็อกการบันทึก นำเข้า OCR และซิงก์</li><li>PIN เก็บแยกใน browser/อุปกรณ์นั้น ๆ ถ้าเปลี่ยนอุปกรณ์จะต้องตั้ง PIN บนอุปกรณ์ใหม่</li></ol>';
+  h+='<h3>4. บันทึกผลและใช้ OCR</h3><ul><li>กรอกผลเองที่ “กรอกผลตรวจ” หรือเลือกแผนกอายุรกรรม/จักษุกรรมก่อนบันทึก</li><li>ที่ “อัปโหลดรูป (OCR)” เลือกภาพผลตรวจหรือนัดหมาย ระบบอ่านข้อมูลแล้วแสดงให้ตรวจทานก่อนกดยืนยัน</li><li>OCR ใช้ Tesseract.js และโหลดส่วนประกอบจาก CDN จึงต้องต่ออินเทอร์เน็ต ระวังตัวเลข/วันที่ที่อ่านไม่ชัด และแก้ให้ตรงภาพก่อนบันทึก</li><li>นัดหมายที่อ่านได้จะสะสมจากหลายภาพและหลายแหล่ง; ตรวจวันนัดและวันเจาะเลือดใน Dashboard</li></ul>';
+  h+='<h3>5. Dashboard และรายงาน</h3><ul><li>Dashboard รวมผลล่าสุด แนวโน้ม eGFR สัญญาณชีพ จุดที่ควรตรวจสอบ เหตุการณ์ และนัดหมาย</li><li>ประวัติย้อนหลังดูผลตามเวลาและแผนก แตะแถว/กราฟเพื่อดูรายละเอียด</li><li>กด “พิมพ์รายงาน” แล้วเลือกรายงาน A/B/C จากนั้นพิมพ์หรือบันทึกเป็น PDF</li><li>ข้อความ AI Prompt ในรายงานเป็นแนวทางประกอบเอกสาร ไม่รับประกันว่า AI ทุกระบบจะทำตามเอง ผู้ใช้ต้องสั่งให้วิเคราะห์ PDF ด้วย</li></ul>';
+  h+='<h3>6. Firebase Sync และสำรองข้อมูล</h3><ul><li>ข้อมูล Cloud อยู่ใต้ <code>ckd_tracker</code>; เมื่อเปิดเว็บจะอ่านข้อมูล Cloud และหลังปลดล็อก PIN การบันทึกจะส่งการเปลี่ยนแปลงขึ้น Cloud</li><li>กด “ซิงก์ Cloud” เพื่อเริ่ม/สั่งซิงก์ หากฐานว่าง ระบบจะถามยืนยันก่อนส่งข้อมูลใน browser นี้เป็นชุดแรก</li><li>สำรอง/กู้คืนผ่านเมนู “ข้อมูล/สำรอง” ดาวน์โหลดหรือเลือกไฟล์ JSON</li><li>ชุด GitHub Pages ขั้นต่ำประกอบด้วย <code>index.html</code>, <code>app-icon.png</code> และ <code>app_db_payload.json</code> เพื่อโหลดข้อมูลตั้งต้น</li><li><b>หมายเหตุ:</b> PIN ปลดล็อกเฉพาะหน้าแอป ไม่ได้ป้องกัน Firebase โดยตรง หาก Rules เปิดอ่าน/เขียนสาธารณะ ผู้ที่เข้าถึงฐานได้อาจอ่าน แก้ไข หรือลบข้อมูล</li></ul>';
+  h+='<h3>7. ขอบเขตการใช้ข้อมูล</h3><p>กราฟและสีเตือนใช้ช่วยสังเกตข้อมูลที่บันทึกไว้ ไม่ใช่การวินิจฉัยหรือคำสั่งรักษา ตรวจทานข้อมูล OCR และปรึกษาทีมแพทย์ก่อนตัดสินใจเรื่องการรักษา</p>';
+ }else{
+  h+='<p>This guide summarizes the Tracker’s background, development, and current workflow.</p>';
+  h+='<h3>1. Purpose</h3><p>The project began as a way to follow the user’s mother’s chronic kidney disease results and related health information. It brings nephrology and ophthalmology records together to review trends and prepare for appointments.</p>';
+  h+='<h3>2. What was added</h3><ul><li>Daily vitals, lab history, medication, diagnoses, medical events, and kidney/eye charts.</li><li>OCR for lab and appointment screenshots, with review before saving; upcoming appointments show up to three items across sources.</li><li>Printable A overall, B nephrology, and C ophthalmology reports with improved chart contrast.</li><li>Fixed six-digit local PIN validation, including 197382. Firebase Authentication is intentionally not used.</li><li>Firebase Realtime Database sync under <code>ckd_tracker</code> using transactions. The latest Firebase screenshot shows the data tree.</li></ul>';
+  h+='<h3>3. PIN and editing</h3><ol><li>Open the app on each device.</li><li>Use the PIN button in the header. Set a six-digit PIN on first use, or enter the existing PIN to unlock editing, OCR commit, import, and sync.</li><li>The PIN is stored per browser/device and does not transfer to another device.</li></ol>';
+  h+='<h3>4. Enter data and use OCR</h3><ul><li>Enter results manually under Enter Results, selecting the relevant department.</li><li>Under Upload Images (OCR), choose lab or appointment screenshots and review the extracted values before confirming.</li><li>OCR loads Tesseract.js from a CDN, so an internet connection is required. Verify unclear dates and values against the image.</li></ul>';
+  h+='<h3>5. Dashboard and reports</h3><ul><li>The dashboard summarizes latest results, eGFR trends, vitals, events, and upcoming appointments.</li><li>Use History to review records over time. Select Print Report and choose A, B, or C to print or save a PDF.</li><li>The included AI prompt is guidance; the user must still ask their AI system to analyze the PDF.</li></ul>';
+  h+='<h3>6. Firebase and backups</h3><ul><li>Cloud data is stored under <code>ckd_tracker</code>. Unlock the local PIN before writing. Use Sync Cloud to start or request a sync; an empty database prompts before the first upload.</li><li>Use Data / Backup to export or import JSON. The basic GitHub Pages deployment uses <code>index.html</code>, <code>app-icon.png</code>, and <code>app_db_payload.json</code>.</li><li><b>Note:</b> The local PIN does not protect Firebase directly. Public database Rules can allow others to read, change, or delete data.</li></ul>';
+  h+='<h3>7. Intended use</h3><p>Charts and flags help review recorded data; they are not a diagnosis or treatment instruction. Verify OCR and consult the care team before making medical decisions.</p>';
+ }
+ box.innerHTML=h;E('modal').className='modal on';
+}
 function showReportChooser(){
  var box=E('mbox');
  box.innerHTML='<h3 style="margin-top:0">เลือกรายงานที่ต้องการพิมพ์</h3>'+
@@ -1770,6 +1800,7 @@ document.addEventListener('click',function(ev){
  else if(act==='dept'){setDept(val);}
  else if(act==='lang'){LANG=(LANG==='th')?'en':'th';renderAll();go(CURVIEW);}
  else if(act==='print'){doPrint();}
+ else if(act==='user-guide'){showUserGuide();}
  else if(act==='cloud-sync'){syncFirebaseNow();}
  else if(act==='admin-pin'){handleAdminPin();}
  else if(act==='report-mode'){REPORT_MODE=val;E('modal').className='modal';buildReport(REPORT_MODE);window.print();}
