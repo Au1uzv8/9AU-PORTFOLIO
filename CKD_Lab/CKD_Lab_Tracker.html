@@ -89,6 +89,11 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
  #printArea table{width:100%;border-collapse:collapse;margin-bottom:6px}
  #printArea th,#printArea td{border:1px solid #888;padding:4px 6px;color:#000;background:#fff;font-size:11px;position:static;white-space:normal}
  #printArea .pbox{border:1px solid #888;padding:6px;margin-bottom:6px}
+ #printArea .risk-red{color:#D92D20!important;font-weight:700}
+ #printArea .risk-blue{color:#2563EB!important;font-weight:700}
+ #printArea .risk-black{color:#000!important}
+ #printArea .event-item{padding:5px 0;border-bottom:1px solid #bbb;break-inside:avoid}
+ #printArea .ai-prompt{border:1px solid #777;padding:8px;margin-top:8px;white-space:pre-wrap;font-size:10.5px;line-height:1.45}
 }
 </style>
 </head>
@@ -102,6 +107,9 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
     <div><h1 data-i18n="appName">Health Tracker</h1><div class="sub" data-i18n="appSub">ผู้ช่วยติดตามสุขภาพโรคไตเรื้อรังและจักษุ</div></div>
     <div class="spacer"></div>
     <button class="btn lm" data-act="print" data-i18n="printBtn">พิมพ์รายงาน</button>
+    <button class="btn" data-act="admin-pin" id="adminPinBtn">Admin: Locked</button>
+    <span class="badge" id="firebaseStatus">Cloud: setup required</span>
+    <button class="btn cy" data-act="cloud-sync" id="cloudSyncBtn">Sync Cloud</button>
     <button class="btn gold" data-act="lang" id="langBtn">ENGLISH</button>
   </div>
   <nav>
@@ -132,7 +140,7 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
   </div>
 
   <div class="card" id="cAppointmentBox" style="border-color:var(--cyan)">
-    <div class="hrow"><h3 style="color:var(--cyan);margin:0" data-i18n="appointmentT">นัดหมายล่าสุด</h3><div class="spacer"></div><span class="badge" id="appointmentSourceBadge"></span></div>
+    <div class="hrow"><h3 style="color:var(--cyan);margin:0" data-i18n="appointmentT">นัดหมายล่วงหน้า</h3><div class="spacer"></div><span class="badge" id="appointmentSourceBadge"></span></div>
     <div id="appointmentBody"></div>
     <small class="note" data-i18n="appointmentHint">ยึดวันพบอายุรกรรมเป็นวันนัดหลัก แยกวันเจาะเลือดออก และให้ Screenshot ล่าสุดที่มีข้อมูลชัดเจนมี priority สูงสุด</small>
   </div>
@@ -424,9 +432,9 @@ reportT:'Health Summary Report',patient:'Patient',printedOn:'Printed on',sigDoc:
 // New P3 feature labels; kept separate so existing translation dictionaries remain untouched.
 I18N.th.navEvents='เหตุการณ์ทางการแพทย์';
 I18N.en.navEvents='Medical Events';
-I18N.th.appointmentT='นัดหมายล่าสุด'; I18N.en.appointmentT='Latest Appointment';
-I18N.th.appointmentHint='ยึดวันพบอายุรกรรมเป็นวันนัดหลัก แยกวันเจาะเลือดออก และให้ Screenshot ล่าสุดที่มีข้อมูลชัดเจนมี priority สูงสุด';
-I18N.en.appointmentHint='Use the internal medicine visit as the primary appointment date; keep the blood-draw date separate and prioritize the latest clear screenshot.';
+I18N.th.appointmentT='นัดหมายและเหตุการณ์ล่วงหน้า'; I18N.en.appointmentT='Upcoming Appointments and Events';
+I18N.th.appointmentHint='แสดง 3 รายการถัดไปจากทุกแหล่งที่บันทึกไว้ รวมวันเจาะเลือดแยกจากวันพบแพทย์ และรวมข้อมูลจากแอปโรงพยาบาล/ศูนย์โรคไตเมื่อมี';
+I18N.en.appointmentHint='Shows the next three saved items across sources, with blood-draw dates separate from clinic visits; hospital app and kidney-center entries are included when available.';
 I18N.th.scenHint='Actual ต้องเด่นที่สุด · แสดงแนวโน้มที่สังเกตได้และสถานการณ์เพื่อการทำความเข้าใจ ไม่ใช่คำพยากรณ์หรือเกณฑ์ตัดสินการฟอกไต';
 I18N.en.scenHint='Actual values are emphasized. Observed trend and illustrative scenarios are informational, not a forecast or a dialysis decision rule.';
 I18N.th.kidneyRiskT='ความเสี่ยงไตวาย · KFRE'; I18N.en.kidneyRiskT='Kidney Risk · KFRE';
@@ -453,7 +461,7 @@ function nm(o){return LANG==='th'?o.th:o.en;}
 /* ========== 4. ฐานข้อมูล ========== */
 var KEY='ckd_db_v6';
 function seed(){return{
-patient:{name:'คุณแม่',hn:'',birthDate:'1947-10-20',sex:'F'},
+patient:{name:'คุณแม่',hn:'',birthDate:'1947-10-20',sex:'F',heightCm:165,weightKg:68,chronicDiseases:['ไตวายเรื้อรัง ระยะก่อนฟอกไต','เบาหวาน','ความดันโลหิตสูง','โรคหัวใจ','เก๊าท์']},
 records:[
 {id:'r0',date:'2025-09-16',dept:'med',note:'',items:{egfr:26.41}},
 {id:'r01',date:'2026-01-13',dept:'med',note:'',items:{egfr:22.58}},
@@ -539,6 +547,9 @@ function migrate(d){
  if(!d.patient)d.patient={name:'คุณแม่',hn:''};
  if(!d.patient.birthDate)d.patient.birthDate='1947-10-20';
  if(!d.patient.sex)d.patient.sex='F';
+ if(d.patient.heightCm===undefined||d.patient.heightCm===null)d.patient.heightCm=165;
+ if(d.patient.weightKg===undefined||d.patient.weightKg===null)d.patient.weightKg=68;
+ if(!Array.isArray(d.patient.chronicDiseases)||!d.patient.chronicDiseases.length)d.patient.chronicDiseases=['ไตวายเรื้อรัง ระยะก่อนฟอกไต','เบาหวาน','ความดันโลหิตสูง','โรคหัวใจ','เก๊าท์'];
  if(!Array.isArray(d.appointments))d.appointments=[];
  if(!Array.isArray(d.events))d.events=[];
  if(!d.risk)d.risk={kfRe:{model:'KFRE 4-variable',region:'Thailand',status:'pending_local_calibration'}};
@@ -552,7 +563,59 @@ function migrate(d){
  return d;}
 DB=migrate(DB);
 normalizeMedicalDomains();
-function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}}
+/* Firebase Web configuration is public client configuration; database access is enforced by Realtime Database Rules. */
+var FIREBASE_CONFIG={apiKey:'AIzaSyBeLmc_Qr3LofVMSvSDSjqobk8z2HF1m1A',authDomain:'ckd-lab-tracker.firebaseapp.com',databaseURL:'https://ckd-lab-tracker-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'ckd-lab-tracker',storageBucket:'ckd-lab-tracker.firebasestorage.app',messagingSenderId:'413650551121',appId:'1:413650551121:web:f91f69bb2210c66572d370',measurementId:'G-7LE9RELJPR'};
+var FIREBASE_DATA_PATH='ckd_tracker',cloudApp=null,cloudDb=null,cloudRef=null,cloudRemoteExists=false,cloudReady=false,cloudSeedPromptShown=false,cloudLocalDirty=false,cloudPushTimer=null;
+function cloudStatus(text){var e=E('firebaseStatus');if(e)e.textContent=(LANG==='th'?'Cloud: ':'Cloud: ')+text;}
+function updateFirebaseUI(){var b=E('cloudSyncBtn');if(b)b.textContent=LANG==='th'?'ซิงก์ Cloud':'Sync Cloud';}
+function firebaseConfigured(){return !!(FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.authDomain&&FIREBASE_CONFIG.databaseURL&&FIREBASE_CONFIG.projectId&&FIREBASE_CONFIG.appId);}
+function loadFirebaseSdk(done){
+ var urls=['https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js','https://www.gstatic.com/firebasejs/12.19.0/firebase-database-compat.js'],i=0;
+ function next(){if(i>=urls.length){done();return;}var u=urls[i++];if(window.firebase&&(u.indexOf('firebase-app-')>=0||u.indexOf('firebase-database-')>=0&&firebase.database)){next();return;}
+  var s=document.createElement('script');s.src=u;s.onload=next;s.onerror=function(){cloudStatus(LANG==='th'?'โหลด Firebase SDK ไม่ได้':'SDK load failed');};document.head.appendChild(s);}
+ next();
+}
+function mergeTrackerData(remote,local){
+ remote=remote&&typeof remote==='object'?remote:{};local=local&&typeof local==='object'?local:{};
+ var out=Object.assign({},remote,local),arrays=['records','daily','appointments','events','visits','diagnoses','meds'],i,j,k,all,map;
+ out.patient=Object.assign({},remote.patient||{},local.patient||{});out.settings=Object.assign({},remote.settings||{},local.settings||{});
+ for(i=0;i<arrays.length;i++){k=arrays[i];all=[];map={};
+  function addRows(rows,prefer){for(j=0;j<(Array.isArray(rows)?rows.length:0);j++){var row=rows[j],id=String(row.id||row.date+'_'+(row.dept||row.type||'')+'_'+j);if(map[id]===undefined){map[id]=all.length;all.push(row);}else if(prefer)all[map[id]]=Object.assign({},all[map[id]],row);}}
+  addRows(remote[k],false);addRows(local[k],true);out[k]=all;
+ }
+ return out;
+}
+function cloudPushNow(){
+ if(!cloudRef||!cloudReady||!ADMIN_UNLOCKED)return;
+ cloudRef.transaction(function(current){return mergeTrackerData(current||{},DB);},function(error,committed){if(error){cloudStatus(LANG==='th'?'ซิงก์ไม่สำเร็จ · ตรวจ Rules':'sync failed · check Rules');}else if(committed){cloudReady=true;cloudLocalDirty=false;cloudStatus(LANG==='th'?'ซิงก์แล้ว':'synced');}},false);
+}
+function scheduleCloudPush(){if(!ADMIN_UNLOCKED||!cloudRef||!cloudReady)return;if(cloudPushTimer)clearTimeout(cloudPushTimer);cloudPushTimer=setTimeout(cloudPushNow,700);}
+function requestCloudSeedIfNeeded(){
+ if(!cloudRef||!ADMIN_UNLOCKED||!cloudReady||cloudRemoteExists||cloudSeedPromptShown)return;
+ cloudSeedPromptShown=true;
+ if(DB.records&&DB.records.length&&window.confirm(LANG==='th'?'ฐานข้อมูล Firebase ยังว่าง ต้องการส่งข้อมูลในเครื่องขึ้น Cloud ครั้งแรกหรือไม่?':'Firebase is empty. Upload this browser’s current records as the initial cloud copy?'))cloudPushNow();
+ else cloudStatus(LANG==='th'?'Cloud ว่าง · ยังไม่อัปโหลดข้อมูล':'cloud empty · local data not uploaded');
+}
+function startFirebase(){
+ if(!firebaseConfigured()){cloudStatus(LANG==='th'?'รอตั้งค่า':'setup required');updateFirebaseUI();return;}
+ cloudStatus(LANG==='th'?'กำลังเชื่อมต่อ':'connecting');
+ loadFirebaseSdk(function(){try{
+  if(!window.firebase||!firebase.initializeApp)throw new Error('Firebase SDK unavailable');
+  cloudApp=firebase.apps&&firebase.apps.length?firebase.app():firebase.initializeApp(FIREBASE_CONFIG);cloudDb=firebase.database();cloudRef=cloudDb.ref(FIREBASE_DATA_PATH);
+  cloudRef.on('value',function(snapshot){cloudRemoteExists=snapshot.exists();cloudReady=true;
+   if(cloudRemoteExists){DB=migrate(cloudLocalDirty?mergeTrackerData(snapshot.val(),DB):mergeTrackerData(DB,snapshot.val()));try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}if(typeof renderAll==='function')renderAll();cloudStatus(cloudLocalDirty?(LANG==='th'?'มีข้อมูลในเครื่องรอซิงก์':'local changes pending'):(LANG==='th'?'อ่านข้อมูล Cloud แล้ว':'cloud data loaded'));if(cloudLocalDirty)scheduleCloudPush();}
+   else{cloudStatus(LANG==='th'?'ฐานข้อมูล Cloud ว่าง':'cloud database empty');requestCloudSeedIfNeeded();}
+  },function(err){cloudStatus(LANG==='th'?'อ่านไม่ได้ · ตรวจ Rules':'read denied · check Rules');});
+ }catch(e){cloudStatus(LANG==='th'?'ตั้งค่าไม่ถูกต้อง':'configuration error');showErr(e.message||String(e));}});
+}
+function syncFirebaseNow(){
+ if(!requireAdmin())return;
+ if(!cloudRef){startFirebase();cloudStatus(LANG==='th'?'กำลังเริ่ม Cloud · รอสักครู่แล้วกดซิงก์อีกครั้ง':'Starting Cloud; wait and press Sync again');return;}
+ if(!cloudReady){cloudStatus(LANG==='th'?'กำลังอ่าน Cloud':'Loading Cloud');return;}
+ if(!cloudRemoteExists){requestCloudSeedIfNeeded();return;}
+ cloudLocalDirty=true;scheduleCloudPush();
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}cloudLocalDirty=true;scheduleCloudPush();}
 function byDate(a,b){return a.date<b.date?-1:1;}
 function inDept(x){return DEPT==='all'||x.dept===DEPT;}
 function recs(dp){var o=[],j;for(j=0;j<DB.records.length;j++){var r=DB.records[j];
@@ -806,14 +869,16 @@ function linkAdvice(){
 /* ========== 8. แดชบอร์ด ========== */
 function renderAppointment(){
  var box=E('cAppointmentBox'),body=E('appointmentBody'),badge=E('appointmentSourceBadge');if(!box||!body)return;
- var a=(DB.appointments||[]).slice().sort(function(x,y){return isNewerAppointment(x,y)?-1:1;})[0];
- if(!a){body.innerHTML='<div class="adv good">'+(LANG==='th'?'ยังไม่มีข้อมูลนัดหมายที่ตรวจพบจาก Screenshot':'No appointment has been detected from uploaded screenshots yet.')+'</div>';if(badge)badge.textContent='';return;}
- if(badge)badge.textContent=(a.source_file||'OCR')+(a.snapshot_date?' · '+dTxt(a.snapshot_date):'');
- body.innerHTML='<div class="grid g3"><div><div class="sub">'+(LANG==='th'?'วันนัดหลัก':'Primary appointment')+'</div><div class="num" style="font-size:27px;color:var(--cyan)">'+dTxt(a.date)+'</div></div>'+
-  '<div><div class="sub">'+(LANG==='th'?'แผนก':'Department')+'</div><div style="margin-top:7px"><span class="pill ok">'+(LANG==='th'?'อายุรกรรม':'Internal Medicine')+'</span></div></div>'+
-  '<div><div class="sub">'+(LANG==='th'?'วันเจาะเลือด':'Lab date')+'</div><div class="num" style="font-size:20px;color:var(--gold);margin-top:7px">'+(a.lab_date?dTxt(a.lab_date):'—')+'</div></div></div>'+
-  '<div class="sub" style="margin-top:8px">'+esc(a.place||'')+(a.time?' · '+esc(a.time):'')+'</div>';
+ var now=new Date(),today=now.getFullYear()+'-'+('0'+(now.getMonth()+1)).slice(-2)+'-'+('0'+now.getDate()).slice(-2),items=[],seen={},src=DB.appointments||[],i,a,key;
+ for(i=0;i<src.length;i++){a=src[i];key=(a.source_system||'hospital_app')+'|visit|'+a.date+'|'+a.dept;if(a.date&&a.date>=today&&!seen[key]){seen[key]=true;items.push({date:a.date,time:a.time||'',title:a.title||appointmentDeptName(a),source:a.source_system||'hospital_app',place:a.place||'',source_file:a.source_file||''});}
+  key=(a.source_system||'hospital_app')+'|lab|'+a.lab_date;if(a.lab_date&&a.lab_date>=today&&!seen[key]){seen[key]=true;items.push({date:a.lab_date,time:a.lab_time||'',title:LANG==='th'?'เจาะเลือด':'Blood draw',source:a.source_system||'hospital_app',place:a.lab_place||a.place||'',source_file:a.source_file||''});}}
+ items.sort(function(x,y){return x.date===y.date?(x.time<y.time?-1:1):(x.date<y.date?-1:1);});items=items.slice(0,3);
+ if(!items.length){body.innerHTML='<div class="adv good">'+(LANG==='th'?'ยังไม่มีนัดหมายล่วงหน้าที่บันทึกไว้':'No upcoming appointments are saved yet.')+'</div>';if(badge)badge.textContent='';return;}
+ if(badge)badge.textContent=(LANG==='th'?'รายการถัดไป ':'Next items ')+items.length;
+ body.innerHTML=items.map(function(x){return '<div class="med"><div class="dot" style="background:var(--cyan)"></div><div style="flex:1"><b>'+esc(x.title)+'</b> <span class="badge">'+esc(appointmentSourceName(x.source))+'</span><br><span class="dim">'+dTxt(x.date)+(x.time?' · '+esc(x.time):'')+'</span>'+(x.place?'<br><span class="dim">'+esc(x.place)+'</span>':'')+(x.source_file?'<br><span class="dim">'+esc(x.source_file)+'</span>':'')+'</div></div>';}).join('');
 }
+function appointmentDeptName(a){var d=a&&a.dept||'';if(d==='eye')return LANG==='th'?'นัดจักษุกรรม':'Ophthalmology';if(d==='kidney')return LANG==='th'?'นัดศูนย์โรคไต':'Kidney center';if(d==='med')return LANG==='th'?'นัดอายุรกรรม':'Internal Medicine';return LANG==='th'?'นัดหมาย':'Appointment';}
+function appointmentSourceName(s){if(s==='kidney_center')return LANG==='th'?'ศูนย์โรคไต':'Kidney center';if(s==='hospital_app')return LANG==='th'?'แอปโรงพยาบาล':'Hospital app';return s|| (LANG==='th'?'แหล่งนัดหมาย':'Appointment source');}
 function renderKidneyRisk(){
  var body=E('kidneyRiskBody');if(!body)return;var r=last('med'),items=r?r.items:{};
  var age=DB.patient&&DB.patient.birthDate?Math.floor((new Date().getTime()-new Date(DB.patient.birthDate+'T00:00:00').getTime())/31557600000):null;
@@ -1253,6 +1318,36 @@ function extractAppointment(txt,fileName,sourceIndex){
  cands.sort(function(a,b){if(a.snapshot_date!==b.snapshot_date)return (a.snapshot_date||'')<(b.snapshot_date||'')?1:-1;if(a.date!==b.date)return a.date<b.date?1:-1;return (a.source_index||0)<(b.source_index||0)?1:-1;});
  return cands[0];
 }
+function extractAppointments(txt,fileName,sourceIndex){
+ var raw=String(txt||''),lines=raw.split(/\r?\n/),snapshot=null,labDate=null,out=[],seen={},i,j,ctx,ds,d,timeMatch,placeMatch,sourceSystem;
+ sourceSystem=/(ศูนย์โรคไต|ศูนย์ไต|คลินิกโรคไต|kidney\s*(?:center|centre|clinic)|renal\s*(?:center|centre|clinic))/i.test((fileName||'')+' '+raw)?'kidney_center':'hospital_app';
+ for(i=0;i<lines.length;i++){
+  if(/ข้อมูล\s*ณ\s*วันที่/i.test(lines[i])){var sm=parseDatesInLine(lines[i]);if(sm.length)snapshot=sm[0].date;}
+  if(/เจาะเลือด/.test(lines[i])){var lm=parseDatesInLine(lines[i]);if(lm.length)labDate=lm[0].date;else if(i>0){lm=parseDatesInLine(lines[i-1]);if(lm.length)labDate=lm[0].date;}}
+ }
+ for(i=0;i<lines.length;i++){
+  ds=parseDatesInLine(lines[i]);if(!ds.length||/ข้อมูล\s*ณ\s*วันที่/i.test(lines[i])||/เจาะเลือด/.test(lines[i]))continue;
+  ctx=(i>0?lines[i-1]+' ':'')+lines[i]+(i+1<lines.length?' '+lines[i+1]:'');
+  if(/เจาะเลือด/.test(ctx)&&ds.some(function(x){return x.date===labDate;}))continue;
+  var eye=/จักษุกรรม|จักษุ|ห้องตรวจตา|ophthalm|eye\s*clinic/i.test(ctx),
+      med=/อายุรกรรม|ห้องตรวจอายุรกรรม|internal\s*medicine/i.test(ctx),
+      kidney=/ศูนย์โรคไต|ศูนย์ไต|คลินิกโรคไต|nephrolog|renal|kidney\s*(?:center|centre|clinic)/i.test(ctx),
+      appointment=/นัด|พบแพทย์|ตรวจ|appointment|clinic|visit|โรงพยาบาล|รพ\.|ศูนย์|hospital/i.test(ctx);
+  if(!eye&&!med&&!kidney&&!appointment)continue;
+  var dept=eye?'eye':(kidney?'kidney':(med?'med':'general'));
+  var sys=kidney?'kidney_center':sourceSystem;
+  timeMatch=ctx.match(/(?:เวลา\s*)?(\d{1,2}[:.]\d{2})/);
+  placeMatch=ctx.match(/(ห้องตรวจ[^\n,，;]{1,50}|แผนก[^\n,，;]{1,50}|ศูนย์โรคไต[^\n,，;]{0,50}|คลินิก[^\n,，;]{1,50}|(?:โรงพยาบาล|รพ\.)[^\n,，;]{0,50})/i);
+  for(j=0;j<ds.length;j++){
+   d=ds[j];var key=d.date+'|'+dept+'|'+sys;if(seen[key])continue;seen[key]=true;
+   out.push({date:d.date,dept:dept,type:eye?'ophthalmology':(kidney?'kidney_center':(med?'internal_medicine':'clinic')),
+    title:eye?(LANG==='th'?'จักษุกรรม':'Ophthalmology'):(kidney?(LANG==='th'?'ศูนย์โรคไต':'Kidney center'):(med?(LANG==='th'?'อายุรกรรม':'Internal Medicine'):(LANG==='th'?'นัดหมาย':'Appointment'))),
+    source_system:sys,place:placeMatch?placeMatch[1].trim():'',time:timeMatch?timeMatch[1].replace('.',':'):'',snapshot_date:snapshot,
+    lab_date:med?labDate:null,source_file:fileName||'',source_index:sourceIndex||0,confidence:Math.min(0.99,0.65+0.06*(3+(eye||med||kidney?1:0)+(timeMatch?1:0)+(placeMatch?1:0)+(/นัด|appointment|visit/i.test(ctx)?1:0)))});
+  }
+ }
+ return out;
+}
 function ocrSignature(date,items){
  var keys=[],k,out=[];
  for(k in items){if(items.hasOwnProperty(k))keys.push(k);}
@@ -1336,17 +1431,17 @@ function runOCR(files){
     E('pbar').style.width=(idx/files.length*100)+'%';
     w.recognize(files[idx]).then(function(res){
      var txt=(res&&res.data&&res.data.text)?res.data.text:'';
-     var parsed=parseText(txt),items=parsed.items,meta=parsed.meta,cnt=0,date=findDate(txt),duplicateOf=-1,existingDuplicate=-1,canonical,appointmentCandidate=extractAppointment(txt,files[idx].name,idx);
+     var parsed=parseText(txt),items=parsed.items,meta=parsed.meta,cnt=0,date=findDate(txt),duplicateOf=-1,existingDuplicate=-1,canonical,appointmentCandidates=extractAppointments(txt,files[idx].name,idx),appointmentCandidate=extractAppointment(txt,files[idx].name,idx);
      for(var k in items){if(items.hasOwnProperty(k))cnt++;}
-     if(cnt||appointmentCandidate){
+     if(cnt||appointmentCandidates.length){
       var signature=ocrSignature(date,items);
       duplicateOf=findPendingDuplicate(date,items);
       var inferredDept=(DEPT==='all')?(function(){var eye=false,kk;for(kk in items){if(items.hasOwnProperty(kk)&&LM[kk]&&LM[kk].dp==='eye')eye=true;}return eye?'eye':'med';})():DEPT;
       existingDuplicate=findExistingOCRDuplicate(date,inferredDept,items);
       canonical=canonicalOCR(inferredDept,date,items,meta,[files[idx].name],txt);
       PENDING.push({date:date,items:items,meta:meta,file:files[idx].name,sourceFiles:[files[idx].name],rawText:txt,
-       department:inferredDept,signature:signature,duplicateOf:duplicateOf,existingDuplicate:existingDuplicate,canonical:canonical,appointmentCandidate:appointmentCandidate,
-       appointmentConfirmed:!!(appointmentCandidate&&appointmentCandidate.confidence>=0.85),needsReview:(canonical?canonical.needs_review:!appointmentCandidate)||duplicateOf>=0||existingDuplicate>=0});
+       department:inferredDept,signature:signature,duplicateOf:duplicateOf,existingDuplicate:existingDuplicate,canonical:canonical,appointmentCandidate:appointmentCandidate,appointmentCandidates:appointmentCandidates,
+       appointmentConfirmed:!!(appointmentCandidate&&appointmentCandidate.confidence>=0.85),needsReview:(canonical?canonical.needs_review:!appointmentCandidates.length)||duplicateOf>=0||existingDuplicate>=0});
      }
      idx++;next();
     })['catch'](function(){idx++;next();});}
@@ -1366,7 +1461,8 @@ function showReview(){
    h+='<tr><td>'+nm(LM[k])+'</td><td><input type="number" step="any" style="width:120px" data-act="ocrval" data-val="'+j+':'+k+
       '" value="'+p.items[k]+'"></td><td class="dim">'+LM[k].u+'</td><td class="dim">'+(mm.confidence!==undefined?Math.round(mm.confidence*100)+'%':'-')+(mm.confirmed?' ✓':'')+'</td>'+ 
       '<td><button class="btn mg" data-act="ocrdel" data-val="'+j+':'+k+'">'+t('del')+'</button></td></tr>';}
-  h+='</table>'+(p.appointmentCandidate?'<div class="adv link"><b>นัดหมายที่ตรวจพบ</b><br>'+esc(dTxt(p.appointmentCandidate.date))+' · อายุรกรรม'+(p.appointmentCandidate.place?' · '+esc(p.appointmentCandidate.place):'')+' · '+Math.round(p.appointmentCandidate.confidence*100)+'%'+(p.appointmentConfirmed?' ✓':'')+'</div>':'')+'</div>';}
+  var aps=p.appointmentCandidates|| (p.appointmentCandidate?[p.appointmentCandidate]:[]);
+  h+='</table>'+(aps.length?'<div class="adv link"><b>นัดหมายที่ตรวจพบ</b>'+aps.map(function(a){return '<br>'+esc(dTxt(a.date))+' · '+esc(a.title||appointmentDeptName(a))+' · '+esc(appointmentSourceName(a.source_system))+(a.time?' · '+esc(a.time):'')+(a.place?' · '+esc(a.place):'')+' · '+Math.round(a.confidence*100)+'%';}).join('')+'</div>':'')+'</div>';}
  h+='<div class="hrow"><button class="btn cy" data-act="ocrconfirmhigh">'+t('confirmHigh')+'</button><div class="spacer"></div><button class="btn lm big" data-act="commit">'+t('confirm')+'</button></div></div>';
  E('ocrReview').innerHTML=h;
 }
@@ -1381,10 +1477,18 @@ function confirmHighConfidence(){
  showReview();
  if(changed===0)alert(t('noHighConfidence'));else alert(t('confirmedHigh')+' '+changed);
 }
+function upsertAppointment(ap,fileName){
+ if(!ap||!ap.date||Number(ap.confidence)<0.85)return;
+ var source=ap.source_system||'hospital_app',list=DB.appointments||[],i,old=null;
+ for(i=0;i<list.length;i++){if(list[i].date===ap.date&&list[i].dept===ap.dept&&(list[i].source_system||'hospital_app')===source){old=list[i];break;}}
+ if(old&&!isNewerAppointment(ap,old))return;
+ var item={id:old?old.id:('ap_'+ap.date+'_'+ap.dept+'_'+source),date:ap.date,dept:ap.dept,type:ap.type||'clinic',title:ap.title||'',source_system:source,place:ap.place||'',time:ap.time||'',snapshot_date:ap.snapshot_date||null,source_file:ap.source_file||fileName||'',source_index:ap.source_index||0,confidence:ap.confidence||0,lab_date:ap.lab_date||null,updated_at:new Date().toISOString()};
+ if(old)list[i]=Object.assign({},old,item);else list.push(item);DB.appointments=list;
+}
 function commitOCR(){
  var j,z;
  for(j=0;j<PENDING.length;j++){var p=PENDING[j],mI={},eI={},anyM=false,anyE=false;
-  if(p.appointmentCandidate&&p.appointmentConfirmed){var ap=p.appointmentCandidate,exA=null,zA;for(zA=0;zA<DB.appointments.length;zA++){if(DB.appointments[zA].dept==='med')exA=DB.appointments[zA];}if(!exA||isNewerAppointment(ap,exA)){ap.updated_at=new Date().toISOString();DB.appointments=[{id:exA?exA.id:'ap'+Date.now(),date:ap.date,dept:'med',type:ap.type||'internal_medicine',place:ap.place||'',snapshot_date:ap.snapshot_date||null,source_file:ap.source_file||p.file,source_index:ap.source_index||0,confidence:ap.confidence||0,lab_date:ap.lab_date||null,updated_at:ap.updated_at}];}}
+  var aps=p.appointmentCandidates|| (p.appointmentCandidate?[p.appointmentCandidate]:[]);for(var ai=0;ai<aps.length;ai++)upsertAppointment(aps[ai],p.file);
   if(!p.date||p.duplicateOf>=0||p.existingDuplicate>=0||p.needsReview){continue;}
   for(var k in p.items){if(!p.items.hasOwnProperty(k))continue;
    if(!LM[k])continue;
@@ -1399,20 +1503,102 @@ function commitOCR(){
 }
 
 /* ========== 14. รายงานสำหรับพิมพ์ ========== */
-function buildReport(){
- var j,h='',depts=(DEPT==='all')?['med','eye']:[DEPT],today=dTxt(new Date().toISOString().slice(0,10));
- h+='<h2>'+t('reportT')+'</h2>';
- h+='<div>'+t('patient')+' : '+esc(DB.patient.name||'-')+' &nbsp; | &nbsp; '+t('printedOn')+' : '+today+'</div>';
- h+='<div class="pbox"><b>'+t('changeT')+'</b><br>'+buildReportChangeSummary()+'</div>';
+var REPORT_MODE='all';
+function showReportChooser(){
+ var box=E('mbox');
+ box.innerHTML='<h3 style="margin-top:0">เลือกรายงานที่ต้องการพิมพ์</h3>'+
+  '<p class="sub">ระบบจะสร้าง PDF ตามขอบเขตที่เลือก โดยไม่เปลี่ยนแผนกบน Dashboard</p>'+
+  '<div class="grid g3">'+
+  '<button class="btn lm big" data-act="report-mode" data-val="all">A · ภาพรวมสุขภาพ</button>'+
+  '<button class="btn cy big" data-act="report-mode" data-val="med">B · อายุรกรรม</button>'+
+  '<button class="btn mg big" data-act="report-mode" data-val="eye">C · จักษุกรรม</button></div>'+
+  '<div style="margin-top:12px;text-align:right"><button class="btn" data-act="close">ยกเลิก</button></div>';
+ E('modal').className='modal on';
+}
+function reportPatientAge(){
+ var birth=DB.patient&&DB.patient.birthDate?new Date(DB.patient.birthDate+'T00:00:00'):new Date('1947-10-20T00:00:00');
+ var now=new Date(),age=now.getFullYear()-birth.getFullYear();
+ /* Use calendar-year age to preserve the age convention explicitly supplied in the family record. */
+ return age;
+}
+function reportProfileHtml(){
+ var p=DB.patient||{},age=reportPatientAge(),diseases=Array.isArray(p.chronicDiseases)?p.chronicDiseases:[];
+ var bdate=p.birthDate||'1947-10-20',wt=(p.weightKg!==undefined&&p.weightKg!==null)?p.weightKg:68,ht=(p.heightCm!==undefined&&p.heightCm!==null)?p.heightCm:165;
+ var html='<h3>ข้อมูลพื้นฐานผู้ป่วย</h3><div class="pbox">';
+ html+='เพศหญิง · วันเกิด '+dTxt(bdate)+' · อายุ '+age+' ปี<br>';
+ html+='ส่วนสูง '+esc(String(ht))+' ซม. · น้ำหนักตามข้อมูลพื้นฐาน '+esc(String(wt))+' กก.<br>';
+ html+='โรคประจำตัว: '+(diseases.length?diseases.map(esc).join(' · '):'ไม่พบข้อมูล')+'<br>';
+ var egfr=last('med'),ev=egfr&&egfr.items?egfr.items.egfr:null;
+ if(ev!==null&&ev!==undefined)html+='eGFR ล่าสุดที่บันทึก: <b>'+esc(String(ev))+' mL/min/1.73 m²</b> ('+dTxt(egfr.date)+')<br>';
+ else html+='eGFR ล่าสุดที่บันทึก: ยังไม่มีข้อมูล<br>';
+ html+='</div>';return html;
+}
+function reportSourceRange(record,key){
+ try{var fm=record&&record.ocr_canonical&&record.ocr_canonical.field_meta&&record.ocr_canonical.field_meta[key];if(fm&&fm.reference_range)return String(fm.reference_range);}catch(e){}
+ try{var fm2=record&&record.field_meta&&record.field_meta[key];if(fm2&&fm2.reference_range)return String(fm2.reference_range);}catch(e2){}
+ return '';
+}
+function reportRangeBounds(range){
+ if(!range)return null;var x=String(range).replace(/,/g,'').replace(/−/g,'-'),m,lo=null,hi=null;
+ m=x.match(/(?:>=|≥|>|มากกว่า|ไม่น้อยกว่า)\s*(-?\d+(?:\.\d+)?)/i);if(m)lo=parseFloat(m[1]);
+ m=x.match(/(?:<=|≤|<|น้อยกว่า|ไม่เกิน)\s*(-?\d+(?:\.\d+)?)/i);if(m)hi=parseFloat(m[1]);
+ if(lo===null&&hi===null){m=x.match(/(-?\d+(?:\.\d+)?)\s*(?:-|ถึง|to|–|—)\s*(-?\d+(?:\.\d+)?)/i);if(m){lo=parseFloat(m[1]);hi=parseFloat(m[2]);}}
+ if(lo===null&&hi===null)return null;return {min:lo,max:hi};
+}
+function reportRiskClass(l,v,record){
+ var f=flagL(l.k,v),range=reportRangeBounds(reportSourceRange(record,l.k));
+ if(range){if((range.min!==null&&v<range.min)||(range.max!==null&&v>range.max))f='abnormal';else f='ok';}
+ if(!f||f==='ok')return 'risk-black';
+ /* Critical thresholds are explicitly field-specific; otherwise an out-of-range result is a watch item. */
+ var critical=false;
+ if(l.k==='egfr'&&v<15)critical=true;
+ else if(l.k==='k'&&(v>=6||v<2.8))critical=true;
+ else if(l.k==='na'&&(v<125||v>155))critical=true;
+ else if(l.k==='hco3'&&v<12)critical=true;
+ else if(l.k==='a1c'&&v>=10)critical=true;
+ else if(l.k==='iop_od'&&v>=30)critical=true;
+ else if(l.k==='iop_os'&&v>=30)critical=true;
+ return critical?'risk-red':'risk-blue';
+}
+function reportRiskLabel(cls){
+ if(LANG==='en')return cls==='risk-red'?'Special attention':(cls==='risk-blue'?'Monitor':'Within reference');
+ return cls==='risk-red'?'เฝ้าระวังเป็นพิเศษ':(cls==='risk-blue'?'เฝ้าระวัง':'ปกติ');
+}
+function reportReference(l,record){
+ var r=reportSourceRange(record,l.k)||l.reference_range||l.ref||refTxt(l);
+ return r===undefined||r===null||r===''?'-':String(r);
+}
+function reportAiPrompt(mode){
+ if(mode==='med')return 'คำสั่งสำหรับ AI Analysis — รายงานอายุรกรรม\\n'+
+ 'ให้ใช้ข้อมูลทั้งหมดใน PDF นี้เป็นบริบทหลัก หากผู้ใช้อัปโหลดไฟล์แล้วพิมพ์เพียง “สรุป” หรือส่งคำสั่งสั้น/ไม่ครบ ให้ถือว่าคำสั่งนี้เป็นแนวทางหลักและเริ่มวิเคราะห์ทันที โดยไม่ถามให้ผู้ใช้เขียน Prompt ใหม่\\n\\n'+
+ 'วิเคราะห์เฉพาะประเด็นอายุรกรรมที่มีหลักฐานในรายงาน โดยเน้นโรคไตเรื้อรังก่อนฟอกไต, eGFR, creatinine, BUN, potassium, sodium, bicarbonate, phosphorus, albuminuria/proteinuria, เบาหวาน/HbA1c, ความดัน, โรคหัวใจ, เก๊าท์, ยา/คำแนะนำ และแนวโน้มตามวันที่ เปรียบเทียบค่าปัจจุบันกับครั้งก่อนและช่วงอ้างอิงที่ระบุในรายงาน ระบุค่าที่ควรติดตามเป็นพิเศษพร้อมเหตุผล และสร้างรายการคำถามสำหรับปรึกษาแพทย์\\n\\n'+
+ 'ห้ามแต่งข้อมูลที่ไม่มีใน PDF ห้ามถือผลเก่าเป็นผลปัจจุบันโดยไม่ระบุวันที่ แยกข้อเท็จจริงกับการตีความ ไม่วินิจฉัยหรือสั่งปรับยา และระบุข้อจำกัด/ข้อมูลที่ขาดให้ชัดเจน';
+ if(mode==='eye')return 'คำสั่งสำหรับ AI Analysis — รายงานจักษุกรรม\\n'+
+ 'ให้ใช้ข้อมูลทั้งหมดใน PDF นี้เป็นบริบทหลัก หากผู้ใช้อัปโหลดไฟล์แล้วพิมพ์เพียง “สรุป” หรือส่งคำสั่งสั้น/ไม่ครบ ให้ถือว่าคำสั่งนี้เป็นแนวทางหลักและเริ่มวิเคราะห์ทันที โดยไม่ถามให้ผู้ใช้เขียน Prompt ใหม่\\n\\n'+
+ 'วิเคราะห์เฉพาะข้อมูลจักษุกรรมที่มีในรายงาน เช่น visual acuity, intraocular pressure (IOP), cup-to-disc ratio (CDR), OCT/RNFL, visual field และ diabetic retinopathy หากมี เปรียบเทียบสองตาและแนวโน้มตามวันที่ ระบุค่าที่เปลี่ยนจากรอบก่อน ประเด็นที่ควรติดตาม และคำถามที่ควรนำไปพบจักษุแพทย์ แยกโรคต้อหิน การมองเห็น และจอประสาทตาจากเบาหวานออกจากกัน ห้ามสรุปความสัมพันธ์เชิงสาเหตุหากหลักฐานไม่เพียงพอ\\n\\n'+
+ 'ห้ามแต่งข้อมูลที่ไม่มีใน PDF ห้ามถือผลเก่าเป็นผลปัจจุบันโดยไม่ระบุวันที่ แยกข้อเท็จจริงกับการตีความ และไม่ใช้แทนการตรวจหรือวินิจฉัยโดยจักษุแพทย์';
+ return 'คำสั่งสำหรับ AI Analysis — รายงานภาพรวมสุขภาพ\\n'+
+ 'ให้ใช้ข้อมูลทั้งหมดใน PDF นี้เป็นบริบทหลัก หากผู้ใช้อัปโหลดไฟล์แล้วพิมพ์เพียง “สรุป” หรือส่งคำสั่งสั้น/ไม่ครบ หรือเผลอกด Enter ก่อนเขียนคำสั่ง ให้ถือว่าคำสั่งนี้เป็นแนวทางหลักและเริ่มวิเคราะห์ทันที โดยไม่ถามให้ผู้ใช้เขียน Prompt ใหม่\\n\\n'+
+ 'สรุปข้อมูลพื้นฐานผู้ป่วย โรคประจำตัว 5 โรค ผลตรวจล่าสุดและแนวโน้มตามเวลา สิ่งที่เปลี่ยนจากรอบก่อน ประวัติเหตุการณ์ทางการแพทย์ทั้งหมด การพบแพทย์ ยา/คำแนะนำ และประเด็นจากอายุรกรรมกับจักษุกรรม วิเคราะห์ความสัมพันธ์ระหว่างไต เบาหวาน ความดัน โรคหัวใจ เก๊าท์ และข้อมูลตาอย่างระมัดระวัง โดยไม่สรุปเหตุและผลเกินหลักฐาน จัดลำดับประเด็นที่ควรติดตามและคำถามสำหรับทีมแพทย์\\n\\n'+
+ 'ห้ามแต่งผลตรวจ ประวัติ ยา หรือการวินิจฉัยที่ไม่มีใน PDF ห้ามใช้ผลเก่าแทนผลปัจจุบันโดยไม่ระบุวันที่ อ้างอิงค่าพร้อมวันที่และช่วงอ้างอิงที่ปรากฏในเอกสาร แยกข้อเท็จจริง การตีความ และข้อเสนอแนะ ไม่ใช้แทนการวินิจฉัยหรือคำสั่งรักษาจากแพทย์';
+}
+function buildReport(mode){
+ REPORT_MODE=mode||'all';
+ var j,h='',depts=REPORT_MODE==='all'?['med','eye']:[REPORT_MODE],today=dTxt(new Date().toISOString().slice(0,10));
+ var title=REPORT_MODE==='all'?'A · รายงานภาพรวมสุขภาพ':(REPORT_MODE==='med'?'B · รายงานอายุรกรรม':'C · รายงานจักษุกรรม');
+ h+='<h2>'+esc(title)+'</h2>';
+ h+='<div>'+t('patient')+' : '+esc(DB.patient.name||'คุณแม่')+' &nbsp; | &nbsp; '+t('printedOn')+' : '+today+'</div>';
+ h+=reportProfileHtml();
+ h+='<div class="pbox"><b>'+t('changeT')+'</b><br>'+buildReportChangeSummary(REPORT_MODE)+'</div>';
  for(var di=0;di<depts.length;di++){
   var dp=depts[di];
   h+='<h3>'+(dp==='eye'?t('deptEye'):t('deptMed'))+'</h3>';
-  var vs=DB.visits.slice().sort(byDate).reverse(),vFound=null;
+  var vs=(DB.visits||[]).slice().sort(byDate).reverse(),vFound=null;
   for(j=0;j<vs.length;j++){if(vs[j].dept===dp&&!vFound)vFound=vs[j];}
   if(vFound){h+='<div class="pbox">'+t('date')+' : '+dTxt(vFound.date)+' '+esc(vFound.time||'')+
    ' | '+t('doctor')+' : '+esc(vFound.doctor||'-')+'<br>'+t('place')+' : '+esc(vFound.place||'-')+
    ' | '+t('symptom')+' : '+esc(vFound.symptom||'-')+'<br>'+t('ptype')+' : '+esc(vFound.ptype||'-')+' | '+t('right')+' : '+esc(vFound.right||'-')+'</div>';}
-  var dxs=DB.diagnoses.slice().sort(byDate).reverse(),dh='';
+  var dxs=(DB.diagnoses||[]).slice().sort(byDate).reverse(),dh='';
   for(j=0;j<dxs.length;j++){if(dxs[j].dept!==dp)continue;
    dh+='<tr><td>'+esc(dxs[j].code||'')+'</td><td>'+esc(LANG==='th'?dxs[j].th:dxs[j].en)+'</td><td>'+(dxs[j].lv==='p'?t('primary'):t('secondary'))+'</td><td>'+dTxt(dxs[j].date)+'</td></tr>';}
   if(dh)h+='<table><tr><th>ICD</th><th>'+t('dxT')+'</th><th>-</th><th>'+t('date')+'</th></tr>'+dh+'</table>';
@@ -1420,55 +1606,120 @@ function buildReport(){
   if(R){var lh='';
    for(j=0;j<LABS.length;j++){var l=LABS[j];if(l.dp!==dp)continue;
     var v=R.items[l.k];if(v===undefined||v===null)continue;
-    var pv=Rp?Rp.items[l.k]:null,f=flagL(l.k,v),srcRef=l.reference_range||l.ref||refTxt(l);
-    lh+='<tr><td>'+nm(l)+'</td><td>'+fmtL(l.k,v)+' '+l.u+'</td><td>'+esc(String(srcRef||'-'))+'</td><td>'+((pv===undefined||pv===null)?'-':Number(pv).toFixed(l.dec))+'</td><td>'+(f==='ok'?t('ok'):(f==='hi'?t('high'):t('low')))+'</td></tr>';}
-   if(lh)h+='<table><tr><th>'+t('item')+'</th><th>'+dTxt(R.date)+'</th><th>'+t('ref')+'</th><th>'+(Rp?dTxt(Rp.date):'-')+'</th><th>-</th></tr>'+lh+'</table>';}
+    var pv=Rp?Rp.items[l.k]:null,cls=reportRiskClass(l,v,R),srcRef=reportReference(l,R); 
+    lh+='<tr><td>'+nm(l)+'</td><td class="'+cls+'">'+fmtL(l.k,v)+' '+l.u+'</td><td>'+esc(srcRef)+'</td><td>'+((pv===undefined||pv===null)?'-':Number(pv).toFixed(l.dec))+'</td><td class="'+cls+'">'+reportRiskLabel(cls)+'</td></tr>';}
+   if(lh)h+='<table><tr><th>'+t('item')+'</th><th>'+dTxt(R.date)+'</th><th>'+t('ref')+'</th><th>'+(Rp?dTxt(Rp.date):'-')+'</th><th>การติดตาม</th></tr>'+lh+'</table>';}
   var changes=reportDeptChanges(dp);
-  if(changes.length){h+='<h3>'+t('changeT')+'</h3><table><tr><th>'+t('item')+'</th><th>'+t('date')+'</th><th>Δ</th><th>%</th><th>-</th></tr>';
-   for(j=0;j<changes.length;j++){var c=changes[j];h+='<tr><td>'+esc(c.name)+'</td><td>'+dTxt(c.date)+'</td><td>'+c.delta+'</td><td>'+c.pct+'</td><td>'+esc(c.label)+'</td></tr>';}
+  if(changes.length){h+='<h3>'+t('changeT')+'</h3><table><tr><th>'+t('item')+'</th><th>'+t('date')+'</th><th>Δ</th><th>%</th><th>การเปลี่ยนแปลง</th></tr>';
+   for(j=0;j<changes.length;j++){var c=changes[j],lobj=LM[c.key]||{k:c.key},cv=null;
+    var curRec=last(dp);if(curRec&&curRec.items)cv=curRec.items[c.key];
+    var cls2=cv===null?'risk-black':reportRiskClass(lobj,cv,curRec);
+    h+='<tr><td>'+esc(c.name)+'</td><td>'+dTxt(c.date)+'</td><td class="'+cls2+'">'+c.delta+'</td><td class="'+cls2+'">'+c.pct+'</td><td class="'+cls2+'">'+reportRiskLabel(cls2)+' · '+esc(c.label)+'</td></tr>';}
    h+='</table>';}
   var ml=medsOf(dp),mh='';
   for(j=0;j<ml.length;j++){mh+='<tr><td>'+esc(ml[j].n)+'</td><td>'+esc(LANG==='th'?ml[j].th:ml[j].en)+'</td></tr>';}
   if(mh)h+='<table><tr><th>'+t('medT')+'</th><th>-</th></tr>'+mh+'</table>';
   var ad=labAdvice(dp);if(dp==='med')ad=ad.concat(vitalAdvice());
-  if(ad.length){h+='<div class="pbox"><b>'+t('adviceT')+'</b><br>'+ad.join('').replace(/<div class="adv[^\"]*">/g,'- ').replace(/<\/div>/g,'<br>')+'</div>';}
+  if(ad.length){h+='<div class="pbox"><b>'+t('adviceT')+'</b><br>'+ad.join('').replace(/<div class="adv[^"]*">/g,'- ').replace(/<\/div>/g,'<br>')+'</div>';}
  }
- h+='<h3>'+t('timelineT')+'</h3><div class="pbox">'+buildReportTimeline()+'</div>';
- h+='<h3>'+t('trend')+'</h3>'+buildReportCharts();
+ h+='<h3>'+t('timelineT')+'</h3><div class="pbox">'+buildReportTimeline(REPORT_MODE)+'</div>';
+ if(REPORT_MODE==='all'){
+  h+='<h3>ประวัติเหตุการณ์ทางการแพทย์ทั้งหมด</h3><div class="pbox">'+buildReportMedicalEvents()+'</div>';
+ }
+ h+='<h3>'+t('trend')+'</h3>'+buildReportCharts(REPORT_MODE);
  h+='<div class="pbox"><b>'+t('changeHint')+'</b><br>'+esc(t('reportDisclaimer'))+'</div>';
  var D=lastDay();
- if(D){h+='<h3>'+t('vitalsNow')+'</h3><table><tr><th>'+t('date')+'</th><th>BP</th><th>'+nm(VM.pulse)+'</th><th>'+nm(VM.wt)+'</th><th>'+nm(VM.fluid)+'</th><th>'+nm(VM.urine)+'</th></tr>'+ '<tr><td>'+dTxt(D.date)+'</td><td>'+(D.sys||'-')+'/'+(D.dia||'-')+'</td><td>'+(D.pulse||'-')+'</td><td>'+(D.wt||'-')+'</td><td>'+(D.fluid||'-')+'</td><td>'+(D.urine||'-')+'</td></tr></table>';}
+ if(D){h+='<h3>'+t('vitalsNow')+'</h3><table><tr><th>'+t('date')+'</th><th>BP</th><th>'+nm(VM.pulse)+'</th><th>'+nm(VM.wt)+'</th><th>'+nm(VM.fluid)+'</th><th>'+nm(VM.urine)+'</th></tr><tr><td>'+dTxt(D.date)+'</td><td>'+(D.sys||'-')+'/'+(D.dia||'-')+'</td><td>'+(D.pulse||'-')+'</td><td>'+(D.wt||'-')+'</td><td>'+(D.fluid||'-')+'</td><td>'+(D.urine||'-')+'</td></tr></table>';}
+ h+='<h3>คำสั่งสำหรับ AI Analysis</h3><div class="ai-prompt">'+esc(reportAiPrompt(REPORT_MODE))+'</div>';
  h+='<div style="margin-top:26px">'+t('sigDoc')+' ............................................................</div>';
  E('printArea').innerHTML=h;
 }
 function reportDeptChanges(dp){
  var r=recs(dp);if(r.length<2)return[];var cur=r[r.length-1],prev=r[r.length-2],out=[],j;
  for(j=0;j<LABS.length;j++){var l=LABS[j];if(l.dp!==dp)continue;var a=prev.items[l.k],b=cur.items[l.k];
-  if(a===undefined||a===null||b===undefined||b===null)continue;var c=changeLabel(l.k,b,a);if(c)out.push({name:nm(l),date:cur.date,delta:(c.delta>0?'+':'')+c.delta.toFixed(l.dec),pct:c.pct===null?'-':(c.pct>0?'+':'')+c.pct.toFixed(0)+'%',label:c.notable?t('notableChange'):t('minorChange'),score:c.notable?1:0});}
+  if(a===undefined||a===null||b===undefined||b===null)continue;var c=changeLabel(l.k,b,a);if(c)out.push({key:l.k,name:nm(l),date:cur.date,delta:(c.delta>0?'+':'')+c.delta.toFixed(l.dec),pct:c.pct===null?'-':(c.pct>0?'+':'')+c.pct.toFixed(0)+'%',label:c.notable?t('notableChange'):t('minorChange'),score:c.notable?1:0});}
  out.sort(function(a,b){return b.score-a.score;});return out;
 }
-function buildReportChangeSummary(){
- var a=[],dpList=DEPT==='all'?['med','eye']:[DEPT],j,k;
- for(j=0;j<dpList.length;j++){var c=reportDeptChanges(dpList[j]);for(k=0;k<c.length;k++)a.push((dpList[j]==='eye'?t('deptEye'):t('deptMed'))+' — '+c[k].name+' '+c[k].delta+' ('+c[k].pct+') · '+c[k].label);}
- return a.length?a.slice(0,12).map(esc).join('<br>'):t('noData');
+function buildReportChangeSummary(mode){
+ var a=[],dpList=mode==='all'?['med','eye']:[mode],j,k;
+ for(j=0;j<dpList.length;j++){var c=reportDeptChanges(dpList[j]);for(k=0;k<c.length;k++){
+  var cur=last(dpList[j]),val=cur&&cur.items?cur.items[c[k].key]:null,cls=val===null?'risk-black':reportRiskClass(LM[c[k].key]||{k:c[k].key},val,cur);
+  a.push('<span class="'+cls+'">'+(dpList[j]==='eye'?t('deptEye'):t('deptMed'))+' — '+esc(c[k].name)+' '+c[k].delta+' ('+c[k].pct+') · '+reportRiskLabel(cls)+' · '+esc(c[k].label)+'</span>');}}
+ return a.length?a.slice(0,20).join('<br>'):t('noData');
 }
-function buildReportTimeline(){
- var a=[],rs=recs(DEPT==='all'?'any':DEPT),j,k;
+function buildReportTimeline(mode){
+ var a=[],rs=recs(mode==='all'?'any':mode),j;
  for(j=0;j<rs.length;j++)a.push({date:rs[j].date,text:t('timelineLab')+' · '+(rs[j].dept==='eye'?t('deptEye'):t('deptMed'))});
- for(j=0;j<(DB.visits||[]).length;j++){if(DEPT!=='all'&&DB.visits[j].dept!==DEPT)continue;a.push({date:DB.visits[j].date,text:t('timelineVisit')+' · '+(DB.visits[j].doctor||DB.visits[j].place||'-')});}
- for(j=0;j<(DB.diagnoses||[]).length;j++){if(DEPT!=='all'&&DB.diagnoses[j].dept!==DEPT)continue;a.push({date:DB.diagnoses[j].date,text:t('timelineDx')+' · '+(DB.diagnoses[j].code||'')+' '+(LANG==='th'?DB.diagnoses[j].th:DB.diagnoses[j].en)});}
- a.sort(function(x,y){return x.date<y.date?1:-1;});return a.slice(0,20).map(function(x){return '<div style="padding:4px 0;border-bottom:1px solid #ccc"><b>'+dTxt(x.date)+'</b> · '+esc(x.text)+'</div>';}).join('')||t('noData');
+ for(j=0;j<(DB.visits||[]).length;j++){if(mode!=='all'&&DB.visits[j].dept!==mode)continue;a.push({date:DB.visits[j].date,text:t('timelineVisit')+' · '+(DB.visits[j].doctor||DB.visits[j].place||'-')});}
+ for(j=0;j<(DB.diagnoses||[]).length;j++){if(mode!=='all'&&DB.diagnoses[j].dept!==mode)continue;a.push({date:DB.diagnoses[j].date,text:t('timelineDx')+' · '+(DB.diagnoses[j].code||'')+' '+(LANG==='th'?DB.diagnoses[j].th:DB.diagnoses[j].en)});}
+ a.sort(function(x,y){return x.date<y.date?1:-1;});return a.slice(0,30).map(function(x){return '<div style="padding:4px 0;border-bottom:1px solid #ccc"><b>'+dTxt(x.date)+'</b> · '+esc(x.text)+'</div>';}).join('')||t('noData');
 }
-function reportCanvas(id){var c=E(id);if(!c||!c.width||!c.height)return'';try{return '<img src="'+c.toDataURL('image/png')+'" style="max-width:100%;height:auto;margin:4px 0 10px">';}catch(e){return'';}}
-function buildReportCharts(){
+function buildReportMedicalEvents(){
+ var es=(DB.events||[]).slice().sort(function(a,b){return a.date<b.date?-1:(a.date>b.date?1:0);});
+ if(!es.length)return 'ยังไม่มีประวัติเหตุการณ์ทางการแพทย์ที่บันทึกไว้';
+ return es.map(function(e){
+  var types={accident:'อุบัติเหตุ',fall:'หกล้ม',head_injury:'ศีรษะกระแทก',emergency:'ฉุกเฉิน',surgery:'ศัลยกรรม',orthopedics:'ออร์โธปิดิกส์',neurology:'สมองและระบบประสาท',other:'อื่น ๆ'};
+  var eventType=types[e.type]||e.type||'เหตุการณ์ทางการแพทย์';
+  var line='<div class="event-item"><b>'+dTxt(e.date||'')+'</b> · '+esc(e.title||eventType);
+  if(e.type)line+=' · '+esc(eventType);
+  if(e.department)line+='<br>แผนก: '+esc(e.department);
+  if(e.place)line+=' · สถานที่: '+esc(e.place);
+  if(e.status)line+='<br>สถานะ: '+esc(e.status);
+  if(e.note)line+='<br>รายละเอียด: '+esc(e.note);
+  return line+'</div>';
+ }).join('');
+}
+function reportCanvas(id){
+ var c=E(id);if(!c||!c.width||!c.height)return'';
+ try{
+  /* Prepare a print-friendly snapshot without changing the live dashboard chart. */
+  var tmp=document.createElement('canvas');tmp.width=c.width;tmp.height=c.height;
+  var x=tmp.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,tmp.width,tmp.height);x.drawImage(c,0,0);
+  var im=x.getImageData(0,0,tmp.width,tmp.height),d=im.data,i,r,g,b,mn,lum,target=null,strength,out;
+  for(i=0;i<d.length;i+=4){r=d[i];g=d[i+1];b=d[i+2];mn=Math.min(r,g,b);lum=(r+g+b)/3;target=null;
+   /* Turn the faint dashboard axis labels and grid into readable print grays. */
+   if(Math.max(r,g,b)-mn<16&&lum>210){d[i]=198;d[i+1]=204;d[i+2]=213;continue;}
+   if(b>g+10&&r<g&&lum>85&&lum<185){d[i]=71;d[i+1]=85;d[i+2]=105;continue;}
+   /* Keep each series recognizable while moving neon colors to darker print hues. */
+   if(g>r+35&&b>g+12)target=[0,105,150];
+   else if(r>g+18&&g>b+12)target=[150,96,0];
+   else if(r>b+12&&b>g+18)target=[174,35,103];
+   else if(g>r+10&&r>b+12)target=[47,117,37];
+   if(target){strength=Math.max(0,Math.min(1,(255-mn)/150));for(var q=0;q<3;q++){out=255+(target[q]-255)*strength;d[i+q]=Math.round(out);}}
+  }
+  x.putImageData(im,0,0);
+  return '<img class="report-chart" src="'+tmp.toDataURL('image/png')+'" style="max-width:100%;height:auto;margin:4px 0 10px">';
+ }catch(e){return '<img class="report-chart" src="'+c.toDataURL('image/png')+'" style="max-width:100%;height:auto;margin:4px 0 10px">';}
+}
+function buildReportCharts(mode){
  var h='';
- if(DEPT!=='eye')h+=reportCanvas('cScenario')+reportCanvas('cEgfr')+reportCanvas('cCombo');
- if(DEPT!=='med')h+=reportCanvas('cIop')+reportCanvas('cCdr')+reportCanvas('cLinkCh');
+ if(mode!=='eye')h+=reportCanvas('cScenario')+reportCanvas('cEgfr')+reportCanvas('cCombo');
+ if(mode!=='med')h+=reportCanvas('cIop')+reportCanvas('cCdr')+reportCanvas('cLinkCh');
  return h||'<div class="pbox">'+t('noData')+'</div>';
 }
-function doPrint(){buildReport();window.print();}
+function doPrint(){showReportChooser();}
 
-/* ========== 15. นำทาง ========== */
+/* ========== 15. Local administrator PIN ========== */
+/* This is a local convenience gate. Firebase Authentication is intentionally not used. */
+var ADMIN_UNLOCKED=false;
+var ADMIN_PIN_KEY='ckd_admin_pin_hash_v1';
+function pinHash(pin){var h=2166136261;for(var i=0;i<pin.length;i++){h^=pin.charCodeAt(i);h=Math.imul(h,16777619);}return('00000000'+(h>>>0).toString(16)).slice(-8);}
+function updateAdminUI(){
+ var b=E('adminPinBtn');if(b){b.textContent=LANG==='th'?(ADMIN_UNLOCKED?'PIN: ปลดล็อกแล้ว':'ปลดล็อก PIN'):(ADMIN_UNLOCKED?'PIN: Unlocked':'Unlock PIN');b.className=ADMIN_UNLOCKED?'btn lm':'btn';}
+ var mutating=document.querySelectorAll('[data-act="save-lab"],[data-act="save-daily"],[data-act="save-event"],[data-act="commit"],[data-act="pick"],[data-act="import"],[data-act="reset"],[data-act="clear"],[data-act="fill-last"],[data-act="del-daily"]');
+ for(var i=0;i<mutating.length;i++){mutating[i].disabled=!ADMIN_UNLOCKED;mutating[i].style.opacity=ADMIN_UNLOCKED?'1':'.48';mutating[i].title=ADMIN_UNLOCKED?'':(LANG==='th'?'ปลดล็อก PIN ก่อน':'Unlock PIN first');}
+ var navs=document.querySelectorAll('nav button[data-val="add"],nav button[data-val="ocr"]');for(var j=0;j<navs.length;j++)navs[j].style.opacity=ADMIN_UNLOCKED?'1':'.55';
+ var eventForm=document.querySelector('#v-events .card');if(eventForm)eventForm.style.display=ADMIN_UNLOCKED?'block':'none';
+}
+function handleAdminPin(){
+ var saved=localStorage.getItem(ADMIN_PIN_KEY),pin,confirmPin;
+ if(ADMIN_UNLOCKED){if(window.confirm(LANG==='th'?'ต้องการล็อกโหมดแก้ไขหรือไม่?':'Lock editing mode?')){ADMIN_UNLOCKED=false;updateAdminUI();}return;}
+ if(!saved){pin=window.prompt(LANG==='th'?'ตั้ง PIN 6 หลัก':'Set a 6-digit PIN');if(pin===null)return;if(!/^\d{6}$/.test(pin)){alert(LANG==='th'?'PIN ต้องเป็นตัวเลข 6 หลัก':'PIN must be exactly 6 digits');return;}confirmPin=window.prompt(LANG==='th'?'กรอก PIN อีกครั้งเพื่อยืนยัน':'Re-enter PIN to confirm');if(confirmPin!==pin){alert(LANG==='th'?'PIN ไม่ตรงกัน':'PINs do not match');return;}localStorage.setItem(ADMIN_PIN_KEY,pinHash(pin));ADMIN_UNLOCKED=true;updateAdminUI();requestCloudSeedIfNeeded();return;}
+ pin=window.prompt(LANG==='th'?'กรอก PIN 6 หลัก':'Enter the 6-digit PIN');if(pin===null)return;if(!/^\d{6}$/.test(pin)||pinHash(pin)!==saved){alert(LANG==='th'?'PIN ไม่ถูกต้อง':'Incorrect PIN');return;}ADMIN_UNLOCKED=true;updateAdminUI();requestCloudSeedIfNeeded();
+}
+function requireAdmin(){if(ADMIN_UNLOCKED)return true;alert(LANG==='th'?'ปลดล็อกด้วย PIN 6 หลักก่อน':'Unlock with the 6-digit PIN first');return false;}
+
+/* ========== 16. นำทาง ========== */
 var CURVIEW='dash';
 function go(v){
  CURVIEW=v;
@@ -1498,7 +1749,7 @@ function applyLang(){
  E('langBtn').textContent=(LANG==='th')?'ENGLISH':'ไทย';
  try{localStorage.setItem('ckd_lang',LANG);}catch(e){}
 }
-function renderAll(){applyLang();renderDash();renderDaily();renderHist();renderForm();renderEvents();renderStat();}
+function renderAll(){applyLang();renderDash();renderDaily();renderHist();renderForm();renderEvents();renderStat();updateAdminUI();updateFirebaseUI();}
 
 function findAct(node){
  while(node&&node!==document.body){
@@ -1510,10 +1761,18 @@ document.addEventListener('click',function(ev){
  var el4=findAct(ev.target||ev.srcElement);
  if(!el4)return;
  var act=el4.getAttribute('data-act'),val=el4.getAttribute('data-val')||'',j;
- if(act==='nav'){go(val);}
+ var adminActions=['save-lab','save-daily','save-event','commit','pick','import','reset','clear','fill-last','del-daily'];
+ if(adminActions.indexOf(act)>=0&&!requireAdmin())return;
+ if(act==='nav'){
+  if((val==='add'||val==='ocr')&&!ADMIN_UNLOCKED){alert(LANG==='th'?'ปลดล็อก PIN ก่อนเข้าใช้งานส่วนนี้':'Unlock PIN to access this section');return;}
+  go(val);
+ }
  else if(act==='dept'){setDept(val);}
  else if(act==='lang'){LANG=(LANG==='th')?'en':'th';renderAll();go(CURVIEW);}
  else if(act==='print'){doPrint();}
+ else if(act==='cloud-sync'){syncFirebaseNow();}
+ else if(act==='admin-pin'){handleAdminPin();}
+ else if(act==='report-mode'){REPORT_MODE=val;E('modal').className='modal';buildReport(REPORT_MODE);window.print();}
  else if(act==='detail'){var pr=val.split(':');openDetail(pr[0]==='vit'?'vit':'lab',pr[1]);}
  else if(act==='close'){E('modal').className='modal';}
  else if(act==='dmode'){MQ=(val==='q');drawDetail();}
@@ -1548,10 +1807,12 @@ document.addEventListener('change',function(ev){
  else if(act==='ocrdate'){PENDING[parseInt(val,10)].date=el6.value;}
 },false);
 E('file').addEventListener('change',function(ev){
+ if(!ADMIN_UNLOCKED){ev.target.value='';return;}
  var f=[],fs=ev.target.files,j;
  for(j=0;j<fs.length;j++){f.push(fs[j]);}
  if(f.length)runOCR(f);},false);
 E('impFile').addEventListener('change',function(ev){
+ if(!ADMIN_UNLOCKED){ev.target.value='';return;}
  var f=ev.target.files[0];if(!f)return;
  var rd=new FileReader();
  rd.onload=function(){
@@ -1567,6 +1828,7 @@ dz.addEventListener('drop',function(ev){
  var f=[],j;
  if(ev.dataTransfer&&ev.dataTransfer.files){var fs=ev.dataTransfer.files;
   for(j=0;j<fs.length;j++){if(fs[j].type.indexOf('image')===0)f.push(fs[j]);}}
+ if(!ADMIN_UNLOCKED){alert(LANG==='th'?'ปลดล็อก PIN ก่อนอัปโหลด':'Unlock PIN before upload');return;}
  if(f.length)runOCR(f);},false);
 E('modal').addEventListener('click',function(ev){
  if((ev.target||ev.srcElement).id==='modal')E('modal').className='modal';},false);
@@ -1576,6 +1838,8 @@ window.addEventListener('resize',function(){
  if(E('modal').className.indexOf('on')>=0)drawDetail();},false);
 
 setDept(DEPT);
+updateAdminUI();
+startFirebase();
 go('dash');
 
 }catch(err){showErr(err&&err.message?err.message:String(err));}
