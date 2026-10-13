@@ -28,12 +28,14 @@
     .nav-tab:not(.active) { background:#161b22;color:#64748b; }
     .nav-tab:not(.active):hover { color:#fff;border-color:#475569; }
     /* Risk Monitor badges */
-    .rm-badge { display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:9999px;white-space:nowrap; }
-    .rm-watch  { background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.35); }
-    .rm-sl15   { background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.4); }
-    .rm-sl20   { background:rgba(239,68,68,.18);color:#ef4444;border:1px solid rgba(239,68,68,.5);animation:pulse 1.5s infinite; }
-    .rm-tp     { background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.35); }
-    .rm-tp-str { background:rgba(16,185,129,.22);color:#34d399;border:1px solid rgba(16,185,129,.6); }
+    .rm-badge    { display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:9999px;white-space:nowrap; }
+    .rm-watch    { background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.35); }
+    .rm-sl12     { background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.4); } /* v9 */
+    .rm-sl15     { background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.45); }
+    .rm-sl20     { background:rgba(239,68,68,.18);color:#ef4444;border:1px solid rgba(239,68,68,.5);animation:pulse 1.5s infinite; }
+    .rm-wl-prox  { background:rgba(99,102,241,.15);color:#818cf8;border:1px solid rgba(99,102,241,.4); } /* v9: Watchlist proximity */
+    .rm-tp       { background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.35); }
+    .rm-tp-str   { background:rgba(16,185,129,.22);color:#34d399;border:1px solid rgba(16,185,129,.6); }
   </style>
 </head>
 <body class="min-h-screen antialiased pb-16">
@@ -671,29 +673,55 @@ function renderRiskMonitor(sum) {
                  url: 'MyAssets_Thai.html' });
   });
 
-  /* กรองเฉพาะที่อยู่ใน Risk หรือ TP zone */
+  /* v9: เพิ่ม Watchlist proximity items จาก appData.alerts */
+  const wlItems = [];
+  if (appData && appData.alerts) {
+    appData.alerts.forEach(function(a) {
+      if (!a.ticker || (!a.isBuyAlertActive && !a.isSellAlertActive)) return;
+      const pos   = (sum.positions||[]).find(function(p){return p.ticker===a.ticker;}) ||
+                    (sum.thaiPositions||[]).find(function(p){return p.ticker===a.ticker;});
+      const curP  = pos ? (pos.currentPrice||0) : 0;
+      const bTgt  = Number(a.targetBuyPrice)  || 0;
+      const sTgt  = Number(a.targetSellPrice) || 0;
+      const isBuy = a.isBuyAlertActive === true || a.isBuyAlertActive === 'TRUE';
+      const isSell= a.isSellAlertActive === true || a.isSellAlertActive === 'TRUE';
+      if (curP <= 0) return;
+      /* Buy proximity: ราคาอยู่เหนือ target ≤ 5% */
+      if (isBuy && bTgt > 0) {
+        const dist = (curP - bTgt) / bTgt;
+        if (dist >= 0 && dist <= 0.05) wlItems.push({ ticker:a.ticker, label:'WL ซื้อ', sub:fmtN(dist*100,1)+'%', cls:'rm-wl-prox' });
+      }
+      /* Sell proximity: ราคาอยู่ใต้ target ≤ 5% */
+      if (isSell && sTgt > 0) {
+        const dist = (sTgt - curP) / sTgt;
+        if (dist >= 0 && dist <= 0.05) wlItems.push({ ticker:a.ticker, label:'WL ขาย', sub:fmtN(dist*100,1)+'%', cls:'rm-wl-prox' });
+      }
+    });
+  }
+
+  /* กรองเฉพาะที่อยู่ใน Risk หรือ TP zone (v9: WATCH เริ่มที่ -10%) */
   const risky = items.filter(function(p) {
     return p.diffPct <= -10 || p.diffPct >= 40;
   });
 
-  if (!risky.length) { panel.classList.add('hidden'); return; }
+  if (!risky.length && !wlItems.length) { panel.classList.add('hidden'); return; }
   panel.classList.remove('hidden');
 
-  body.innerHTML = risky.map(function(p) {
+  /* Position badges */
+  const posHtml = risky.map(function(p) {
     const d = p.diffPct;
     let cls = '', label = '';
     if      (d <= -15) { cls = 'rm-sl15';  label = 'SL-15%'; }
     else if (d <= -12) { cls = 'rm-sl12';  label = 'SL-12%'; }
-    else if (d <= -8) { cls = 'rm-watch'; label = 'WATCH'; }
-    else if (d >= 60)  { cls = 'rm-tp-str';label = 'TP+60%'; }
-    else if (d >= 50)  { cls = 'rm-tp-str';label = 'TP+50%'; }
-    else               { cls = 'rm-tp';    label = 'TP+40%'; }
+    else if (d <= -10) { cls = 'rm-watch'; label = 'WATCH';   }  /* v9: -10% */
+    else if (d >= 60)  { cls = 'rm-tp-str';label = 'Full TP'; }
+    else if (d >= 50)  { cls = 'rm-tp-str';label = 'Partial TP'; }
+    else               { cls = 'rm-tp';    label = 'Watch TP'; }
 
     const grpCls = p.market === 'TH'
       ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
       : 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
     const sign = d >= 0 ? '+' : '';
-
     return '<a href="' + p.url + '" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#0d1117] border border-[#30363d] hover:border-[#475569] transition cursor-pointer">'
          + '<span class="text-[9px] px-1 py-0.5 rounded ' + grpCls + '">' + p.market + '</span>'
          + '<span class="text-xs font-bold text-white fn">' + p.ticker + '</span>'
@@ -701,6 +729,17 @@ function renderRiskMonitor(sum) {
          + '<span class="text-[10px] fn ' + (d >= 0 ? 'text-emerald-400' : 'text-rose-400') + '">' + sign + fmtN(d, 2) + '%</span>'
          + '</a>';
   }).join('');
+
+  /* Watchlist proximity badges */
+  const wlHtml = wlItems.map(function(w) {
+    return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#0d1117] border border-[#30363d]">'
+         + '<span class="text-xs font-bold text-white fn">' + w.ticker + '</span>'
+         + '<span class="rm-badge ' + w.cls + '">' + w.label + '</span>'
+         + '<span class="text-[10px] fn text-indigo-400">' + w.sub + '</span>'
+         + '</span>';
+  }).join('');
+
+  body.innerHTML = posHtml + wlHtml;
 }
 
 /* ── D-6: Performance Row + Top Gainers/Losers ──────────── */
