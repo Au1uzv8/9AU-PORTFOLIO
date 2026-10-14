@@ -155,7 +155,7 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
 
   <div class="grid g2" id="cRiskRow">
     <div class="card" id="cKidneyRiskBox" style="border-color:var(--gold)"><h3 style="color:var(--gold)" data-i18n="kidneyRiskT">Kidney Risk · KFRE</h3><div id="kidneyRiskBody"></div><small class="note" data-i18n="kidneyRiskHint">เก็บเป็นข้อมูลประกอบแยกจากกราฟ เพื่อไม่ให้กราฟหลักอ่านยาก และจะคำนวณเมื่อข้อมูลที่จำเป็นครบและตรวจสอบได้</small></div>
-    <div class="card" id="cEventSummaryBox" style="border-color:var(--mag)"><h3 style="color:var(--mag);margin:0 0 10px" data-i18n="eventT">การรักษาและเหตุการณ์ล่าสุด</h3><div id="eventSummaryBody"></div><button class="btn" data-act="nav" data-val="events" data-i18n="allEventHistory">ดูประวัติทั้งหมด</button></div>
+    <div class="card" id="cEventSummaryBox" style="border-color:var(--mag)"><h3 style="color:var(--mag);margin:0 0 10px" data-i18n="eventT">เหตุการณ์ทางการแพทย์ล่าสุด</h3><div id="eventSummaryBody"></div></div>
   </div>
   <div class="grid g2" id="cDeptCards"></div>
   <div class="card" id="cLinkBox"><h3 data-i18n="linkT">จุดเชื่อมโยงระหว่างสองแผนก</h3><div id="linkBody"></div></div>
@@ -448,8 +448,7 @@ I18N.th.guideButton='เปิดคู่มือ'; I18N.en.guideButton='Open 
 
 I18N.th.kidneyRiskHint='เก็บเป็นข้อมูลประกอบแยกจากกราฟ เพื่อไม่ให้กราฟหลักอ่านยาก และจะคำนวณเมื่อข้อมูลที่จำเป็นครบและตรวจสอบได้';
 I18N.en.kidneyRiskHint='Keep risk information separate from the main graph. Calculate only when required inputs and suitable calibration are verified.';
-I18N.th.eventT='การรักษาและเหตุการณ์ล่าสุด'; I18N.en.eventT='Recent Visits and Events';
-I18N.th.allEventHistory='ดูประวัติทั้งหมด'; I18N.en.allEventHistory='View full history';
+I18N.th.eventT='เหตุการณ์ทางการแพทย์ล่าสุด'; I18N.en.eventT='Latest Medical Event';
 I18N.th.eventFormT='บันทึกเหตุการณ์ทางการแพทย์'; I18N.en.eventFormT='Record a Medical Event';
 I18N.th.eventFormHint='รองรับเหตุการณ์ที่เกิดเป็นครั้งคราว เช่น หกล้ม ศีรษะกระแทก อุบัติเหตุ ห้องฉุกเฉิน ศัลยกรรม ออร์โธปิดิกส์ หรือระบบประสาท โดยไม่ต้องสร้างโครงสร้างฐานข้อมูลใหม่ทุกครั้ง';
 I18N.en.eventFormHint='Record occasional events such as falls, head injuries, accidents, emergency visits, surgery, orthopedics, or neurology without redesigning the database.';
@@ -899,12 +898,7 @@ function renderKidneyRisk(){
  body.innerHTML='<div class="hrow"><div><div class="num" style="font-size:24px;color:var(--cyan)">KFRE</div><div class="sub">'+(LANG==='th'?'พร้อมคำนวณเมื่อกำหนดภูมิภาค/Calibration ที่เหมาะสม':'Ready after region/calibration is specified')+'</div></div><div class="spacer"></div><span class="badge">'+(LANG==='th'?'ยังไม่แสดงตัวเลข':'Value withheld')+'</span></div><div class="adv good">'+(LANG==='th'?'ระบบเก็บตัวแปร 4-variable ที่จำเป็นไว้แล้ว แต่จะไม่แสดงเปอร์เซ็นต์จนกว่าจะกำหนดวิธี calibration ที่เหมาะสมกับประชากร':'The 4-variable inputs are present, but the percentage is withheld until an appropriate calibration is specified.')+'</div>';
 }
 function renderEventSummary(){
- var body=E('eventSummaryBody');if(!body)return;var enc=(DB.encounters||[]).slice().sort(byDate).reverse(),ev=(DB.events||[]).slice().sort(byDate).reverse(),h='',i;
- h+='<div style="font-weight:bold;color:var(--cyan);margin:4px 0">การเข้ารับการรักษาทั่วไป</div>';
- if(enc.length){for(i=0;i<Math.min(3,enc.length);i++){var c=enc[i];h+='<div class="med"><div class="dot" style="background:var(--cyan)"></div><div><b>'+dTxt(c.date)+' · '+esc(c.title||c.diagnosis||'การเข้ารับการรักษา')+'</b>'+(c.department?' <span class="badge">'+esc(c.department)+'</span>':'')+'<br><span class="dim">'+esc(c.diagnosis||c.symptoms||'')+(c.facility?' · '+esc(c.facility):'')+'</span>'+(c.medications&&c.medications.length?'<br><span class="dim">ยา: '+esc(c.medications.join(' · '))+'</span>':'')+'</div></div>';}}else h+='<div class="dim">'+t('noData')+'</div>';
- h+='<div style="font-weight:bold;color:var(--mag);margin:10px 0 4px">ประวัติเหตุการณ์พิเศษ</div>';
- if(ev.length){for(i=0;i<Math.min(3,ev.length);i++){var e=ev[i];h+='<div class="med"><div class="dot" style="background:var(--mag)"></div><div><b>'+dTxt(e.date)+' · '+esc(e.title||e.type||'เหตุการณ์')+'</b>'+(e.department?' <span class="badge">'+esc(e.department)+'</span>':'')+'<br><span class="dim">'+esc(e.status||e.place||e.note||'')+'</span></div></div>';}}else h+='<div class="dim">'+t('noData')+'</div>';
- body.innerHTML=h;}
+ var body=E('eventSummaryBody');if(!body)return;var es=(DB.events||[]).concat(DB.encounters||[]).sort(byDate).reverse();if(!es.length){body.innerHTML='<div class="dim">'+t('noData')+'</div>';return;}var e=es[0];body.innerHTML='<div class="med"><div class="dot" style="background:var(--mag)"></div><div><b>'+esc(e.title||e.type||'Medical event')+'</b><br><span class="dim">'+dTxt(e.date)+' · '+esc(e.department||'-')+' · '+esc(e.facility||e.place||'-')+'</span><br><span class="dim">'+esc(e.diagnosis||e.note||e.symptoms||e.status||'-')+'</span></div></div>';}
 function renderEvents(){
  var list=E('eventList'),encList=E('encounterList');if(!list||!encList)return;
  var encounters=(DB.encounters||[]).slice().sort(byDate).reverse(),events=(DB.events||[]).slice().sort(byDate).reverse(),h='',j;
@@ -1772,19 +1766,9 @@ function buildReportOverview(){
  var ap=(DB.appointments||[]).filter(function(a){return a.date&&a.date>=new Date().toISOString().slice(0,10);}).slice().sort(byDate);
  h+='<h3>นัดหมายล่วงหน้า</h3><div class="pbox">'+(ap.length?ap.slice(0,5).map(function(a){return '<div class="event-item"><b>'+dTxt(a.date)+'</b> '+esc(a.time||'')+' · '+esc(a.title||appointmentDeptName(a))+' · '+esc(appointmentSourceName(a.source_system||a.source))+(a.place?' · '+esc(a.place):'')+'</div>';}).join(''):'ไม่มีนัดหมายล่วงหน้าที่บันทึกไว้')+'</div>';
  var day=lastDay();if(day){h+='<h3>'+t('vitalsNow')+'</h3><table><tr><th>'+t('date')+'</th><th>BP</th><th>'+nm(VM.pulse)+'</th><th>'+nm(VM.wt)+'</th><th>'+nm(VM.fluid)+'</th><th>'+nm(VM.urine)+'</th></tr><tr><td>'+dTxt(day.date)+'</td><td>'+(day.sys||'-')+'/'+(day.dia||'-')+'</td><td>'+(day.pulse||'-')+'</td><td>'+(day.wt||'-')+'</td><td>'+(day.fluid||'-')+'</td><td>'+(day.urine||'-')+'</td></tr></table>';}
- h+='<h3>การเข้ารับการรักษาทั่วไป</h3><div class="pbox">'+buildReportEncounters()+'</div>';
- h+='<h3>ประวัติเหตุการณ์พิเศษ</h3><div class="pbox">'+buildReportSpecialEvents()+'</div>';
+ var enc=(DB.encounters||[]).slice().sort(byDate).reverse(),ev=(DB.events||[]).slice().sort(byDate).reverse();h+='<h3>การเข้ารับการรักษาทั่วไปล่าสุด</h3><div class="pbox">'+(enc.length?enc.slice(0,3).map(function(e){return '<div class="event-item"><b>'+dTxt(e.date)+'</b> · '+esc(e.title||e.diagnosis||'การเข้ารับการรักษา')+(e.diagnosis?' · '+esc(e.diagnosis):'')+(e.department?' · '+esc(e.department):'')+(e.medications&&e.medications.length?'<br>ยา: '+esc(e.medications.join(' · ')):'')+'</div>';}).join(''):'ยังไม่มีข้อมูลการเข้ารับการรักษาทั่วไป')+'</div>';
+ h+='<h3>เหตุการณ์พิเศษล่าสุด</h3><div class="pbox">'+(ev.length?ev.slice(0,3).map(function(e){return '<div class="event-item"><b>'+dTxt(e.date)+'</b> · '+esc(e.title||e.type||'เหตุการณ์')+(e.department?' · '+esc(e.department):'')+(e.note?'<br>'+esc(e.note):'')+'</div>';}).join(''):'ยังไม่มีเหตุการณ์พิเศษที่บันทึกไว้')+'</div>';
  return h;
-}
-function buildReportEncounters(){
- var rows=(DB.encounters||[]).slice().sort(byDate).reverse();if(!rows.length)return 'ยังไม่มีข้อมูลการเข้ารับการรักษาทั่วไป';
- return rows.map(function(e){var v=e.vitals||{},line='<div class="event-item"><b>'+dTxt(e.date||'')+(e.time?' · '+esc(e.time):'')+'</b> · '+esc(e.title||e.diagnosis||'การเข้ารับการรักษา');
-  if(e.department)line+='<br>แผนก: '+esc(e.department);if(e.facility)line+=' · สถานที่: '+esc(e.facility);if(e.physician)line+='<br>แพทย์: '+esc(e.physician);if(e.visitType||e.paymentRight)line+='<br>'+esc([e.visitType,e.paymentRight].filter(Boolean).join(' · '));if(e.diagnosis)line+='<br>การวินิจฉัย: '+esc(e.diagnosis);if(e.symptoms)line+='<br>อาการ: '+esc(e.symptoms);if(e.medications&&e.medications.length)line+='<br>ยาและวิธีใช้: '+esc(e.medications.join(' · '));
-  var vs=['BP '+(v.bp||''),v.temperatureC?'อุณหภูมิ '+v.temperatureC+'°C':'','ชีพจร '+(v.pulse||''),'หายใจ '+(v.respiration||''),v.weightKg?'น้ำหนัก '+v.weightKg+' กก.':'',v.heightCm?'ส่วนสูง '+v.heightCm+' ซม.':''].filter(function(x){return !/ $/.test(x);});if(vs.length)line+='<br>สัญญาณชีพ: '+esc(vs.join(' · '));if(e.status)line+='<br>สถานะ: '+esc(e.status);if(e.note)line+='<br>รายละเอียด: '+esc(e.note);if(e.source_images&&e.source_images.length)line+='<br>ภาพต้นทาง: '+esc(e.source_images.join(', '));return line+'</div>';}).join('');
-}
-function buildReportSpecialEvents(){
- var rows=(DB.events||[]).slice().sort(byDate).reverse();if(!rows.length)return 'ยังไม่มีประวัติเหตุการณ์พิเศษที่บันทึกไว้';
- return rows.map(function(e){var types={accident:'อุบัติเหตุ',fall:'หกล้ม',head_injury:'ศีรษะกระแทก',emergency:'ฉุกเฉิน',surgery:'ศัลยกรรม',orthopedics:'ออร์โธปิดิกส์',neurology:'สมองและระบบประสาท',other:'อื่น ๆ'},line='<div class="event-item"><b>'+dTxt(e.date||'')+'</b> · '+esc(e.title||types[e.type]||e.type||'เหตุการณ์พิเศษ');if(e.type)line+=' · '+esc(types[e.type]||e.type);if(e.department)line+='<br>แผนก: '+esc(e.department);if(e.place)line+=' · สถานที่: '+esc(e.place);if(e.status)line+='<br>สถานะ: '+esc(e.status);if(e.note)line+='<br>รายละเอียด/ผลตรวจ/คำสั่งแพทย์: '+esc(e.note);return line+'</div>';}).join('');
 }
 function reportDeptChanges(dp){
  var r=recs(dp);if(r.length<2)return[];var cur=r[r.length-1],prev=r[r.length-2],out=[],j;
