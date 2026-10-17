@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0B0E14">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0B0E14;--card:#141922;--card2:#1A2130;--line:#232D3C;--gold:#FFD75E;--cyan:#4DE8FF;--mag:#FF4DD2;--lime:#B6FF3C;--txt:#D7E0EA;--dim:#7F8EA3}
+:root{--bg:#0B0E14;--card:#141922;--card2:#1A2130;--line:#232D3C;--gold:#FFD75E;--cyan:#4DE8FF;--mag:#FF4DD2;--lime:#B6FF3C;--txt:#D7E0EA;--dim:#7F8EA3;--risk-red:#FF626B;--risk-blue:#5BA8FF;--risk-normal:#F3F6FA}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--txt);font-family:'Noto Sans Thai',system-ui,sans-serif;font-size:15px;padding-bottom:50px}
 .num{font-family:'Orbitron',sans-serif;letter-spacing:.5px}
@@ -50,6 +50,7 @@ main{max-width:1180px;margin:0 auto;padding:14px}
 .kpi .unit,.kpi .ref{font-size:11px;color:var(--dim)}
 .kpi .trend{font-size:12px;margin:3px 0}
 .ok{color:var(--lime)}.hi{color:var(--mag)}.lo{color:var(--gold)}.dim{color:var(--dim)}
+.dash-risk-red{color:var(--risk-red)!important;font-weight:700}.dash-risk-blue{color:var(--risk-blue)!important;font-weight:700}.dash-risk-normal{color:var(--risk-normal)!important}
 .pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
 .chart{height:300px}
 canvas{width:100%;height:100%;display:block;cursor:pointer}
@@ -108,16 +109,13 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
     <div class="spacer"></div>
     <button class="btn lm" data-act="user-guide" data-i18n="guideButton">เปิดคู่มือ</button>
     <button class="btn lm" data-act="print" data-i18n="printBtn">พิมพ์รายงาน</button>
-    <button class="btn" data-act="admin-pin" id="adminPinBtn">Admin: Locked</button>
-    <span class="badge" id="firebaseStatus">Cloud: setup required</span>
-    <button class="btn cy" data-act="cloud-sync" id="cloudSyncBtn">Sync Cloud</button>
+    <span class="badge" id="sheetStatus">Sheet: setup required</span>
+    <button class="btn cy" data-act="sheet-sync" id="sheetSyncBtn">ซิงก์ Sheet</button>
     <button class="btn gold" data-act="lang" id="langBtn">ENGLISH</button>
   </div>
   <nav>
     <button data-act="nav" data-val="dash" class="on" data-i18n="navDash">แดชบอร์ด</button>
-    <button data-act="nav" data-val="daily" data-i18n="navDaily">บันทึกรายวัน</button>
     <button data-act="nav" data-val="hist" data-i18n="navHist">ประวัติย้อนหลัง</button>
-    <button data-act="nav" data-val="add" data-i18n="navAdd">กรอกผลตรวจ</button>
     <button data-act="nav" data-val="ocr" data-i18n="navOcr">อัปโหลดรูป (OCR)</button>
     <button data-act="nav" data-val="events" data-i18n="navEvents">เหตุการณ์ทางการแพทย์</button>
     <button data-act="nav" data-val="data" data-i18n="navData">ข้อมูล/สำรอง</button>
@@ -134,12 +132,13 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
 <section class="view on" id="v-dash">
   <div class="card" id="cHead">
     <div class="hrow">
-      <div><div class="sub" data-i18n="lastVisit">ผลตรวจล่าสุด</div><div class="num" id="lastDate" style="font-size:20px;color:var(--gold)"></div></div>
+      <div><div class="sub" id="lastVisitLbl" data-i18n="lastVisit">ผลตรวจล่าสุด</div><div class="num" id="lastDate" style="font-size:20px;color:var(--gold)"></div></div>
       <div class="spacer"></div>
       <div style="text-align:right"><div class="sub" id="headRLbl"></div><div class="num" id="stageTxt" style="font-size:20px"></div></div>
     </div>
   </div>
   <div class="adv good" id="cOverviewNote" data-i18n="dashboardSummaryNote">ภาพรวมแสดงเฉพาะสถานะและรายการสำคัญ เลือกแผนกเพื่อดูข้อมูลและกราฟโดยละเอียด</div>
+  <div class="card" style="padding:8px 12px;font-size:12px"><span class="dash-risk-red">● <span data-i18n="riskSpecial">เฝ้าระวังพิเศษ</span></span>　<span class="dash-risk-blue">● <span data-i18n="riskWatch">เฝ้าระวัง</span></span>　<span class="dash-risk-normal">● <span data-i18n="riskNormal">ปกติ</span></span></div>
 
   <div class="card" id="cAppointmentBox" style="border-color:var(--cyan)">
     <div class="hrow"><h3 style="color:var(--cyan);margin:0" data-i18n="appointmentT">นัดหมายล่วงหน้า</h3><div class="spacer"></div><span class="badge" id="appointmentSourceBadge"></span></div>
@@ -155,7 +154,7 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
 
   <div class="grid g2" id="cRiskRow">
     <div class="card" id="cKidneyRiskBox" style="border-color:var(--gold)"><h3 style="color:var(--gold)" data-i18n="kidneyRiskT">Kidney Risk · KFRE</h3><div id="kidneyRiskBody"></div><small class="note" data-i18n="kidneyRiskHint">เก็บเป็นข้อมูลประกอบแยกจากกราฟ เพื่อไม่ให้กราฟหลักอ่านยาก และจะคำนวณเมื่อข้อมูลที่จำเป็นครบและตรวจสอบได้</small></div>
-    <div class="card" id="cEventSummaryBox" style="border-color:var(--mag)"><h3 style="color:var(--mag);margin:0 0 10px" data-i18n="eventT">เหตุการณ์ทางการแพทย์ล่าสุด</h3><div id="eventSummaryBody"></div></div>
+    <div class="card" id="cEventSummaryBox" style="border-color:var(--mag)"><h3 style="color:var(--mag);margin:0 0 10px" data-i18n="eventT">การรักษาและเหตุการณ์ล่าสุด</h3><div id="eventSummaryBody"></div><button class="btn" data-act="nav" data-val="events" data-i18n="allEventHistory">ดูประวัติทั้งหมด</button></div>
   </div>
   <div class="grid g2" id="cDeptCards"></div>
   <div class="card" id="cLinkBox"><h3 data-i18n="linkT">จุดเชื่อมโยงระหว่างสองแผนก</h3><div id="linkBody"></div></div>
@@ -192,32 +191,6 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
   </div>
 </section>
 
-<section class="view" id="v-daily">
-  <div class="card">
-    <h3 data-i18n="dailyT">บันทึกความดัน น้ำหนัก และน้ำดื่มประจำวัน</h3>
-    <div class="grid g4">
-      <div class="field"><label data-i18n="fDate">วันที่</label><input type="date" id="dDate"></div>
-      <div class="field"><label data-i18n="vsys">ความดันตัวบน (mmHg)</label><input type="number" id="d_sys"></div>
-      <div class="field"><label data-i18n="vdia">ความดันตัวล่าง (mmHg)</label><input type="number" id="d_dia"></div>
-      <div class="field"><label data-i18n="vpulse">ชีพจร (ครั้ง/นาที)</label><input type="number" id="d_pulse"></div>
-      <div class="field"><label data-i18n="vwt">น้ำหนัก (กก.)</label><input type="number" step="any" id="d_wt"></div>
-      <div class="field"><label data-i18n="vfluid">น้ำดื่มรวม (มล.)</label><input type="number" id="d_fluid"></div>
-      <div class="field"><label data-i18n="vurine">ปัสสาวะรวม (มล.)</label><input type="number" id="d_urine"></div>
-      <div class="field"><label data-i18n="vlimit">เพดานน้ำดื่มต่อวัน (มล.)</label><input type="number" id="d_limit"></div>
-    </div>
-    <button class="btn lm big" data-act="save-daily" data-i18n="saveDaily">บันทึกข้อมูลวันนี้</button>
-  </div>
-  <div class="card"><h3 data-i18n="dropTick">ติ๊กเมื่อหยอดตาแล้ววันนี้</h3><div id="dropTick"></div></div>
-  <div class="grid g4" id="dstats" style="margin-bottom:12px"></div>
-  <div class="grid g2">
-    <div class="card"><h3 data-i18n="bpChart">ความดันโลหิต</h3><div class="chart"><canvas id="cBp"></canvas></div></div>
-    <div class="card"><h3 data-i18n="wtChart">น้ำหนักตัว</h3><div class="chart"><canvas id="cWt"></canvas></div></div>
-  </div>
-  <div class="card"><h3 data-i18n="flChart">น้ำดื่มและปัสสาวะ</h3><div class="chart"><canvas id="cFl"></canvas></div></div>
-  <div class="card"><h3 data-i18n="dailyAdv">คำแนะนำจากบันทึกรายวัน</h3><div id="dadvice"></div></div>
-  <div class="card"><h3 data-i18n="dailyTable">ตารางบันทึกรายวัน</h3><div class="scroll" style="max-height:50vh"><table id="dTable"></table></div></div>
-</section>
-
 <section class="view" id="v-hist">
   <div class="card">
     <div class="hrow"><h3 style="margin:0" data-i18n="histT">ตารางประวัติผลตรวจทุกรอบ</h3><div class="spacer"></div>
@@ -227,21 +200,6 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
   </div>
   <div class="scroll"><table id="histTable"></table></div>
   <div class="card" style="margin-top:12px"><h3 data-i18n="vitQ">สัญญาณชีพ เฉลี่ยราย 3 เดือน</h3><div class="scroll" style="max-height:40vh"><table id="vitTable"></table></div></div>
-</section>
-
-<section class="view" id="v-add">
-  <div class="card"><h3 data-i18n="addT">กรอกผลตรวจด้วยตนเอง</h3>
-    <div class="grid g2">
-      <div class="field"><label data-i18n="fDate">วันที่ตรวจ</label><input type="date" id="fDate"></div>
-      <div class="field"><label data-i18n="fNote">หมายเหตุ</label><input type="text" id="fNote"></div>
-    </div>
-    <small class="note" data-i18n="addHint">แบบฟอร์มจะแสดงเฉพาะรายการของแผนกที่เลือกไว้ด้านบน</small>
-  </div>
-  <div id="addForm"></div>
-  <div class="hrow">
-    <button class="btn lm big" data-act="save-lab" data-i18n="saveBtn">บันทึกผลตรวจรอบนี้</button>
-    <button class="btn" data-act="fill-last" data-i18n="fillLast">ใส่ค่าจากรอบล่าสุดเป็นตัวตั้ง</button>
-  </div>
 </section>
 
 <section class="view" id="v-ocr">
@@ -277,6 +235,11 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
 </section>
 
 <section class="view" id="v-data">
+  <div class="card"><h3>เชื่อมต่อ Google Sheet</h3>
+    <div class="field"><label>Web App URL (Google Apps Script)</label><input type="text" id="sheetUrlInput" placeholder="https://script.google.com/macros/s/XXXX/exec"></div>
+    <div class="hrow"><button class="btn cy" data-act="save-sheet-url">บันทึก URL และซิงก์</button><div class="spacer"></div><button class="btn" data-act="sheet-sync">ซิงก์ตอนนี้</button></div>
+    <small class="note">ข้อมูลทั้งหมดอ่าน/เขียนผ่าน Google Sheet นี้ หากย้ายไปใช้ Sheet อื่นในอนาคต แก้ URL ที่นี่ได้เลย</small>
+  </div>
   <div class="card"><h3 data-i18n="dataT">สำรองและกู้คืนข้อมูล</h3>
     <p class="sub" id="dbStat"></p>
     <div class="hrow">
@@ -388,7 +351,7 @@ va_os:{lo:{th:'ระดับการมองเห็นตาซ้าย�
 dr:{hi:{th:'พบเบาหวานขึ้นจอตา ต้องคุมน้ำตาลและความดันให้เข้าเป้าอย่างเคร่งครัด และตรวจตาตามนัดทุกครั้ง',en:'Diabetic retinopathy present. Strict glucose and BP control, never miss eye follow-up.'}}};
 
 /* ========== 3. ข้อความสองภาษา ========== */
-var I18N={th:{appName:'Health Tracker',appSub:'ผู้ช่วยติดตามสุขภาพโรคไตเรื้อรังและจักษุ',navDash:'แดชบอร์ด',navDaily:'บันทึกรายวัน',navHist:'ประวัติย้อนหลัง',navAdd:'กรอกผลตรวจ',navOcr:'อัปโหลดรูป (OCR)',navData:'ข้อมูล/สำรอง',
+var I18N={th:{appName:'Health Tracker',appSub:'ผู้ช่วยติดตามสุขภาพโรคไตเรื้อรังและจักษุ',navDash:'แดชบอร์ด',navDaily:'บันทึกรายวัน',navHist:'ประวัติย้อนหลัง',navAdd:'กรอกผลตรวจ',navOcr:'อัปโหลดรูป (OCR)',navData:'ข้อมูล/สำรอง',riskSpecial:'เฝ้าระวังพิเศษ',riskWatch:'เฝ้าระวัง',riskNormal:'ปกติ',careLatest:'การรักษาทั่วไป / เหตุการณ์ล่าสุด',
 deptAll:'ภาพรวมทั้งหมด',deptMed:'อายุรกรรม (คุ้มเกศ)',deptEye:'จักษุกรรม (คุ้มเกล้า)',printBtn:'พิมพ์รายงาน',
 lastVisit:'ผลตรวจล่าสุด',dashboardSummaryNote:'ภาพรวมแสดงเฉพาะสถานะและรายการสำคัญ เลือกแผนกเพื่อดูข้อมูลและกราฟโดยละเอียด',ckdStage:'ระยะของโรคไต',eyeStat:'สถานะความดันลูกตา',vitalsNow:'สัญญาณชีพล่าสุด',egfrHist:'ประวัติ eGFR (EPI)',radarT:'ภาพรวมค่าสำคัญ',
 clickHint:'แตะที่กราฟเพื่อดูรายละเอียดย้อนหลัง',radarHint:'วงเขียว คือ ขีดจำกัดบนของค่าปกติ',
@@ -409,7 +372,7 @@ review:'ตรวจทานค่าที่อ่านได้จากร
 advGood:'รอบนี้ไม่มีค่าที่ต้องเฝ้าระวังเป็นพิเศษ',qLabel:'ไตรมาส',avg7:'เฉลี่ย 7 วัน',confirmClear:'ต้องการลบข้อมูลทั้งหมดจริงหรือไม่',confirmReset:'โหลดข้อมูลตัวอย่างทับข้อมูลปัจจุบันหรือไม่',del:'ลบ',bal:'สมดุลน้ำ',needDate:'กรุณาเลือกวันที่',needVal:'ยังไม่ได้กรอกค่าใด',
 doctor:'แพทย์',place:'สถานที่',symptom:'อาการ',ptype:'ประเภทผู้ป่วย',right:'สิทธิการรักษา',primary:'โรคหลัก',secondary:'โรครอง',
 reportT:'รายงานสรุปผลสุขภาพ',patient:'ผู้ป่วย',printedOn:'พิมพ์เมื่อ',sigDoc:'ลงชื่อแพทย์',noDrops:'แผนกนี้ไม่มียาหยอดตา',reportDisclaimer:'ข้อมูลนี้เป็นสรุปจากข้อมูลที่บันทึกในระบบ ไม่ใช่การวินิจฉัยทางการแพทย์'},
-en:{appName:'Health Tracker',appSub:'CKD and ophthalmology companion',navDash:'Dashboard',navDaily:'Daily Log',navHist:'History',navAdd:'Enter Results',navOcr:'Upload Images (OCR)',navData:'Data / Backup',
+en:{appName:'Health Tracker',appSub:'CKD and ophthalmology companion',navDash:'Dashboard',navDaily:'Daily Log',navHist:'History',navAdd:'Enter Results',navOcr:'Upload Images (OCR)',navData:'Data / Backup',riskSpecial:'Special attention',riskWatch:'Monitor',riskNormal:'Normal',careLatest:'Latest general visit / event',
 deptAll:'All Departments',deptMed:'Internal Medicine',deptEye:'Ophthalmology',printBtn:'Print report',
 lastVisit:'Latest test',dashboardSummaryNote:'Overview keeps key status and reminders. Select a department to view its detailed data and charts.',ckdStage:'CKD Stage',eyeStat:'Eye pressure status',vitalsNow:'Latest vitals',egfrHist:'eGFR (EPI) history',radarT:'Key values vs reference',
 clickHint:'Tap the chart for detail',radarHint:'Green ring is the upper normal limit',
@@ -443,12 +406,13 @@ I18N.en.scenHint='Actual values are emphasized. Observed trend and illustrative 
 I18N.th.kidneyRiskT='ความเสี่ยงไตวาย · KFRE'; I18N.en.kidneyRiskT='Kidney Risk · KFRE';
 
 I18N.th.guideTitle='คู่มือการใช้งาน'; I18N.en.guideTitle='User Guide';
-I18N.th.guideHint='ที่มา วิธีบันทึกข้อมูล OCR รายงาน และ Firebase Sync'; I18N.en.guideHint='Project background, data entry, OCR, reports, and Firebase Sync';
+I18N.th.guideHint='ที่มา วิธีบันทึกข้อมูล OCR รายงาน และ Google Sheet Sync'; I18N.en.guideHint='Project background, data entry, OCR, reports, and Google Sheet Sync';
 I18N.th.guideButton='เปิดคู่มือ'; I18N.en.guideButton='Open Guide';
 
 I18N.th.kidneyRiskHint='เก็บเป็นข้อมูลประกอบแยกจากกราฟ เพื่อไม่ให้กราฟหลักอ่านยาก และจะคำนวณเมื่อข้อมูลที่จำเป็นครบและตรวจสอบได้';
 I18N.en.kidneyRiskHint='Keep risk information separate from the main graph. Calculate only when required inputs and suitable calibration are verified.';
-I18N.th.eventT='เหตุการณ์ทางการแพทย์ล่าสุด'; I18N.en.eventT='Latest Medical Event';
+I18N.th.eventT='การรักษาและเหตุการณ์ล่าสุด'; I18N.en.eventT='Recent Visits and Events';
+I18N.th.allEventHistory='ดูประวัติทั้งหมด'; I18N.en.allEventHistory='View full history';
 I18N.th.eventFormT='บันทึกเหตุการณ์ทางการแพทย์'; I18N.en.eventFormT='Record a Medical Event';
 I18N.th.eventFormHint='รองรับเหตุการณ์ที่เกิดเป็นครั้งคราว เช่น หกล้ม ศีรษะกระแทก อุบัติเหตุ ห้องฉุกเฉิน ศัลยกรรม ออร์โธปิดิกส์ หรือระบบประสาท โดยไม่ต้องสร้างโครงสร้างฐานข้อมูลใหม่ทุกครั้ง';
 I18N.en.eventFormHint='Record occasional events such as falls, head injuries, accidents, emergency visits, surgery, orthopedics, or neurology without redesigning the database.';
@@ -461,7 +425,7 @@ I18N.th.eventNoteLbl='รายละเอียด / ผลการตรว�
 I18N.th.saveEvent='บันทึกเหตุการณ์'; I18N.en.saveEvent='Save Event';
 I18N.th.eventHistoryT='ประวัติเหตุการณ์'; I18N.en.eventHistoryT='Event History';
 I18N.th.generalEncounterT='การเข้ารับการรักษาทั่วไป'; I18N.en.generalEncounterT='General Medical Visits';
-I18N.th.generalEncounterHint='ประวัติพบแพทย์ทั่วไป โรคเฉียบพลัน การวินิจฉัย และยาที่ได้รับ แยกจากเหตุการณ์พิเศษ · เมื่อซิงก์แล้วอยู่ที่ Firebase: ckd_tracker/encounters'; I18N.en.generalEncounterHint='Routine visits, acute illness, diagnoses, and prescribed medicines, separate from special events. After sync: Firebase ckd_tracker/encounters.';
+I18N.th.generalEncounterHint='ประวัติพบแพทย์ทั่วไป โรคเฉียบพลัน การวินิจฉัย และยาที่ได้รับ แยกจากเหตุการณ์พิเศษ'; I18N.en.generalEncounterHint='Routine visits, acute illness, diagnoses, and prescribed medicines, separate from special events.';
 
 var LANG='th',DEPT='all';
 try{var sv=localStorage.getItem('ckd_lang');if(sv)LANG=sv;var sd=localStorage.getItem('ckd_dept');if(sd)DEPT=sd;}catch(e){}
@@ -574,17 +538,17 @@ function migrate(d){
  return d;}
 DB=migrate(DB);
 normalizeMedicalDomains();
-/* Firebase Web configuration is public client configuration; database access is enforced by Realtime Database Rules. */
-var FIREBASE_CONFIG={apiKey:'AIzaSyBeLmc_Qr3LofVMSvSDSjqobk8z2HF1m1A',authDomain:'ckd-lab-tracker.firebaseapp.com',databaseURL:'https://ckd-lab-tracker-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'ckd-lab-tracker',storageBucket:'ckd-lab-tracker.firebasestorage.app',messagingSenderId:'413650551121',appId:'1:413650551121:web:f91f69bb2210c66572d370',measurementId:'G-7LE9RELJPR'};
-var FIREBASE_DATA_PATH='ckd_tracker',cloudApp=null,cloudDb=null,cloudRef=null,cloudRemoteExists=false,cloudReady=false,cloudSeedPromptShown=false,cloudLocalDirty=false,cloudPushTimer=null;
-function cloudStatus(text){var e=E('firebaseStatus');if(e)e.textContent=(LANG==='th'?'Cloud: ':'Cloud: ')+text;}
-function updateFirebaseUI(){var b=E('cloudSyncBtn');if(b)b.textContent=LANG==='th'?'ซิงก์ Cloud':'Sync Cloud';}
-function firebaseConfigured(){return !!(FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.authDomain&&FIREBASE_CONFIG.databaseURL&&FIREBASE_CONFIG.projectId&&FIREBASE_CONFIG.appId);}
-function loadFirebaseSdk(done){
- var urls=['https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js','https://www.gstatic.com/firebasejs/12.19.0/firebase-database-compat.js'],i=0;
- function next(){if(i>=urls.length){done();return;}var u=urls[i++];if(window.firebase&&(u.indexOf('firebase-app-')>=0||u.indexOf('firebase-database-')>=0&&firebase.database)){next();return;}
-  var s=document.createElement('script');s.src=u;s.onload=next;s.onerror=function(){cloudStatus(LANG==='th'?'โหลด Firebase SDK ไม่ได้':'SDK load failed');};document.head.appendChild(s);}
- next();
+
+/* ========== Google Sheet sync (replaces Firebase) ========== */
+var SHEET_URL_KEY='ckd_sheet_url';
+var DEFAULT_SHEET_URL='https://script.google.com/macros/s/AKfycbwlpFYnMbXgBqP1sXDJkmuCR2fGdwFCXAK6nYELBG-ZqiXkXiCnP8Yoa6p5D8iFAM1Frw/exec';
+function getSheetUrl(){try{return localStorage.getItem(SHEET_URL_KEY)||DEFAULT_SHEET_URL;}catch(e){return DEFAULT_SHEET_URL;}}
+function setSheetUrl(u){try{localStorage.setItem(SHEET_URL_KEY,u);}catch(e){}}
+var sheetReady=false,sheetLocalDirty=false,sheetPushTimer=null,sheetSeedPromptShown=false;
+function sheetStatus(text){var e=E('sheetStatus');if(e)e.textContent=(LANG==='th'?'Sheet: ':'Sheet: ')+text;}
+function updateSheetUI(){
+ var b=E('sheetSyncBtn');if(b)b.textContent=LANG==='th'?'ซิงก์ Sheet':'Sync Sheet';
+ var inp=E('sheetUrlInput');if(inp&&!inp.value)inp.value=getSheetUrl();
 }
 function mergeTrackerData(remote,local){
  remote=remote&&typeof remote==='object'?remote:{};local=local&&typeof local==='object'?local:{};
@@ -596,37 +560,42 @@ function mergeTrackerData(remote,local){
  }
  return out;
 }
-function cloudPushNow(){
- if(!cloudRef||!cloudReady||!ADMIN_UNLOCKED)return;
- cloudRef.transaction(function(current){return mergeTrackerData(current||{},DB);},function(error,committed){if(error){cloudStatus(LANG==='th'?'ซิงก์ไม่สำเร็จ · ตรวจ Rules':'sync failed · check Rules');}else if(committed){cloudReady=true;cloudLocalDirty=false;cloudStatus(LANG==='th'?'ซิงก์แล้ว':'synced');}},false);
+function startSheetSync(){
+ var url=getSheetUrl();
+ if(!url){sheetStatus(LANG==='th'?'ยังไม่ตั้งค่า URL':'URL not set');return;}
+ sheetStatus(LANG==='th'?'กำลังอ่านข้อมูล':'loading');
+ fetch(url,{method:'GET'}).then(function(res){return res.json();}).then(function(data){
+  if(data&&Array.isArray(data.records)){
+   if(!data.records.length&&!sheetSeedPromptShown&&DB.records&&DB.records.length){
+    sheetSeedPromptShown=true;
+    if(window.confirm(LANG==='th'?'Google Sheet ยังว่าง ต้องการอัปโหลดข้อมูลในเครื่องนี้ขึ้น Sheet เป็นชุดแรกหรือไม่?':'Google Sheet is empty. Upload this device current records as the initial copy?')){
+     sheetReady=true;sheetLocalDirty=true;scheduleSheetPush();
+    }else{sheetReady=true;sheetStatus(LANG==='th'?'Sheet ว่าง · ยังไม่อัปโหลดข้อมูล':'sheet empty · local data not uploaded');}
+    return;
+   }
+   DB=migrate(sheetLocalDirty?mergeTrackerData(data,DB):mergeTrackerData(DB,data));
+   try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}
+   sheetReady=true;
+   if(typeof renderAll==='function')renderAll();
+   sheetStatus(sheetLocalDirty?(LANG==='th'?'มีข้อมูลในเครื่องรอซิงก์':'local changes pending'):(LANG==='th'?'อ่านข้อมูลจาก Sheet แล้ว':'sheet data loaded'));
+   if(sheetLocalDirty)scheduleSheetPush();
+  }else{
+   sheetReady=true;sheetStatus(LANG==='th'?'อ่านข้อมูลสำเร็จ แต่รูปแบบไม่ถูกต้อง':'loaded but invalid format');
+  }
+ })['catch'](function(){sheetStatus(LANG==='th'?'เชื่อมต่อไม่สำเร็จ · ตรวจ URL/อินเทอร์เน็ต':'connection failed · check URL/internet');});
 }
-function scheduleCloudPush(){if(!ADMIN_UNLOCKED||!cloudRef||!cloudReady)return;if(cloudPushTimer)clearTimeout(cloudPushTimer);cloudPushTimer=setTimeout(cloudPushNow,700);}
-function requestCloudSeedIfNeeded(){
- if(!cloudRef||!ADMIN_UNLOCKED||!cloudReady||cloudRemoteExists||cloudSeedPromptShown)return;
- cloudSeedPromptShown=true;
- if(DB.records&&DB.records.length&&window.confirm(LANG==='th'?'ฐานข้อมูล Firebase ยังว่าง ต้องการส่งข้อมูลในเครื่องขึ้น Cloud ครั้งแรกหรือไม่?':'Firebase is empty. Upload this browser’s current records as the initial cloud copy?'))cloudPushNow();
- else cloudStatus(LANG==='th'?'Cloud ว่าง · ยังไม่อัปโหลดข้อมูล':'cloud empty · local data not uploaded');
+function sheetPushNow(){
+ var url=getSheetUrl();if(!url)return;
+ fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'replaceAll',db:DB})})
+  .then(function(res){return res.json();}).then(function(result){
+   if(result&&result.ok){sheetReady=true;sheetLocalDirty=false;sheetStatus(LANG==='th'?'ซิงก์แล้ว':'synced');}
+   else{sheetStatus(LANG==='th'?'ซิงก์ไม่สำเร็จ':'sync failed');}
+  })['catch'](function(){sheetStatus(LANG==='th'?'ซิงก์ไม่สำเร็จ · ตรวจอินเทอร์เน็ต':'sync failed · check connection');});
 }
-function startFirebase(){
- if(!firebaseConfigured()){cloudStatus(LANG==='th'?'รอตั้งค่า':'setup required');updateFirebaseUI();return;}
- cloudStatus(LANG==='th'?'กำลังเชื่อมต่อ':'connecting');
- loadFirebaseSdk(function(){try{
-  if(!window.firebase||!firebase.initializeApp)throw new Error('Firebase SDK unavailable');
-  cloudApp=firebase.apps&&firebase.apps.length?firebase.app():firebase.initializeApp(FIREBASE_CONFIG);cloudDb=firebase.database();cloudRef=cloudDb.ref(FIREBASE_DATA_PATH);
-  cloudRef.on('value',function(snapshot){cloudRemoteExists=snapshot.exists();cloudReady=true;
-   if(cloudRemoteExists){DB=migrate(cloudLocalDirty?mergeTrackerData(snapshot.val(),DB):mergeTrackerData(DB,snapshot.val()));try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}if(typeof renderAll==='function')renderAll();cloudStatus(cloudLocalDirty?(LANG==='th'?'มีข้อมูลในเครื่องรอซิงก์':'local changes pending'):(LANG==='th'?'อ่านข้อมูล Cloud แล้ว':'cloud data loaded'));if(cloudLocalDirty)scheduleCloudPush();}
-   else{cloudStatus(LANG==='th'?'ฐานข้อมูล Cloud ว่าง':'cloud database empty');requestCloudSeedIfNeeded();}
-  },function(err){cloudStatus(LANG==='th'?'อ่านไม่ได้ · ตรวจ Rules':'read denied · check Rules');});
- }catch(e){cloudStatus(LANG==='th'?'ตั้งค่าไม่ถูกต้อง':'configuration error');showErr(e.message||String(e));}});
-}
-function syncFirebaseNow(){
- if(!requireAdmin())return;
- if(!cloudRef){startFirebase();cloudStatus(LANG==='th'?'กำลังเริ่ม Cloud · รอสักครู่แล้วกดซิงก์อีกครั้ง':'Starting Cloud; wait and press Sync again');return;}
- if(!cloudReady){cloudStatus(LANG==='th'?'กำลังอ่าน Cloud':'Loading Cloud');return;}
- if(!cloudRemoteExists){requestCloudSeedIfNeeded();return;}
- cloudLocalDirty=true;scheduleCloudPush();
-}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}cloudLocalDirty=true;scheduleCloudPush();}
+function scheduleSheetPush(){if(sheetPushTimer)clearTimeout(sheetPushTimer);sheetPushTimer=setTimeout(sheetPushNow,900);}
+function syncSheetNow(){sheetLocalDirty=true;if(!sheetReady){startSheetSync();return;}scheduleSheetPush();}
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}sheetLocalDirty=true;scheduleSheetPush();}
 function byDate(a,b){return a.date<b.date?-1:1;}
 function inDept(x){return DEPT==='all'||x.dept===DEPT;}
 function recs(dp){var o=[],j;for(j=0;j<DB.records.length;j++){var r=DB.records[j];
@@ -635,6 +604,7 @@ function days(){return DB.daily.slice().sort(byDate);}
 function last(dp){var r=recs(dp);return r.length?r[r.length-1]:null;}
 function prevR(dp){var r=recs(dp);return r.length>1?r[r.length-2]:null;}
 function lastDay(){var d=days();return d.length?d[d.length-1]:null;}
+function latestCareDate(){var rows=(DB.encounters||[]).concat(DB.events||[]),date='';for(var i=0;i<rows.length;i++)if(rows[i].date&&rows[i].date>date)date=rows[i].date;return date;}
 function medsOf(dp){var o=[],j;for(j=0;j<DB.meds.length;j++){if(dp==='any'||(dp?DB.meds[j].dept===dp:inDept(DB.meds[j])))o.push(DB.meds[j]);}return o;}
 
 /* ========== 5. ยูทิลิตี ========== */
@@ -698,8 +668,8 @@ function renderChangeDetection(){
  rows.sort(function(a,b){return (b.c.notable?1:0)-(a.c.notable?1:0)||Math.abs(b.c.delta)-Math.abs(a.c.delta);});
  var h='<div class="grid g3">';
  for(j=0;j<rows.length;j++){var x=rows[j],l=LM[x.k],col=x.c.notable?'var(--gold)':'var(--dim)',sg=x.c.delta>0?'+':'';
-  if(!l)continue;
-  h+='<div class="card" style="margin:0;border-color:'+col+'"><div class="lbl">'+nm(l)+'</div><div class="num" style="color:'+col+'">'+fmtL(x.k,x.cur)+'</div><div class="sub">'+dTxt(prev.date)+' → '+dTxt(cur.date)+'</div><div class="trend">'+sg+x.c.delta.toFixed(l.dec)+(x.c.pct===null?'':' ('+sg+(x.c.delta<0?'-':'')+x.c.pct.toFixed(0)+'%)')+' · '+(x.c.notable?t('notableChange'):t('minorChange'))+'</div></div>';
+  if(!l)continue;var risk=dashboardRiskClass(l,x.cur,cur);
+  h+='<div class="card" style="margin:0;border-color:'+col+'"><div class="lbl">'+nm(l)+'</div><div class="num '+risk+'">'+fmtL(x.k,x.cur)+'</div><div class="sub">'+dTxt(prev.date)+' → '+dTxt(cur.date)+'</div><div class="trend">'+sg+x.c.delta.toFixed(l.dec)+(x.c.pct===null?'':' ('+sg+(x.c.delta<0?'-':'')+x.c.pct.toFixed(0)+'%)')+' · '+(x.c.notable?t('notableChange'):t('minorChange'))+'</div></div>';
  }
  h+='</div>';
  body.innerHTML=h;
@@ -711,15 +681,15 @@ function renderAttention(){
  var latest=r[r.length-1];
  for(k in (latest.items||{})){
   if(!latest.items.hasOwnProperty(k)||!LM[k])continue;
-  l=LM[k];v=Number(latest.items[k]);flag=flagL(k,v);
-  if(flag==='hi'||flag==='lo')items.push({type:'range',k:k,label:nm(l),value:v,flag:flag});
+  l=LM[k];v=Number(latest.items[k]);flag=dashboardRiskClass(l,v,latest);
+  if(flag==='dash-risk-red'||flag==='dash-risk-blue')items.push({type:'range',k:k,label:nm(l),value:v,flag:flag});
  }
  var c=latest.ocr_canonical;
  if(c&&c.field_meta){for(k in c.field_meta){if(!c.field_meta.hasOwnProperty(k)||seen[k])continue;var fm=c.field_meta[k];if(fm.needs_review||((fm.validation||{}).status==='suspicious')){items.push({type:'ocr',k:k,label:LM[k]?nm(LM[k]):k,value:latest.items[k],flag:'review'});seen[k]=true;}}}
  if(latest.ocr_canonical&&(!latest.date||!(latest.source_images||[]).length))items.push({type:'source',label:t('date'),value:'?',flag:'review'});
  if(!items.length){body.innerHTML='<div class="adv good">'+t('advGood')+'</div>';return;}
  var h='<div class="grid g3">';
- for(j=0;j<items.length;j++){var x=items[j],col=x.flag==='review'?'var(--mag)':(x.flag==='hi'?'var(--mag)':'var(--gold)'),txt=x.type==='ocr'?t('review'):(x.type==='source'?t('needDate'):(x.flag==='hi'?t('high'):t('low')));
+ for(j=0;j<items.length;j++){var x=items[j],col=x.flag==='review'?'var(--mag)':(x.flag==='dash-risk-red'?'var(--risk-red)':'var(--risk-blue)'),txt=x.type==='ocr'?t('review'):(x.type==='source'?t('needDate'):(x.flag==='dash-risk-red'?t('high'):t('low')));
   h+='<div class="card" style="margin:0;border-color:'+col+'"><div class="hrow"><b style="color:'+col+'">'+esc(x.label||'-')+'</b><div class="spacer"></div><span class="badge">'+esc(txt)+'</span></div><div class="num" style="margin-top:6px;color:'+col+'">'+(x.value===undefined||x.value===null?'—':fmtL(x.k,x.value))+'</div></div>';}
  h+='</div>';body.innerHTML=h;
 }
@@ -833,7 +803,8 @@ function drawRadar(cv){
  for(j=0;j<N;j++){var k2=ax[j],lp=pt(j,2.3);
   c.font='10px sans-serif';
   c.textAlign=lp[0]<cx-6?'right':(lp[0]>cx+6?'left':'center');
-  c.fillStyle=flagL(k2,L.items[k2])==='ok'?'#B6FF3C':'#FF4DD2';
+  var radarRisk=reportRiskClass({k:k2},L.items[k2],L);
+  c.fillStyle=radarRisk==='risk-red'?'#FF626B':(radarRisk==='risk-blue'?'#5BA8FF':'#F3F6FA');
   c.fillText(nm(LM[k2]).slice(0,16),lp[0],lp[1]);
   c.fillStyle='#7F8EA3';c.font='9px Orbitron,sans-serif';
   c.fillText(fmtL(k2,L.items[k2]),lp[0],lp[1]+12);}
@@ -857,8 +828,8 @@ function vitalAdvice(){
 }
 function labAdvice(dp){
  var out=[],L=last(dp),j;if(!L)return out;
- for(j=0;j<LABS.length;j++){var l=LABS[j],v=L.items[l.k],f=flagL(l.k,v);
-  if(f&&f!=='ok'&&ADV[l.k]&&ADV[l.k][f])
+ for(j=0;j<LABS.length;j++){var l=LABS[j],v=L.items[l.k],f=flagL(l.k,v),risk=dashboardRiskClass(l,v,L);
+  if(f&&f!=='ok'&&risk!=='dash-risk-normal'&&ADV[l.k]&&ADV[l.k][f])
    out.push('<div class="adv"><b style="color:var(--mag)">'+nm(l)+' '+fmtL(l.k,v)+' '+l.u+' ('+(f==='hi'?t('high'):t('low'))+')</b><br>'+ADV[l.k][f][LANG]+'</div>');}
  return out;
 }
@@ -898,7 +869,12 @@ function renderKidneyRisk(){
  body.innerHTML='<div class="hrow"><div><div class="num" style="font-size:24px;color:var(--cyan)">KFRE</div><div class="sub">'+(LANG==='th'?'พร้อมคำนวณเมื่อกำหนดภูมิภาค/Calibration ที่เหมาะสม':'Ready after region/calibration is specified')+'</div></div><div class="spacer"></div><span class="badge">'+(LANG==='th'?'ยังไม่แสดงตัวเลข':'Value withheld')+'</span></div><div class="adv good">'+(LANG==='th'?'ระบบเก็บตัวแปร 4-variable ที่จำเป็นไว้แล้ว แต่จะไม่แสดงเปอร์เซ็นต์จนกว่าจะกำหนดวิธี calibration ที่เหมาะสมกับประชากร':'The 4-variable inputs are present, but the percentage is withheld until an appropriate calibration is specified.')+'</div>';
 }
 function renderEventSummary(){
- var body=E('eventSummaryBody');if(!body)return;var es=(DB.events||[]).concat(DB.encounters||[]).sort(byDate).reverse();if(!es.length){body.innerHTML='<div class="dim">'+t('noData')+'</div>';return;}var e=es[0];body.innerHTML='<div class="med"><div class="dot" style="background:var(--mag)"></div><div><b>'+esc(e.title||e.type||'Medical event')+'</b><br><span class="dim">'+dTxt(e.date)+' · '+esc(e.department||'-')+' · '+esc(e.facility||e.place||'-')+'</span><br><span class="dim">'+esc(e.diagnosis||e.note||e.symptoms||e.status||'-')+'</span></div></div>';}
+ var body=E('eventSummaryBody');if(!body)return;var enc=(DB.encounters||[]).slice().sort(byDate).reverse(),ev=(DB.events||[]).slice().sort(byDate).reverse(),h='',i;
+ h+='<div style="font-weight:bold;color:var(--cyan);margin:4px 0">การเข้ารับการรักษาทั่วไป</div>';
+ if(enc.length){for(i=0;i<Math.min(3,enc.length);i++){var c=enc[i];h+='<div class="med"><div class="dot" style="background:var(--cyan)"></div><div><b>'+dTxt(c.date)+' · '+esc(c.title||c.diagnosis||'การเข้ารับการรักษา')+'</b>'+(c.department?' <span class="badge">'+esc(c.department)+'</span>':'')+'<br><span class="dim">'+esc(c.diagnosis||c.symptoms||'')+(c.facility?' · '+esc(c.facility):'')+'</span>'+(c.medications&&c.medications.length?'<br><span class="dim">ยา: '+esc(c.medications.join(' · '))+'</span>':'')+'</div></div>';}}else h+='<div class="dim">'+t('noData')+'</div>';
+ h+='<div style="font-weight:bold;color:var(--mag);margin:10px 0 4px">ประวัติเหตุการณ์พิเศษ</div>';
+ if(ev.length){for(i=0;i<Math.min(3,ev.length);i++){var e=ev[i];h+='<div class="med"><div class="dot" style="background:var(--mag)"></div><div><b>'+dTxt(e.date)+' · '+esc(e.title||e.type||'เหตุการณ์')+'</b>'+(e.department?' <span class="badge">'+esc(e.department)+'</span>':'')+'<br><span class="dim">'+esc(e.status||e.place||e.note||'')+'</span></div></div>';}}else h+='<div class="dim">'+t('noData')+'</div>';
+ body.innerHTML=h;}
 function renderEvents(){
  var list=E('eventList'),encList=E('encounterList');if(!list||!encList)return;
  var encounters=(DB.encounters||[]).slice().sort(byDate).reverse(),events=(DB.events||[]).slice().sort(byDate).reverse(),h='',j;
@@ -912,17 +888,18 @@ function renderDash(){
  var j,h='';
  var isAll=(DEPT==='all'),isMed=(DEPT==='med'),isEye=(DEPT==='eye');
  var Lm=last('med'),Le=last('eye');
- var L=last(),P=prevR();
- E('lastDate').textContent=L?dTxt(L.date):'-';
+ var L=last(),P=prevR(),displayDate=isAll?latestCareDate():(isEye?(Le&&Le.date):(Lm&&Lm.date));
+ E('lastDate').textContent=displayDate?dTxt(displayDate):(isAll?'ไม่มีข้อมูล':'-');
+ E('cHead').querySelector('[data-i18n="lastVisit"]').textContent=isAll?t('careLatest'):t('lastVisit');
  if(isEye){
   E('headRLbl').textContent=t('eyeStat');
   var io=Le?Math.max(Le.items.iop_od||0,Le.items.iop_os||0):null;
   E('stageTxt').textContent=io?(io>21?t('high'):t('ok')):'-';
-  E('stageTxt').style.color=io?(io>21?'var(--mag)':'var(--lime)'):'var(--dim)';
+  E('stageTxt').className='num '+(io?(dashboardRiskClass({k:'iop_od'},io,Le)):'');
  }else{
   E('headRLbl').textContent=t('ckdStage');
   var st=stageOf(Lm&&Lm.items.egfr!==undefined?Lm.items.egfr:null);
-  E('stageTxt').textContent=st[0];E('stageTxt').style.color=st[1];}
+  E('stageTxt').textContent=st[0];E('stageTxt').className='num '+(Lm&&Lm.items.egfr!==undefined?dashboardRiskClass({k:'egfr'},Lm.items.egfr,Lm):'');}
 
  show('cScenBox',isMed);
  show('cDeptCards',isAll);
@@ -956,10 +933,10 @@ function renderDash(){
   var iopMax=Le?Math.max(Le.items.iop_od||0,Le.items.iop_os||0):null;
   E('cDeptCards').innerHTML=
    '<div class="card" style="border-color:var(--cyan);margin:0"><h3 style="color:var(--cyan)">'+t('deptMed')+'</h3>'+
-   '<div class="num" style="font-size:26px;color:'+stA[1]+'">eGFR '+(Lm?fmtL('egfr',Lm.items.egfr):'-')+' <span style="font-size:14px">'+stA[0]+'</span></div>'+
+   '<div class="num '+(Lm?dashboardRiskClass({k:'egfr'},Lm.items.egfr,Lm):'dash-risk-normal')+'" style="font-size:26px">eGFR '+(Lm?fmtL('egfr',Lm.items.egfr):'-')+' <span style="font-size:14px">'+stA[0]+'</span></div>'+ 
    '<div class="sub">'+(Lm?dTxt(Lm.date):'-')+'</div></div>'+
    '<div class="card" style="border-color:var(--mag);margin:0"><h3 style="color:var(--mag)">'+t('deptEye')+'</h3>'+
-   '<div class="num" style="font-size:26px;color:'+(iopMax&&iopMax>21?'var(--mag)':'var(--lime)')+'">IOP '+(Le?fmtL('iop_od',Le.items.iop_od)+' / '+fmtL('iop_os',Le.items.iop_os):'-')+' mmHg</div>'+
+   '<div class="num '+(Le?dashboardRiskClass({k:'iop_od'},iopMax,Le):'dash-risk-normal')+'" style="font-size:26px">IOP '+(Le?fmtL('iop_od',Le.items.iop_od)+' / '+fmtL('iop_os',Le.items.iop_os):'-')+' mmHg</div>'+ 
    '<div class="sub">'+(Le?dTxt(Le.date):'-')+'</div></div>';
   E('linkBody').innerHTML=linkAdvice().join('');}
 
@@ -968,22 +945,21 @@ function renderDash(){
   var useIt=(isEye?l.ekey:(isMed?l.key:(l.key||l.ekey)));
   if(!useIt)continue;
   var src=(l.dp==='eye')?Le:Lm,srcP=(l.dp==='eye')?prevR('eye'):prevR('med');
-  var v=src?src.items[l.k]:null,pv=srcP?srcP.items[l.k]:null,f=flagL(l.k,v);
-  var col=f==='ok'?'var(--lime)':(f==='hi'?'var(--mag)':(f==='lo'?'var(--gold)':'var(--dim)'));
+  var v=src?src.items[l.k]:null,pv=srcP?srcP.items[l.k]:null;
+  var colClass=dashboardRiskClass(l,v,src);
   var tr='';
   if(v!==undefined&&v!==null&&pv!==undefined&&pv!==null){var df=v-pv;tr=(df>0?'+':'')+df.toFixed(l.dec);}
   h+='<div class="card kpi" data-act="detail" data-val="lab:'+l.k+'"><div class="lbl">'+nm(l)+'</div>'+
-     '<div class="val num" style="color:'+col+'">'+fmtL(l.k,v)+'</div><div class="unit">'+l.u+'</div>'+
+     '<div class="val num '+colClass+'">'+fmtL(l.k,v)+'</div><div class="unit">'+l.u+'</div>'+ 
      '<div class="trend dim">'+tr+'</div><div class="ref">'+t('ref')+' '+refTxt(l)+'</div></div>';}
  E('kpis').innerHTML=h;show('kpis',!isAll);
 
  var D=lastDay(),d7=days().slice(-7);
  function a7(k){var vv=[],z;for(z=0;z<d7.length;z++){if(d7[z][k]!==undefined&&d7[z][k]!==null)vv.push(Number(d7[z][k]));}
   var m=avg(vv);return m===null?'-':m.toFixed(VM[k].dec);}
- function vcard(k){var l2=VM[k],val=D?D[k]:null,f2=flagV(k,val);
-  var col2=f2==='ok'?'var(--lime)':(f2==='hi'?'var(--mag)':(f2==='lo'?'var(--gold)':'var(--cyan)'));
+ function vcard(k){var l2=VM[k],val=D?D[k]:null;
   return '<div class="card kpi" data-act="detail" data-val="vit:'+k+'"><div class="lbl">'+nm(l2)+'</div>'+
-   '<div class="val num" style="color:'+col2+'">'+((val===undefined||val===null)?'-':Number(val).toFixed(l2.dec))+'</div>'+
+   '<div class="val num '+dashboardVitalClass(k,val)+'">'+((val===undefined||val===null)?'-':Number(val).toFixed(l2.dec))+'</div>'+ 
    '<div class="unit">'+l2.u+'</div><div class="ref">'+t('avg7')+' '+a7(k)+'</div></div>';}
  E('vkpis').innerHTML=vcard('sys')+vcard('dia')+vcard('wt')+vcard('fluid');
 
@@ -993,7 +969,7 @@ function renderDash(){
   drawChart(E('cEgfr'),{labels:lab,
    bands:[{from:0,to:15,color:'rgba(255,77,210,.16)',label:'G5'},{from:15,to:30,color:'rgba(255,77,210,.09)',label:'G4'},
     {from:30,to:45,color:'rgba(255,215,94,.09)',label:'G3b'},{from:45,to:60,color:'rgba(77,232,255,.08)',label:'G3a'}],
-   series:[{name:'eGFR',color:'#FFD75E',dec:2,data:dat,dot:function(v){return flagL('egfr',v)==='ok'?'#B6FF3C':'#FF4DD2';}}],
+   series:[{name:'eGFR',color:'#FFD75E',dec:2,data:dat,dot:function(v){var rc=reportRiskClass({k:'egfr'},v,null);return rc==='risk-red'?'#FF626B':(rc==='risk-blue'?'#5BA8FF':'#F3F6FA');}}],
    onClick:function(){openDetail('lab','egfr');}});
   drawRadar(E('cRadar'));
   var ac=labSeries('acr'),sy=vitMonth('sys'),mset={},mk=[];
@@ -1041,11 +1017,11 @@ function renderDash(){
   if(DEPT!=='all'&&GROUPS[g].dp!==DEPT)continue;
   var srcR=(GROUPS[g].dp==='eye')?Le:Lm,rows=[],bad=0,z;
   for(z=0;z<LABS.length;z++){var l3=LABS[z];
-   if(l3.g===g&&srcR&&srcR.items[l3.k]!==undefined&&srcR.items[l3.k]!==null){rows.push(l3);if(flagL(l3.k,srcR.items[l3.k])!=='ok')bad++;}}
+  if(l3.g===g&&srcR&&srcR.items[l3.k]!==undefined&&srcR.items[l3.k]!==null){rows.push(l3);if(dashboardRiskClass(l3,srcR.items[l3.k],srcR)!=='dash-risk-normal')bad++;}}
   var body='';
-  if(rows.length){for(z=0;z<rows.length;z++){var l4=rows[z],f4=flagL(l4.k,srcR.items[l4.k]);
-   body+='<tr class="clk" data-act="detail" data-val="lab:'+l4.k+'"><td>'+nm(l4)+'</td><td class="num '+f4+'">'+fmtL(l4.k,srcR.items[l4.k])+
-    '</td><td class="dim">'+l4.u+'</td><td><span class="pill '+f4+'">'+(f4==='ok'?t('ok'):(f4==='hi'?t('high'):t('low')))+'</span></td></tr>';}}
+  if(rows.length){for(z=0;z<rows.length;z++){var l4=rows[z],f4=dashboardRiskClass(l4,srcR.items[l4.k],srcR),fTxt=f4==='dash-risk-normal'?t('ok'):(f4==='dash-risk-red'?t('high'):t('low'));
+   body+='<tr class="clk" data-act="detail" data-val="lab:'+l4.k+'"><td>'+nm(l4)+'</td><td class="num '+f4+'">'+fmtL(l4.k,srcR.items[l4.k])+ 
+    '</td><td class="dim">'+l4.u+'</td><td><span class="pill '+f4+'">'+fTxt+'</span></td></tr>';}}
   else{body='<tr><td class="dim">'+t('noData')+'</td></tr>';}
   gh+='<div class="card"><h3>'+nm(GROUPS[g])+'</h3><div style="margin-bottom:8px"><span class="badge ok">'+t('normal')+' '+(rows.length-bad)+
    '</span> <span class="badge '+(bad?'hi':'')+'">'+t('abnormal')+' '+bad+'</span></div><table>'+body+'</table></div>';}
@@ -1090,65 +1066,6 @@ function renderDrops(){
   if(!list.length)continue;
   h+='<div class="slot"><b>'+nm(s)+'</b><br><span style="font-size:12.5px">'+list.join('<br>')+'</span></div>';}
  E('dropBody').innerHTML=h;
-}
-
-/* ========== 9. บันทึกรายวัน ========== */
-function renderDaily(){
- var j;
- if(!E('dDate').value)E('dDate').value=new Date().toISOString().slice(0,10);
- if(!E('d_limit').value)E('d_limit').value=DB.settings.fluidLimit||1500;
- var d=days(),d7=d.slice(-7),lim=DB.settings.fluidLimit||1500;
- var today=E('dDate').value,rec=null;
- for(j=0;j<DB.daily.length;j++){if(DB.daily[j].date===today)rec=DB.daily[j];}
- var th2='',el=medsOf('eye');
- for(j=0;j<SLOTS.length;j++){var s=SLOTS[j],has=false,z;
-  for(z=0;z<el.length;z++){if(el[z].slots&&el[z].slots.join(',').indexOf(s.k)>=0)has=true;}
-  if(!has)continue;
-  var on=(rec&&rec.drops&&rec.drops[s.k])?' checked':'';
-  th2+='<label style="display:inline-block;margin:0 16px 10px 0;color:var(--txt)"><input class="tick" type="checkbox" data-act="drop" data-val="'+s.k+'"'+on+'> '+nm(s)+'</label>';}
- E('dropTick').innerHTML=th2||'<div class="dim">'+t('noDrops')+'</div>';
-
- var s7=[],w7=[],f7=[];
- for(j=0;j<d7.length;j++){if(d7[j].sys!==undefined)s7.push(Number(d7[j].sys));if(d7[j].wt!==undefined)w7.push(Number(d7[j].wt));if(d7[j].fluid!==undefined)f7.push(Number(d7[j].fluid));}
- var ms=avg(s7),mw=avg(w7),mf=avg(f7);
- function stat(lbl,val,unit,col){return '<div class="card kpi" style="cursor:default"><div class="lbl">'+lbl+'</div><div class="val num" style="color:'+col+'">'+val+'</div><div class="unit">'+unit+'</div></div>';}
- E('dstats').innerHTML=
-  stat(t('avg7')+' '+nm(VM.sys),ms===null?'-':ms.toFixed(0),'mmHg',(ms!==null&&ms>130)?'var(--mag)':'var(--lime)')+
-  stat(t('avg7')+' '+nm(VM.wt),mw===null?'-':mw.toFixed(1),'kg','var(--cyan)')+
-  stat(t('avg7')+' '+nm(VM.fluid),mf===null?'-':mf.toFixed(0),'mL',(mf!==null&&mf>lim)?'var(--mag)':'var(--lime)')+
-  stat(t('vlimit'),lim,'mL','var(--gold)');
-
- var lbl=[],sys=[],dia=[],wt=[],fl=[],ur=[];
- for(j=0;j<d.length;j++){lbl.push(dShort(d[j].date));
-  sys.push(d[j].sys===undefined?null:Number(d[j].sys));
-  dia.push(d[j].dia===undefined?null:Number(d[j].dia));
-  wt.push(d[j].wt===undefined?null:Number(d[j].wt));
-  fl.push(d[j].fluid===undefined?null:Number(d[j].fluid));
-  ur.push(d[j].urine===undefined?null:Number(d[j].urine));}
- drawChart(E('cBp'),{labels:lbl,values:d.length<=10,bands:[{from:0,to:130,color:'rgba(182,255,60,.07)'}],
-  series:[{name:nm(VM.sys),color:'#FF4DD2',dec:0,data:sys},{name:nm(VM.dia),color:'#4DE8FF',dec:0,data:dia}],
-  onClick:function(){openDetail('vit','sys');}});
- drawChart(E('cWt'),{labels:lbl,series:[{name:nm(VM.wt),color:'#FFD75E',dec:1,data:wt}],
-  onClick:function(){openDetail('vit','wt');}});
- drawChart(E('cFl'),{labels:lbl,values:d.length<=10,bands:[{from:0,to:lim,color:'rgba(182,255,60,.07)',label:t('vlimit')}],
-  series:[{name:nm(VM.fluid),color:'#B6FF3C',dec:0,data:fl},{name:nm(VM.urine),color:'#4DE8FF',dec:0,data:ur}],
-  onClick:function(){openDetail('vit','fluid');}});
-
- var ad=vitalAdvice();
- E('dadvice').innerHTML=ad.length?ad.join(''):'<div class="adv good">'+t('advGood')+'</div>';
-
- var th='<thead><tr><th>'+t('date')+'</th><th>'+nm(VM.sys)+'/'+nm(VM.dia)+'</th><th>'+nm(VM.pulse)+'</th><th>'+nm(VM.wt)+
-  '</th><th>'+nm(VM.fluid)+'</th><th>'+nm(VM.urine)+'</th><th>'+t('bal')+'</th><th></th></tr></thead><tbody>';
- var rv=d.slice().reverse();
- for(j=0;j<rv.length;j++){var r=rv[j];
-  var bal=(r.fluid!==undefined&&r.urine!==undefined)?(Number(r.fluid)-Number(r.urine)):null;
-  th+='<tr><td>'+dTxt(r.date)+'</td><td class="num '+flagV('sys',r.sys)+'">'+(r.sys===undefined?'-':r.sys)+'/'+(r.dia===undefined?'-':r.dia)+
-   '</td><td class="num">'+(r.pulse===undefined?'-':r.pulse)+'</td><td class="num">'+(r.wt===undefined?'-':Number(r.wt).toFixed(1))+
-   '</td><td class="num '+((r.fluid!==undefined&&r.fluid>lim)?'hi':'')+'">'+(r.fluid===undefined?'-':r.fluid)+
-   '</td><td class="num">'+(r.urine===undefined?'-':r.urine)+'</td><td class="num '+((bal!==null&&bal>700)?'hi':'dim')+'">'+
-   (bal===null?'-':(bal>0?'+':'')+bal)+'</td><td><button class="btn mg" data-act="del-daily" data-val="'+r.id+'">'+t('del')+'</button></td></tr>';}
- th+='</tbody>';
- E('dTable').innerHTML=th;
 }
 
 /* ========== 10. ประวัติ ========== */
@@ -1236,58 +1153,6 @@ function drawDetail(){
   series:[{name:nm(l),color:'#4DE8FF',dec:l.dec,data:dt,dot:function(v){var f2=fn(MKEY,v);return f2==='ok'?'#B6FF3C':(f2==='hi'?'#FF4DD2':'#FFD75E');}}]});
 }
 
-/* ========== 12. ฟอร์ม ========== */
-function renderForm(){
- var h='',j,z;
- for(j=0;j<GKEYS.length;j++){var g=GKEYS[j];
-  if(DEPT!=='all'&&GROUPS[g].dp!==DEPT)continue;
-  h+='<div class="card"><h3>'+nm(GROUPS[g])+'</h3><div class="grid g3">';
-  for(z=0;z<LABS.length;z++){var l=LABS[z];if(l.g!==g)continue;
-   h+='<div class="field"><label>'+nm(l)+' <span class="dim">'+l.u+' '+refTxt(l)+'</span></label><input type="number" step="any" id="in_'+l.k+'"></div>';}
-  h+='</div></div>';}
- E('addForm').innerHTML=h;
- if(!E('fDate').value)E('fDate').value=new Date().toISOString().slice(0,10);
-}
-function saveLab(){
- var d=E('fDate').value;if(!d){alert(t('needDate'));return;}
- var mItems={},eItems={},anyM=false,anyE=false,j;
- for(j=0;j<LABS.length;j++){var el2=E('in_'+LABS[j].k);
-  if(el2&&el2.value!==''){var v=parseFloat(el2.value);if(!isNaN(v)){
-   if(LABS[j].dp==='eye'){eItems[LABS[j].k]=v;anyE=true;}else{mItems[LABS[j].k]=v;anyM=true;}}}}
- if(!anyM&&!anyE){alert(t('needVal'));return;}
- function put(dp,items){var ex=null,z;
-  for(z=0;z<DB.records.length;z++){if(DB.records[z].date===d&&DB.records[z].dept===dp)ex=DB.records[z];}
-  if(ex){for(var k in items){if(items.hasOwnProperty(k))ex.items[k]=items[k];}ex.note=E('fNote').value||ex.note;}
-  else{DB.records.push({id:'r'+(new Date()).getTime()+dp,date:d,dept:dp,note:E('fNote').value||'',items:items});}}
- if(anyM)put('med',mItems);
- if(anyE)put('eye',eItems);
- save();renderAll();alert(t('saved'));go('dash');
-}
-function saveDaily(){
- var d=E('dDate').value;if(!d){alert(t('needDate'));return;}
- var lim=parseFloat(E('d_limit').value);
- if(!isNaN(lim)&&lim>0)DB.settings.fluidLimit=lim;
- var rec={id:'d'+(new Date()).getTime(),date:d},any=false,j;
- for(j=0;j<VKEYS.length;j++){var el3=E('d_'+VKEYS[j]);
-  if(el3&&el3.value!==''){var v=parseFloat(el3.value);if(!isNaN(v)){rec[VKEYS[j]]=v;any=true;}}}
- if(!any){alert(t('needVal'));return;}
- var ex=null;
- for(j=0;j<DB.daily.length;j++){if(DB.daily[j].date===d)ex=DB.daily[j];}
- if(ex){for(j=0;j<VKEYS.length;j++){if(rec[VKEYS[j]]!==undefined)ex[VKEYS[j]]=rec[VKEYS[j]];}}
- else{DB.daily.push(rec);}
- save();
- for(j=0;j<VKEYS.length;j++){E('d_'+VKEYS[j]).value='';}
- renderAll();alert(t('saved'));
-}
-function toggleDrop(slot,on){
- var d=E('dDate').value||new Date().toISOString().slice(0,10),ex=null,j;
- for(j=0;j<DB.daily.length;j++){if(DB.daily[j].date===d)ex=DB.daily[j];}
- if(!ex){ex={id:'d'+(new Date()).getTime(),date:d};DB.daily.push(ex);}
- if(!ex.drops)ex.drops={};
- if(on)ex.drops[slot]=1;else delete ex.drops[slot];
- save();
-}
-
 /* ========== 13. OCR ========== */
 var PENDING=[];
 var OCR_WARNINGS=[];
@@ -1318,7 +1183,6 @@ function extractAppointment(txt,fileName,sourceIndex){
  }
  for(i=0;i<lines.length;i++){
   ds=parseDatesInLine(lines[i]);if(!ds.length||/ข้อมูล\s*ณ\s*วันที่/i.test(lines[i])||/เจาะเลือด/.test(lines[i]))continue;
-  // Prefer the department named on the same OCR line. Only inspect adjacent lines when the date line has no department label.
   deptLine=lines[i];
   if(!/อายุรกรรม/.test(deptLine)&&!/จักษุกรรม|จักษุ|ห้องตรวจตา/.test(deptLine)){
    if(i+1<lines.length&&/อายุรกรรม/.test(lines[i+1])&&!/จักษุกรรม|จักษุ/.test(lines[i+1]))deptLine=lines[i+1];
@@ -1478,9 +1342,6 @@ function runOCR(files){
      if(!String(txt).trim())OCR_WARNINGS.push({file:files[idx]&&files[idx].name||'',message:'OCR returned no text'});
      var parsed=parseText(txt),items=parsed.items,meta=parsed.meta,cnt=0,date=findDate(txt),duplicateOf=-1,existingDuplicate=-1,canonical,appointmentCandidates=extractAppointments(txt,files[idx].name,idx),appointmentCandidate=extractAppointment(txt,files[idx].name,idx),encounter=extractEncounterDraft(txt,date,files[idx].name);
      for(var k in items){if(items.hasOwnProperty(k))cnt++;}
-     // Keep a review card for every readable image. Non-lab hospital pages
-     // (vitals, diagnosis, medication, visit details) used to be silently
-     // discarded when no lab aliases or appointment dates matched.
      if(cnt||appointmentCandidates.length||String(txt).trim().length){
       var signature=ocrSignature(date,items);
       duplicateOf=findPendingDuplicate(date,items);
@@ -1562,7 +1423,7 @@ function commitOCR(){
   if(checkAps.some(function(a){return a&&a.date&&Number(a.confidence)>=0.85;})||
      (check.date&&check.duplicateOf<0&&check.existingDuplicate<0&&!check.needsReview&&Object.keys(check.items||{}).length>0))hasSavable=true;
  }
- if(!hasSavable){alert(LANG==='th'?'อ่านข้อความจากภาพได้ แต่ยังไม่มีข้อมูลที่ระบบจับคู่เพื่อบันทึก ข้อความ OCR ยังคงแสดงให้ตรวจสอบ กรุณากรอกข้อมูลในหน้าบันทึกด้วยตนเอง':'OCR text was read, but no supported fields were found to save. The recognized text remains available for review; enter the data manually.');return;}
+ if(!hasSavable){alert(LANG==='th'?'อ่านข้อความจากภาพได้ แต่ยังไม่มีข้อมูลที่ระบบจับคู่เพื่อบันทึก ข้อความ OCR ยังคงแสดงให้ตรวจสอบ แต่รายการนี้ยังบันทึกไม่ได้ กรุณาตรวจภาพและลองอัปโหลดใหม่':'OCR text was read, but no supported fields were found to save. The recognized text remains available for review, but this item cannot be saved. Check the image and try uploading it again.');return;}
  var j,z;
  for(j=0;j<PENDING.length;j++){var p=PENDING[j],mI={},eI={},anyM=false,anyE=false;
   if(p.encounter&&p.encounter.confirmed&&p.encounter.date){upsertEncounter(p.encounter);savedEncounterCount++;}
@@ -1598,21 +1459,21 @@ function showUserGuide(){
  if(th){
   h+='<p>คู่มือฉบับนี้รวบรวมที่มา พัฒนาการ และวิธีใช้ Tracker รุ่นปัจจุบัน</p>';
   h+='<h3>1. ที่มาและเป้าหมาย</h3><p>เริ่มจากแนวคิดทำเครื่องมือช่วยติดตามผลตรวจและสุขภาพของคุณแม่ที่เป็นโรคไตเรื้อรัง โดยรวบรวมข้อมูลจากอายุรกรรมและจักษุกรรมไว้ในที่เดียว เพื่อดูแนวโน้ม เตรียมพบแพทย์ และลดการค้นข้อมูลจากหลายแหล่ง</p>';
-  h+='<h3>2. พัฒนาการของแอป</h3><ul><li>ต่อยอดจากไฟล์ HTML เดิม โดยคงการเก็บข้อมูลใน browser และเพิ่มกราฟไต สัญญาณชีพ ประวัติผลตรวจ ยา การวินิจฉัย และเหตุการณ์ทางการแพทย์</li><li>เพิ่ม OCR สำหรับอ่านภาพผลตรวจ และดึงวันนัดจากภาพของแอปโรงพยาบาล/ศูนย์โรคไต โดยให้ตรวจทานก่อนบันทึก</li><li>Dashboard แสดงนัดหมายล่วงหน้าสูงสุด 3 รายการ รวมวันเจาะเลือดแยกจากวันพบแพทย์</li><li>เพิ่มรายงาน A ภาพรวม, B อายุรกรรม, C จักษุกรรม พร้อมปรับ Contrast กราฟรายงานให้อ่านง่ายขึ้น</li><li>แก้ PIN ให้รับตัวเลข 6 หลัก เช่น 197382; ใช้ PIN ในเครื่องเป็นด่านปลดล็อก โดยไม่มี Firebase Authentication ซ้อน</li><li>เชื่อม Firebase Realtime Database ที่ path <code>ckd_tracker</code> และรวมข้อมูลด้วย transaction; ภาพ Firebase ล่าสุดยืนยันว่ามีโครงสร้างข้อมูลแล้ว</li></ul>';
-  h+='<h3>3. เริ่มใช้งานและ PIN</h3><ol><li>เปิดหน้าเว็บบนอุปกรณ์ที่ต้องการใช้</li><li>กดปุ่ม PIN บนแถบด้านบน ครั้งแรกตั้ง PIN 6 หลักและกรอกยืนยัน ครั้งต่อไปกรอก PIN เดิมเพื่อปลดล็อกการบันทึก นำเข้า OCR และซิงก์</li><li>PIN เก็บแยกใน browser/อุปกรณ์นั้น ๆ ถ้าเปลี่ยนอุปกรณ์จะต้องตั้ง PIN บนอุปกรณ์ใหม่</li></ol>';
-  h+='<h3>4. บันทึกผลและใช้ OCR</h3><ul><li>กรอกผลเองที่ “กรอกผลตรวจ” หรือเลือกแผนกอายุรกรรม/จักษุกรรมก่อนบันทึก</li><li>ที่ “อัปโหลดรูป (OCR)” เลือกภาพผลตรวจหรือนัดหมาย ระบบอ่านข้อมูลแล้วแสดงให้ตรวจทานก่อนกดยืนยัน</li><li>OCR ใช้ Tesseract.js และโหลดส่วนประกอบจาก CDN จึงต้องต่ออินเทอร์เน็ต ระวังตัวเลข/วันที่ที่อ่านไม่ชัด และแก้ให้ตรงภาพก่อนบันทึก</li><li>นัดหมายที่อ่านได้จะสะสมจากหลายภาพและหลายแหล่ง; ตรวจวันนัดและวันเจาะเลือดใน Dashboard</li></ul>';
-  h+='<h3>5. Dashboard และรายงาน</h3><ul><li>Dashboard รวมผลล่าสุด แนวโน้ม eGFR สัญญาณชีพ จุดที่ควรตรวจสอบ เหตุการณ์ และนัดหมาย</li><li>ประวัติย้อนหลังดูผลตามเวลาและแผนก แตะแถว/กราฟเพื่อดูรายละเอียด</li><li>กด “พิมพ์รายงาน” แล้วเลือกรายงาน A/B/C จากนั้นพิมพ์หรือบันทึกเป็น PDF</li><li>ข้อความ AI Prompt ในรายงานเป็นแนวทางประกอบเอกสาร ไม่รับประกันว่า AI ทุกระบบจะทำตามเอง ผู้ใช้ต้องสั่งให้วิเคราะห์ PDF ด้วย</li></ul>';
-  h+='<h3>6. Firebase Sync และสำรองข้อมูล</h3><ul><li>ข้อมูล Cloud อยู่ใต้ <code>ckd_tracker</code>; เมื่อเปิดเว็บจะอ่านข้อมูล Cloud และหลังปลดล็อก PIN การบันทึกจะส่งการเปลี่ยนแปลงขึ้น Cloud</li><li>กด “ซิงก์ Cloud” เพื่อเริ่ม/สั่งซิงก์ หากฐานว่าง ระบบจะถามยืนยันก่อนส่งข้อมูลใน browser นี้เป็นชุดแรก</li><li>สำรอง/กู้คืนผ่านเมนู “ข้อมูล/สำรอง” ดาวน์โหลดหรือเลือกไฟล์ JSON</li><li>ชุด GitHub Pages ขั้นต่ำประกอบด้วย <code>index.html</code>, <code>app-icon.png</code> และ <code>app_db_payload.json</code> เพื่อโหลดข้อมูลตั้งต้น</li><li><b>หมายเหตุ:</b> PIN ปลดล็อกเฉพาะหน้าแอป ไม่ได้ป้องกัน Firebase โดยตรง หาก Rules เปิดอ่าน/เขียนสาธารณะ ผู้ที่เข้าถึงฐานได้อาจอ่าน แก้ไข หรือลบข้อมูล</li></ul>';
+  h+='<h3>2. พัฒนาการของแอป</h3><ul><li>ต่อยอดจากไฟล์ HTML เดิม โดยคงการเก็บข้อมูลใน browser และเพิ่มกราฟไต สัญญาณชีพ ประวัติผลตรวจ ยา การวินิจฉัย และเหตุการณ์ทางการแพทย์</li><li>เพิ่ม OCR สำหรับอ่านภาพผลตรวจ และดึงวันนัดจากภาพของแอปโรงพยาบาล/ศูนย์โรคไต โดยให้ตรวจทานก่อนบันทึก</li><li>Dashboard แสดงนัดหมายล่วงหน้าสูงสุด 3 รายการ รวมวันเจาะเลือดแยกจากวันพบแพทย์</li><li>เพิ่มรายงาน A ภาพรวม, B อายุรกรรม, C จักษุกรรม พร้อมปรับ Contrast กราฟรายงานให้อ่านง่ายขึ้น</li><li>ย้ายฐานข้อมูลจาก Firebase ไปเป็น Google Sheet เพื่อให้แก้ไขและตรวจสอบข้อมูลได้เองโดยตรง และยกเลิกระบบ PIN เพื่อให้ใช้งานสะดวกขึ้น</li></ul>';
+  h+='<h3>3. เริ่มใช้งานและการเชื่อมต่อ Google Sheet</h3><ol><li>เปิดหน้าเว็บบนอุปกรณ์ที่ต้องการใช้</li><li>ไปที่เมนู “ข้อมูล/สำรอง” ตรวจสอบว่าช่อง Web App URL มีค่าที่ถูกต้องแล้ว</li><li>กดปุ่ม “ซิงก์ Sheet” ที่แถบด้านบนเพื่ออ่าน/เขียนข้อมูลกับ Google Sheet</li></ol>';
+  h+='<h3>4. บันทึกผลและใช้ OCR</h3><ul><li>เพิ่มผลตรวจผ่าน “อัปโหลดรูป (OCR)” เลือกแผนกอายุรกรรม/จักษุกรรม แล้วตรวจทานข้อมูลที่อ่านได้ก่อนยืนยัน</li><li>ไม่มีหน้ากรอกผลตรวจหรือบันทึกรายวันแล้ว ข้อมูลเดิมยังคงแสดงจากประวัติที่บันทึกไว้</li><li>OCR ใช้ Tesseract.js และโหลดส่วนประกอบจาก CDN จึงต้องต่ออินเทอร์เน็ต ระวังตัวเลข/วันที่ที่อ่านไม่ชัด และแก้ให้ตรงภาพก่อนบันทึก</li></ul>';
+  h+='<h3>5. Dashboard และรายงาน</h3><ul><li>Dashboard รวมผลล่าสุด แนวโน้ม eGFR สัญญาณชีพ จุดที่ควรตรวจสอบ เหตุการณ์ และนัดหมาย</li><li>ประวัติย้อนหลังดูผลตามเวลาและแผนก แตะแถว/กราฟเพื่อดูรายละเอียด</li><li>กด “พิมพ์รายงาน” แล้วเลือกรายงาน A/B/C จากนั้นพิมพ์หรือบันทึกเป็น PDF</li></ul>';
+  h+='<h3>6. Google Sheet Sync และสำรองข้อมูล</h3><ul><li>ข้อมูลทั้งหมดอ่าน/เขียนผ่าน Google Sheet ที่ตั้งค่า Web App URL ไว้ที่หน้า ข้อมูล/สำรอง</li><li>ข้อมูลยังสำรองไว้ในเครื่อง (localStorage) และซิงก์ขึ้น Sheet อัตโนมัติทุกครั้งที่บันทึก</li><li>สำรอง/กู้คืนผ่านเมนู “ข้อมูล/สำรอง” ดาวน์โหลดหรือเลือกไฟล์ JSON ได้เช่นเดิม</li><li><b>หมายเหตุ:</b> เนื่องจากไม่มี PIN แล้ว ผู้ที่ทราบ Web App URL จะสามารถอ่านและแก้ไขข้อมูลได้ จึงควรเก็บ URL นี้เป็นความลับ</li></ul>';
   h+='<h3>7. ขอบเขตการใช้ข้อมูล</h3><p>กราฟและสีเตือนใช้ช่วยสังเกตข้อมูลที่บันทึกไว้ ไม่ใช่การวินิจฉัยหรือคำสั่งรักษา ตรวจทานข้อมูล OCR และปรึกษาทีมแพทย์ก่อนตัดสินใจเรื่องการรักษา</p>';
  }else{
   h+='<p>This guide summarizes the Tracker’s background, development, and current workflow.</p>';
-  h+='<h3>1. Purpose</h3><p>The project began as a way to follow the user’s mother’s chronic kidney disease results and related health information. It brings nephrology and ophthalmology records together to review trends and prepare for appointments.</p>';
-  h+='<h3>2. What was added</h3><ul><li>Daily vitals, lab history, medication, diagnoses, medical events, and kidney/eye charts.</li><li>OCR for lab and appointment screenshots, with review before saving; upcoming appointments show up to three items across sources.</li><li>Printable A overall, B nephrology, and C ophthalmology reports with improved chart contrast.</li><li>Fixed six-digit local PIN validation, including 197382. Firebase Authentication is intentionally not used.</li><li>Firebase Realtime Database sync under <code>ckd_tracker</code> using transactions. The latest Firebase screenshot shows the data tree.</li></ul>';
-  h+='<h3>3. PIN and editing</h3><ol><li>Open the app on each device.</li><li>Use the PIN button in the header. Set a six-digit PIN on first use, or enter the existing PIN to unlock editing, OCR commit, import, and sync.</li><li>The PIN is stored per browser/device and does not transfer to another device.</li></ol>';
-  h+='<h3>4. Enter data and use OCR</h3><ul><li>Enter results manually under Enter Results, selecting the relevant department.</li><li>Under Upload Images (OCR), choose lab or appointment screenshots and review the extracted values before confirming.</li><li>OCR loads Tesseract.js from a CDN, so an internet connection is required. Verify unclear dates and values against the image.</li></ul>';
-  h+='<h3>5. Dashboard and reports</h3><ul><li>The dashboard summarizes latest results, eGFR trends, vitals, events, and upcoming appointments.</li><li>Use History to review records over time. Select Print Report and choose A, B, or C to print or save a PDF.</li><li>The included AI prompt is guidance; the user must still ask their AI system to analyze the PDF.</li></ul>';
-  h+='<h3>6. Firebase and backups</h3><ul><li>Cloud data is stored under <code>ckd_tracker</code>. Unlock the local PIN before writing. Use Sync Cloud to start or request a sync; an empty database prompts before the first upload.</li><li>Use Data / Backup to export or import JSON. The basic GitHub Pages deployment uses <code>index.html</code>, <code>app-icon.png</code>, and <code>app_db_payload.json</code>.</li><li><b>Note:</b> The local PIN does not protect Firebase directly. Public database Rules can allow others to read, change, or delete data.</li></ul>';
-  h+='<h3>7. Intended use</h3><p>Charts and flags help review recorded data; they are not a diagnosis or treatment instruction. Verify OCR and consult the care team before making medical decisions.</p>';
+  h+='<h3>1. Purpose</h3><p>The project began as a way to follow the user’s mother’s chronic kidney disease results and related health information, combining nephrology and ophthalmology records in one place.</p>';
+  h+='<h3>2. What changed</h3><ul><li>Data storage moved from Firebase to Google Sheet so the family can edit and verify data directly; the local PIN gate was removed for convenience.</li></ul>';
+  h+='<h3>3. Connect Google Sheet</h3><ol><li>Open Data / Backup, confirm the Web App URL is correct.</li><li>Use the Sync Sheet button in the header to read/write with Google Sheet.</li></ol>';
+  h+='<h3>4. Save results and use OCR</h3><ul><li>Add lab results through Upload Images (OCR), choose nephrology or ophthalmology, and review recognized data before confirming.</li></ul>';
+  h+='<h3>5. Dashboard and reports</h3><ul><li>Use Print Report and choose A, B, or C to print or save a PDF.</li></ul>';
+  h+='<h3>6. Google Sheet sync and backups</h3><ul><li>All data reads/writes through the Google Sheet configured in Data / Backup. localStorage remains an offline cache. Keep the Web App URL private since there is no PIN anymore.</li></ul>';
+  h+='<h3>7. Intended use</h3><p>Charts and flags help review recorded data; they are not a diagnosis or treatment instruction.</p>';
  }
  box.innerHTML=h;E('modal').className='modal on';
 }
@@ -1630,7 +1491,6 @@ function showReportChooser(){
 function reportPatientAge(){
  var birth=DB.patient&&DB.patient.birthDate?new Date(DB.patient.birthDate+'T00:00:00'):new Date('1947-10-20T00:00:00');
  var now=new Date(),age=now.getFullYear()-birth.getFullYear();
- /* Use calendar-year age to preserve the age convention explicitly supplied in the family record. */
  return age;
 }
 function reportProfileHtml(){
@@ -1658,10 +1518,10 @@ function reportRangeBounds(range){
  if(lo===null&&hi===null)return null;return {min:lo,max:hi};
 }
 function reportRiskClass(l,v,record){
+ if(!l||v===null||v===undefined||isNaN(v))return 'risk-black';
  var f=flagL(l.k,v),range=reportRangeBounds(reportSourceRange(record,l.k));
  if(range){if((range.min!==null&&v<range.min)||(range.max!==null&&v>range.max))f='abnormal';else f='ok';}
  if(!f||f==='ok')return 'risk-black';
- /* Critical thresholds are explicitly field-specific; otherwise an out-of-range result is a watch item. */
  var critical=false;
  if(l.k==='egfr'&&v<15)critical=true;
  else if(l.k==='k'&&(v>=6||v<2.8))critical=true;
@@ -1672,6 +1532,8 @@ function reportRiskClass(l,v,record){
  else if(l.k==='iop_os'&&v>=30)critical=true;
  return critical?'risk-red':'risk-blue';
 }
+function dashboardRiskClass(l,v,record){var c=reportRiskClass(l,v,record);return c==='risk-red'?'dash-risk-red':(c==='risk-blue'?'dash-risk-blue':(v===null||v===undefined||isNaN(v)?'':'dash-risk-normal'));}
+function dashboardVitalClass(k,v){var f=flagV(k,v);return f==='ok'?'dash-risk-normal':((f==='hi'||f==='lo')?'dash-risk-blue':'');}
 function reportRiskLabel(cls){
  if(LANG==='en')return cls==='risk-red'?'Special attention':(cls==='risk-blue'?'Monitor':'Within reference');
  return cls==='risk-red'?'เฝ้าระวังเป็นพิเศษ':(cls==='risk-blue'?'เฝ้าระวัง':'ปกติ');
@@ -1701,6 +1563,7 @@ function buildReport(mode){
  h+='<h2>'+esc(title)+'</h2>';
  h+='<div>'+t('patient')+' : '+esc(DB.patient.name||'คุณแม่')+' &nbsp; | &nbsp; '+t('printedOn')+' : '+today+'</div>';
  h+=reportProfileHtml();
+ h+='<div class="pbox"><span class="risk-red">● '+t('riskSpecial')+'</span>　<span class="risk-blue">● '+t('riskWatch')+'</span>　<span class="risk-black">● '+t('riskNormal')+'</span></div>';
  if(REPORT_MODE==='all'){
   h+=buildReportOverview();
   h+='<div class="pbox"><b>'+t('changeHint')+'</b><br>'+esc(t('reportDisclaimer'))+'</div>';
@@ -1745,7 +1608,7 @@ function buildReport(mode){
  if(REPORT_MODE==='all'){
   h+='<h3>ประวัติเหตุการณ์ทางการแพทย์ทั้งหมด</h3><div class="pbox">'+buildReportMedicalEvents()+'</div>';
  }
- h+='<h3>'+t('trend')+'</h3>'+buildReportCharts(REPORT_MODE);
+ h+='<h3>'+t('trend')+'</h3>'+captureReportCharts(REPORT_MODE);
  h+='<div class="pbox"><b>'+t('changeHint')+'</b><br>'+esc(t('reportDisclaimer'))+'</div>';
  var D=lastDay();
  if(D){h+='<h3>'+t('vitalsNow')+'</h3><table><tr><th>'+t('date')+'</th><th>BP</th><th>'+nm(VM.pulse)+'</th><th>'+nm(VM.wt)+'</th><th>'+nm(VM.fluid)+'</th><th>'+nm(VM.urine)+'</th></tr><tr><td>'+dTxt(D.date)+'</td><td>'+(D.sys||'-')+'/'+(D.dia||'-')+'</td><td>'+(D.pulse||'-')+'</td><td>'+(D.wt||'-')+'</td><td>'+(D.fluid||'-')+'</td><td>'+(D.urine||'-')+'</td></tr></table>';}
@@ -1754,10 +1617,11 @@ function buildReport(mode){
  E('printArea').innerHTML=h;
 }
 function buildReportOverview(){
- var h='<div class="pbox"><b>ภาพรวมตามแนว Dashboard</b><br>สรุปสถานะล่าสุด นัดหมาย และประเด็นที่ควรติดตาม รายละเอียดผลตรวจและกราฟอยู่ในรายงานแยกแผนก B/C</div>',dps=['med','eye'],j,k,latest,changes,shown=0;
+ var careDate=latestCareDate();
+ var h='<div class="pbox"><b>ภาพรวมตามแนว Dashboard</b><br>สรุปสถานะล่าสุด นัดหมาย และประเด็นที่ควรติดตาม รายละเอียดผลตรวจและกราฟอยู่ในรายงานแยกแผนก B/C<br>วันที่การรักษาทั่วไป/เหตุการณ์ล่าสุด: '+(careDate?dTxt(careDate):'ไม่มีข้อมูล')+'</div>',dps=['med','eye'],j,k,latest,changes,shown=0;
  h+='<h3>สถานะล่าสุดแยกแผนก</h3><table><tr><th>แผนก</th><th>ค่าหลักล่าสุด</th><th>วันที่</th><th>ติดตาม</th></tr>';
  for(j=0;j<dps.length;j++){var dp=dps[j];latest=last(dp);var keys=dp==='med'?['egfr','cr','acr']:['iop_od','iop_os','cdr_od','cdr_os'],vals=[];
-  if(latest)for(k=0;k<keys.length;k++){var key=keys[k],lab=LM[key],value=latest.items&&latest.items[key];if(value===undefined||value===null||!lab)continue;vals.push(esc(nm(lab))+' '+esc(fmtL(key,value))+' '+esc(lab.u));}
+  if(latest)for(k=0;k<keys.length;k++){var key=keys[k],lab=LM[key],value=latest.items&&latest.items[key];if(value===undefined||value===null||!lab)continue;var vcls=reportRiskClass(lab,value,latest);vals.push('<span class="'+vcls+'">'+esc(nm(lab))+' '+esc(fmtL(key,value))+' '+esc(lab.u)+'</span>');}
   var first=latest&&latest.items?latest.items[keys[0]]:null,cls=first===null||first===undefined?'risk-black':reportRiskClass(LM[keys[0]]||{k:keys[0]},first,latest);
   h+='<tr><td>'+(dp==='med'?t('deptMed'):t('deptEye'))+'</td><td>'+(vals.join('<br>')||t('noData'))+'</td><td>'+(latest?dTxt(latest.date):'-')+'</td><td class="'+cls+'">'+(latest?reportRiskLabel(cls):'-')+'</td></tr>';}
  h+='</table>';
@@ -1766,9 +1630,19 @@ function buildReportOverview(){
  var ap=(DB.appointments||[]).filter(function(a){return a.date&&a.date>=new Date().toISOString().slice(0,10);}).slice().sort(byDate);
  h+='<h3>นัดหมายล่วงหน้า</h3><div class="pbox">'+(ap.length?ap.slice(0,5).map(function(a){return '<div class="event-item"><b>'+dTxt(a.date)+'</b> '+esc(a.time||'')+' · '+esc(a.title||appointmentDeptName(a))+' · '+esc(appointmentSourceName(a.source_system||a.source))+(a.place?' · '+esc(a.place):'')+'</div>';}).join(''):'ไม่มีนัดหมายล่วงหน้าที่บันทึกไว้')+'</div>';
  var day=lastDay();if(day){h+='<h3>'+t('vitalsNow')+'</h3><table><tr><th>'+t('date')+'</th><th>BP</th><th>'+nm(VM.pulse)+'</th><th>'+nm(VM.wt)+'</th><th>'+nm(VM.fluid)+'</th><th>'+nm(VM.urine)+'</th></tr><tr><td>'+dTxt(day.date)+'</td><td>'+(day.sys||'-')+'/'+(day.dia||'-')+'</td><td>'+(day.pulse||'-')+'</td><td>'+(day.wt||'-')+'</td><td>'+(day.fluid||'-')+'</td><td>'+(day.urine||'-')+'</td></tr></table>';}
- var enc=(DB.encounters||[]).slice().sort(byDate).reverse(),ev=(DB.events||[]).slice().sort(byDate).reverse();h+='<h3>การเข้ารับการรักษาทั่วไปล่าสุด</h3><div class="pbox">'+(enc.length?enc.slice(0,3).map(function(e){return '<div class="event-item"><b>'+dTxt(e.date)+'</b> · '+esc(e.title||e.diagnosis||'การเข้ารับการรักษา')+(e.diagnosis?' · '+esc(e.diagnosis):'')+(e.department?' · '+esc(e.department):'')+(e.medications&&e.medications.length?'<br>ยา: '+esc(e.medications.join(' · ')):'')+'</div>';}).join(''):'ยังไม่มีข้อมูลการเข้ารับการรักษาทั่วไป')+'</div>';
- h+='<h3>เหตุการณ์พิเศษล่าสุด</h3><div class="pbox">'+(ev.length?ev.slice(0,3).map(function(e){return '<div class="event-item"><b>'+dTxt(e.date)+'</b> · '+esc(e.title||e.type||'เหตุการณ์')+(e.department?' · '+esc(e.department):'')+(e.note?'<br>'+esc(e.note):'')+'</div>';}).join(''):'ยังไม่มีเหตุการณ์พิเศษที่บันทึกไว้')+'</div>';
+ h+='<h3>การเข้ารับการรักษาทั่วไป</h3><div class="pbox">'+buildReportEncounters()+'</div>';
+ h+='<h3>ประวัติเหตุการณ์พิเศษ</h3><div class="pbox">'+buildReportSpecialEvents()+'</div>';
  return h;
+}
+function buildReportEncounters(){
+ var rows=(DB.encounters||[]).slice().sort(byDate).reverse();if(!rows.length)return 'ยังไม่มีข้อมูลการเข้ารับการรักษาทั่วไป';
+ return rows.map(function(e){var v=e.vitals||{},line='<div class="event-item"><b>'+dTxt(e.date||'')+(e.time?' · '+esc(e.time):'')+'</b> · '+esc(e.title||e.diagnosis||'การเข้ารับการรักษา');
+  if(e.department)line+='<br>แผนก: '+esc(e.department);if(e.facility)line+=' · สถานที่: '+esc(e.facility);if(e.physician)line+='<br>แพทย์: '+esc(e.physician);if(e.visitType||e.paymentRight)line+='<br>'+esc([e.visitType,e.paymentRight].filter(Boolean).join(' · '));if(e.diagnosis)line+='<br>การวินิจฉัย: '+esc(e.diagnosis);if(e.symptoms)line+='<br>อาการ: '+esc(e.symptoms);if(e.medications&&e.medications.length)line+='<br>ยาและวิธีใช้: '+esc(e.medications.join(' · '));
+  var vs=['BP '+(v.bp||''),v.temperatureC?'อุณหภูมิ '+v.temperatureC+'°C':'','ชีพจร '+(v.pulse||''),'หายใจ '+(v.respiration||''),v.weightKg?'น้ำหนัก '+v.weightKg+' กก.':'',v.heightCm?'ส่วนสูง '+v.heightCm+' ซม.':''].filter(function(x){return !/ $/.test(x);});if(vs.length)line+='<br>สัญญาณชีพ: '+esc(vs.join(' · '));if(e.status)line+='<br>สถานะ: '+esc(e.status);if(e.note)line+='<br>รายละเอียด: '+esc(e.note);if(e.source_images&&e.source_images.length)line+='<br>ภาพต้นทาง: '+esc(e.source_images.join(', '));return line+'</div>';}).join('');
+}
+function buildReportSpecialEvents(){
+ var rows=(DB.events||[]).slice().sort(byDate).reverse();if(!rows.length)return 'ยังไม่มีประวัติเหตุการณ์พิเศษที่บันทึกไว้';
+ return rows.map(function(e){var types={accident:'อุบัติเหตุ',fall:'หกล้ม',head_injury:'ศีรษะกระแทก',emergency:'ฉุกเฉิน',surgery:'ศัลยกรรม',orthopedics:'ออร์โธปิดิกส์',neurology:'สมองและระบบประสาท',other:'อื่น ๆ'},line='<div class="event-item"><b>'+dTxt(e.date||'')+'</b> · '+esc(e.title||types[e.type]||e.type||'เหตุการณ์พิเศษ');if(e.type)line+=' · '+esc(types[e.type]||e.type);if(e.department)line+='<br>แผนก: '+esc(e.department);if(e.place)line+=' · สถานที่: '+esc(e.place);if(e.status)line+='<br>สถานะ: '+esc(e.status);if(e.note)line+='<br>รายละเอียด/ผลตรวจ/คำสั่งแพทย์: '+esc(e.note);return line+'</div>';}).join('');
 }
 function reportDeptChanges(dp){
  var r=recs(dp);if(r.length<2)return[];var cur=r[r.length-1],prev=r[r.length-2],out=[],j;
@@ -1813,15 +1687,12 @@ function buildReportMedicalEvents(){
 function reportCanvas(id){
  var c=E(id);if(!c||!c.width||!c.height)return'';
  try{
-  /* Prepare a print-friendly snapshot without changing the live dashboard chart. */
   var tmp=document.createElement('canvas');tmp.width=c.width;tmp.height=c.height;
   var x=tmp.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,tmp.width,tmp.height);x.drawImage(c,0,0);
   var im=x.getImageData(0,0,tmp.width,tmp.height),d=im.data,i,r,g,b,mn,lum,target=null,strength,out;
   for(i=0;i<d.length;i+=4){r=d[i];g=d[i+1];b=d[i+2];mn=Math.min(r,g,b);lum=(r+g+b)/3;target=null;
-   /* Turn the faint dashboard axis labels and grid into readable print grays. */
    if(Math.max(r,g,b)-mn<16&&lum>210){d[i]=198;d[i+1]=204;d[i+2]=213;continue;}
    if(b>g+10&&r<g&&lum>85&&lum<185){d[i]=71;d[i+1]=85;d[i+2]=105;continue;}
-   /* Keep each series recognizable while moving neon colors to darker print hues. */
    if(g>r+35&&b>g+12)target=[0,105,150];
    else if(r>g+18&&g>b+12)target=[150,96,0];
    else if(r>b+12&&b>g+18)target=[174,35,103];
@@ -1838,27 +1709,13 @@ function buildReportCharts(mode){
  if(mode!=='med')h+=reportCanvas('cIop')+reportCanvas('cCdr')+reportCanvas('cLinkCh');
  return h||'<div class="pbox">'+t('noData')+'</div>';
 }
+function captureReportCharts(mode){
+ var previousDept=DEPT,html='';
+ try{if(mode==='med'||mode==='eye')DEPT=mode;else DEPT='all';renderDash();html=buildReportCharts(mode);}
+ finally{DEPT=previousDept;renderDash();}
+ return html;
+}
 function doPrint(){showReportChooser();}
-
-/* ========== 15. Local administrator PIN ========== */
-/* This is a local convenience gate. Firebase Authentication is intentionally not used. */
-var ADMIN_UNLOCKED=false;
-var ADMIN_PIN_KEY='ckd_admin_pin_hash_v1';
-function pinHash(pin){var h=2166136261;for(var i=0;i<pin.length;i++){h^=pin.charCodeAt(i);h=Math.imul(h,16777619);}return('00000000'+(h>>>0).toString(16)).slice(-8);}
-function updateAdminUI(){
- var b=E('adminPinBtn');if(b){b.textContent=LANG==='th'?(ADMIN_UNLOCKED?'PIN: ปลดล็อกแล้ว':'ปลดล็อก PIN'):(ADMIN_UNLOCKED?'PIN: Unlocked':'Unlock PIN');b.className=ADMIN_UNLOCKED?'btn lm':'btn';}
- var mutating=document.querySelectorAll('[data-act="save-lab"],[data-act="save-daily"],[data-act="save-event"],[data-act="commit"],[data-act="pick"],[data-act="import"],[data-act="reset"],[data-act="clear"],[data-act="fill-last"],[data-act="del-daily"]');
- for(var i=0;i<mutating.length;i++){mutating[i].disabled=!ADMIN_UNLOCKED;mutating[i].style.opacity=ADMIN_UNLOCKED?'1':'.48';mutating[i].title=ADMIN_UNLOCKED?'':(LANG==='th'?'ปลดล็อก PIN ก่อน':'Unlock PIN first');}
- var navs=document.querySelectorAll('nav button[data-val="add"],nav button[data-val="ocr"]');for(var j=0;j<navs.length;j++)navs[j].style.opacity=ADMIN_UNLOCKED?'1':'.55';
- var eventForm=document.querySelector('#v-events .card');if(eventForm)eventForm.style.display=ADMIN_UNLOCKED?'block':'none';
-}
-function handleAdminPin(){
- var saved=localStorage.getItem(ADMIN_PIN_KEY),pin,confirmPin;
- if(ADMIN_UNLOCKED){if(window.confirm(LANG==='th'?'ต้องการล็อกโหมดแก้ไขหรือไม่?':'Lock editing mode?')){ADMIN_UNLOCKED=false;updateAdminUI();}return;}
- if(!saved){pin=window.prompt(LANG==='th'?'ตั้ง PIN 6 หลัก':'Set a 6-digit PIN');if(pin===null)return;if(!/^\d{6}$/.test(pin)){alert(LANG==='th'?'PIN ต้องเป็นตัวเลข 6 หลัก':'PIN must be exactly 6 digits');return;}confirmPin=window.prompt(LANG==='th'?'กรอก PIN อีกครั้งเพื่อยืนยัน':'Re-enter PIN to confirm');if(confirmPin!==pin){alert(LANG==='th'?'PIN ไม่ตรงกัน':'PINs do not match');return;}localStorage.setItem(ADMIN_PIN_KEY,pinHash(pin));ADMIN_UNLOCKED=true;updateAdminUI();requestCloudSeedIfNeeded();return;}
- pin=window.prompt(LANG==='th'?'กรอก PIN 6 หลัก':'Enter the 6-digit PIN');if(pin===null)return;if(!/^\d{6}$/.test(pin)||pinHash(pin)!==saved){alert(LANG==='th'?'PIN ไม่ถูกต้อง':'Incorrect PIN');return;}ADMIN_UNLOCKED=true;updateAdminUI();requestCloudSeedIfNeeded();
-}
-function requireAdmin(){if(ADMIN_UNLOCKED)return true;alert(LANG==='th'?'ปลดล็อกด้วย PIN 6 หลักก่อน':'Unlock with the 6-digit PIN first');return false;}
 
 /* ========== 16. นำทาง ========== */
 var CURVIEW='dash';
@@ -1870,9 +1727,7 @@ function go(v){
  for(j=0;j<vs.length;j++){vs[j].className='view'+(vs[j].id===('v-'+v)?' on':'');}
  window.scrollTo(0,0);
  if(v==='dash')renderDash();
- if(v==='daily')renderDaily();
  if(v==='hist')renderHist();
- if(v==='add')renderForm();
  if(v==='events')renderEvents();
  if(v==='data')renderStat();
 }
@@ -1882,7 +1737,7 @@ function setDept(d){
  for(j=0;j<db.length;j++){db[j].className=(db[j].getAttribute('data-val')===d)?'on':'';}
  renderAll();go(CURVIEW);
 }
-function renderStat(){E('dbStat').textContent=DB.records.length+' '+t('records')+' / '+DB.daily.length+' '+t('dayrec');}
+function renderStat(){E('dbStat').textContent=DB.records.length+' '+t('records')+' / '+DB.daily.length+' '+t('dayrec');var si=E('sheetUrlInput');if(si)si.value=getSheetUrl();}
 function applyLang(){
  document.documentElement.lang=LANG;
  var ns=document.querySelectorAll('[data-i18n]'),j;
@@ -1890,7 +1745,7 @@ function applyLang(){
  E('langBtn').textContent=(LANG==='th')?'ENGLISH':'ไทย';
  try{localStorage.setItem('ckd_lang',LANG);}catch(e){}
 }
-function renderAll(){applyLang();renderDash();renderDaily();renderHist();renderForm();renderEvents();renderStat();updateAdminUI();updateFirebaseUI();}
+function renderAll(){applyLang();renderDash();renderHist();renderEvents();renderStat();updateSheetUI();}
 
 function findAct(node){
  while(node&&node!==document.body){
@@ -1902,33 +1757,19 @@ document.addEventListener('click',function(ev){
  var el4=findAct(ev.target||ev.srcElement);
  if(!el4)return;
  var act=el4.getAttribute('data-act'),val=el4.getAttribute('data-val')||'',j;
- var adminActions=['save-lab','save-daily','save-event','commit','pick','import','reset','clear','fill-last','del-daily'];
- if(adminActions.indexOf(act)>=0&&!requireAdmin())return;
- if(act==='nav'){
-  if((val==='add'||val==='ocr')&&!ADMIN_UNLOCKED){alert(LANG==='th'?'ปลดล็อก PIN ก่อนเข้าใช้งานส่วนนี้':'Unlock PIN to access this section');return;}
-  go(val);
- }
+ if(act==='nav'){go(val);}
  else if(act==='dept'){setDept(val);}
  else if(act==='lang'){LANG=(LANG==='th')?'en':'th';renderAll();go(CURVIEW);}
  else if(act==='print'){doPrint();}
  else if(act==='user-guide'){showUserGuide();}
- else if(act==='cloud-sync'){syncFirebaseNow();}
- else if(act==='admin-pin'){handleAdminPin();}
+ else if(act==='sheet-sync'){syncSheetNow();}
+ else if(act==='save-sheet-url'){var su=E('sheetUrlInput').value.trim();if(su){setSheetUrl(su);sheetReady=false;sheetSeedPromptShown=false;startSheetSync();alert(LANG==='th'?'บันทึก URL แล้ว กำลังซิงก์':'URL saved, syncing');}}
  else if(act==='report-mode'){REPORT_MODE=val;E('modal').className='modal';buildReport(REPORT_MODE);window.print();}
  else if(act==='detail'){var pr=val.split(':');openDetail(pr[0]==='vit'?'vit':'lab',pr[1]);}
  else if(act==='close'){E('modal').className='modal';}
  else if(act==='dmode'){MQ=(val==='q');drawDetail();}
  else if(act==='mode'){HMODE=val;renderHist();}
- else if(act==='save-lab'){saveLab();}
- else if(act==='save-daily'){saveDaily();}
  else if(act==='save-event'){saveEvent();}
- else if(act==='drop'){toggleDrop(val,el4.checked);}
- else if(act==='fill-last'){var L=last();
-  if(L){for(j=0;j<LABS.length;j++){var e5=E('in_'+LABS[j].k);
-   if(e5)e5.value=(L.items[LABS[j].k]===undefined||L.items[LABS[j].k]===null)?'':L.items[LABS[j].k];}}}
- else if(act==='del-daily'){var nd=[];
-  for(j=0;j<DB.daily.length;j++){if(DB.daily[j].id!==val)nd.push(DB.daily[j]);}
-  DB.daily=nd;save();renderAll();go('daily');}
  else if(act==='pick'){E('file').click();}
  else if(act==='commit'){commitOCR();}
  else if(act==='ocrdel'){var q2=val.split(':');delete PENDING[parseInt(q2[0],10)].items[q2[1]];showReview();}
@@ -1952,12 +1793,10 @@ document.addEventListener('change',function(ev){
  else if(act==='encconfirm'){var cix=parseInt(val,10),cd=PENDING[cix]&&PENDING[cix].encounter;if(cd)cd.confirmed=!!el6.checked;}
 },false);
 E('file').addEventListener('change',function(ev){
- if(!ADMIN_UNLOCKED){ev.target.value='';return;}
  var f=[],fs=ev.target.files,j;
  for(j=0;j<fs.length;j++){f.push(fs[j]);}
  if(f.length)runOCR(f);},false);
 E('impFile').addEventListener('change',function(ev){
- if(!ADMIN_UNLOCKED){ev.target.value='';return;}
  var f=ev.target.files[0];if(!f)return;
  var rd=new FileReader();
  rd.onload=function(){
@@ -1973,18 +1812,16 @@ dz.addEventListener('drop',function(ev){
  var f=[],j;
  if(ev.dataTransfer&&ev.dataTransfer.files){var fs=ev.dataTransfer.files;
   for(j=0;j<fs.length;j++){if(fs[j].type.indexOf('image')===0)f.push(fs[j]);}}
- if(!ADMIN_UNLOCKED){alert(LANG==='th'?'ปลดล็อก PIN ก่อนอัปโหลด':'Unlock PIN before upload');return;}
  if(f.length)runOCR(f);},false);
 E('modal').addEventListener('click',function(ev){
  if((ev.target||ev.srcElement).id==='modal')E('modal').className='modal';},false);
 window.addEventListener('resize',function(){
  if(CURVIEW==='dash')renderDash();
- if(CURVIEW==='daily')renderDaily();
  if(E('modal').className.indexOf('on')>=0)drawDetail();},false);
 
 setDept(DEPT);
-updateAdminUI();
-startFirebase();
+updateSheetUI();
+startSheetSync();
 go('dash');
 
 }catch(err){showErr(err&&err.message?err.message:String(err));}

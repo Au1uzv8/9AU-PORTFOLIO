@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Health Tracker</title>
+<link rel="icon" href="app-icon.png">
+<link rel="apple-touch-icon" href="app-icon.png">
+<meta name="theme-color" content="#0B0E14">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0B0E14;--card:#141922;--card2:#1A2130;--line:#232D3C;--gold:#FFD75E;--cyan:#4DE8FF;--mag:#FF4DD2;--lime:#B6FF3C;--txt:#D7E0EA;--dim:#7F8EA3;--risk-red:#FF626B;--risk-blue:#5BA8FF;--risk-normal:#F3F6FA}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:'Noto Sans Thai',system-ui,sans-serif;font-size:15px;padding-bottom:50px}
+.num{font-family:'Orbitron',sans-serif;letter-spacing:.5px}
+#errbar{display:none;background:#5a0b22;color:#ffd7e4;padding:10px 14px;font-size:13px;border-bottom:1px solid #FF4DD2}
+header{position:sticky;top:0;z-index:50;background:rgba(11,14,20,.95);border-bottom:1px solid var(--line);padding:10px 14px}
+.hrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.logo{width:38px;height:38px;border-radius:10px;object-fit:cover;border:1px solid var(--gold);background:#000}
+h1{font-size:17px;margin:0;color:var(--gold)}
+.sub{font-size:11.5px;color:var(--dim);margin-top:2px}
+.spacer{flex:1}
+.btn{background:var(--card2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:8px 13px;font-family:inherit;font-size:13px;cursor:pointer}
+.btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn.gold{border-color:var(--gold);color:var(--gold)}
+.btn.cy{border-color:var(--cyan);color:var(--cyan)}
+.btn.mg{border-color:var(--mag);color:var(--mag)}
+.btn.lm{border-color:var(--lime);color:var(--lime)}
+.btn.big{padding:13px 20px;font-size:15px}
+nav{display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding-bottom:3px}
+nav button{white-space:nowrap;background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:999px;padding:7px 15px;font-family:inherit;font-size:13px;cursor:pointer}
+nav button.on{color:var(--bg);background:var(--cyan);border-color:var(--cyan);font-weight:700}
+.depts{display:flex;gap:8px;margin-top:8px;overflow-x:auto;padding-bottom:3px}
+.depts button{white-space:nowrap;background:#10151e;border:1px solid var(--line);color:var(--dim);border-radius:10px;padding:8px 16px;font-family:inherit;font-size:13px;cursor:pointer}
+.depts button.on{font-weight:700;color:#0B0E14}
+.depts button.on[data-val="all"]{background:var(--gold);border-color:var(--gold)}
+.depts button.on[data-val="med"]{background:var(--cyan);border-color:var(--cyan)}
+.depts button.on[data-val="eye"]{background:var(--mag);border-color:var(--mag)}
+main{max-width:1180px;margin:0 auto;padding:14px}
+.view{display:none}.view.on{display:block}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){.g3,.g2{grid-template-columns:1fr}.g4{grid-template-columns:1fr 1fr}}
+.card{background:linear-gradient(180deg,var(--card),#10151e);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.card h3{margin:0 0 10px;font-size:13px;color:var(--gold)}
+.kpi{cursor:pointer;margin:0}
+.kpi:hover{border-color:var(--cyan)}
+.kpi .lbl{font-size:12px;color:var(--dim);min-height:32px}
+.kpi .val{font-size:27px;margin:6px 0 2px}
+.kpi .unit,.kpi .ref{font-size:11px;color:var(--dim)}
+.kpi .trend{font-size:12px;margin:3px 0}
+.ok{color:var(--lime)}.hi{color:var(--mag)}.lo{color:var(--gold)}.dim{color:var(--dim)}
+.dash-risk-red{color:var(--risk-red)!important;font-weight:700}.dash-risk-blue{color:var(--risk-blue)!important;font-weight:700}.dash-risk-normal{color:var(--risk-normal)!important}
+.pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+.chart{height:300px}
+canvas{width:100%;height:100%;display:block;cursor:pointer}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{color:var(--cyan);font-size:11px;position:sticky;top:0;background:#10151e}
+tr.clk{cursor:pointer}tr.clk:hover td{background:#1b2433}
+.scroll{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:12px}
+.adv{font-size:12.5px;background:#10151e;border-left:3px solid var(--mag);padding:9px 12px;border-radius:8px;margin:7px 0;line-height:1.55}
+.adv.good{border-left-color:var(--lime)}
+.adv.link{border-left-color:var(--gold)}
+.badge{font-size:11px;padding:2px 8px;border-radius:6px;background:#10151e;border:1px solid var(--line);color:var(--dim)}
+label{font-size:12px;color:var(--dim);display:block;margin-bottom:4px}
+input{width:100%;background:#0E131B;border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:10px;font-family:inherit;font-size:15px}
+input:focus{outline:none;border-color:var(--cyan)}
+.field{margin-bottom:10px}
+.modal{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(5,7,11,.85);z-index:100;display:none;align-items:center;justify-content:center;padding:12px}
+.modal.on{display:flex}
+.mbox{background:var(--card);border:1px solid var(--cyan);border-radius:16px;max-width:880px;width:100%;max-height:92vh;overflow:auto;padding:16px}
+.drop{border:2px dashed var(--line);border-radius:16px;padding:30px 16px;text-align:center}
+.bar{height:7px;background:#0E131B;border-radius:4px;overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:var(--cyan);width:0}
+.med{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.med b{color:var(--cyan);font-weight:600}
+.dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;margin-top:5px}
+small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margin-top:8px}
+.slot{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;background:#10151e}
+.slot b{color:var(--gold);font-size:13px}
+.tick{width:20px;height:20px;vertical-align:middle;cursor:pointer}
+#printArea{display:none}
+@media print{
+ body{background:#fff;color:#000;padding:0}
+ header,main,.modal,#errbar{display:none !important}
+ #printArea{display:block !important;color:#000;background:#fff;padding:10px;font-size:12px}
+ #printArea h2{font-size:17px;margin:0 0 4px}
+ #printArea h3{font-size:13px;margin:14px 0 5px;border-bottom:1px solid #000;padding-bottom:3px}
+ #printArea table{width:100%;border-collapse:collapse;margin-bottom:6px}
+ #printArea th,#printArea td{border:1px solid #888;padding:4px 6px;color:#000;background:#fff;font-size:11px;position:static;white-space:normal}
+ #printArea .pbox{border:1px solid #888;padding:6px;margin-bottom:6px}
+ #printArea .risk-red{color:#D92D20!important;font-weight:700}
+ #printArea .risk-blue{color:#2563EB!important;font-weight:700}
+ #printArea .risk-black{color:#000!important}
+ #printArea .event-item{padding:5px 0;border-bottom:1px solid #bbb;break-inside:avoid}
+ #printArea .ai-prompt{border:1px solid #777;padding:8px;margin-top:8px;white-space:pre-wrap;font-size:10.5px;line-height:1.45}
+}
+</style>
+</head>
+<body>
+
+<div id="errbar"></div>
+
+<header>
+  <div class="hrow">
+    <img class="logo" src="app-icon.png" alt="" onerror="this.style.visibility='hidden'">
+    <div><h1 data-i18n="appName">Health Tracker</h1><div class="sub" data-i18n="appSub">ผู้ช่วยติดตามสุขภาพโรคไตเรื้อรังและจักษุ</div></div>
+    <div class="spacer"></div>
+    <button class="btn lm" data-act="user-guide" data-i18n="guideButton">เปิดคู่มือ</button>
+    <button class="btn lm" data-act="print" data-i18n="printBtn">พิมพ์รายงาน</button>
+    <button class="btn" data-act="admin-pin" id="adminPinBtn">Admin: Locked</button>
+    <span class="badge" id="firebaseStatus">Cloud: setup required</span>
+    <button class="btn cy" data-act="cloud-sync" id="cloudSyncBtn">Sync Cloud</button>
+    <button class="btn gold" data-act="lang" id="langBtn">ENGLISH</button>
+  </div>
+  <nav>
+    <button data-act="nav" data-val="dash" class="on" data-i18n="navDash">แดชบอร์ด</button>
+    <button data-act="nav" data-val="hist" data-i18n="navHist">ประวัติย้อนหลัง</button>
+    <button data-act="nav" data-val="ocr" data-i18n="navOcr">อัปโหลดรูป (OCR)</button>
+    <button data-act="nav" data-val="events" data-i18n="navEvents">เหตุการณ์ทางการแพทย์</button>
+    <button data-act="nav" data-val="data" data-i18n="navData">ข้อมูล/สำรอง</button>
+  </nav>
+  <div class="depts">
+    <button data-act="dept" data-val="all" class="on" data-i18n="deptAll">ภาพรวมทั้งหมด</button>
+    <button data-act="dept" data-val="med" data-i18n="deptMed">อายุรกรรม (คุ้มเกศ)</button>
+    <button data-act="dept" data-val="eye" data-i18n="deptEye">จักษุกรรม (คุ้มเกล้า)</button>
+  </div>
+</header>
+
+<main>
+
+<section class="view on" id="v-dash">
+  <div class="card" id="cHead">
+    <div class="hrow">
+      <div><div class="sub" data-i18n="lastVisit">ผลตรวจล่าสุด</div><div class="num" id="lastDate" style="font-size:20px;color:var(--gold)"></div></div>
+      <div class="spacer"></div>
+      <div style="text-align:right"><div class="sub" id="headRLbl"></div><div class="num" id="stageTxt" style="font-size:20px"></div></div>
+    </div>
+  </div>
+  <div class="adv good" id="cOverviewNote" data-i18n="dashboardSummaryNote">ภาพรวมแสดงเฉพาะสถานะและรายการสำคัญ เลือกแผนกเพื่อดูข้อมูลและกราฟโดยละเอียด</div>
+  <div class="card" style="padding:8px 12px;font-size:12px"><span class="dash-risk-red">● <span data-i18n="riskSpecial">เฝ้าระวังพิเศษ</span></span>　<span class="dash-risk-blue">● <span data-i18n="riskWatch">เฝ้าระวัง</span></span>　<span class="dash-risk-normal">● <span data-i18n="riskNormal">ปกติ</span></span></div>
+
+  <div class="card" id="cAppointmentBox" style="border-color:var(--cyan)">
+    <div class="hrow"><h3 style="color:var(--cyan);margin:0" data-i18n="appointmentT">นัดหมายล่วงหน้า</h3><div class="spacer"></div><span class="badge" id="appointmentSourceBadge"></span></div>
+    <div id="appointmentBody"></div>
+    <small class="note" data-i18n="appointmentHint">ยึดวันพบอายุรกรรมเป็นวันนัดหลัก แยกวันเจาะเลือดออก และให้ Screenshot ล่าสุดที่มีข้อมูลชัดเจนมี priority สูงสุด</small>
+  </div>
+
+  <div class="card" id="cScenBox" style="border-color:var(--gold)">
+    <h3 style="color:var(--gold)" data-i18n="scenTitle">บันทึกค่าไตแม่ เปรียบเทียบ 3 Scenario</h3>
+    <div class="chart"><canvas id="cScenario"></canvas></div>
+    <small class="note" data-i18n="scenHint">Actual ต้องเด่นที่สุด · แสดงแนวโน้มที่สังเกตได้และสถานการณ์เพื่อการทำความเข้าใจ ไม่ใช่คำพยากรณ์หรือเกณฑ์ตัดสินการฟอกไต</small>
+  </div>
+
+  <div class="grid g2" id="cRiskRow">
+    <div class="card" id="cKidneyRiskBox" style="border-color:var(--gold)"><h3 style="color:var(--gold)" data-i18n="kidneyRiskT">Kidney Risk · KFRE</h3><div id="kidneyRiskBody"></div><small class="note" data-i18n="kidneyRiskHint">เก็บเป็นข้อมูลประกอบแยกจากกราฟ เพื่อไม่ให้กราฟหลักอ่านยาก และจะคำนวณเมื่อข้อมูลที่จำเป็นครบและตรวจสอบได้</small></div>
+    <div class="card" id="cEventSummaryBox" style="border-color:var(--mag)"><h3 style="color:var(--mag);margin:0 0 10px" data-i18n="eventT">การรักษาและเหตุการณ์ล่าสุด</h3><div id="eventSummaryBody"></div><button class="btn" data-act="nav" data-val="events" data-i18n="allEventHistory">ดูประวัติทั้งหมด</button></div>
+  </div>
+  <div class="grid g2" id="cDeptCards"></div>
+  <div class="card" id="cLinkBox"><h3 data-i18n="linkT">จุดเชื่อมโยงระหว่างสองแผนก</h3><div id="linkBody"></div></div>
+  <div class="card" id="cChangeBox"><h3 data-i18n="changeT">สิ่งที่เปลี่ยนจากรอบก่อน</h3><div id="changeBody"></div><small class="note" data-i18n="changeHint">เป็นการตรวจจับความเปลี่ยนแปลงจากข้อมูลที่บันทึกไว้ ไม่ใช่การวินิจฉัย</small></div>
+  <div class="card" id="cAttentionBox"><h3 data-i18n="attentionT">จุดที่ควรตรวจสอบ</h3><div id="attentionBody"></div><small class="note" data-i18n="attentionHint">เป็นการคัดกรองจากข้อมูลที่บันทึกไว้ ไม่ใช่การวินิจฉัย และไม่แทนคำแนะนำจากแพทย์</small></div>
+  <div class="card" id="cTimelineBox"><h3 data-i18n="timelineT">Medical Timeline</h3><div id="timelineBody"></div></div>
+
+  <div class="grid g4" id="kpis" style="margin-bottom:12px"></div>
+  <div class="card" id="cVitBox"><h3 data-i18n="vitalsNow">สัญญาณชีพล่าสุด</h3><div class="grid g4" id="vkpis"></div></div>
+
+  <div class="grid g2" id="cMedCharts">
+    <div class="card"><h3 data-i18n="egfrHist">ประวัติ eGFR (EPI)</h3><div class="chart"><canvas id="cEgfr"></canvas></div><small class="note" data-i18n="clickHint">แตะที่กราฟเพื่อดูรายละเอียดย้อนหลัง</small></div>
+    <div class="card"><h3 data-i18n="radarT">ภาพรวมค่าสำคัญ</h3><div class="chart"><canvas id="cRadar"></canvas></div><small class="note" data-i18n="radarHint">วงเขียว คือ ขีดจำกัดบนของค่าปกติ</small></div>
+  </div>
+  <div class="card" id="cComboBox"><h3 data-i18n="comboT">ความสัมพันธ์ A/C ratio กับ ความดันตัวบน</h3><div class="chart"><canvas id="cCombo"></canvas></div></div>
+
+  <div class="grid g2" id="cEyeCharts">
+    <div class="card"><h3 data-i18n="iopT">ความดันลูกตา ตาขวาเทียบตาซ้าย</h3><div class="chart"><canvas id="cIop"></canvas></div><small class="note" data-i18n="iopHint">แถบเขียว คือ ช่วงปกติ 10 ถึง 21 mmHg</small></div>
+    <div class="card"><h3 data-i18n="cdrT">สัดส่วนขั้วประสาทตา (CDR)</h3><div class="chart"><canvas id="cCdr"></canvas></div><small class="note" data-i18n="cdrHint">ค่ายิ่งสูง แปลว่าขั้วประสาทตาถูกทำลายมากขึ้น</small></div>
+  </div>
+  <div class="card" id="cLinkChartBox"><h3 data-i18n="lnkChT">น้ำตาลสะสม HbA1c เทียบ ความดันลูกตาเฉลี่ย</h3><div class="chart"><canvas id="cLinkCh"></canvas></div><small class="note" data-i18n="lnkChHint">เส้นทอง คือ HbA1c และเส้นชมพู คือ IOP เฉลี่ย ใช้ดูแนวโน้มร่วมตามเวลา ไม่ใช่การพิสูจน์เหตุและผล</small></div>
+
+  <div class="card" id="cDropBox"><h3 data-i18n="dropT">ตารางเวลาหยอดตาประจำวัน</h3><div id="dropBody"></div>
+    <small class="note" data-i18n="dropHint">เว้นระยะห่างระหว่างยาหยอดตาแต่ละตัวอย่างน้อย 5 นาที เพื่อไม่ให้ยาตัวหลังชะยาตัวแรกออก</small></div>
+
+  <div class="grid g3" id="groups"></div>
+  <div class="card" id="cAdviceBox"><h3 data-i18n="adviceT">คำแนะนำสำหรับรอบนี้</h3><div id="advice"></div>
+    <small class="note" data-i18n="disclaimer">* เป็นข้อมูลช่วยจำเท่านั้น การปรับยาและอาหารให้ยึดตามคำสั่งแพทย์เสมอ</small></div>
+
+  <div class="card" id="cVisitsBox"><h3 data-i18n="visitT">การมาพบแพทย์</h3><div id="visitList"></div></div>
+  <div class="grid g2">
+    <div class="card" id="cDxBox"><h3 data-i18n="dxT">การวินิจฉัย</h3><div id="dxList"></div></div>
+    <div class="card" id="cMedsBox"><h3 data-i18n="medT">ยาและเวชภัณฑ์</h3><div id="medList"></div></div>
+  </div>
+</section>
+
+<section class="view" id="v-hist">
+  <div class="card">
+    <div class="hrow"><h3 style="margin:0" data-i18n="histT">ตารางประวัติผลตรวจทุกรอบ</h3><div class="spacer"></div>
+      <button class="btn cy" id="modeAll" data-act="mode" data-val="all" data-i18n="modeAll">ทุกรอบตรวจ</button>
+      <button class="btn" id="modeQ" data-act="mode" data-val="q" data-i18n="modeQ">เฉลี่ยราย 3 เดือน</button></div>
+    <small class="note" data-i18n="histHint">แตะที่แถวเพื่อดูกราฟและประวัติเฉพาะค่านั้น</small>
+  </div>
+  <div class="scroll"><table id="histTable"></table></div>
+  <div class="card" style="margin-top:12px"><h3 data-i18n="vitQ">สัญญาณชีพ เฉลี่ยราย 3 เดือน</h3><div class="scroll" style="max-height:40vh"><table id="vitTable"></table></div></div>
+</section>
+
+<section class="view" id="v-ocr">
+  <div class="card"><h3 data-i18n="ocrT">อัปโหลดภาพผลตรวจ แล้วให้ระบบอ่านให้อัตโนมัติ</h3>
+    <div class="drop" id="drop">
+      <p data-i18n="ocrDrop">ลากรูปมาวางที่นี่ หรือกดปุ่มด้านล่าง เลือกได้หลายรูปพร้อมกัน</p>
+      <button class="btn cy big" data-act="pick" data-i18n="ocrPick">เลือกรูปผลตรวจ</button>
+      <input type="file" id="file" accept="image/*" multiple hidden>
+      <div class="bar"><i id="pbar"></i></div><div class="sub" id="pstat"></div>
+    </div>
+    <small class="note" data-i18n="ocrNote">ค่าที่อ่านได้จะถูกบันทึกเข้าแผนกที่เลือกไว้ด้านบน ระบบให้ตรวจทานก่อนบันทึกเสมอ</small>
+  </div>
+  <div id="ocrReview"></div>
+</section>
+
+<section class="view" id="v-events">
+  <div class="card">
+    <h3 data-i18n="eventFormT">บันทึกเหตุการณ์ทางการแพทย์</h3>
+    <small class="note" data-i18n="eventFormHint">รองรับเหตุการณ์ที่เกิดเป็นครั้งคราว เช่น หกล้ม ศีรษะกระแทก อุบัติเหตุ ห้องฉุกเฉิน ศัลยกรรม ออร์โธปิดิกส์ หรือระบบประสาท โดยไม่ต้องสร้างโครงสร้างฐานข้อมูลใหม่ทุกครั้ง</small>
+    <div class="grid g3" style="margin-top:10px">
+      <div class="field"><label data-i18n="fDate">วันที่</label><input type="date" id="evDate"></div>
+      <div class="field"><label data-i18n="eventTypeLbl">ประเภทเหตุการณ์</label><select id="evType" style="width:100%;background:#0E131B;border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:10px;font-family:inherit;font-size:15px"><option value="accident">อุบัติเหตุ</option><option value="fall">หกล้ม</option><option value="head_injury">ศีรษะกระแทก</option><option value="emergency">ฉุกเฉิน</option><option value="surgery">ศัลยกรรม</option><option value="orthopedics">ออร์โธปิดิกส์</option><option value="neurology">สมองและระบบประสาท</option><option value="other">อื่น ๆ</option></select></div>
+      <div class="field"><label data-i18n="eventDeptLbl">แผนก</label><input type="text" id="evDept" placeholder="เช่น ER / Orthopedics / Neurology"></div>
+      <div class="field"><label data-i18n="eventTitleLbl">หัวข้อ</label><input type="text" id="evTitle" placeholder="เช่น หกล้มในบ้าน"></div>
+      <div class="field"><label data-i18n="eventPlaceLbl">สถานที่</label><input type="text" id="evPlace" placeholder="เช่น ห้องฉุกเฉิน โรงพยาบาล..."></div>
+      <div class="field"><label data-i18n="eventStatusLbl">สถานะ</label><input type="text" id="evStatus" placeholder="เช่น ตรวจแล้ว / นอนโรงพยาบาล / ติดตามอาการ"></div>
+    </div>
+    <div class="field"><label data-i18n="eventNoteLbl">รายละเอียด / ผลการตรวจ / คำสั่งแพทย์</label><textarea id="evNote" rows="4" style="width:100%;background:#0E131B;border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:10px;font-family:inherit;font-size:15px"></textarea></div>
+    <button class="btn lm big" data-act="save-event" data-i18n="saveEvent">บันทึกเหตุการณ์</button>
+  </div>
+  <div class="card" style="border-color:var(--cyan)"><h3 style="color:var(--cyan)" data-i18n="generalEncounterT">การเข้ารับการรักษาทั่วไป</h3><p class="sub" data-i18n="generalEncounterHint">ประวัติพบแพทย์ทั่วไป โรคเฉียบพลัน การวินิจฉัย และยาที่ได้รับ แยกจากเหตุการณ์พิเศษ</p><div id="encounterList"></div></div>
+  <div class="card"><h3 data-i18n="eventHistoryT">ประวัติเหตุการณ์พิเศษ</h3><div id="eventList"></div></div>
+</section>
+
+<section class="view" id="v-data">
+  <div class="card"><h3 data-i18n="dataT">สำรองและกู้คืนข้อมูล</h3>
+    <p class="sub" id="dbStat"></p>
+    <div class="hrow">
+      <button class="btn lm" data-act="export" data-i18n="expBtn">ดาวน์โหลดไฟล์ .json</button>
+      <button class="btn cy" data-act="import" data-i18n="impBtn">นำเข้าไฟล์ .json</button>
+      <input type="file" id="impFile" accept=".json,application/json" hidden>
+      <button class="btn gold" data-act="reset" data-i18n="resetBtn">โหลดข้อมูลตัวอย่างใหม่</button>
+      <button class="btn mg" data-act="clear" data-i18n="clrBtn">ล้างข้อมูลทั้งหมด</button>
+    </div>
+    <small class="note" data-i18n="dataNote">ข้อมูลทั้งหมดเก็บอยู่ในเครื่องของคุณเท่านั้น</small>
+  </div>
+</section>
+
+</main>
+
+<div class="modal" id="modal"><div class="mbox" id="mbox"></div></div>
+<div id="printArea"></div>
+
+<script>
+
+(function(){
+function E(id){return document.getElementById(id);}
+function showErr(m){var b=E('errbar');if(b){b.style.display='block';b.textContent='ERROR: '+m;}}
+try{
+
+/* ========== 1. รายการตรวจ ========== */
+var LABS=[
+{k:'egfr',g:'A',dp:'med',th:'eGFR (EPI)',en:'eGFR (EPI)',u:'mL/min',min:60,max:null,dec:2,key:1,alias:['egfr','gfr']},
+{k:'cr',g:'A',dp:'med',th:'ครีเอตินีน',en:'Creatinine',u:'mg/dL',min:0.51,max:0.95,dec:2,key:1,alias:['creatinine','ครีเอตินีน']},
+{k:'bun',g:'A',dp:'med',th:'ยูเรียไนโตรเจน (BUN)',en:'Blood Urea Nitrogen',u:'mg/dL',min:6,max:20,dec:0,alias:['bun','urea']},
+{k:'acr',g:'A',dp:'med',th:'ไมโครอัลบูมินปัสสาวะ',en:'Urine Microalbumin',u:'mgA/gC',min:0,max:20,dec:0,key:1,alias:['microalbumin','a/c ratio','acr']},
+{k:'uric',g:'A',dp:'med',th:'กรดยูริก',en:'Uric acid',u:'mg/dL',min:3,max:7,dec:1,alias:['uric','ยูริก']},
+{k:'k',g:'B',dp:'med',th:'โพแทสเซียม',en:'Potassium',u:'mmol/L',min:3.5,max:5.1,dec:2,key:1,alias:['potassium','โพแทสเซียม']},
+{k:'na',g:'B',dp:'med',th:'โซเดียม',en:'Sodium',u:'mmol/L',min:135,max:145,dec:0,alias:['sodium','โซเดียม']},
+{k:'p',g:'B',dp:'med',th:'ฟอสฟอรัส',en:'Phosphorus',u:'mg/dL',min:2.5,max:4.5,dec:2,alias:['phosphorus','phosphate']},
+{k:'ca',g:'B',dp:'med',th:'แคลเซียม',en:'Calcium',u:'mg/dL',min:8.6,max:10.3,dec:2,alias:['calcium']},
+{k:'hco3',g:'B',dp:'med',th:'ไบคาร์บอเนต',en:'Bicarbonate',u:'mmol/L',min:22,max:29,dec:0,alias:['bicarbonate','hco3']},
+{k:'hb',g:'C',dp:'med',th:'ฮีโมโกลบิน',en:'Hemoglobin',u:'g/dL',min:11,max:16,dec:1,alias:['hemoglobin']},
+{k:'alb',g:'C',dp:'med',th:'อัลบูมินในเลือด',en:'Serum Albumin',u:'g/dL',min:3.5,max:5.2,dec:1,alias:['serum albumin']},
+{k:'fbs',g:'C',dp:'med',th:'น้ำตาลหลังอดอาหาร',en:'Fasting Blood Sugar',u:'mg/dL',min:70,max:110,dec:0,alias:['fbs','glucose']},
+{k:'a1c',g:'C',dp:'med',th:'น้ำตาลสะสม HbA1c',en:'HbA1c',u:'%',min:null,max:7,dec:1,key:1,alias:['hba1c','a1c']},
+{k:'chol',g:'C',dp:'med',th:'คอเลสเตอรอล',en:'Cholesterol',u:'mg/dL',min:null,max:200,dec:0,alias:['cholesterol']},
+{k:'tg',g:'C',dp:'med',th:'ไตรกลีเซอไรด์',en:'Triglyceride',u:'mg/dL',min:null,max:150,dec:0,alias:['triglyceride']},
+{k:'hdl',g:'C',dp:'med',th:'ไขมันดี HDL',en:'HDL',u:'mg/dL',min:40,max:null,dec:0,alias:['hdl']},
+{k:'ldl',g:'C',dp:'med',th:'ไขมันเลว LDL',en:'LDL',u:'mg/dL',min:null,max:100,dec:0,alias:['ldl']},
+{k:'upro',g:'C',dp:'med',th:'โปรตีนในปัสสาวะ',en:'Urine Protein',u:'+',min:null,max:0,dec:0,alias:['urine protein']},
+{k:'uph',g:'C',dp:'med',th:'ความเป็นกรดปัสสาวะ',en:'Urine pH',u:'',min:5,max:8,dec:1,alias:['ph']},
+{k:'usg',g:'C',dp:'med',th:'ความถ่วงจำเพาะปัสสาวะ',en:'Specific Gravity',u:'',min:1.003,max:1.03,dec:3,alias:['specific gravity']},
+{k:'iop_od',g:'D',dp:'eye',th:'ความดันลูกตา ตาขวา (OD)',en:'Eye Pressure Right (OD)',u:'mmHg',min:10,max:21,dec:1,ekey:1,alias:['iop od','iop right']},
+{k:'iop_os',g:'D',dp:'eye',th:'ความดันลูกตา ตาซ้าย (OS)',en:'Eye Pressure Left (OS)',u:'mmHg',min:10,max:21,dec:1,ekey:1,alias:['iop os','iop left']},
+{k:'cdr_od',g:'D',dp:'eye',th:'สัดส่วนขั้วประสาทตา ขวา (CDR OD)',en:'Cup/Disc Ratio Right',u:'',min:null,max:0.6,dec:2,ekey:1,alias:['cdr od','c/d od']},
+{k:'cdr_os',g:'D',dp:'eye',th:'สัดส่วนขั้วประสาทตา ซ้าย (CDR OS)',en:'Cup/Disc Ratio Left',u:'',min:null,max:0.6,dec:2,ekey:1,alias:['cdr os','c/d os']},
+{k:'rnfl_od',g:'E',dp:'eye',th:'ความหนาเส้นประสาทตา ขวา (OCT RNFL)',en:'OCT RNFL Right',u:'um',min:80,max:null,dec:0,alias:['rnfl od']},
+{k:'rnfl_os',g:'E',dp:'eye',th:'ความหนาเส้นประสาทตา ซ้าย (OCT RNFL)',en:'OCT RNFL Left',u:'um',min:80,max:null,dec:0,alias:['rnfl os']},
+{k:'vf_od',g:'E',dp:'eye',th:'ลานสายตา ขวา (VF MD)',en:'Visual Field MD Right',u:'dB',min:-6,max:null,dec:1,alias:['vf md od']},
+{k:'vf_os',g:'E',dp:'eye',th:'ลานสายตา ซ้าย (VF MD)',en:'Visual Field MD Left',u:'dB',min:-6,max:null,dec:1,alias:['vf md os']},
+{k:'va_od',g:'E',dp:'eye',th:'ระดับสายตา ขวา (VA)',en:'Visual Acuity Right',u:'',min:0.5,max:null,dec:2,alias:['va od']},
+{k:'va_os',g:'E',dp:'eye',th:'ระดับสายตา ซ้าย (VA)',en:'Visual Acuity Left',u:'',min:0.5,max:null,dec:2,alias:['va os']},
+{k:'dr',g:'F',dp:'eye',th:'ระดับเบาหวานขึ้นจอตา (DR)',en:'Diabetic Retinopathy Stage',u:'0-4',min:null,max:0,dec:0,alias:['dr stage']}];
+var LM={};for(var i=0;i<LABS.length;i++){LM[LABS[i].k]=LABS[i];}
+var GROUPS={
+A:{dp:'med',th:'การทำงานของไต',en:'Kidney Function'},
+B:{dp:'med',th:'เกลือแร่และแร่ธาตุ',en:'Electrolytes'},
+C:{dp:'med',th:'เมตาบอลิก / ปัสสาวะ',en:'Metabolic / Urinalysis'},
+D:{dp:'eye',domain:'glaucoma',th:'ต้อหิน / ความดันลูกตาและขั้วประสาทตา',en:'Glaucoma / Eye Pressure and Optic Disc'},
+E:{dp:'eye',domain:'vision',th:'โครงสร้างตาและการมองเห็น',en:'Eye Structure and Vision'},
+F:{dp:'eye',domain:'diabetic_retina',th:'เบาหวานขึ้นจอตา',en:'Diabetic Retinopathy'}};
+var GKEYS=['A','B','C','D','E','F'];
+var CONDITION_DOMAIN={iop_od:'glaucoma',iop_os:'glaucoma',cdr_od:'glaucoma',cdr_os:'glaucoma',rnfl_od:'glaucoma',rnfl_os:'glaucoma',vf_od:'glaucoma',vf_os:'glaucoma',va_od:'vision',va_os:'vision',dr:'diabetic_retina'};
+function domainForItem(k){return CONDITION_DOMAIN[k]||'general';}
+function domainsForItems(items){var out={},k,d;for(k in (items||{})){if(items.hasOwnProperty(k)){d=domainForItem(k);out[d]=true;}}var a=[];for(k in out)if(out.hasOwnProperty(k))a.push(k);return a;}
+
+var RADAR=['cr','bun','k','na','p','uric'];
+var VITALS=[
+{k:'sys',th:'ความดันตัวบน',en:'Systolic BP',u:'mmHg',min:90,max:130,dec:0},
+{k:'dia',th:'ความดันตัวล่าง',en:'Diastolic BP',u:'mmHg',min:60,max:80,dec:0},
+{k:'pulse',th:'ชีพจร',en:'Pulse',u:'/min',min:50,max:100,dec:0},
+{k:'wt',th:'น้ำหนัก',en:'Weight',u:'kg',min:null,max:null,dec:1},
+{k:'fluid',th:'น้ำดื่ม',en:'Fluid intake',u:'mL',min:null,max:null,dec:0},
+{k:'urine',th:'ปัสสาวะ',en:'Urine output',u:'mL',min:null,max:null,dec:0}];
+var VM={};for(i=0;i<VITALS.length;i++){VM[VITALS[i].k]=VITALS[i];}
+var VKEYS=['sys','dia','pulse','wt','fluid','urine'];
+var SLOTS=[{k:'morning',th:'เช้า',en:'Morning'},{k:'noon',th:'กลางวัน',en:'Noon'},
+{k:'evening',th:'เย็น',en:'Evening'},{k:'n20',th:'20:00 น.',en:'20:00'},{k:'bed',th:'ก่อนนอน',en:'Bedtime'}];
+
+var SCENARIO_DATA=[];
+
+/* ========== 2. คำแนะนำ ========== */
+var ADV={
+egfr:{lo:{th:'การกรองของไตลดลง ลดโปรตีนเหลือราว 0.6 ถึง 0.8 กรัมต่อน้ำหนักตัว 1 กิโลกรัมต่อวัน เน้นไข่ขาวและปลา งดอาหารเสริมและยาแก้ปวดกลุ่ม NSAIDs เด็ดขาด',en:'Kidney filtration declining. Limit protein to 0.6-0.8 g/kg/day and avoid NSAIDs.'}},
+cr:{hi:{th:'ของเสียจากกล้ามเนื้อคั่ง ดื่มน้ำตามที่แพทย์กำหนด เลี่ยงอาหารโปรตีนสูงมื้อใหญ่',en:'Creatinine high. Keep fluid as prescribed, avoid large high-protein meals.'}},
+bun:{hi:{th:'ของเสียไนโตรเจนสูง ลดเนื้อสัตว์แปรรูป เครื่องในสัตว์ และน้ำซุปกระดูก',en:'High nitrogen waste. Cut processed meat, organ meat and bone broth.'}},
+acr:{hi:{th:'มีโปรตีนรั่วในปัสสาวะมาก คุมความดันให้ต่ำกว่า 130/80 ลดโซเดียมให้ต่ำกว่า 2000 มิลลิกรัมต่อวัน ห้ามหยุดยาเอง',en:'Significant proteinuria. Keep BP below 130/80, sodium under 2000 mg/day.'}},
+uric:{hi:{th:'กรดยูริกสูง เลี่ยงเครื่องในสัตว์ ยอดผัก สัตว์ปีก และน้ำหวานฟรุกโตส',en:'High uric acid. Avoid organ meat, young shoots and fructose drinks.'}},
+k:{hi:{th:'โพแทสเซียมสูง อันตรายต่อหัวใจ งดกล้วย ส้ม มะละกอ ทุเรียน มะเขือเทศ ผักใบเขียวเข้ม น้ำผลไม้ และเกลือลดโซเดียม',en:'High potassium is dangerous. Avoid banana, orange, papaya, durian, tomato, dark greens and low-sodium salt.'}},
+na:{lo:{th:'โซเดียมต่ำ มักเกิดจากดื่มน้ำมากเกินไป จำกัดน้ำตามแผน และชั่งน้ำหนักทุกเช้า',en:'Low sodium often from excess fluid. Restrict fluid and weigh daily.'}},
+p:{hi:{th:'ฟอสฟอรัสสูง ทำให้คันและกระดูกบาง เลี่ยงนม ชีส ถั่ว เมล็ดพืช น้ำอัดลมสีดำ กินยาจับฟอสเฟตพร้อมมื้ออาหาร',en:'High phosphorus causes itching and bone loss. Avoid dairy, nuts, seeds and cola.'}},
+a1c:{hi:{th:'น้ำตาลสะสมสูงกว่าเป้า เป็นตัวเร่งทั้งไตเสื่อมและเบาหวานขึ้นจอตาพร้อมกัน ควรทบทวนยาเบาหวานกับแพทย์ เพราะยาบางตัวต้องลดขนาดเมื่อไตเสื่อม',en:'HbA1c above target accelerates both kidney decline and retinopathy. Review diabetes medication.'}},
+iop_od:{hi:{th:'ความดันลูกตาขวาสูงเกิน 21 mmHg เสี่ยงทำลายขั้วประสาทตาถาวร ห้ามขาดยาหยอดแม้แต่ครั้งเดียว และแจ้งจักษุแพทย์',en:'Right eye pressure above 21 mmHg. Never miss eye drops and inform your ophthalmologist.'}},
+iop_os:{hi:{th:'ความดันลูกตาซ้ายสูงเกิน 21 mmHg เสี่ยงทำลายขั้วประสาทตาถาวร ห้ามขาดยาหยอดแม้แต่ครั้งเดียว และแจ้งจักษุแพทย์',en:'Left eye pressure above 21 mmHg. Never miss eye drops and inform your ophthalmologist.'}},
+cdr_od:{hi:{th:'ขั้วประสาทตาขวากว้างกว่าเกณฑ์ บ่งชี้การลุกลามของต้อหิน ควรตรวจลานสายตาตามนัดอย่างเคร่งครัด',en:'Right cup/disc ratio above target suggests glaucoma progression.'}},
+cdr_os:{hi:{th:'ขั้วประสาทตาซ้ายกว้างกว่าเกณฑ์ บ่งชี้การลุกลามของต้อหิน ควรตรวจลานสายตาตามนัดอย่างเคร่งครัด',en:'Left cup/disc ratio above target suggests glaucoma progression.'}},
+rnfl_od:{lo:{th:'เส้นประสาทตาขวาบางลง เป็นความเสียหายที่ย้อนกลับไม่ได้ เป้าหมายคือคุมความดันตาไม่ให้บางลงอีก',en:'Right nerve fibre layer thinning is irreversible. Focus on pressure control.'}},
+rnfl_os:{lo:{th:'เส้นประสาทตาซ้ายบางลง เป็นความเสียหายที่ย้อนกลับไม่ได้ เป้าหมายคือคุมความดันตาไม่ให้บางลงอีก',en:'Left nerve fibre layer thinning is irreversible. Focus on pressure control.'}},
+vf_od:{lo:{th:'ลานสายตาขวาแคบลง ระวังการเดินชนสิ่งกีดขวางด้านข้าง จัดบ้านให้โล่งและมีแสงสว่างพอ',en:'Right visual field narrowing. Keep the home clear and well lit.'}},
+vf_os:{lo:{th:'ลานสายตาซ้ายแคบลง ระวังการเดินชนสิ่งกีดขวางด้านข้าง จัดบ้านให้โล่งและมีแสงสว่างพอ',en:'Left visual field narrowing. Keep the home clear and well lit.'}},
+va_od:{lo:{th:'ระดับการมองเห็นตาขวาลดลง ควรแจ้งจักษุแพทย์และตรวจประเมินแว่นใหม่',en:'Right visual acuity reduced. Inform your ophthalmologist.'}},
+va_os:{lo:{th:'ระดับการมองเห็นตาซ้ายลดลง ควรแจ้งจักษุแพทย์และตรวจประเมินแว่นใหม่',en:'Left visual acuity reduced. Inform your ophthalmologist.'}},
+dr:{hi:{th:'พบเบาหวานขึ้นจอตา ต้องคุมน้ำตาลและความดันให้เข้าเป้าอย่างเคร่งครัด และตรวจตาตามนัดทุกครั้ง',en:'Diabetic retinopathy present. Strict glucose and BP control, never miss eye follow-up.'}}};
+
+/* ========== 3. ข้อความสองภาษา ========== */
+var I18N={th:{appName:'Health Tracker',appSub:'ผู้ช่วยติดตามสุขภาพโรคไตเรื้อรังและจักษุ',navDash:'แดชบอร์ด',navDaily:'บันทึกรายวัน',navHist:'ประวัติย้อนหลัง',navAdd:'กรอกผลตรวจ',navOcr:'อัปโหลดรูป (OCR)',navData:'ข้อมูล/สำรอง',riskSpecial:'เฝ้าระวังพิเศษ',riskWatch:'เฝ้าระวัง',riskNormal:'ปกติ',careLatest:'การรักษาทั่วไป / เหตุการณ์ล่าสุด',
+deptAll:'ภาพรวมทั้งหมด',deptMed:'อายุรกรรม (คุ้มเกศ)',deptEye:'จักษุกรรม (คุ้มเกล้า)',printBtn:'พิมพ์รายงาน',
+lastVisit:'ผลตรวจล่าสุด',dashboardSummaryNote:'ภาพรวมแสดงเฉพาะสถานะและรายการสำคัญ เลือกแผนกเพื่อดูข้อมูลและกราฟโดยละเอียด',ckdStage:'ระยะของโรคไต',eyeStat:'สถานะความดันลูกตา',vitalsNow:'สัญญาณชีพล่าสุด',egfrHist:'ประวัติ eGFR (EPI)',radarT:'ภาพรวมค่าสำคัญ',
+clickHint:'แตะที่กราฟเพื่อดูรายละเอียดย้อนหลัง',radarHint:'วงเขียว คือ ขีดจำกัดบนของค่าปกติ',
+comboT:'ความสัมพันธ์ A/C ratio กับ ความดันตัวบน',scenTitle:'บันทึกค่าไตแม่ เปรียบเทียบ 3 Scenario (Actual / Best Case / Worst Case)',
+scenHint:'แสดงแนวโน้ม eGFR จริงเทียบกับสถานการณ์จำลอง Best Case และ Worst Case',
+iopT:'ความดันลูกตา ตาขวาเทียบตาซ้าย',iopHint:'แถบเขียว คือ ช่วงปกติ 10 ถึง 21 mmHg',cdrT:'สัดส่วนขั้วประสาทตา (CDR)',cdrHint:'ค่ายิ่งสูง แปลว่าขั้วประสาทตาถูกทำลายมากขึ้น',
+lnkChT:'น้ำตาลสะสม HbA1c เทียบ ความดันลูกตาเฉลี่ย',lnkChHint:'เส้นทอง คือ HbA1c และเส้นชมพู คือ IOP เฉลี่ย ใช้ดูแนวโน้มร่วมตามเวลา ไม่ใช่การพิสูจน์เหตุและผล',
+linkT:'จุดเชื่อมโยงระหว่างสองแผนก',changeT:'สิ่งที่เปลี่ยนจากรอบก่อน',changeHint:'เป็นการตรวจจับความเปลี่ยนแปลงจากข้อมูลที่บันทึกไว้ ไม่ใช่การวินิจฉัย',attentionT:'จุดที่ควรตรวจสอบ',attentionHint:'เป็นการคัดกรองจากข้อมูลที่บันทึกไว้ ไม่ใช่การวินิจฉัย และไม่แทนคำแนะนำจากแพทย์',timelineT:'Medical Timeline',dropT:'ตารางเวลาหยอดตาประจำวัน',dropHint:'เว้นระยะห่างระหว่างยาหยอดตาแต่ละตัวอย่างน้อย 5 นาที เพื่อไม่ให้ยาตัวหลังชะยาตัวแรกออก',dropTick:'ติ๊กเมื่อหยอดตาแล้ววันนี้',
+adviceT:'คำแนะนำสำหรับรอบนี้',disclaimer:'* เป็นข้อมูลช่วยจำเท่านั้น การปรับยาและอาหารให้ยึดตามคำสั่งแพทย์เสมอ',visitT:'การมาพบแพทย์',dxT:'การวินิจฉัย',medT:'ยาและเวชภัณฑ์',
+dailyT:'บันทึกความดัน น้ำหนัก และน้ำดื่มประจำวัน',vsys:'ความดันตัวบน (mmHg)',vdia:'ความดันตัวล่าง (mmHg)',vpulse:'ชีพจร (ครั้ง/นาที)',vwt:'น้ำหนัก (กก.)',vfluid:'น้ำดื่มรวม (มล.)',vurine:'ปัสสาวะรวม (มล.)',vlimit:'เพดานน้ำดื่มต่อวัน (มล.)',
+saveDaily:'บันทึกข้อมูลวันนี้',bpChart:'ความดันโลหิต',wtChart:'น้ำหนักตัว',flChart:'น้ำดื่มและปัสสาวะ',dailyAdv:'คำแนะนำจากบันทึกรายวัน',dailyTable:'ตารางบันทึกรายวัน',
+histT:'ตารางประวัติผลตรวจทุกรอบ',modeAll:'ทุกรอบตรวจ',modeQ:'เฉลี่ยราย 3 เดือน',histHint:'แตะที่แถวเพื่อดูกราฟและประวัติเฉพาะค่านั้น',vitQ:'สัญญาณชีพ เฉลี่ยราย 3 เดือน',
+addT:'กรอกผลตรวจด้วยตนเอง',addHint:'แบบฟอร์มจะแสดงเฉพาะรายการของแผนกที่เลือกไว้ด้านบน',fDate:'วันที่ตรวจ',fNote:'หมายเหตุ',saveBtn:'บันทึกผลตรวจรอบนี้',fillLast:'ใส่ค่าจากรอบล่าสุดเป็นตัวตั้ง',
+ocrT:'อัปโหลดภาพผลตรวจ แล้วให้ระบบอ่านให้อัตโนมัติ',ocrDrop:'ลากรูปมาวางที่นี่ หรือกดปุ่มด้านล่าง',ocrPick:'เลือกรูปผลตรวจ',ocrNote:'ค่าที่อ่านได้จะถูกบันทึกเข้าแผนกที่เลือกไว้ด้านบน',ocrFail:'โหลดชุดอ่านตัวอักษรไม่สำเร็จ',
+dataT:'สำรองและกู้คืนข้อมูล',expBtn:'ดาวน์โหลดไฟล์ .json',impBtn:'นำเข้าไฟล์ .json',resetBtn:'โหลดข้อมูลตัวอย่างใหม่',clrBtn:'ล้างข้อมูลทั้งหมด',dataNote:'ข้อมูลทั้งหมดเก็บอยู่ในเครื่องของคุณเท่านั้น',
+ref:'ค่าอ้างอิง',item:'รายการ',normal:'ปกติ',abnormal:'ผิดปกติ',noData:'ยังไม่มีข้อมูล',high:'สูง',low:'ต่ำ',ok:'ปกติ',close:'ปิด',confirm:'ยืนยันและบันทึก',trend:'แนวโน้ม',notableChange:'เปลี่ยนแปลงเด่นชัด',minorChange:'เปลี่ยนแปลงเล็กน้อย',timelineLab:'ผลตรวจ',timelineVisit:'พบแพทย์',timelineDx:'วินิจฉัย',
+review:'ตรวจทานค่าที่อ่านได้จากรูป',confirmHigh:'ยืนยันค่าที่มั่นใจสูง',noHighConfidence:'ยังไม่มีค่าที่มีความมั่นใจสูงพอ',confirmedHigh:'ทำเครื่องหมายยืนยันแล้ว',saved:'บันทึกเรียบร้อย',reading:'กำลังอ่านรูปที่',value:'ค่า',date:'วันที่',records:'รอบตรวจ',dayrec:'วันที่บันทึกรายวัน',betterOk:'ค่าทั้งหมดในกลุ่มนี้อยู่ในเกณฑ์',
+advGood:'รอบนี้ไม่มีค่าที่ต้องเฝ้าระวังเป็นพิเศษ',qLabel:'ไตรมาส',avg7:'เฉลี่ย 7 วัน',confirmClear:'ต้องการลบข้อมูลทั้งหมดจริงหรือไม่',confirmReset:'โหลดข้อมูลตัวอย่างทับข้อมูลปัจจุบันหรือไม่',del:'ลบ',bal:'สมดุลน้ำ',needDate:'กรุณาเลือกวันที่',needVal:'ยังไม่ได้กรอกค่าใด',
+doctor:'แพทย์',place:'สถานที่',symptom:'อาการ',ptype:'ประเภทผู้ป่วย',right:'สิทธิการรักษา',primary:'โรคหลัก',secondary:'โรครอง',
+reportT:'รายงานสรุปผลสุขภาพ',patient:'ผู้ป่วย',printedOn:'พิมพ์เมื่อ',sigDoc:'ลงชื่อแพทย์',noDrops:'แผนกนี้ไม่มียาหยอดตา',reportDisclaimer:'ข้อมูลนี้เป็นสรุปจากข้อมูลที่บันทึกในระบบ ไม่ใช่การวินิจฉัยทางการแพทย์'},
+en:{appName:'Health Tracker',appSub:'CKD and ophthalmology companion',navDash:'Dashboard',navDaily:'Daily Log',navHist:'History',navAdd:'Enter Results',navOcr:'Upload Images (OCR)',navData:'Data / Backup',riskSpecial:'Special attention',riskWatch:'Monitor',riskNormal:'Normal',careLatest:'Latest general visit / event',
+deptAll:'All Departments',deptMed:'Internal Medicine',deptEye:'Ophthalmology',printBtn:'Print report',
+lastVisit:'Latest test',dashboardSummaryNote:'Overview keeps key status and reminders. Select a department to view its detailed data and charts.',ckdStage:'CKD Stage',eyeStat:'Eye pressure status',vitalsNow:'Latest vitals',egfrHist:'eGFR (EPI) history',radarT:'Key values vs reference',
+clickHint:'Tap the chart for detail',radarHint:'Green ring is the upper normal limit',
+comboT:'A/C ratio vs Systolic BP',scenTitle:'Kidney Log: 3-Scenario Comparison (Actual / Best / Worst)',
+scenHint:'Actual eGFR compared with Best and Worst Case projections',
+iopT:'Eye pressure, right vs left',iopHint:'Green band is the normal range 10-21 mmHg',cdrT:'Cup/Disc Ratio',cdrHint:'Higher value means more optic nerve damage',
+lnkChT:'HbA1c vs average eye pressure',lnkChHint:'Gold line is HbA1c and pink line is mean IOP; temporal comparison, not proof of causation',
+linkT:'Cross-department links',changeT:'What changed since the previous visit',changeHint:'Change detection from recorded data only; not a diagnosis.',attentionT:'Things to check',attentionHint:'Screening from recorded data only; not a diagnosis and not a substitute for medical advice.',timelineT:'Medical Timeline',dropT:'Daily eye drop schedule',dropHint:'Wait at least 5 minutes between different eye drops',dropTick:'Tick when drops are done today',
+adviceT:'Advice for this round',disclaimer:'* A memory aid only. Always follow your doctor.',visitT:'Clinic visits',dxT:'Diagnosis',medT:'Medication and supplies',
+dailyT:'Daily BP, weight and fluid log',vsys:'Systolic BP (mmHg)',vdia:'Diastolic BP (mmHg)',vpulse:'Pulse (/min)',vwt:'Weight (kg)',vfluid:'Fluid intake (mL)',vurine:'Urine output (mL)',vlimit:'Daily fluid limit (mL)',
+saveDaily:'Save today',bpChart:'Blood pressure',wtChart:'Body weight',flChart:'Fluid and urine',dailyAdv:'Advice from daily log',dailyTable:'Daily log table',
+histT:'Full test history',modeAll:'Every visit',modeQ:'Quarterly average',histHint:'Tap a row for detail',vitQ:'Vitals, quarterly average',
+addT:'Enter results manually',addHint:'The form shows only items of the selected department',fDate:'Test date',fNote:'Note',saveBtn:'Save this round',fillLast:'Prefill from last round',
+ocrT:'Upload result images',ocrDrop:'Drag images here or use the button',ocrPick:'Choose images',ocrNote:'Values are saved into the selected department',ocrFail:'Could not load OCR engine',
+dataT:'Backup and restore',expBtn:'Download .json',impBtn:'Import .json',resetBtn:'Reload sample data',clrBtn:'Erase all data',dataNote:'All data stays on your device',
+ref:'Reference',item:'Item',normal:'Normal',abnormal:'Out of range',noData:'No data yet',high:'High',low:'Low',ok:'Normal',close:'Close',confirm:'Confirm and save',trend:'Trend',notableChange:'Notable change',minorChange:'Minor change',timelineLab:'Lab',timelineVisit:'Visit',timelineDx:'Diagnosis',
+review:'Review values',confirmHigh:'Confirm high-confidence values',noHighConfidence:'No sufficiently high-confidence values',confirmedHigh:'Marked as confirmed',saved:'Saved',reading:'Reading image',value:'Value',date:'Date',records:'lab rounds',dayrec:'daily entries',betterOk:'All values within range',
+advGood:'Nothing needs special attention',qLabel:'Quarter',avg7:'7-day average',confirmClear:'Erase all data?',confirmReset:'Overwrite with sample set?',del:'Delete',bal:'Fluid balance',needDate:'Please pick a date',needVal:'No values entered',
+doctor:'Doctor',place:'Location',symptom:'Complaint',ptype:'Patient type',right:'Coverage',primary:'Primary',secondary:'Secondary',
+reportT:'Health Summary Report',patient:'Patient',printedOn:'Printed on',sigDoc:'Doctor signature',noDrops:'No eye drops in this department',reportDisclaimer:'This report summarizes recorded data and is not a medical diagnosis.'}};
+
+
+// New P3 feature labels; kept separate so existing translation dictionaries remain untouched.
+I18N.th.navEvents='เหตุการณ์ทางการแพทย์';
+I18N.en.navEvents='Medical Events';
+I18N.th.appointmentT='นัดหมายและเหตุการณ์ล่วงหน้า'; I18N.en.appointmentT='Upcoming Appointments and Events';
+I18N.th.appointmentHint='แสดง 3 รายการถัดไปจากทุกแหล่งที่บันทึกไว้ รวมวันเจาะเลือดแยกจากวันพบแพทย์ และรวมข้อมูลจากแอปโรงพยาบาล/ศูนย์โรคไตเมื่อมี';
+I18N.en.appointmentHint='Shows the next three saved items across sources, with blood-draw dates separate from clinic visits; hospital app and kidney-center entries are included when available.';
+I18N.th.scenHint='Actual ต้องเด่นที่สุด · แสดงแนวโน้มที่สังเกตได้และสถานการณ์เพื่อการทำความเข้าใจ ไม่ใช่คำพยากรณ์หรือเกณฑ์ตัดสินการฟอกไต';
+I18N.en.scenHint='Actual values are emphasized. Observed trend and illustrative scenarios are informational, not a forecast or a dialysis decision rule.';
+I18N.th.kidneyRiskT='ความเสี่ยงไตวาย · KFRE'; I18N.en.kidneyRiskT='Kidney Risk · KFRE';
+
+I18N.th.guideTitle='คู่มือการใช้งาน'; I18N.en.guideTitle='User Guide';
+I18N.th.guideHint='ที่มา วิธีบันทึกข้อมูล OCR รายงาน และ Firebase Sync'; I18N.en.guideHint='Project background, data entry, OCR, reports, and Firebase Sync';
+I18N.th.guideButton='เปิดคู่มือ'; I18N.en.guideButton='Open Guide';
+
+I18N.th.kidneyRiskHint='เก็บเป็นข้อมูลประกอบแยกจากกราฟ เพื่อไม่ให้กราฟหลักอ่านยาก และจะคำนวณเมื่อข้อมูลที่จำเป็นครบและตรวจสอบได้';
+I18N.en.kidneyRiskHint='Keep risk information separate from the main graph. Calculate only when required inputs and suitable calibration are verified.';
+I18N.th.eventT='การรักษาและเหตุการณ์ล่าสุด'; I18N.en.eventT='Recent Visits and Events';
+I18N.th.allEventHistory='ดูประวัติทั้งหมด'; I18N.en.allEventHistory='View full history';
+I18N.th.eventFormT='บันทึกเหตุการณ์ทางการแพทย์'; I18N.en.eventFormT='Record a Medical Event';
+I18N.th.eventFormHint='รองรับเหตุการณ์ที่เกิดเป็นครั้งคราว เช่น หกล้ม ศีรษะกระแทก อุบัติเหตุ ห้องฉุกเฉิน ศัลยกรรม ออร์โธปิดิกส์ หรือระบบประสาท โดยไม่ต้องสร้างโครงสร้างฐานข้อมูลใหม่ทุกครั้ง';
+I18N.en.eventFormHint='Record occasional events such as falls, head injuries, accidents, emergency visits, surgery, orthopedics, or neurology without redesigning the database.';
+I18N.th.eventTypeLbl='ประเภทเหตุการณ์'; I18N.en.eventTypeLbl='Event Type';
+I18N.th.eventDeptLbl='แผนก'; I18N.en.eventDeptLbl='Department';
+I18N.th.eventTitleLbl='หัวข้อ'; I18N.en.eventTitleLbl='Title';
+I18N.th.eventPlaceLbl='สถานที่'; I18N.en.eventPlaceLbl='Location';
+I18N.th.eventStatusLbl='สถานะ'; I18N.en.eventStatusLbl='Status';
+I18N.th.eventNoteLbl='รายละเอียด / ผลการตรวจ / คำสั่งแพทย์'; I18N.en.eventNoteLbl='Details / Findings / Medical Instructions';
+I18N.th.saveEvent='บันทึกเหตุการณ์'; I18N.en.saveEvent='Save Event';
+I18N.th.eventHistoryT='ประวัติเหตุการณ์'; I18N.en.eventHistoryT='Event History';
+I18N.th.generalEncounterT='การเข้ารับการรักษาทั่วไป'; I18N.en.generalEncounterT='General Medical Visits';
+I18N.th.generalEncounterHint='ประวัติพบแพทย์ทั่วไป โรคเฉียบพลัน การวินิจฉัย และยาที่ได้รับ แยกจากเหตุการณ์พิเศษ · เมื่อซิงก์แล้วอยู่ที่ Firebase: ckd_tracker/encounters'; I18N.en.generalEncounterHint='Routine visits, acute illness, diagnoses, and prescribed medicines, separate from special events. After sync: Firebase ckd_tracker/encounters.';
+
+var LANG='th',DEPT='all';
+try{var sv=localStorage.getItem('ckd_lang');if(sv)LANG=sv;var sd=localStorage.getItem('ckd_dept');if(sd)DEPT=sd;}catch(e){}
+function t(k){var v=I18N[LANG][k];return v===undefined?k:v;}
+function nm(o){return LANG==='th'?o.th:o.en;}
+
+/* ========== 4. ฐานข้อมูล ========== */
+var KEY='ckd_db_v6';
+function seed(){return{
+patient:{name:'คุณแม่',hn:'',birthDate:'1947-10-20',sex:'F',heightCm:165,weightKg:68,chronicDiseases:['ไตวายเรื้อรัง ระยะก่อนฟอกไต','เบาหวาน','ความดันโลหิตสูง','โรคหัวใจ','เก๊าท์']},
+records:[
+{id:'r0',date:'2025-09-16',dept:'med',note:'',items:{egfr:26.41}},
+{id:'r01',date:'2026-01-13',dept:'med',note:'',items:{egfr:22.58}},
+{id:'r1',date:'2026-02-24',dept:'med',note:'',items:{k:4.30,na:136,egfr:18.31,cr:2.45,bun:55,acr:443,p:4.20,a1c:7.8}},
+{id:'r2',date:'2026-05-12',dept:'med',note:'',items:{k:4.50,na:133,egfr:24.90,cr:1.90,bun:33,acr:868,p:3.60,uric:3.3,uph:5.0,usg:1.007,upro:2,a1c:7.2}},
+{id:'r3',date:'2026-08-25',dept:'med',note:'',items:{k:4.80,na:138,egfr:14.87,cr:2.91,bun:33,acr:159,p:4.30,a1c:6.9}},
+{id:'e1',date:'2025-07-22',dept:'eye',note:'ตัวอย่าง',items:{iop_od:22.0,iop_os:20.0,cdr_od:0.65,cdr_os:0.55,rnfl_od:78,rnfl_os:86,vf_od:-7.2,vf_os:-4.1,va_od:0.5,va_os:0.6,dr:0}},
+{id:'e2',date:'2025-10-21',dept:'eye',note:'ตัวอย่าง',items:{iop_od:19.0,iop_os:18.0,cdr_od:0.67,cdr_os:0.56,rnfl_od:76,rnfl_os:85,vf_od:-7.6,vf_os:-4.3,va_od:0.5,va_os:0.6,dr:0}},
+{id:'e3',date:'2026-01-28',dept:'eye',note:'ตัวอย่าง',items:{iop_od:17.0,iop_os:16.0,cdr_od:0.68,cdr_os:0.57,rnfl_od:75,rnfl_os:84,vf_od:-7.9,vf_os:-4.4,va_od:0.5,va_os:0.63,dr:0}}],
+visits:[
+{id:'v1',date:'2026-01-28',time:'9:01',dept:'eye',doctor:'น.อ.หญิง จุติมา พัฒรลิตานนท์',place:'ห้องตรวจจักษุกรรม คุ้มเกล้า',symptom:'f/u POAG',ptype:'ผู้ป่วยนอก',right:'บัตรจ่ายตรง'},
+{id:'v2',date:'2026-05-12',time:'7:43',dept:'med',doctor:'',place:'แผนกอายุรกรรม คุ้มเกศ',symptom:'ติดตามโรคไตเรื้อรัง',ptype:'ผู้ป่วยนอก',right:'บัตรจ่ายตรง'}],
+diagnoses:[
+{id:'x1',date:'2026-01-28',dept:'eye',code:'H40.1',th:'ต้อหินมุมเปิดชนิดปฐมภูมิ',en:'Primary Open-Angle Glaucoma',lv:'p'},
+{id:'x2',date:'2026-01-28',dept:'eye',code:'Z13.1',th:'การตรวจคัดกรองพิเศษสำหรับโรคเบาหวาน',en:'Special Screening for Diabetes Mellitus',lv:'s'},
+{id:'x3',date:'2026-01-28',dept:'eye',code:'H02.4',th:'หนังตาตก',en:'Ptosis of Eyelid',lv:'s'},
+{id:'x4',date:'2026-01-28',dept:'eye',code:'E11.9',th:'เบาหวานชนิดไม่พึ่งอินซูลิน',en:'Type 2 Diabetes Mellitus',lv:'s'},
+{id:'x5',date:'2026-05-12',dept:'med',code:'N18.9',th:'ไตวายเรื้อรัง',en:'Chronic Renal Failure',lv:'p'},
+{id:'x6',date:'2026-05-12',dept:'med',code:'I10',th:'ความดันโลหิตสูง',en:'Essential Hypertension',lv:'s'},
+{id:'x7',date:'2026-05-12',dept:'med',code:'E11.9',th:'เบาหวานชนิดไม่พึ่งอินซูลิน',en:'Type 2 Diabetes Mellitus',lv:'s'}],
+meds:[
+{id:'m1',dept:'med',n:'CALCIFEROL BD 20000 IU',th:'ครั้งละ 2 แคปซูล สัปดาห์ละ 1 ครั้ง หลังอาหารเช้า',en:'2 capsules weekly after breakfast',slots:['morning']},
+{id:'m2',dept:'med',n:'CARDIPRIN 100 MG',th:'ครั้งละ 1 เม็ด วันละ 1 ครั้ง หลังอาหารเช้า ยาป้องกันหลอดเลือดอุดตัน',en:'1 tablet daily after breakfast, antiplatelet',slots:['morning']},
+{id:'m3',dept:'med',n:'F-MIN 5 MG',th:'รับประทานตามแพทย์สั่ง',en:'As prescribed',slots:[]},
+{id:'m4',dept:'med',n:'ANALGESIC (RTAF) CREAM',th:'ทานวดบริเวณที่ปวด วันละ 2 ครั้ง เช้าและเย็น',en:'Apply twice daily',slots:['morning','evening']},
+{id:'m5',dept:'med',n:'ALCOHOL 70% SOLUTION',th:'ใช้ภายนอก ทำความสะอาดผิวหนัง',en:'External use',slots:[]},
+{id:'m6',dept:'eye',n:'AZARGA EYE DROP',th:'หยอดตา 1 หยด วันละ 2 ครั้ง เช้า และ เย็น',en:'1 drop twice daily, morning and evening',slots:['morning','evening']},
+{id:'m7',dept:'eye',n:'PATADAY 0.2% EYE DROP',th:'หยอดตา 1 หยด วันละ 1 ครั้ง ตอนเช้า',en:'1 drop once daily in the morning',slots:['morning']},
+{id:'m8',dept:'eye',n:'TRANCELTEAR EYE DROP',th:'หยอดตา 1 หยด วันละ 4 ครั้ง เช้า กลางวัน เย็น และก่อนนอน',en:'1 drop four times daily',slots:['morning','noon','evening','bed']},
+{id:'m9',dept:'eye',n:'XALATAN 0.005% EYE DROP',th:'หยอดตา 2 ข้าง ข้างละ 1 หยด เวลาประมาณ 20:00 น. ยารักษาโรคต้อหิน',en:'1 drop in each eye at about 20:00, glaucoma treatment',slots:['n20']}],
+daily:[
+{id:'d1',date:'2026-08-20',sys:148,dia:84,pulse:78,wt:56.4,fluid:1450,urine:900},
+{id:'d2',date:'2026-08-21',sys:142,dia:80,pulse:76,wt:56.2,fluid:1300,urine:950},
+{id:'d3',date:'2026-08-22',sys:136,dia:78,pulse:74,wt:56.0,fluid:1250,urine:1000},
+{id:'d4',date:'2026-08-23',sys:139,dia:82,pulse:80,wt:56.8,fluid:1700,urine:850},
+{id:'d5',date:'2026-08-24',sys:132,dia:76,pulse:72,wt:56.3,fluid:1200,urine:1050},
+{id:'d6',date:'2026-08-25',sys:128,dia:74,pulse:70,wt:56.1,fluid:1150,urine:1100}],
+appointments:[],events:[],encounters:[],risk:{kfRe:{model:'KFRE 4-variable',region:'Thailand',status:'pending_local_calibration'}},
+settings:{fluidLimit:1500}};}
+
+var DB;
+function normalizeMedicalDomains(){
+ var i,r,ds;
+ DB.records=DB.records||[];
+ for(i=0;i<DB.records.length;i++){r=DB.records[i];ds=domainsForItems(r.items||{});if(r.dept==='eye'&&ds.length){r.domains=ds;}else if(!r.domains){r.domains=r.dept==='eye'?['general']:['kidney_metabolic'];}}
+ DB.diagnoses=DB.diagnoses||[];
+ for(i=0;i<DB.diagnoses.length;i++){r=DB.diagnoses[i];if(r.code==='H40.1')r.domain='glaucoma';else if(r.code==='E11.9')r.domain='diabetes';else if(r.code==='N18.9')r.domain='ckd';else if(r.code==='I10')r.domain='hypertension';else if(r.code==='H02.4')r.domain='vision';else if(r.code==='Z13.1')r.domain='diabetes_screening';}
+}
+(function(){
+ function hasRecords(obj){return !!obj && Array.isArray(obj.records) && obj.records.length > 0;}
+ function parseJSON(raw){try{return raw?JSON.parse(raw):null;}catch(e){return null;}}
+ function bootstrapFromPayload(){
+  if(typeof fetch!=='function')return Promise.resolve(false);
+  return fetch('app_db_payload.json',{cache:'no-store'}).then(function(res){
+   if(!res.ok)return false;
+   return res.json();
+  }).then(function(payload){
+   if(!payload || !payload.DB || !Array.isArray(payload.DB.records))return false;
+   try{
+    localStorage.setItem('DB', JSON.stringify(payload.DB));
+    localStorage.setItem(KEY, JSON.stringify(payload.DB));
+    localStorage.setItem('LABS', JSON.stringify(Array.isArray(payload.LABS)?payload.LABS:[]));
+    localStorage.setItem('GROUPS', JSON.stringify(Array.isArray(payload.GROUPS)?payload.GROUPS:[]));
+    return true;
+   }catch(e){return false;}
+  }).catch(function(){return false;});
+ }
+ var stored=parseJSON(localStorage.getItem(KEY));
+ if(!hasRecords(stored)){
+  bootstrapFromPayload().then(function(ok){
+   if(ok && typeof renderAll === 'function'){
+    DB=migrate(parseJSON(localStorage.getItem(KEY)) || seed());
+    save();
+    renderAll();
+    go('dash');
+   }
+  });
+ }
+ try{var raw=localStorage.getItem(KEY);DB=raw?JSON.parse(raw):seed();}catch(e){DB=seed();}
+})();
+function migrate(d){
+ if(!d||!d.records)return seed();
+ if(!d.patient)d.patient={name:'คุณแม่',hn:''};
+ if(!d.patient.birthDate)d.patient.birthDate='1947-10-20';
+ if(!d.patient.sex)d.patient.sex='F';
+ if(d.patient.heightCm===undefined||d.patient.heightCm===null)d.patient.heightCm=165;
+ if(d.patient.weightKg===undefined||d.patient.weightKg===null)d.patient.weightKg=68;
+ if(!Array.isArray(d.patient.chronicDiseases)||!d.patient.chronicDiseases.length)d.patient.chronicDiseases=['ไตวายเรื้อรัง ระยะก่อนฟอกไต','เบาหวาน','ความดันโลหิตสูง','โรคหัวใจ','เก๊าท์'];
+ if(!Array.isArray(d.appointments))d.appointments=[];
+ if(!Array.isArray(d.events))d.events=[];
+ if(!Array.isArray(d.encounters))d.encounters=[];
+ if(!d.risk)d.risk={kfRe:{model:'KFRE 4-variable',region:'Thailand',status:'pending_local_calibration'}};
+ if(!d.risk.kfRe)d.risk.kfRe={model:'KFRE 4-variable',region:'Thailand',status:'pending_local_calibration'};
+ if(!d.daily)d.daily=[];
+ if(!d.visits)d.visits=[];
+ if(!d.diagnoses)d.diagnoses=[];
+ if(!d.meds)d.meds=seed().meds;
+ if(!d.settings)d.settings={fluidLimit:1500};
+ for(var j=0;j<d.records.length;j++){if(!d.records[j].dept)d.records[j].dept='med';}
+ return d;}
+DB=migrate(DB);
+normalizeMedicalDomains();
+/* Firebase Web configuration is public client configuration; database access is enforced by Realtime Database Rules. */
+var FIREBASE_CONFIG={apiKey:'AIzaSyBeLmc_Qr3LofVMSvSDSjqobk8z2HF1m1A',authDomain:'ckd-lab-tracker.firebaseapp.com',databaseURL:'https://ckd-lab-tracker-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'ckd-lab-tracker',storageBucket:'ckd-lab-tracker.firebasestorage.app',messagingSenderId:'413650551121',appId:'1:413650551121:web:f91f69bb2210c66572d370',measurementId:'G-7LE9RELJPR'};
+var FIREBASE_DATA_PATH='ckd_tracker',cloudApp=null,cloudDb=null,cloudRef=null,cloudRemoteExists=false,cloudReady=false,cloudSeedPromptShown=false,cloudLocalDirty=false,cloudPushTimer=null;
+function cloudStatus(text){var e=E('firebaseStatus');if(e)e.textContent=(LANG==='th'?'Cloud: ':'Cloud: ')+text;}
+function updateFirebaseUI(){var b=E('cloudSyncBtn');if(b)b.textContent=LANG==='th'?'ซิงก์ Cloud':'Sync Cloud';}
+function firebaseConfigured(){return !!(FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.authDomain&&FIREBASE_CONFIG.databaseURL&&FIREBASE_CONFIG.projectId&&FIREBASE_CONFIG.appId);}
+function loadFirebaseSdk(done){
+ var urls=['https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js','https://www.gstatic.com/firebasejs/12.19.0/firebase-database-compat.js'],i=0;
+ function next(){if(i>=urls.length){done();return;}var u=urls[i++];if(window.firebase&&(u.indexOf('firebase-app-')>=0||u.indexOf('firebase-database-')>=0&&firebase.database)){next();return;}
+  var s=document.createElement('script');s.src=u;s.onload=next;s.onerror=function(){cloudStatus(LANG==='th'?'โหลด Firebase SDK ไม่ได้':'SDK load failed');};document.head.appendChild(s);}
+ next();
+}
+function mergeTrackerData(remote,local){
+ remote=remote&&typeof remote==='object'?remote:{};local=local&&typeof local==='object'?local:{};
+ var out=Object.assign({},remote,local),arrays=['records','daily','appointments','events','encounters','visits','diagnoses','meds'],i,j,k,all,map;
+ out.patient=Object.assign({},remote.patient||{},local.patient||{});out.settings=Object.assign({},remote.settings||{},local.settings||{});
+ for(i=0;i<arrays.length;i++){k=arrays[i];all=[];map={};
+  function addRows(rows,prefer){for(j=0;j<(Array.isArray(rows)?rows.length:0);j++){var row=rows[j],id=String(row.id||row.date+'_'+(row.dept||row.type||'')+'_'+j);if(map[id]===undefined){map[id]=all.length;all.push(row);}else if(prefer)all[map[id]]=Object.assign({},all[map[id]],row);}}
+  addRows(remote[k],false);addRows(local[k],true);out[k]=all;
+ }
+ return out;
+}
+function cloudPushNow(){
+ if(!cloudRef||!cloudReady||!ADMIN_UNLOCKED)return;
+ cloudRef.transaction(function(current){return mergeTrackerData(current||{},DB);},function(error,committed){if(error){cloudStatus(LANG==='th'?'ซิงก์ไม่สำเร็จ · ตรวจ Rules':'sync failed · check Rules');}else if(committed){cloudReady=true;cloudLocalDirty=false;cloudStatus(LANG==='th'?'ซิงก์แล้ว':'synced');}},false);
+}
+function scheduleCloudPush(){if(!ADMIN_UNLOCKED||!cloudRef||!cloudReady)return;if(cloudPushTimer)clearTimeout(cloudPushTimer);cloudPushTimer=setTimeout(cloudPushNow,700);}
+function requestCloudSeedIfNeeded(){
+ if(!cloudRef||!ADMIN_UNLOCKED||!cloudReady||cloudRemoteExists||cloudSeedPromptShown)return;
+ cloudSeedPromptShown=true;
+ if(DB.records&&DB.records.length&&window.confirm(LANG==='th'?'ฐานข้อมูล Firebase ยังว่าง ต้องการส่งข้อมูลในเครื่องขึ้น Cloud ครั้งแรกหรือไม่?':'Firebase is empty. Upload this browser’s current records as the initial cloud copy?'))cloudPushNow();
+ else cloudStatus(LANG==='th'?'Cloud ว่าง · ยังไม่อัปโหลดข้อมูล':'cloud empty · local data not uploaded');
+}
+function startFirebase(){
+ if(!firebaseConfigured()){cloudStatus(LANG==='th'?'รอตั้งค่า':'setup required');updateFirebaseUI();return;}
+ cloudStatus(LANG==='th'?'กำลังเชื่อมต่อ':'connecting');
+ loadFirebaseSdk(function(){try{
+  if(!window.firebase||!firebase.initializeApp)throw new Error('Firebase SDK unavailable');
+  cloudApp=firebase.apps&&firebase.apps.length?firebase.app():firebase.initializeApp(FIREBASE_CONFIG);cloudDb=firebase.database();cloudRef=cloudDb.ref(FIREBASE_DATA_PATH);
+  cloudRef.on('value',function(snapshot){cloudRemoteExists=snapshot.exists();cloudReady=true;
+   if(cloudRemoteExists){DB=migrate(cloudLocalDirty?mergeTrackerData(snapshot.val(),DB):mergeTrackerData(DB,snapshot.val()));try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}if(typeof renderAll==='function')renderAll();cloudStatus(cloudLocalDirty?(LANG==='th'?'มีข้อมูลในเครื่องรอซิงก์':'local changes pending'):(LANG==='th'?'อ่านข้อมูล Cloud แล้ว':'cloud data loaded'));if(cloudLocalDirty)scheduleCloudPush();}
+   else{cloudStatus(LANG==='th'?'ฐานข้อมูล Cloud ว่าง':'cloud database empty');requestCloudSeedIfNeeded();}
+  },function(err){cloudStatus(LANG==='th'?'อ่านไม่ได้ · ตรวจ Rules':'read denied · check Rules');});
+ }catch(e){cloudStatus(LANG==='th'?'ตั้งค่าไม่ถูกต้อง':'configuration error');showErr(e.message||String(e));}});
+}
+function syncFirebaseNow(){
+ if(!requireAdmin())return;
+ if(!cloudRef){startFirebase();cloudStatus(LANG==='th'?'กำลังเริ่ม Cloud · รอสักครู่แล้วกดซิงก์อีกครั้ง':'Starting Cloud; wait and press Sync again');return;}
+ if(!cloudReady){cloudStatus(LANG==='th'?'กำลังอ่าน Cloud':'Loading Cloud');return;}
+ if(!cloudRemoteExists){requestCloudSeedIfNeeded();return;}
+ cloudLocalDirty=true;scheduleCloudPush();
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}cloudLocalDirty=true;scheduleCloudPush();}
+function byDate(a,b){return a.date<b.date?-1:1;}
+function inDept(x){return DEPT==='all'||x.dept===DEPT;}
+function recs(dp){var o=[],j;for(j=0;j<DB.records.length;j++){var r=DB.records[j];
+ if(dp==='any'||(dp?r.dept===dp:inDept(r)))o.push(r);}return o.sort(byDate);}
+function days(){return DB.daily.slice().sort(byDate);}
+function last(dp){var r=recs(dp);return r.length?r[r.length-1]:null;}
+function prevR(dp){var r=recs(dp);return r.length>1?r[r.length-2]:null;}
+function lastDay(){var d=days();return d.length?d[d.length-1]:null;}
+function latestCareDate(){var rows=(DB.encounters||[]).concat(DB.events||[]),date='';for(var i=0;i<rows.length;i++)if(rows[i].date&&rows[i].date>date)date=rows[i].date;return date;}
+function medsOf(dp){var o=[],j;for(j=0;j<DB.meds.length;j++){if(dp==='any'||(dp?DB.meds[j].dept===dp:inDept(DB.meds[j])))o.push(DB.meds[j]);}return o;}
+
+/* ========== 5. ยูทิลิตี ========== */
+function flagL(k,v){var l=LM[k];if(!l||v===null||v===undefined||isNaN(v))return'';if(l.max!==null&&v>l.max)return'hi';if(l.min!==null&&v<l.min)return'lo';return'ok';}
+function flagV(k,v){var l=VM[k];if(!l||v===null||v===undefined||isNaN(v))return'';if(l.max!==null&&v>l.max)return'hi';if(l.min!==null&&v<l.min)return'lo';return'ok';}
+function fmtL(k,v){var l=LM[k];return(v===null||v===undefined||isNaN(v))?'-':Number(v).toFixed(l.dec);}
+function refTxt(l){if(l.min!==null&&l.max!==null)return l.min+' - '+l.max;if(l.min!==null)return'> '+l.min;if(l.max!==null)return'< '+(l.max===0?'1':l.max);return'-';}
+var THMON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+var ENMON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function dTxt(d){var x=new Date(d+'T00:00:00');if(isNaN(x.getTime()))return d;var m=(LANG==='th')?THMON:ENMON;var y=(LANG==='th')?x.getFullYear()+543:x.getFullYear();return x.getDate()+' '+m[x.getMonth()]+' '+y;}
+function dShort(d){var x=new Date(d+'T00:00:00');if(isNaN(x.getTime()))return d.replace(/^\d{4}-/,'');var m=(LANG==='th')?THMON:ENMON;return x.getDate()+' '+m[x.getMonth()];}
+function qOf(d){var x=new Date(d+'T00:00:00');return x.getFullYear()+'-Q'+(Math.floor(x.getMonth()/3)+1);}
+function mOf(d){return d.slice(0,7);}
+function stageOf(e){if(e===null||e===undefined)return['-','var(--dim)'];if(e>=90)return['G1','var(--lime)'];if(e>=60)return['G2','var(--lime)'];if(e>=45)return['G3a','var(--cyan)'];if(e>=30)return['G3b','var(--gold)'];if(e>=15)return['G4','var(--mag)'];return['G5','var(--mag)'];}
+function avg(a){if(!a.length)return null;var s=0;for(var j=0;j<a.length;j++){s+=a[j];}return s/a.length;}
+function buildScenarioData(){
+ var a=labSeries('egfr'),out=[],j;
+ for(j=0;j<a.length;j++)out.push({date:a[j].d,actual:a[j].v});
+ if(!out.length)return out;
+ var n=out.length,lastV=out[n-1].actual;
+ if(n<3){for(j=1;j<=6;j++)out.push({date:'Projection +'+j+'m',actual:null,stable:lastV,trend:null,low:null,high:null});return out;}
+ var xs=[],ys=[],x0=new Date(out[0].date+'T00:00:00').getTime();
+ for(j=0;j<n;j++){var xx=(new Date(out[j].date+'T00:00:00').getTime()-x0)/86400000/365.25;xs.push(xx);ys.push(out[j].actual);}
+ var xm=avg(xs),ym=avg(ys),num=0,den=0;for(j=0;j<n;j++){num+=(xs[j]-xm)*(ys[j]-ym);den+=(xs[j]-xm)*(xs[j]-xm);}
+ var slope=den?num/den:0,intercept=ym-slope*xm,res=0;for(j=0;j<n;j++){var pred=intercept+slope*xs[j];res+=(ys[j]-pred)*(ys[j]-pred);}
+ var se=n>2?Math.sqrt(res/(n-2)):0;
+ for(j=1;j<=6;j++){var xx=xs[n-1]+j/12,trend=intercept+slope*xx,stable=lastV;var spread=Math.max(se,1.5);out.push({date:'Projection +'+j+'m',actual:null,stable:stable,trend:trend,low:trend-spread,high:trend+spread});}
+ return out;
+}
+function labSeries(k){var o=[],r=recs('any'),j;for(j=0;j<r.length;j++){var v=r[j].items[k];if(v!==undefined&&v!==null)o.push({d:r[j].date,v:Number(v)});}return o;}
+function vitSeries(k){var o=[],r=days(),j;for(j=0;j<r.length;j++){var v=r[j][k];if(v!==undefined&&v!==null&&v!=='')o.push({d:r[j].date,v:Number(v)});}return o;}
+function groupAvg(arr,fn){var g={},o=[],ks=[],j;for(j=0;j<arr.length;j++){var key=fn(arr[j].d);if(!g[key]){g[key]=[];ks.push(key);}g[key].push(arr[j].v);}
+ks.sort();for(j=0;j<ks.length;j++){o.push({d:ks[j],v:avg(g[ks[j]])});}return o;}
+function labQuarter(k){return groupAvg(labSeries(k),qOf);}
+function vitQuarter(k){return groupAvg(vitSeries(k),qOf);}
+function vitMonth(k){return groupAvg(vitSeries(k),mOf);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function show(id,on){var e=E(id);if(e)e.style.display=on?'':'none';}
+function changeThreshold(k){
+ var m={egfr:{abs:5,pct:20},cr:{abs:.3,pct:15},bun:{abs:10,pct:20},acr:{abs:100,pct:30},uric:{abs:1,pct:20},k:{abs:.5,pct:10},na:{abs:5,pct:4},p:{abs:.7,pct:15},ca:{abs:.7,pct:7},hco3:{abs:3,pct:10},hb:{abs:1,pct:8},alb:{abs:.3,pct:7},fbs:{abs:20,pct:15},a1c:{abs:.5,pct:8},chol:{abs:30,pct:15},tg:{abs:30,pct:20},hdl:{abs:10,pct:15},ldl:{abs:20,pct:15},iop_od:{abs:3,pct:15},iop_os:{abs:3,pct:15},cdr_od:{abs:.05,pct:8},cdr_os:{abs:.05,pct:8},rnfl_od:{abs:5,pct:6},rnfl_os:{abs:5,pct:6},vf_od:{abs:2,pct:20},vf_os:{abs:2,pct:20},va_od:{abs:.1,pct:15},va_os:{abs:.1,pct:15},dr:{abs:1,pct:100}};
+ return m[k]||{abs:null,pct:20};
+}
+function changeLabel(k,cur,prev){
+ if(cur===null||cur===undefined||prev===null||prev===undefined||isNaN(cur)||isNaN(prev))return null;
+ var d=Number(cur)-Number(prev), pct=prev===0?null:(Math.abs(d)/Math.abs(Number(prev)))*100, th=changeThreshold(k);
+ var notable=(th.abs!==null&&Math.abs(d)>=th.abs)||(pct!==null&&pct>=th.pct);
+ return {delta:d,pct:pct,notable:notable,direction:d>0?'up':(d<0?'down':'same')};
+}
+function changeSeverity(k,cur,prev){
+ var c=changeLabel(k,cur,prev);if(!c)return null;
+ return c.notable?'notable':'minor';
+}
+function renderChangeDetection(){
+ var box=E('cChangeBox'),body=E('changeBody');if(!box||!body)return;
+ var dp=DEPT==='all'?'any':DEPT,r=recs(dp),rows=[],j,k;
+ if(r.length<2){body.innerHTML='<div class="adv good">'+t('noData')+'</div>';return;}
+ var cur=r[r.length-1],prev=r[r.length-2];
+ var keys={};
+ for(j=0;j<r.length;j++){for(k in (r[j].items||{})){if(r[j].items.hasOwnProperty(k))keys[k]=true;}}
+ for(k in keys){var c=changeLabel(k,cur.items[k],prev.items[k]);if(c){rows.push({k:k,c:c,cur:cur.items[k],prev:prev.items[k]});}}
+ rows.sort(function(a,b){return (b.c.notable?1:0)-(a.c.notable?1:0)||Math.abs(b.c.delta)-Math.abs(a.c.delta);});
+ var h='<div class="grid g3">';
+ for(j=0;j<rows.length;j++){var x=rows[j],l=LM[x.k],col=x.c.notable?'var(--gold)':'var(--dim)',sg=x.c.delta>0?'+':'';
+  if(!l)continue;var risk=dashboardRiskClass(l,x.cur,cur);
+  h+='<div class="card" style="margin:0;border-color:'+col+'"><div class="lbl">'+nm(l)+'</div><div class="num '+risk+'">'+fmtL(x.k,x.cur)+'</div><div class="sub">'+dTxt(prev.date)+' → '+dTxt(cur.date)+'</div><div class="trend">'+sg+x.c.delta.toFixed(l.dec)+(x.c.pct===null?'':' ('+sg+(x.c.delta<0?'-':'')+x.c.pct.toFixed(0)+'%)')+' · '+(x.c.notable?t('notableChange'):t('minorChange'))+'</div></div>';
+ }
+ h+='</div>';
+ body.innerHTML=h;
+}
+function renderAttention(){
+ var box=E('cAttentionBox'),body=E('attentionBody');if(!box||!body)return;
+ var dp=DEPT==='all'?'any':DEPT,r=recs(dp),items=[],seen={},j,k,l,v,flag;
+ if(!r.length){body.innerHTML='<div class="adv good">'+t('noData')+'</div>';return;}
+ var latest=r[r.length-1];
+ for(k in (latest.items||{})){
+  if(!latest.items.hasOwnProperty(k)||!LM[k])continue;
+  l=LM[k];v=Number(latest.items[k]);flag=dashboardRiskClass(l,v,latest);
+  if(flag==='dash-risk-red'||flag==='dash-risk-blue')items.push({type:'range',k:k,label:nm(l),value:v,flag:flag});
+ }
+ var c=latest.ocr_canonical;
+ if(c&&c.field_meta){for(k in c.field_meta){if(!c.field_meta.hasOwnProperty(k)||seen[k])continue;var fm=c.field_meta[k];if(fm.needs_review||((fm.validation||{}).status==='suspicious')){items.push({type:'ocr',k:k,label:LM[k]?nm(LM[k]):k,value:latest.items[k],flag:'review'});seen[k]=true;}}}
+ if(latest.ocr_canonical&&(!latest.date||!(latest.source_images||[]).length))items.push({type:'source',label:t('date'),value:'?',flag:'review'});
+ if(!items.length){body.innerHTML='<div class="adv good">'+t('advGood')+'</div>';return;}
+ var h='<div class="grid g3">';
+ for(j=0;j<items.length;j++){var x=items[j],col=x.flag==='review'?'var(--mag)':(x.flag==='dash-risk-red'?'var(--risk-red)':'var(--risk-blue)'),txt=x.type==='ocr'?t('review'):(x.type==='source'?t('needDate'):(x.flag==='dash-risk-red'?t('high'):t('low')));
+  h+='<div class="card" style="margin:0;border-color:'+col+'"><div class="hrow"><b style="color:'+col+'">'+esc(x.label||'-')+'</b><div class="spacer"></div><span class="badge">'+esc(txt)+'</span></div><div class="num" style="margin-top:6px;color:'+col+'">'+(x.value===undefined||x.value===null?'—':fmtL(x.k,x.value))+'</div></div>';}
+ h+='</div>';body.innerHTML=h;
+}
+function renderTimeline(){
+ var box=E('cTimelineBox'),body=E('timelineBody');if(!box||!body)return;
+ var rs=recs(DEPT==='all'?'any':DEPT).slice().reverse(),vs=(DB.visits||[]).slice().sort(function(a,b){return a.date<b.date?1:-1;}),ds=(DB.diagnoses||[]).slice().sort(function(a,b){return a.date<b.date?1:-1;});
+ var map={},j,key;
+ for(j=0;j<rs.length;j++){key=rs[j].date+'|lab';if(!map[key])map[key]={date:rs[j].date,type:'lab',dept:rs[j].dept,items:rs[j].items||{}};}
+ for(j=0;j<vs.length;j++){if(DEPT!=='all'&&vs[j].dept!==DEPT)continue;key=vs[j].date+'|visit|'+j;map[key]={date:vs[j].date,type:'visit',dept:vs[j].dept,doctor:vs[j].doctor,place:vs[j].place};}
+ for(j=0;j<ds.length;j++){if(DEPT!=='all'&&ds[j].dept!==DEPT)continue;key=ds[j].date+'|dx|'+j;map[key]={date:ds[j].date,type:'dx',dept:ds[j].dept,code:ds[j].code,th:ds[j].th,en:ds[j].en};}
+ var a=[],k;for(k in map)if(map.hasOwnProperty(k))a.push(map[k]);a.sort(function(x,y){return x.date<y.date?1:-1;});
+ if(!a.length){body.innerHTML='<div class="adv good">'+t('noData')+'</div>';return;}
+ var h='';for(j=0;j<a.length&&j<20;j++){var x=a[j],label=x.type==='lab'?t('timelineLab'):(x.type==='visit'?t('timelineVisit'):t('timelineDx')),detail='';
+  if(x.type==='lab'){var parts=[],kk;for(kk in x.items){if(x.items.hasOwnProperty(kk)&&LM[kk])parts.push(nm(LM[kk])+' '+fmtL(kk,x.items[kk]));}detail=parts.slice(0,6).join(' · ');}
+  else if(x.type==='visit'){detail=(x.doctor?x.doctor+' · ':'')+(x.place||'');}
+  else{detail=(x.code||'')+' '+(LANG==='th'?x.th:x.en);}
+  h+='<div style="display:grid;grid-template-columns:105px 120px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid #232D3C"><div class="num" style="color:var(--gold)">'+dTxt(x.date)+'</div><div><span class="pill ok">'+label+'</span></div><div>'+esc(detail||'-')+'</div></div>';}
+ body.innerHTML=h;
+}
+
+/* ========== 6. กราฟ ========== */
+function axisFmt(v){var a=Math.abs(v);return a>=100?v.toFixed(0):(a>=10?v.toFixed(1):v.toFixed(2));}
+function drawChart(cv,cfg){
+ if(!cv)return;
+ var dpr=window.devicePixelRatio||1;
+ var W=cv.clientWidth||600,H=cv.clientHeight||280;
+ if(W<40||H<40)return;
+ cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+ var c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,W,H);
+ var hasR=false,j;
+ for(j=0;j<cfg.series.length;j++){if(cfg.series[j].axis==='R')hasR=true;}
+ var PL=48,PR=hasR?48:14,PT=20,PB=32,pw=W-PL-PR,ph=H-PT-PB,n=cfg.labels.length;
+ var bands=cfg.bands||[];
+ if(!n||pw<30){c.fillStyle='#7F8EA3';c.font='13px sans-serif';c.fillText(t('noData'),PL,H/2);return;}
+ function scale(axis){var vals=[],s,x,neg=false;
+  for(s=0;s<cfg.series.length;s++){var se=cfg.series[s];if((se.axis||'L')!==axis)continue;
+   for(x=0;x<se.data.length;x++){var d=se.data[x];if(d!==null&&d!==undefined&&!isNaN(d)){vals.push(Number(d));if(d<0)neg=true;}}}
+  for(s=0;s<bands.length;s++){if((bands[s].axis||'L')===axis){vals.push(bands[s].from);vals.push(bands[s].to);}}
+  if(axis==='L'&&cfg.range){var rj;for(rj=0;rj<(cfg.range.low||[]).length;rj++){if(cfg.range.low[rj]!==null&&cfg.range.low[rj]!==undefined&&!isNaN(cfg.range.low[rj]))vals.push(Number(cfg.range.low[rj]));if(cfg.range.high[rj]!==null&&cfg.range.high[rj]!==undefined&&!isNaN(cfg.range.high[rj]))vals.push(Number(cfg.range.high[rj]));}}
+  if(!vals.length)return{mn:0,mx:1};
+  var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+  if(mx===mn){mx=mn+(Math.abs(mn)*0.1+1);mn=mn-(Math.abs(mn)*0.1+1);}
+  var pad=(mx-mn)*0.18;mn=mn-pad;if(!neg&&mn<0)mn=0;return{mn:mn,mx:mx+pad};}
+ var SL=scale('L'),SR=scale('R');
+ function X(ix){return n===1?PL+pw/2:PL+pw*ix/(n-1);}
+ function Y(v,a){var s=(a==='R')?SR:SL;return PT+ph-(Number(v)-s.mn)/(s.mx-s.mn)*ph;}
+ if(cfg.range){var lo=cfg.range.low||[],hi=cfg.range.high||[],startedR=false;for(j=0;j<n;j++){if(lo[j]===null||lo[j]===undefined||hi[j]===null||hi[j]===undefined)continue;var xa=X(j),yl=Y(lo[j],'L'),yh=Y(hi[j],'L');if(!startedR){c.beginPath();c.moveTo(xa,yl);startedR=true;}else c.lineTo(xa,yl);}for(j=n-1;j>=0;j--){if(lo[j]===null||lo[j]===undefined||hi[j]===null||hi[j]===undefined)continue;c.lineTo(X(j),Y(hi[j],'L'));}if(startedR){c.closePath();c.fillStyle=cfg.range.color||'rgba(77,232,255,.08)';c.fill();}}
+ for(j=0;j<bands.length;j++){var b=bands[j],ax0=b.axis||'L',sc=(ax0==='R')?SR:SL;
+  var y1=Y(Math.min(b.to,sc.mx),ax0),y2=Y(Math.max(b.from,sc.mn),ax0);
+  if(y2>y1){c.fillStyle=b.color;c.fillRect(PL,y1,pw,y2-y1);
+   if(b.label){c.fillStyle='#7F8EA3';c.font='9px sans-serif';c.fillText(b.label,PL+4,y1+10);}}}
+ c.strokeStyle='#232D3C';c.lineWidth=1;c.font='10px sans-serif';
+ for(j=0;j<=4;j++){var lv=SL.mn+(SL.mx-SL.mn)*j/4,gy=Y(lv,'L');
+  c.beginPath();c.moveTo(PL,gy);c.lineTo(W-PR,gy);c.stroke();
+  c.fillStyle='#7F8EA3';c.fillText(axisFmt(lv),3,gy+3);
+  if(hasR){var rv=SR.mn+(SR.mx-SR.mn)*j/4;c.fillStyle='#FF4DD2';c.fillText(axisFmt(rv),W-PR+5,gy+3);}}
+ for(j=0;j<cfg.series.length;j++){
+  var se2=cfg.series[j],ax=se2.axis||'L',started=false,x2,v2,px,py;
+  c.strokeStyle=se2.color;c.lineWidth=se2.width||2.4;
+  if(se2.dash)c.setLineDash(se2.dash);else c.setLineDash([]);
+  c.beginPath();
+  for(x2=0;x2<se2.data.length;x2++){v2=se2.data[x2];
+   if(v2===null||v2===undefined||isNaN(v2)){started=false;continue;}
+   px=X(x2);py=Y(v2,ax);
+   if(!started){c.moveTo(px,py);started=true;}else{c.lineTo(px,py);}}
+  c.stroke();c.setLineDash([]);
+  for(x2=0;x2<se2.data.length;x2++){v2=se2.data[x2];
+   if(v2===null||v2===undefined||isNaN(v2))continue;
+   px=X(x2);py=Y(v2,ax);
+   c.fillStyle=se2.dot?se2.dot(v2):se2.color;
+   c.beginPath();c.arc(px,py,se2.radius||4,0,Math.PI*2);c.fill();
+   if(cfg.values!==false&&n<=16){c.fillStyle='#D7E0EA';c.font='bold 9px Orbitron,sans-serif';c.textAlign='center';
+    c.fillText(Number(v2).toFixed(se2.dec||0),px,py-9);c.textAlign='left';}}}
+ c.fillStyle='#7F8EA3';c.font='10px sans-serif';c.textAlign='center';
+ var step=Math.ceil(n/(W<500?4:10));if(step<1)step=1;
+ for(j=0;j<n;j++){if(j%step===0||j===n-1)c.fillText(cfg.labels[j],X(j),H-11);}
+ c.textAlign='left';
+ if(cfg.series.length>1){var lx=PL;
+  for(j=0;j<cfg.series.length;j++){c.fillStyle=cfg.series[j].color;c.fillRect(lx,6,12,3);
+   c.fillStyle='#7F8EA3';c.font='10px sans-serif';c.fillText(cfg.series[j].name,lx+16,10);
+   lx+=c.measureText(cfg.series[j].name).width+28;}}
+ cv.onclick=cfg.onClick||null;
+}
+function drawRadar(cv){
+ if(!cv)return;
+ var dpr=window.devicePixelRatio||1,W=cv.clientWidth||300,H=cv.clientHeight||280;
+ if(W<40||H<40)return;
+ cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+ var c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,W,H);
+ var L=last('med'),P=prevR('med'),ax=[],j;
+ for(j=0;j<RADAR.length;j++){if(L&&L.items[RADAR[j]]!==undefined&&L.items[RADAR[j]]!==null)ax.push(RADAR[j]);}
+ if(!ax.length){c.fillStyle='#7F8EA3';c.font='13px sans-serif';c.fillText(t('noData'),20,H/2);return;}
+ var cx=W/2,cy=H/2+4,R=Math.min(W,H)/2-46,N=ax.length;
+ function ang(ix){return-Math.PI/2+ix*2*Math.PI/N;}
+ function pt(ix,r){var rr=Math.min(r,2)/2;return[cx+Math.cos(ang(ix))*R*rr,cy+Math.sin(ang(ix))*R*rr];}
+ var rings=[0.5,1,1.5,2];
+ for(j=0;j<rings.length;j++){var g=rings[j];
+  c.strokeStyle=(g===1)?'rgba(182,255,60,.55)':'#232D3C';c.lineWidth=(g===1)?1.6:1;
+  c.beginPath();
+  for(var q=0;q<N;q++){var p=pt(q,g);if(q)c.lineTo(p[0],p[1]);else c.moveTo(p[0],p[1]);}
+  c.closePath();c.stroke();}
+ c.strokeStyle='#232D3C';
+ for(j=0;j<N;j++){var pe=pt(j,2);c.beginPath();c.moveTo(cx,cy);c.lineTo(pe[0],pe[1]);c.stroke();}
+ function poly(rec,col,fill){if(!rec)return;c.beginPath();
+  for(var z=0;z<N;z++){var kk=ax[z],vv=rec.items[kk],mx=LM[kk].max||1;
+   var rr=(vv===undefined||vv===null)?0:vv/mx,pp=pt(z,rr);
+   if(z)c.lineTo(pp[0],pp[1]);else c.moveTo(pp[0],pp[1]);}
+  c.closePath();c.fillStyle=fill;c.fill();c.strokeStyle=col;c.lineWidth=2;c.stroke();}
+ poly(P,'rgba(127,142,163,.8)','rgba(127,142,163,.10)');
+ poly(L,'#4DE8FF','rgba(77,232,255,.16)');
+ for(j=0;j<N;j++){var k2=ax[j],lp=pt(j,2.3);
+  c.font='10px sans-serif';
+  c.textAlign=lp[0]<cx-6?'right':(lp[0]>cx+6?'left':'center');
+  var radarRisk=reportRiskClass({k:k2},L.items[k2],L);
+  c.fillStyle=radarRisk==='risk-red'?'#FF626B':(radarRisk==='risk-blue'?'#5BA8FF':'#F3F6FA');
+  c.fillText(nm(LM[k2]).slice(0,16),lp[0],lp[1]);
+  c.fillStyle='#7F8EA3';c.font='9px Orbitron,sans-serif';
+  c.fillText(fmtL(k2,L.items[k2]),lp[0],lp[1]+12);}
+ c.textAlign='left';
+ cv.onclick=function(){openDetail('lab','cr');};
+}
+
+/* ========== 7. คำแนะนำรวม ========== */
+function vitalAdvice(){
+ var out=[],d=days();if(!d.length)return out;
+ var L=d[d.length-1],P=d.length>1?d[d.length-2]:null;
+ var lim=DB.settings.fluidLimit||1500;
+ if((L.sys!==undefined&&L.sys>130)||(L.dia!==undefined&&L.dia>80)){
+  out.push('<div class="adv"><b style="color:var(--mag)">'+nm(VM.sys)+' '+(L.sys||'-')+'/'+(L.dia||'-')+' mmHg</b><br>'+
+  (LANG==='th'?'ความดันสูงกว่าเป้าหมาย 130/80 เร่งทั้งโปรตีนรั่วและความเสียหายของจอประสาทตา ลดเค็มให้ต่ำกว่า 2000 มิลลิกรัมต่อวัน':'BP above the 130/80 target harms both kidney and retina.')+'</div>');}
+ if(L.fluid!==undefined&&L.fluid>lim){out.push('<div class="adv"><b style="color:var(--mag)">'+nm(VM.fluid)+' '+L.fluid+' mL</b><br>'+
+  (LANG==='th'?'ดื่มน้ำเกินเพดาน '+lim+' มล. เสี่ยงบวม และการดื่มน้ำปริมาณมากรวดเดียวยังทำให้ความดันลูกตาสูงขึ้นชั่วคราวด้วย ให้จิบทีละน้อย':'Fluid above the '+lim+' mL limit. Large single drinks also raise eye pressure.')+'</div>');}
+ if(P&&L.wt!==undefined&&P.wt!==undefined&&(L.wt-P.wt)>=1){out.push('<div class="adv"><b style="color:var(--mag)">'+nm(VM.wt)+' +'+(L.wt-P.wt).toFixed(1)+' kg</b><br>'+
+  (LANG==='th'?'น้ำหนักเพิ่มเร็วใน 1 วัน มักเป็นน้ำคั่ง สังเกตขาบวมและอาการเหนื่อยตอนนอนราบ':'Rapid 1-day weight gain usually means fluid retention.')+'</div>');}
+ return out;
+}
+function labAdvice(dp){
+ var out=[],L=last(dp),j;if(!L)return out;
+ for(j=0;j<LABS.length;j++){var l=LABS[j],v=L.items[l.k],f=flagL(l.k,v),risk=dashboardRiskClass(l,v,L);
+  if(f&&f!=='ok'&&risk!=='dash-risk-normal'&&ADV[l.k]&&ADV[l.k][f])
+   out.push('<div class="adv"><b style="color:var(--mag)">'+nm(l)+' '+fmtL(l.k,v)+' '+l.u+' ('+(f==='hi'?t('high'):t('low'))+')</b><br>'+ADV[l.k][f][LANG]+'</div>');}
+ return out;
+}
+function linkAdvice(){
+ var out=[],a=last('med'),e=last('eye');
+ var a1c=a?a.items.a1c:null;
+ var txt=(LANG==='th')
+  ?'เบาหวานชนิดที่ 2 (E11.9) ปรากฏในข้อมูลทั้งอายุรกรรมและจักษุกรรม ระบบจะแสดง HbA1c ควบคู่กับตัวชี้วัดไตและจอตาเพื่อดูแนวโน้มตามเวลา โดยไม่สรุปว่าแนวโน้มหนึ่งเป็นสาเหตุโดยตรงของอีกแนวโน้ม'
+  :'Type 2 diabetes (E11.9) appears in records from both departments. The dashboard compares HbA1c with kidney and retinal indicators as a temporal association; it does not infer direct causation.';
+ out.push('<div class="adv link"><b style="color:var(--gold)">E11.9 '+(LANG==='th'?'เบาหวานชนิดไม่พึ่งอินซูลิน':'Type 2 Diabetes Mellitus')+'</b><br>'+txt+'</div>');
+ if(a1c!==undefined&&a1c!==null){
+  out.push('<div class="adv '+(a1c>7?'':'good')+'"><b>'+nm(LM.a1c)+' '+Number(a1c).toFixed(1)+' %</b><br>'+
+  (LANG==='th'?(a1c>7?'ยังสูงกว่าเป้า ควรทบทวนยากับแพทย์ทั้งสองแผนก':'อยู่ในเป้าหมายแล้ว ช่วยชะลอทั้งไตเสื่อมและเบาหวานขึ้นจอตา'):(a1c>7?'Above target, review with both teams.':'At target, protecting both kidney and retina.'))+'</div>');}
+ out.push('<div class="adv link"><b style="color:var(--gold)">'+(LANG==='th'?'ข้อควรระวังร่วมสองแผนก':'Shared precautions')+'</b><br>'+
+ (LANG==='th'?'เลี่ยงการก้มศีรษะต่ำนาน ยกของหนัก และเบ่งถ่าย เพราะเพิ่มความดันลูกตา ส่วนยาหยอดตากลุ่มเบต้าบล็อกเกอร์ดูดซึมเข้ากระแสเลือดได้ หากมีใจสั่นหรือชีพจรช้าผิดปกติ ให้แจ้งแพทย์ทั้งสองแผนก':'Avoid prolonged head-down posture, heavy lifting and straining, which raise eye pressure. Beta-blocker eye drops can be absorbed systemically.')+'</div>');
+ return out;
+}
+
+/* ========== 8. แดชบอร์ด ========== */
+function renderAppointment(){
+ var box=E('cAppointmentBox'),body=E('appointmentBody'),badge=E('appointmentSourceBadge');if(!box||!body)return;
+ var now=new Date(),today=now.getFullYear()+'-'+('0'+(now.getMonth()+1)).slice(-2)+'-'+('0'+now.getDate()).slice(-2),items=[],seen={},src=DB.appointments||[],i,a,key;
+ for(i=0;i<src.length;i++){a=src[i];key=(a.source_system||'hospital_app')+'|visit|'+a.date+'|'+a.dept;if(a.date&&a.date>=today&&!seen[key]){seen[key]=true;items.push({date:a.date,time:a.time||'',title:a.title||appointmentDeptName(a),source:a.source_system||'hospital_app',place:a.place||'',source_file:a.source_file||''});}
+  key=(a.source_system||'hospital_app')+'|lab|'+a.lab_date;if(a.lab_date&&a.lab_date>=today&&!seen[key]){seen[key]=true;items.push({date:a.lab_date,time:a.lab_time||'',title:LANG==='th'?'เจาะเลือด':'Blood draw',source:a.source_system||'hospital_app',place:a.lab_place||a.place||'',source_file:a.source_file||''});}}
+ items.sort(function(x,y){return x.date===y.date?(x.time<y.time?-1:1):(x.date<y.date?-1:1);});items=items.slice(0,3);
+ if(!items.length){body.innerHTML='<div class="adv good">'+(LANG==='th'?'ยังไม่มีนัดหมายล่วงหน้าที่บันทึกไว้':'No upcoming appointments are saved yet.')+'</div>';if(badge)badge.textContent='';return;}
+ if(badge)badge.textContent=(LANG==='th'?'รายการถัดไป ':'Next items ')+items.length;
+ body.innerHTML=items.map(function(x){return '<div class="med"><div class="dot" style="background:var(--cyan)"></div><div style="flex:1"><b>'+esc(x.title)+'</b> <span class="badge">'+esc(appointmentSourceName(x.source))+'</span><br><span class="dim">'+dTxt(x.date)+(x.time?' · '+esc(x.time):'')+'</span>'+(x.place?'<br><span class="dim">'+esc(x.place)+'</span>':'')+(x.source_file?'<br><span class="dim">'+esc(x.source_file)+'</span>':'')+'</div></div>';}).join('');
+}
+function appointmentDeptName(a){var d=a&&a.dept||'';if(d==='eye')return LANG==='th'?'นัดจักษุกรรม':'Ophthalmology';if(d==='kidney')return LANG==='th'?'นัดศูนย์โรคไต':'Kidney center';if(d==='med')return LANG==='th'?'นัดอายุรกรรม':'Internal Medicine';return LANG==='th'?'นัดหมาย':'Appointment';}
+function appointmentSourceName(s){if(s==='kidney_center')return LANG==='th'?'ศูนย์โรคไต':'Kidney center';if(s==='hospital_app')return LANG==='th'?'แอปโรงพยาบาล':'Hospital app';return s|| (LANG==='th'?'แหล่งนัดหมาย':'Appointment source');}
+function renderKidneyRisk(){
+ var body=E('kidneyRiskBody');if(!body)return;var r=last('med'),items=r?r.items:{};
+ var age=DB.patient&&DB.patient.birthDate?Math.floor((new Date().getTime()-new Date(DB.patient.birthDate+'T00:00:00').getTime())/31557600000):null;
+ var missing=[];if(age===null)missing.push(LANG==='th'?'วันเกิด/อายุ':'age');if(!DB.patient||!DB.patient.sex)missing.push(LANG==='th'?'เพศ':'sex');if(items.egfr===undefined)missing.push('eGFR');if(items.acr===undefined)missing.push('UACR');
+ if(missing.length){body.innerHTML='<div class="hrow"><div><div class="num" style="font-size:24px;color:var(--gold)">—</div><div class="sub">'+(LANG==='th'?'ยังไม่คำนวณ':'Not calculated')+'</div></div><div class="spacer"></div><span class="badge">'+(LANG==='th'?'ข้อมูลไม่ครบ':'Missing inputs')+'</span></div><div class="adv link">'+(LANG==='th'?'ต้องมีข้อมูลเพิ่มเติม: ':'Required: ')+esc(missing.join(', '))+'</div>';return;}
+ body.innerHTML='<div class="hrow"><div><div class="num" style="font-size:24px;color:var(--cyan)">KFRE</div><div class="sub">'+(LANG==='th'?'พร้อมคำนวณเมื่อกำหนดภูมิภาค/Calibration ที่เหมาะสม':'Ready after region/calibration is specified')+'</div></div><div class="spacer"></div><span class="badge">'+(LANG==='th'?'ยังไม่แสดงตัวเลข':'Value withheld')+'</span></div><div class="adv good">'+(LANG==='th'?'ระบบเก็บตัวแปร 4-variable ที่จำเป็นไว้แล้ว แต่จะไม่แสดงเปอร์เซ็นต์จนกว่าจะกำหนดวิธี calibration ที่เหมาะสมกับประชากร':'The 4-variable inputs are present, but the percentage is withheld until an appropriate calibration is specified.')+'</div>';
+}
+function renderEventSummary(){
+ var body=E('eventSummaryBody');if(!body)return;var enc=(DB.encounters||[]).slice().sort(byDate).reverse(),ev=(DB.events||[]).slice().sort(byDate).reverse(),h='',i;
+ h+='<div style="font-weight:bold;color:var(--cyan);margin:4px 0">การเข้ารับการรักษาทั่วไป</div>';
+ if(enc.length){for(i=0;i<Math.min(3,enc.length);i++){var c=enc[i];h+='<div class="med"><div class="dot" style="background:var(--cyan)"></div><div><b>'+dTxt(c.date)+' · '+esc(c.title||c.diagnosis||'การเข้ารับการรักษา')+'</b>'+(c.department?' <span class="badge">'+esc(c.department)+'</span>':'')+'<br><span class="dim">'+esc(c.diagnosis||c.symptoms||'')+(c.facility?' · '+esc(c.facility):'')+'</span>'+(c.medications&&c.medications.length?'<br><span class="dim">ยา: '+esc(c.medications.join(' · '))+'</span>':'')+'</div></div>';}}else h+='<div class="dim">'+t('noData')+'</div>';
+ h+='<div style="font-weight:bold;color:var(--mag);margin:10px 0 4px">ประวัติเหตุการณ์พิเศษ</div>';
+ if(ev.length){for(i=0;i<Math.min(3,ev.length);i++){var e=ev[i];h+='<div class="med"><div class="dot" style="background:var(--mag)"></div><div><b>'+dTxt(e.date)+' · '+esc(e.title||e.type||'เหตุการณ์')+'</b>'+(e.department?' <span class="badge">'+esc(e.department)+'</span>':'')+'<br><span class="dim">'+esc(e.status||e.place||e.note||'')+'</span></div></div>';}}else h+='<div class="dim">'+t('noData')+'</div>';
+ body.innerHTML=h;}
+function renderEvents(){
+ var list=E('eventList'),encList=E('encounterList');if(!list||!encList)return;
+ var encounters=(DB.encounters||[]).slice().sort(byDate).reverse(),events=(DB.events||[]).slice().sort(byDate).reverse(),h='',j;
+ for(j=0;j<encounters.length;j++){var c=encounters[j],cv=c.vitals||{};h+='<div class="med"><div class="dot" style="background:var(--cyan)"></div><div style="flex:1"><b>'+esc(c.title||c.diagnosis||'การเข้ารับการรักษา')+'</b>'+(c.department?' <span class="badge">'+esc(c.department)+'</span>':'')+'<br><span class="dim" style="font-size:12px">'+dTxt(c.date)+' '+esc(c.time||'')+' · '+esc(c.facility||'ไม่ระบุสถานที่')+' · '+esc(c.status||'บันทึกแล้ว')+'</span>'+(c.physician?'<br><span>แพทย์: '+esc(c.physician)+'</span>':'')+(c.visitType||c.paymentRight?'<br><span class="dim">'+esc([c.visitType,c.paymentRight].filter(Boolean).join(' · '))+'</span>':'')+(c.diagnosis?'<br><span>วินิจฉัย: '+esc(c.diagnosis)+'</span>':'')+(c.symptoms?'<br><span>อาการ: '+esc(c.symptoms)+'</span>':'')+(c.medications&&c.medications.length?'<br><span>ยา: '+esc(c.medications.join(' · '))+'</span>':'')+(Object.keys(cv).some(function(k){return !!cv[k];})?'<br><span class="dim" style="font-size:12px">สัญญาณชีพ: '+esc(['BP '+(cv.bp||''),'Temp '+(cv.temperatureC?cv.temperatureC+'°C':''),'ชีพจร '+(cv.pulse||''),'หายใจ '+(cv.respiration||''),'น้ำหนัก '+(cv.weightKg?cv.weightKg+' กก.':''),'ส่วนสูง '+(cv.heightCm?cv.heightCm+' ซม.':'')].filter(function(x){return !/ $/.test(x);}).join(' · '))+'</span>':'')+(c.source_images&&c.source_images.length?'<br><span class="dim">ภาพต้นทาง: '+esc(c.source_images.join(', '))+'</span>':'')+'</div></div>';}
+ encList.innerHTML=h||'<div class="dim">'+t('noData')+'</div>';h='';
+ for(j=0;j<events.length;j++){var e=events[j];h+='<div class="med"><div class="dot" style="background:var(--mag)"></div><div style="flex:1"><b>'+esc(e.title||e.type||'-')+'</b> <span class="badge">'+esc(e.department||'-')+'</span><br><span class="dim" style="font-size:12px">'+dTxt(e.date)+' · '+esc(e.place||'-')+' · '+esc(e.status||'บันทึกแล้ว')+'</span>'+(e.note?'<br><span class="dim">'+esc(e.note)+'</span>':'')+'</div></div>';}
+ list.innerHTML=h||'<div class="dim">'+t('noData')+'</div>';if(!E('evDate').value)E('evDate').value=new Date().toISOString().slice(0,10);}
+function saveEvent(){
+ var d=E('evDate').value;if(!d){alert(t('needDate'));return;}var e={id:'ev'+Date.now(),date:d,type:E('evType').value,department:E('evDept').value.trim(),title:E('evTitle').value.trim(),place:E('evPlace').value.trim(),status:E('evStatus').value.trim(),note:E('evNote').value.trim(),source_images:[],created_at:new Date().toISOString()};if(!e.title&&!e.note){alert(t('needVal'));return;}DB.events=DB.events||[];DB.events.push(e);save();renderAll();go('events');alert(t('saved'));}
+function renderDash(){
+ var j,h='';
+ var isAll=(DEPT==='all'),isMed=(DEPT==='med'),isEye=(DEPT==='eye');
+ var Lm=last('med'),Le=last('eye');
+ var L=last(),P=prevR(),displayDate=isAll?latestCareDate():(isEye?(Le&&Le.date):(Lm&&Lm.date));
+ E('lastDate').textContent=displayDate?dTxt(displayDate):(isAll?'ไม่มีข้อมูล':'-');
+ E('cHead').querySelector('[data-i18n="lastVisit"]').textContent=isAll?t('careLatest'):t('lastVisit');
+ if(isEye){
+  E('headRLbl').textContent=t('eyeStat');
+  var io=Le?Math.max(Le.items.iop_od||0,Le.items.iop_os||0):null;
+  E('stageTxt').textContent=io?(io>21?t('high'):t('ok')):'-';
+  E('stageTxt').className='num '+(io?(dashboardRiskClass({k:'iop_od'},io,Le)):'');
+ }else{
+  E('headRLbl').textContent=t('ckdStage');
+  var st=stageOf(Lm&&Lm.items.egfr!==undefined?Lm.items.egfr:null);
+  E('stageTxt').textContent=st[0];E('stageTxt').className='num '+(Lm&&Lm.items.egfr!==undefined?dashboardRiskClass({k:'egfr'},Lm.items.egfr,Lm):'');}
+
+ show('cScenBox',isMed);
+ show('cDeptCards',isAll);
+ show('cLinkBox',isAll);
+ show('cVitBox',!isEye);
+ show('cMedCharts',isMed);
+ show('cComboBox',isMed);
+ show('cEyeCharts',isEye);
+ show('cLinkChartBox',isEye);
+ show('cDropBox',isEye);
+ show('cTimelineBox',!isAll);
+ show('cRiskRow',!isEye);
+ show('cOverviewNote',isAll);
+
+ if(!isEye){
+  SCENARIO_DATA=buildScenarioData();
+  var scLabels=SCENARIO_DATA.map(function(it){return it.date.indexOf('Projection')===0?it.date:dShort(it.date);});
+  drawChart(E('cScenario'),{
+   labels:scLabels,
+   bands:[{from:0,to:15,color:'rgba(255,77,210,.12)',label:'G5'},{from:15,to:30,color:'rgba(255,215,94,.07)',label:'G4'}],
+   range:{low:SCENARIO_DATA.map(function(it){return it.low===undefined?null:it.low;}),high:SCENARIO_DATA.map(function(it){return it.high===undefined?null:it.high;}),color:'rgba(255,77,210,.07)'},
+   series:[{name:'Actual (ค่าจริง)',color:'#4DE8FF',dec:2,radius:5,data:SCENARIO_DATA.map(function(it){return it.actual;})},
+    {name:'ทรงตัว / Stable',color:'#B6FF3C',dec:2,width:2,dash:[2,5],data:SCENARIO_DATA.map(function(it){return it.stable===undefined?null:it.stable;})},
+    {name:'แนวโน้มปัจจุบัน',color:'#4DE8FF',dec:2,width:2,dash:[7,5],data:SCENARIO_DATA.map(function(it){return it.trend===undefined?null:it.trend;})},
+    {name:'ช่วงประมาณการ',color:'#FF4DD2',dec:2,width:2,dash:[3,5],data:SCENARIO_DATA.map(function(it){return it.low===undefined?null:it.low;})}]});
+  }
+ renderAppointment();renderKidneyRisk();renderEventSummary();
+
+ if(isAll){
+  var stA=stageOf(Lm&&Lm.items.egfr!==undefined?Lm.items.egfr:null);
+  var iopMax=Le?Math.max(Le.items.iop_od||0,Le.items.iop_os||0):null;
+  E('cDeptCards').innerHTML=
+   '<div class="card" style="border-color:var(--cyan);margin:0"><h3 style="color:var(--cyan)">'+t('deptMed')+'</h3>'+
+   '<div class="num '+(Lm?dashboardRiskClass({k:'egfr'},Lm.items.egfr,Lm):'dash-risk-normal')+'" style="font-size:26px">eGFR '+(Lm?fmtL('egfr',Lm.items.egfr):'-')+' <span style="font-size:14px">'+stA[0]+'</span></div>'+ 
+   '<div class="sub">'+(Lm?dTxt(Lm.date):'-')+'</div></div>'+
+   '<div class="card" style="border-color:var(--mag);margin:0"><h3 style="color:var(--mag)">'+t('deptEye')+'</h3>'+
+   '<div class="num '+(Le?dashboardRiskClass({k:'iop_od'},iopMax,Le):'dash-risk-normal')+'" style="font-size:26px">IOP '+(Le?fmtL('iop_od',Le.items.iop_od)+' / '+fmtL('iop_os',Le.items.iop_os):'-')+' mmHg</div>'+ 
+   '<div class="sub">'+(Le?dTxt(Le.date):'-')+'</div></div>';
+  E('linkBody').innerHTML=linkAdvice().join('');}
+
+ h='';
+ for(j=0;j<LABS.length;j++){var l=LABS[j];
+  var useIt=(isEye?l.ekey:(isMed?l.key:(l.key||l.ekey)));
+  if(!useIt)continue;
+  var src=(l.dp==='eye')?Le:Lm,srcP=(l.dp==='eye')?prevR('eye'):prevR('med');
+  var v=src?src.items[l.k]:null,pv=srcP?srcP.items[l.k]:null;
+  var colClass=dashboardRiskClass(l,v,src);
+  var tr='';
+  if(v!==undefined&&v!==null&&pv!==undefined&&pv!==null){var df=v-pv;tr=(df>0?'+':'')+df.toFixed(l.dec);}
+  h+='<div class="card kpi" data-act="detail" data-val="lab:'+l.k+'"><div class="lbl">'+nm(l)+'</div>'+
+     '<div class="val num '+colClass+'">'+fmtL(l.k,v)+'</div><div class="unit">'+l.u+'</div>'+ 
+     '<div class="trend dim">'+tr+'</div><div class="ref">'+t('ref')+' '+refTxt(l)+'</div></div>';}
+ E('kpis').innerHTML=h;show('kpis',!isAll);
+
+ var D=lastDay(),d7=days().slice(-7);
+ function a7(k){var vv=[],z;for(z=0;z<d7.length;z++){if(d7[z][k]!==undefined&&d7[z][k]!==null)vv.push(Number(d7[z][k]));}
+  var m=avg(vv);return m===null?'-':m.toFixed(VM[k].dec);}
+ function vcard(k){var l2=VM[k],val=D?D[k]:null;
+  return '<div class="card kpi" data-act="detail" data-val="vit:'+k+'"><div class="lbl">'+nm(l2)+'</div>'+
+   '<div class="val num '+dashboardVitalClass(k,val)+'">'+((val===undefined||val===null)?'-':Number(val).toFixed(l2.dec))+'</div>'+ 
+   '<div class="unit">'+l2.u+'</div><div class="ref">'+t('avg7')+' '+a7(k)+'</div></div>';}
+ E('vkpis').innerHTML=vcard('sys')+vcard('dia')+vcard('wt')+vcard('fluid');
+
+ if(!isEye){
+  var es=labSeries('egfr'),lab=[],dat=[];
+  for(j=0;j<es.length;j++){lab.push(dShort(es[j].d));dat.push(es[j].v);}
+  drawChart(E('cEgfr'),{labels:lab,
+   bands:[{from:0,to:15,color:'rgba(255,77,210,.16)',label:'G5'},{from:15,to:30,color:'rgba(255,77,210,.09)',label:'G4'},
+    {from:30,to:45,color:'rgba(255,215,94,.09)',label:'G3b'},{from:45,to:60,color:'rgba(77,232,255,.08)',label:'G3a'}],
+   series:[{name:'eGFR',color:'#FFD75E',dec:2,data:dat,dot:function(v){var rc=reportRiskClass({k:'egfr'},v,null);return rc==='risk-red'?'#FF626B':(rc==='risk-blue'?'#5BA8FF':'#F3F6FA');}}],
+   onClick:function(){openDetail('lab','egfr');}});
+  drawRadar(E('cRadar'));
+  var ac=labSeries('acr'),sy=vitMonth('sys'),mset={},mk=[];
+  for(j=0;j<ac.length;j++){var m1=mOf(ac[j].d);if(!mset[m1]){mset[m1]=1;mk.push(m1);}}
+  for(j=0;j<sy.length;j++){if(!mset[sy[j].d]){mset[sy[j].d]=1;mk.push(sy[j].d);}}
+  mk.sort();
+  var acM={},syM={};
+  for(j=0;j<ac.length;j++){var mm=mOf(ac[j].d);if(!acM[mm])acM[mm]=[];acM[mm].push(ac[j].v);}
+  for(j=0;j<sy.length;j++){syM[sy[j].d]=sy[j].v;}
+  var d1=[],d2=[];
+  for(j=0;j<mk.length;j++){d1.push(acM[mk[j]]?avg(acM[mk[j]]):null);d2.push(syM[mk[j]]!==undefined?syM[mk[j]]:null);}
+  drawChart(E('cCombo'),{labels:mk,values:false,
+   series:[{name:'A/C ratio',color:'#FF4DD2',dec:0,axis:'L',data:d1},{name:nm(VM.sys),color:'#4DE8FF',dec:0,axis:'R',data:d2}],
+   onClick:function(){openDetail('lab','acr');}});}
+
+ if(!isMed){
+  var er=recs('eye'),elb=[],od=[],os=[],cod=[],cos=[];
+  for(j=0;j<er.length;j++){elb.push(dShort(er[j].date));
+   od.push(er[j].items.iop_od===undefined?null:Number(er[j].items.iop_od));
+   os.push(er[j].items.iop_os===undefined?null:Number(er[j].items.iop_os));
+   cod.push(er[j].items.cdr_od===undefined?null:Number(er[j].items.cdr_od));
+   cos.push(er[j].items.cdr_os===undefined?null:Number(er[j].items.cdr_os));}
+  drawChart(E('cIop'),{labels:elb,bands:[{from:10,to:21,color:'rgba(182,255,60,.10)'}],
+   series:[{name:'OD',color:'#4DE8FF',dec:1,data:od},{name:'OS',color:'#FFD75E',dec:1,data:os}],
+   onClick:function(){openDetail('lab','iop_od');}});
+  drawChart(E('cCdr'),{labels:elb,bands:[{from:0,to:0.6,color:'rgba(182,255,60,.10)'}],
+   series:[{name:'CDR OD',color:'#FF4DD2',dec:2,data:cod},{name:'CDR OS',color:'#B6FF3C',dec:2,data:cos}],
+   onClick:function(){openDetail('lab','cdr_od');}});
+  var a1s=labSeries('a1c'),iopAvg=[],iopLbl={},kset={},kk2=[];
+  for(j=0;j<a1s.length;j++){var mA=mOf(a1s[j].d);if(!kset[mA]){kset[mA]=1;kk2.push(mA);}}
+  for(j=0;j<er.length;j++){var mE=mOf(er[j].date);if(!kset[mE]){kset[mE]=1;kk2.push(mE);}
+   var vv2=[];if(er[j].items.iop_od!==undefined)vv2.push(Number(er[j].items.iop_od));
+   if(er[j].items.iop_os!==undefined)vv2.push(Number(er[j].items.iop_os));
+   if(vv2.length)iopLbl[mE]=avg(vv2);}
+  kk2.sort();
+  var aMap={};for(j=0;j<a1s.length;j++){aMap[mOf(a1s[j].d)]=a1s[j].v;}
+  var sA=[],sI=[];
+  for(j=0;j<kk2.length;j++){sA.push(aMap[kk2[j]]!==undefined?aMap[kk2[j]]:null);sI.push(iopLbl[kk2[j]]!==undefined?iopLbl[kk2[j]]:null);}
+  drawChart(E('cLinkCh'),{labels:kk2,
+   series:[{name:'HbA1c',color:'#FFD75E',dec:1,axis:'L',data:sA},{name:'IOP mean',color:'#FF4DD2',dec:1,axis:'R',data:sI}]});
+  renderDrops();}
+
+ var gh='';
+ for(j=0;j<GKEYS.length;j++){var g=GKEYS[j];
+  if(DEPT!=='all'&&GROUPS[g].dp!==DEPT)continue;
+  var srcR=(GROUPS[g].dp==='eye')?Le:Lm,rows=[],bad=0,z;
+  for(z=0;z<LABS.length;z++){var l3=LABS[z];
+  if(l3.g===g&&srcR&&srcR.items[l3.k]!==undefined&&srcR.items[l3.k]!==null){rows.push(l3);if(dashboardRiskClass(l3,srcR.items[l3.k],srcR)!=='dash-risk-normal')bad++;}}
+  var body='';
+  if(rows.length){for(z=0;z<rows.length;z++){var l4=rows[z],f4=dashboardRiskClass(l4,srcR.items[l4.k],srcR),fTxt=f4==='dash-risk-normal'?t('ok'):(f4==='dash-risk-red'?t('high'):t('low'));
+   body+='<tr class="clk" data-act="detail" data-val="lab:'+l4.k+'"><td>'+nm(l4)+'</td><td class="num '+f4+'">'+fmtL(l4.k,srcR.items[l4.k])+ 
+    '</td><td class="dim">'+l4.u+'</td><td><span class="pill '+f4+'">'+fTxt+'</span></td></tr>';}}
+  else{body='<tr><td class="dim">'+t('noData')+'</td></tr>';}
+  gh+='<div class="card"><h3>'+nm(GROUPS[g])+'</h3><div style="margin-bottom:8px"><span class="badge ok">'+t('normal')+' '+(rows.length-bad)+
+   '</span> <span class="badge '+(bad?'hi':'')+'">'+t('abnormal')+' '+bad+'</span></div><table>'+body+'</table></div>';}
+ E('groups').innerHTML=gh;show('groups',!isAll);
+
+ var al=[];
+ if(!isEye){al=al.concat(labAdvice('med'));al=al.concat(vitalAdvice());}
+ if(!isMed){al=al.concat(labAdvice('eye'));}
+ E('advice').innerHTML=al.length?al.join(''):'<div class="adv good">'+t('advGood')+'</div>';
+
+ var vh='',vs=DB.visits.slice().sort(byDate).reverse();
+ for(j=0;j<vs.length;j++){var vv=vs[j];if(!inDept(vv))continue;
+  vh+='<div class="med"><div class="dot" style="background:'+(vv.dept==='eye'?'var(--mag)':'var(--cyan)')+'"></div><div>'+
+   '<b>'+dTxt(vv.date)+' '+esc(vv.time)+'</b> <span class="badge">'+(vv.dept==='eye'?t('deptEye'):t('deptMed'))+'</span><br>'+
+   '<span class="dim" style="font-size:12px">'+
+   (vv.doctor?t('doctor')+' '+esc(vv.doctor)+'<br>':'')+
+   t('place')+' '+esc(vv.place)+'<br>'+t('symptom')+' '+esc(vv.symptom)+'<br>'+
+   t('ptype')+' '+esc(vv.ptype)+' | '+t('right')+' '+esc(vv.right)+'</span></div></div>';}
+ E('visitList').innerHTML=vh||'<div class="dim">'+t('noData')+'</div>';show('cVisitsBox',!isAll);
+
+ var dh='',dx=DB.diagnoses.slice().sort(byDate).reverse();
+ for(j=0;j<dx.length;j++){var d0=dx[j];if(!inDept(d0))continue;
+  dh+='<div class="med"><div class="dot" style="background:'+(d0.lv==='p'?'var(--mag)':'var(--gold)')+'"></div><div><b>'+
+   (LANG==='th'?d0.th:d0.en)+'</b> <span class="badge">'+d0.code+'</span><br><span class="dim" style="font-size:12px">'+
+   (d0.lv==='p'?t('primary'):t('secondary'))+' | '+(d0.dept==='eye'?t('deptEye'):t('deptMed'))+' | '+dTxt(d0.date)+'</span></div></div>';}
+ E('dxList').innerHTML=dh||'<div class="dim">'+t('noData')+'</div>';show('cDxBox',!isAll);
+
+ var mh='',ml=medsOf(null);
+ for(j=0;j<ml.length;j++){mh+='<div class="med"><div class="dot" style="background:'+(ml[j].dept==='eye'?'var(--mag)':'var(--cyan)')+'"></div><div><b>'+
+  esc(ml[j].n)+'</b><br><span class="dim" style="font-size:12px">'+(LANG==='th'?ml[j].th:ml[j].en)+'</span></div></div>';}
+ E('medList').innerHTML=mh||'<div class="dim">'+t('noData')+'</div>';show('cMedsBox',!isAll);
+ renderChangeDetection();
+ renderAttention();
+ renderTimeline();
+}
+function renderDrops(){
+ var el=medsOf('eye'),h='',j,z;
+ if(!el.length){E('dropBody').innerHTML='<div class="dim">'+t('noDrops')+'</div>';return;}
+ for(j=0;j<SLOTS.length;j++){var s=SLOTS[j],list=[];
+  for(z=0;z<el.length;z++){var m=el[z];
+   if(m.slots&&m.slots.join(',').indexOf(s.k)>=0)list.push(m.n);}
+  if(!list.length)continue;
+  h+='<div class="slot"><b>'+nm(s)+'</b><br><span style="font-size:12.5px">'+list.join('<br>')+'</span></div>';}
+ E('dropBody').innerHTML=h;
+}
+
+/* ========== 10. ประวัติ ========== */
+var HMODE='all';
+function renderHist(){
+ var cols=[],j,z,r=recs();
+ if(HMODE==='all'){for(j=0;j<r.length;j++){cols.push({label:dTxt(r[j].date)+(r[j].dept==='eye'?' *':''),items:r[j].items});}}
+ else{var g={},ks=[];
+  for(j=0;j<r.length;j++){var q=qOf(r[j].date);if(!g[q]){g[q]=[];ks.push(q);}g[q].push(r[j]);}
+  ks.sort();
+  for(j=0;j<ks.length;j++){var it={};
+   for(z=0;z<LABS.length;z++){var vv=[],y;
+    for(y=0;y<g[ks[j]].length;y++){var val=g[ks[j]][y].items[LABS[z].k];if(val!==undefined&&val!==null)vv.push(Number(val));}
+    if(vv.length)it[LABS[z].k]=avg(vv);}
+   cols.push({label:ks[j],items:it});}}
+ var h='<thead><tr><th>'+t('item')+'</th><th>'+t('ref')+'</th>';
+ for(j=0;j<cols.length;j++){h+='<th>'+cols[j].label+'</th>';}
+ h+='<th>'+t('adviceT')+'</th></tr></thead><tbody>';
+ for(j=0;j<GKEYS.length;j++){var gk2=GKEYS[j];
+  if(DEPT!=='all'&&GROUPS[gk2].dp!==DEPT)continue;
+  h+='<tr><td colspan="'+(cols.length+3)+'" style="color:var(--gold);font-weight:700;background:#10151e">'+nm(GROUPS[gk2])+'</td></tr>';
+  for(z=0;z<LABS.length;z++){var l=LABS[z];if(l.g!==gk2)continue;
+   var any=false,lastV=null,c2;
+   for(c2=0;c2<cols.length;c2++){var cv2=cols[c2].items[l.k];if(cv2!==undefined&&cv2!==null){any=true;lastV=cv2;}}
+   if(!any)continue;
+   var f=flagL(l.k,lastV);
+   var adv=(f&&f!=='ok'&&ADV[l.k]&&ADV[l.k][f])?ADV[l.k][f][LANG]:t('betterOk');
+   h+='<tr class="clk" data-act="detail" data-val="lab:'+l.k+'"><td>'+nm(l)+' <span class="dim">'+l.u+'</span></td><td class="dim">'+refTxt(l)+'</td>';
+   for(c2=0;c2<cols.length;c2++){var v3=cols[c2].items[l.k];
+    h+='<td class="num '+((v3===undefined||v3===null)?'':flagL(l.k,v3))+'">'+((v3===undefined||v3===null)?'-':Number(v3).toFixed(l.dec))+'</td>';}
+   h+='<td style="white-space:normal;max-width:380px;font-size:12px" class="'+(f==='ok'?'dim':'')+'">'+adv+'</td></tr>';}}
+ h+='</tbody>';
+ E('histTable').innerHTML=h;
+ E('modeAll').className='btn '+(HMODE==='all'?'cy':'');
+ E('modeQ').className='btn '+(HMODE==='q'?'cy':'');
+
+ var qs={},qk=[],vq;
+ for(j=0;j<VITALS.length;j++){vq=vitQuarter(VITALS[j].k);
+  for(z=0;z<vq.length;z++){if(!qs[vq[z].d]){qs[vq[z].d]=1;qk.push(vq[z].d);}}}
+ qk.sort();
+ if(!qk.length){E('vitTable').innerHTML='<tbody><tr><td class="dim">'+t('noData')+'</td></tr></tbody>';return;}
+ var vh='<thead><tr><th>'+t('item')+'</th>';
+ for(j=0;j<qk.length;j++){vh+='<th>'+qk[j]+'</th>';}
+ vh+='</tr></thead><tbody>';
+ for(j=0;j<VITALS.length;j++){var map={};vq=vitQuarter(VITALS[j].k);
+  for(z=0;z<vq.length;z++){map[vq[z].d]=vq[z].v;}
+  vh+='<tr class="clk" data-act="detail" data-val="vit:'+VITALS[j].k+'"><td>'+nm(VITALS[j])+' <span class="dim">'+VITALS[j].u+'</span></td>';
+  for(z=0;z<qk.length;z++){var mv=map[qk[z]];
+   vh+='<td class="num '+(mv===undefined?'':flagV(VITALS[j].k,mv))+'">'+(mv===undefined?'-':mv.toFixed(VITALS[j].dec))+'</td>';}
+  vh+='</tr>';}
+ vh+='</tbody>';
+ E('vitTable').innerHTML=vh;
+}
+
+/* ========== 11. Modal ========== */
+var MQ=false,MTYPE='lab',MKEY='egfr';
+function openDetail(type,key){MTYPE=type;MKEY=key;MQ=false;drawDetail();E('modal').className='modal on';}
+function drawDetail(){
+ var isLab=(MTYPE==='lab'),l=isLab?LM[MKEY]:VM[MKEY],j;
+ if(!l){E('modal').className='modal';return;}
+ var data=isLab?(MQ?labQuarter(MKEY):labSeries(MKEY)):(MQ?vitQuarter(MKEY):vitSeries(MKEY));
+ var fn=isLab?flagL:flagV;
+ var h='<div class="hrow"><h3 style="margin:0;color:var(--gold)">'+nm(l)+' <span class="dim">'+l.u+'</span></h3><div class="spacer"></div>'+
+  '<button class="btn '+(MQ?'':'cy')+'" data-act="dmode" data-val="all">'+t('modeAll')+'</button>'+
+  '<button class="btn '+(MQ?'cy':'')+'" data-act="dmode" data-val="q">'+t('modeQ')+'</button>'+
+  '<button class="btn mg" data-act="close">'+t('close')+'</button></div>'+
+  '<div class="sub" style="margin:6px 0 10px">'+t('ref')+' '+refTxt(l)+'</div>'+
+  '<div class="chart"><canvas id="dC"></canvas></div>'+
+  '<div class="scroll" style="margin-top:12px;max-height:38vh"><table><thead><tr><th>'+(MQ?t('qLabel'):t('date'))+'</th><th>'+t('value')+
+  '</th><th>'+t('trend')+'</th><th>'+t('ok')+'</th></tr></thead><tbody>';
+ var rev=data.slice().reverse();
+ for(j=0;j<rev.length;j++){var p=rev[j],f=fn(MKEY,p.v),n2=rev[j+1],df=n2?p.v-n2.v:null;
+  h+='<tr><td>'+(MQ?p.d:dTxt(p.d))+'</td><td class="num '+f+'">'+p.v.toFixed(l.dec)+'</td><td class="dim">'+
+   (df===null?'-':(df>0?'+':'')+df.toFixed(l.dec))+'</td><td><span class="pill '+f+'">'+
+   (f==='ok'?t('ok'):(f==='hi'?t('high'):t('low')))+'</span></td></tr>';}
+ h+='</tbody></table></div>';
+ var cur=data.length?data[data.length-1].v:null,cf=fn(MKEY,cur);
+ if(isLab&&cf&&cf!=='ok'&&ADV[MKEY]&&ADV[MKEY][cf]){h+='<div class="adv">'+ADV[MKEY][cf][LANG]+'</div>';}
+ else{h+='<div class="adv good">'+t('betterOk')+'</div>';}
+ E('mbox').innerHTML=h;
+ var lb=[],dt=[];
+ for(j=0;j<data.length;j++){lb.push(MQ?data[j].d:dShort(data[j].d));dt.push(data[j].v);}
+ drawChart(E('dC'),{labels:lb,values:data.length<=14,
+  bands:(l.min!==null&&l.max!==null)?[{from:l.min,to:l.max,color:'rgba(182,255,60,.10)'}]:[],
+  series:[{name:nm(l),color:'#4DE8FF',dec:l.dec,data:dt,dot:function(v){var f2=fn(MKEY,v);return f2==='ok'?'#B6FF3C':(f2==='hi'?'#FF4DD2':'#FFD75E');}}]});
+}
+
+/* ========== 13. OCR ========== */
+var PENDING=[];
+var OCR_WARNINGS=[];
+function findDate(txt){
+ var m=txt.match(/\b(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})\b/);
+ if(m){var y=parseInt(m[1],10),mo=parseInt(m[2],10),d=parseInt(m[3],10);if(y>=1900&&y<=2100&&mo>=1&&mo<=12&&d>=1&&d<=31)return y+'-'+('0'+mo).slice(-2)+'-'+('0'+d).slice(-2);}
+ m=txt.match(/\b(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})\b/);
+ if(m){var d2=parseInt(m[1],10),mo2=parseInt(m[2],10),y2=parseInt(m[3],10);if(y2>2400)y2-=543;if(y2>=1900&&y2<=2100&&mo2>=1&&mo2<=12&&d2>=1&&d2<=31)return y2+'-'+('0'+mo2).slice(-2)+'-'+('0'+d2).slice(-2);}
+ var thaiMatch=txt.match(/(\d{1,2}\s+[ก-๙.]+\s+\d{4})/);if(thaiMatch){var thaiDate=parseThaiDateText(thaiMatch[1]);if(thaiDate)return thaiDate;}
+ return null;
+}
+function parseThaiDateText(txt){
+ var mon={'ม.ค.':1,'มกราคม':1,'ก.พ.':2,'กุมภาพันธ์':2,'มี.ค.':3,'มีนาคม':3,'เม.ย.':4,'เมษายน':4,'พ.ค.':5,'พฤษภาคม':5,'มิ.ย.':6,'มิถุนายน':6,'ก.ค.':7,'กรกฎาคม':7,'ส.ค.':8,'สิงหาคม':8,'ก.ย.':9,'กันยายน':9,'ต.ค.':10,'ตุลาคม':10,'พ.ย.':11,'พฤศจิกายน':11,'ธ.ค.':12,'ธันวาคม':12},m,day,year;
+ m=String(txt||'').match(/(\d{1,2})\s+([ก-๙.]+)\s+(\d{4})/);
+ if(!m)return null; day=parseInt(m[1],10);year=parseInt(m[3],10);var key=m[2];if(mon[key]===undefined)return null;if(year>2400)year-=543;if(year<1900||year>2100||day<1||day>31)return null;return year+'-'+('0'+mon[key]).slice(-2)+'-'+('0'+day).slice(-2);
+}
+function parseDatesInLine(line){
+ var out=[],m,rx=/\b(\d{1,2})\s+([ก-๙.]+)\s+(\d{4})\b/g;while((m=rx.exec(line))){var d=parseThaiDateText(m[0]);if(d)out.push({date:d,text:m[0],index:m.index});}
+ return out;
+}
+function appointmentPriority(a){return [(a&&a.snapshot_date)||'',(a&&a.updated_at)||'',String((a&&a.source_index)||0).padStart(8,'0')];}
+function isNewerAppointment(a,b){if(!b)return true;var pa=appointmentPriority(a),pb=appointmentPriority(b),i;for(i=0;i<pa.length;i++){if(pa[i]!==pb[i])return pa[i]>pb[i];}return false;}
+function extractAppointment(txt,fileName,sourceIndex){
+ var lines=String(txt||'').split(/\r?\n/),snapshot=null,labDate=null,cands=[],i,j,ctx,ds,d,score,deptLine,timeMatch,placeMatch;
+ for(i=0;i<lines.length;i++){
+  if(/ข้อมูล\s*ณ\s*วันที่/i.test(lines[i])){var sm=parseDatesInLine(lines[i]);if(sm.length)snapshot=sm[0].date;}
+  if(/เจาะเลือด/.test(lines[i])){var ownLab=parseDatesInLine(lines[i]);if(ownLab.length)labDate=ownLab[0].date;else if(i>0){var prevLab=parseDatesInLine(lines[i-1]);if(prevLab.length)labDate=prevLab[0].date;}}
+ }
+ for(i=0;i<lines.length;i++){
+  ds=parseDatesInLine(lines[i]);if(!ds.length||/ข้อมูล\s*ณ\s*วันที่/i.test(lines[i])||/เจาะเลือด/.test(lines[i]))continue;
+  // Prefer the department named on the same OCR line. Only inspect adjacent lines when the date line has no department label.
+  deptLine=lines[i];
+  if(!/อายุรกรรม/.test(deptLine)&&!/จักษุกรรม|จักษุ|ห้องตรวจตา/.test(deptLine)){
+   if(i+1<lines.length&&/อายุรกรรม/.test(lines[i+1])&&!/จักษุกรรม|จักษุ/.test(lines[i+1]))deptLine=lines[i+1];
+   else if(i>0&&/อายุรกรรม/.test(lines[i-1])&&!/จักษุกรรม|จักษุ/.test(lines[i-1]))deptLine=lines[i-1];
+  }
+  if(!/อายุรกรรม/.test(deptLine)||/จักษุกรรม|จักษุ/.test(deptLine))continue;
+  ctx=lines[i]+' '+deptLine+(i+1<lines.length?' '+lines[i+1]:'');
+  timeMatch=ctx.match(/(?:เวลา\s*)?(\d{1,2}[:.]\d{2})/);
+  placeMatch=ctx.match(/(ห้องตรวจอายุรกรรม(?:\s*\([^)]*\))?(?:\s*ชั้น\s*\d+)?|แผนกอายุรกรรม(?:\s*\([^)]*\))?)/);
+  for(j=0;j<ds.length;j++){
+   d=ds[j];if(d.date<=new Date().toISOString().slice(0,10)&&!/นัด|appointment|next visit/i.test(ctx))continue;score=3;if(/ตรวจอายุรกรรม|ห้องตรวจอายุรกรรม|อายุรกรรม/.test(ctx))score+=1;if(timeMatch)score+=1;if(placeMatch)score+=1;
+   cands.push({date:d.date,dept:'med',type:'internal_medicine',place:placeMatch?placeMatch[1].trim():'',time:timeMatch?timeMatch[1].replace('.',':'):'',snapshot_date:snapshot,lab_date:labDate,source_file:fileName||'',source_index:sourceIndex||0,confidence:Math.min(0.99,0.65+score*0.06)});
+  }
+ }
+ if(!cands.length)return null;
+ cands.sort(function(a,b){if(a.snapshot_date!==b.snapshot_date)return (a.snapshot_date||'')<(b.snapshot_date||'')?1:-1;if(a.date!==b.date)return a.date<b.date?1:-1;return (a.source_index||0)<(b.source_index||0)?1:-1;});
+ return cands[0];
+}
+function extractAppointments(txt,fileName,sourceIndex){
+ var raw=String(txt||''),lines=raw.split(/\r?\n/),snapshot=null,labDate=null,out=[],seen={},i,j,ctx,ds,d,timeMatch,placeMatch,sourceSystem;
+ sourceSystem=/(ศูนย์โรคไต|ศูนย์ไต|คลินิกโรคไต|kidney\s*(?:center|centre|clinic)|renal\s*(?:center|centre|clinic))/i.test((fileName||'')+' '+raw)?'kidney_center':'hospital_app';
+ for(i=0;i<lines.length;i++){
+  if(/ข้อมูล\s*ณ\s*วันที่/i.test(lines[i])){var sm=parseDatesInLine(lines[i]);if(sm.length)snapshot=sm[0].date;}
+  if(/เจาะเลือด/.test(lines[i])){var lm=parseDatesInLine(lines[i]);if(lm.length)labDate=lm[0].date;else if(i>0){lm=parseDatesInLine(lines[i-1]);if(lm.length)labDate=lm[0].date;}}
+ }
+ for(i=0;i<lines.length;i++){
+  ds=parseDatesInLine(lines[i]);if(!ds.length||/ข้อมูล\s*ณ\s*วันที่/i.test(lines[i])||/เจาะเลือด/.test(lines[i]))continue;
+  ctx=(i>0?lines[i-1]+' ':'')+lines[i]+(i+1<lines.length?' '+lines[i+1]:'');
+  if(/เจาะเลือด/.test(ctx)&&ds.some(function(x){return x.date===labDate;}))continue;
+  var eye=/จักษุกรรม|จักษุ|ห้องตรวจตา|ophthalm|eye\s*clinic/i.test(ctx),
+      med=/อายุรกรรม|ห้องตรวจอายุรกรรม|internal\s*medicine/i.test(ctx),
+      kidney=/ศูนย์โรคไต|ศูนย์ไต|คลินิกโรคไต|nephrolog|renal|kidney\s*(?:center|centre|clinic)/i.test(ctx),
+      appointment=/นัด|พบแพทย์|ตรวจ|appointment|clinic|visit|โรงพยาบาล|รพ\.|ศูนย์|hospital/i.test(ctx);
+  if(!eye&&!med&&!kidney&&!appointment)continue;
+  var dept=eye?'eye':(kidney?'kidney':(med?'med':'general'));
+  var sys=kidney?'kidney_center':sourceSystem;
+  timeMatch=ctx.match(/(?:เวลา\s*)?(\d{1,2}[:.]\d{2})/);
+  placeMatch=ctx.match(/(ห้องตรวจ[^\n,，;]{1,50}|แผนก[^\n,，;]{1,50}|ศูนย์โรคไต[^\n,，;]{0,50}|คลินิก[^\n,，;]{1,50}|(?:โรงพยาบาล|รพ\.)[^\n,，;]{0,50})/i);
+  for(j=0;j<ds.length;j++){
+   d=ds[j];if(d.date<=new Date().toISOString().slice(0,10)&&!/นัด|appointment|next visit/i.test(ctx))continue;var key=d.date+'|'+dept+'|'+sys;if(seen[key])continue;seen[key]=true;
+   out.push({date:d.date,dept:dept,type:eye?'ophthalmology':(kidney?'kidney_center':(med?'internal_medicine':'clinic')),
+    title:eye?(LANG==='th'?'จักษุกรรม':'Ophthalmology'):(kidney?(LANG==='th'?'ศูนย์โรคไต':'Kidney center'):(med?(LANG==='th'?'อายุรกรรม':'Internal Medicine'):(LANG==='th'?'นัดหมาย':'Appointment'))),
+    source_system:sys,place:placeMatch?placeMatch[1].trim():'',time:timeMatch?timeMatch[1].replace('.',':'):'',snapshot_date:snapshot,
+    lab_date:med?labDate:null,source_file:fileName||'',source_index:sourceIndex||0,confidence:Math.min(0.99,0.65+0.06*(3+(eye||med||kidney?1:0)+(timeMatch?1:0)+(placeMatch?1:0)+(/นัด|appointment|visit/i.test(ctx)?1:0)))});
+  }
+ }
+ return out;
+}
+function ocrSignature(date,items){
+ var keys=[],k,out=[];
+ for(k in items){if(items.hasOwnProperty(k))keys.push(k);}
+ keys.sort();
+ for(var i=0;i<keys.length;i++)out.push(keys[i]+'='+Number(items[keys[i]]));
+ return (date||'')+'|'+out.join('|');
+}
+function extractOCRReferenceRange(line){
+ var m=line.match(/(?:reference|ref|normal)\s*(?:range)?\s*[:=]?\s*(\d+(?:\.\d+)?)\s*(?:-|–|—|to)\s*(\d+(?:\.\d+)?)/i);
+ if(m)return {type:'range',low:parseFloat(m[1]),high:parseFloat(m[2]),source:'ocr'};
+ m=line.match(/(?:reference|ref|normal)\s*(?:range)?\s*[:=]?\s*(<|<=|>|>=)\s*(\d+(?:\.\d+)?)/i);
+ if(m)return {type:'threshold',operator:m[1],value:parseFloat(m[2]),source:'ocr'};
+ return null;
+}
+function canonicalOCR(dept,date,items,meta,sourceFiles,rawText){
+ var canonicalMeta={},k,m,validation;
+ for(k in items){if(!items.hasOwnProperty(k))continue;
+  m=meta[k]||{};
+  validation={status:m.validation||'plausible',message:m.validation||'Within configured plausibility range'};
+  canonicalMeta[k]={confidence:m.confidence!==undefined?Number(m.confidence):0,
+   validation:validation,needs_review:!!m.needsReview||validation.status==='suspicious',
+   unit:(LM[k]&&LM[k].u)||'',reference_range:m.referenceRange||null,source_files:(m.sourceFiles||sourceFiles||[]).slice(0)};
+ }
+ return {schema_version:'ocr-canonical-1',department:dept,date:date||null,fields:items,field_meta:canonicalMeta,
+  source_images:(sourceFiles||[]).slice(0),raw_text:rawText||'',visit_key:dept+'_'+(date||'unknown'),
+  content_fingerprint:ocrSignature(date,items),
+  needs_review:!date||!Object.keys(items).length||Object.keys(canonicalMeta).some(function(x){return canonicalMeta[x].needs_review;})};
+}
+function findPendingDuplicate(date,items){
+ var sig=ocrSignature(date,items),j;
+ for(j=0;j<PENDING.length;j++){if(PENDING[j].signature===sig)return j;}
+ return -1;
+}
+function findExistingOCRDuplicate(date,dept,items){
+ var j,k,r,matched=false,count=0;
+ if(!date||!items)return -1;
+ for(j=0;j<DB.records.length;j++){r=DB.records[j];if(r.date!==date||r.dept!==dept)continue;
+  matched=true;count=0;
+  for(k in items){if(items.hasOwnProperty(k)&&r.items&&r.items[k]!==undefined&&Number(r.items[k])===Number(items[k]))count++;}
+  if(count===Object.keys(items).length)return j;
+ }
+ return -1;
+}
+function parseText(txt){
+ var out={},meta={},lines=txt.split('\n'),j,z;
+ for(j=0;j<lines.length;j++){var low=' '+lines[j].toLowerCase().replace(/,/g,'')+' ';
+  for(z=0;z<LABS.length;z++){var l=LABS[z];
+   if(DEPT!=='all'&&l.dp!==DEPT)continue;
+   if(out[l.k]!==undefined)continue;
+   var hit=-1,a;
+   for(a=0;a<l.alias.length;a++){var ix=low.indexOf(l.alias[a]);if(ix>=0){hit=ix+l.alias[a].length;break;}}
+   if(hit<0)continue;
+   var m=low.slice(hit).match(/(-?\d+(\.\d+)?)/);
+   if(m){var v=parseFloat(m[1]);if(!isNaN(v)){
+    out[l.k]=v;
+    var plausible=true;
+    if(l.min!==null&&l.min!==undefined&&v<l.min)plausible=false;
+    if(l.max!==null&&l.max!==undefined&&v>l.max)plausible=false;
+    var rr=extractOCRReferenceRange(lines[j]);
+    meta[l.k]={confidence:plausible?0.9:0.2,needsReview:!plausible,validation:plausible?'plausible':'suspicious',referenceRange:rr};
+   }}
+  }}
+ return {items:out,meta:meta};
+}
+function extractEncounterDraft(txt,date,fileName){
+ var raw=String(txt||''),low=raw.toLowerCase(),lines=raw.split(/\r?\n/),hasClinical=/ไซนัสอักเสบ|sinusitis|j\s*0?19|อาการ|วินิจฉัย|diagnos|ยาและเวชภัณฑ์|nasal spray|powder for irrigation|ความดัน|ชีพจร|อุณหภูมิ|ส่วนสูง|น้ำหนัก|วันที่รับบริการ|วันที่รักษา|แพทย์|สิทธิการรักษา|ประเภทผู้ป่วย/i.test(low+' '+raw);
+ if(!hasClinical)return null;
+ var dept=/โสต\s*ศอ\s*นาสิก|ENT|ear.?nose.?throat/i.test(raw)?'โสต ศอ นาสิก':(/จักษุ|ophthalm/i.test(raw)?'จักษุกรรม':(/อายุรกรรม|internal medicine/i.test(raw)?'อายุรกรรม':'การรักษาทั่วไป'));
+ var diagnosis=/sinusitis|ไซนัสอักเสบ|j\s*0?19/i.test(raw)?'ไซนัสอักเสบเฉียบพลัน (J01.9)':'';
+ var symptoms='',m=raw.match(/อาการ\s*[:：]?\s*([^\n]+)/);if(m)symptoms=m[1].trim();else for(i=0;i<lines.length;i++){if(/^อาการ\s*[:：]?\s*$/.test(lines[i].trim())&&i+1<lines.length){symptoms=lines[i+1].trim();break;}}
+ var physician='',pm=raw.match(/(?:แพทย์|พ\.ญ\.|น\.พ\.|น\.ต\.[^\n]{0,4})\s*[:：]?\s*([^\n]+)/);if(pm)physician=pm[1].trim();
+ var visitType='',vm=raw.match(/(ผู้ป่วยนอก|ผู้ป่วยใน|OPD|IPD)/i);if(vm)visitType=vm[1];
+ var right='',rm=raw.match(/(บัตรจ่ายตรง|ประกันสังคม|ชำระเงินเอง|สิทธิ\s*\S+)/);if(rm)right=rm[1];
+ var time='',tm=raw.match(/เวลา\s*([01]?\d|2[0-3]):([0-5]\d)/);if(tm)time=tm[1]+':'+tm[2];
+ var meds=[],seen={},i,line;
+ for(i=0;i<lines.length;i++){line=lines[i].trim();if(!line)continue;
+  if(/CLEANOZE|MOMETASONE|NASAL\s+SPRAY|POWDER\s+FOR\s+IRRIGATION/i.test(line)){if(!seen[line]){meds.push(line);seen[line]=1;}}
+ }
+ var instructions=raw.match(/พ่นจมูก[^\n]*/);if(instructions)meds.push(instructions[0].trim());
+ var vitals={heightCm:'',weightKg:'',bp:'',temperatureC:'',pulse:'',respiration:''},rateRx=/(\d{1,3})\s*(ครั้งต่อนาที|ครั้ง\/นาที|bpm)/gi,rateList=[],rateMatch;
+ m=raw.match(/(\d{2,3})\s*(?:เซนติเมตร|ซม\.?|cm)/i);if(m&&Number(m[1])>=80&&Number(m[1])<=230)vitals.heightCm=m[1];
+ m=raw.match(/(\d{2,3}(?:\.\d+)?)\s*(?:กิโลกรัม|กก\.?|kg)/i);if(m&&Number(m[1])>=2&&Number(m[1])<=300)vitals.weightKg=m[1];
+ m=raw.match(/(\d{2,3})\s*[\/|]\s*(\d{2,3})/);if(m&&Number(m[1])>=50&&Number(m[1])<=280&&Number(m[2])>=25&&Number(m[2])<=180)vitals.bp=m[1]+'/'+m[2];
+ m=raw.match(/(\d{2}(?:\.\d+)?)\s*(?:องศาเซลเซียส|°\s*C|องศา)/i);if(m)vitals.temperatureC=m[1];
+ while((rateMatch=rateRx.exec(raw))!==null)rateList.push({value:rateMatch[1],unit:rateMatch[2]});
+ if(rateList.length)vitals.pulse=rateList[0].value;
+ if(rateList.length>1)vitals.respiration=rateList[1].value;
+ return {date:date||'',time:time,category:'acute_illness',department:dept,facility:'',physician:physician,visitType:visitType,paymentRight:right,title:diagnosis||'การเข้ารับการรักษา',symptoms:symptoms,diagnosis:diagnosis,medications:meds.join('\n'),vitals:vitals,sourceImages:[fileName||''],rawText:raw,confirmed:false};
+}
+function loadTess(cb){
+ if(window.Tesseract){cb();return;}
+ var s=document.createElement('script');
+ s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+ s.onload=function(){cb();};
+ s.onerror=function(){alert(t('ocrFail'));};
+ document.head.appendChild(s);
+}
+function runOCR(files){
+ loadTess(function(){
+  PENDING=[];OCR_WARNINGS=[];E('ocrReview').innerHTML='';
+  window.Tesseract.createWorker(['tha','eng']).then(function(w){
+   var idx=0;
+   function next(){
+    if(idx>=files.length){w.terminate();E('pbar').style.width='100%';E('pstat').textContent='';showReview();return;}
+    E('pstat').textContent=t('reading')+' '+(idx+1)+' / '+files.length;
+    E('pbar').style.width=(idx/files.length*100)+'%';
+    w.recognize(files[idx]).then(function(res){
+     var txt=(res&&res.data&&res.data.text)?res.data.text:'';
+     if(!String(txt).trim())OCR_WARNINGS.push({file:files[idx]&&files[idx].name||'',message:'OCR returned no text'});
+     var parsed=parseText(txt),items=parsed.items,meta=parsed.meta,cnt=0,date=findDate(txt),duplicateOf=-1,existingDuplicate=-1,canonical,appointmentCandidates=extractAppointments(txt,files[idx].name,idx),appointmentCandidate=extractAppointment(txt,files[idx].name,idx),encounter=extractEncounterDraft(txt,date,files[idx].name);
+     for(var k in items){if(items.hasOwnProperty(k))cnt++;}
+     // Keep a review card for every readable image. Non-lab hospital pages
+     // (vitals, diagnosis, medication, visit details) used to be silently
+     // discarded when no lab aliases or appointment dates matched.
+     if(cnt||appointmentCandidates.length||String(txt).trim().length){
+      var signature=ocrSignature(date,items);
+      duplicateOf=findPendingDuplicate(date,items);
+      var inferredDept=(DEPT==='all')?(function(){var eye=false,kk;for(kk in items){if(items.hasOwnProperty(kk)&&LM[kk]&&LM[kk].dp==='eye')eye=true;}return eye?'eye':'med';})():DEPT;
+      existingDuplicate=findExistingOCRDuplicate(date,inferredDept,items);
+      canonical=canonicalOCR(inferredDept,date,items,meta,[files[idx].name],txt);
+      PENDING.push({date:date,items:items,meta:meta,file:files[idx].name,sourceFiles:[files[idx].name],rawText:txt,
+       department:inferredDept,signature:signature,duplicateOf:duplicateOf,existingDuplicate:existingDuplicate,canonical:canonical,appointmentCandidate:appointmentCandidate,appointmentCandidates:appointmentCandidates,encounter:encounter,
+       appointmentConfirmed:!!(appointmentCandidate&&appointmentCandidate.confidence>=0.85),unmatched:!cnt&&!appointmentCandidates.length&&!encounter,
+       needsReview:(canonical?canonical.needs_review:!appointmentCandidates.length)||duplicateOf>=0||existingDuplicate>=0||!cnt&&!appointmentCandidates.length&&!encounter});
+     }
+     idx++;next();
+    })['catch'](function(err){OCR_WARNINGS.push({file:files[idx]&&files[idx].name||'',message:String(err&&err.message||err||'OCR failed')});idx++;next();});}
+   next();
+  })['catch'](function(){alert(t('ocrFail'));});});
+}
+function showReview(){
+ if(!PENDING.length){var errHtml='<div class="card"><div class="dim">'+t('noData')+'</div>';
+  if(OCR_WARNINGS.length)errHtml+='<div class="adv" style="color:var(--mag)">OCR อ่านไม่สำเร็จ '+OCR_WARNINGS.map(function(x){return '<br>'+esc(x.file)+': '+esc(x.message);}).join('')+'</div>';
+  E('ocrReview').innerHTML=errHtml+'</div>';return;}
+ var h='<div class="card"><h3>'+t('review')+'</h3>',j;
+ if(OCR_WARNINGS.length)h+='<div class="adv" style="color:var(--mag)">มีภาพที่ OCR อ่านไม่สำเร็จ '+OCR_WARNINGS.map(function(x){return '<br>'+esc(x.file)+': '+esc(x.message);}).join('')+'</div>';
+ for(j=0;j<PENDING.length;j++){var p=PENDING[j],dateVal=p.date||'',warn=p.needsReview,dup=(p.duplicateOf>=0||p.existingDuplicate>=0);
+  h+='<div style="border:1px solid '+(warn?'var(--mag)':'var(--line)')+';border-radius:12px;padding:10px;margin-bottom:10px">'+
+     '<div class="hrow"><span class="badge">'+esc(p.file)+'</span><div class="spacer"></div>'+
+     '<input type="date" style="width:170px" data-act="ocrdate" data-val="'+j+'" value="'+dateVal+'">'+
+     (dup?'<span class="badge mg">'+(p.duplicateOf>=0?('ซ้ำกับรูปที่ '+(p.duplicateOf+1)):'ซ้ำกับข้อมูลเดิม')+'</span>':(warn?'<span class="badge mg">ตรวจสอบ</span>':''))+'</div>'+
+     '<div class="dim" style="margin:6px 0">'+esc((p.sourceFiles||[p.file]).join(', '))+'</div>'+
+     (p.unmatched?'<div class="adv" style="color:var(--gold)">อ่านข้อความได้ แต่ยังไม่พบข้อมูลที่ระบบจับคู่ได้ ข้อความ OCR จะแสดงไว้ให้ตรวจสอบและบันทึกเองได้</div>':'')+'<table>';
+  for(var k in p.items){if(!p.items.hasOwnProperty(k))continue;var mm=p.meta[k]||{};
+   h+='<tr><td>'+nm(LM[k])+'</td><td><input type="number" step="any" style="width:120px" data-act="ocrval" data-val="'+j+':'+k+
+      '" value="'+p.items[k]+'"></td><td class="dim">'+LM[k].u+'</td><td class="dim">'+(mm.confidence!==undefined?Math.round(mm.confidence*100)+'%':'-')+(mm.confirmed?' ✓':'')+'</td>'+ 
+      '<td><button class="btn mg" data-act="ocrdel" data-val="'+j+':'+k+'">'+t('del')+'</button></td></tr>';}
+  var aps=p.appointmentCandidates|| (p.appointmentCandidate?[p.appointmentCandidate]:[]);
+  h+='</table>'+(p.encounter?'<div class="card" style="margin-top:10px;border-color:var(--cyan)"><b>บันทึกการรักษาทั่วไป · ตรวจทานก่อนบันทึก</b><div class="grid g3" style="margin-top:8px">'+
+   '<div class="field"><label>วันที่เข้ารับการรักษา</label><input type="date" data-act="encval" data-val="'+j+':date" value="'+esc(p.encounter.date||'')+'"></div>'+ 
+   '<div class="field"><label>แผนก</label><input data-act="encval" data-val="'+j+':department" value="'+esc(p.encounter.department||'')+'"></div>'+ 
+   '<div class="field"><label>โรงพยาบาล/สถานที่</label><input data-act="encval" data-val="'+j+':facility" value="'+esc(p.encounter.facility||'')+'"></div>'+ 
+   '<div class="field"><label>แพทย์</label><input data-act="encval" data-val="'+j+':physician" value="'+esc(p.encounter.physician||'')+'"></div>'+ 
+   '<div class="field"><label>เวลา</label><input type="time" data-act="encval" data-val="'+j+':time" value="'+esc(p.encounter.time||'')+'"></div>'+ 
+   '<div class="field"><label>ประเภทผู้ป่วย</label><input data-act="encval" data-val="'+j+':visitType" value="'+esc(p.encounter.visitType||'')+'"></div>'+ 
+   '<div class="field"><label>สิทธิการรักษา</label><input data-act="encval" data-val="'+j+':paymentRight" value="'+esc(p.encounter.paymentRight||'')+'"></div>'+ 
+   '<div class="field"><label>หัวข้อ</label><input data-act="encval" data-val="'+j+':title" value="'+esc(p.encounter.title||'')+'"></div>'+ 
+   '<div class="field"><label>อาการ</label><input data-act="encval" data-val="'+j+':symptoms" value="'+esc(p.encounter.symptoms||'')+'"></div>'+ 
+   '<div class="field"><label>การวินิจฉัย</label><input data-act="encval" data-val="'+j+':diagnosis" value="'+esc(p.encounter.diagnosis||'')+'"></div></div>'+ 
+   '<div class="field"><label>ยาและวิธีใช้ (หนึ่งรายการต่อบรรทัด)</label><textarea rows="3" data-act="encval" data-val="'+j+':medications">'+esc(p.encounter.medications||'')+'</textarea></div>'+ 
+   '<div class="grid g3">'+[['heightCm','ส่วนสูง (ซม.)'],['weightKg','น้ำหนัก (กก.)'],['bp','ความดัน'],['temperatureC','อุณหภูมิ (°C)'],['pulse','ชีพจร (/นาที)'],['respiration','หายใจ (/นาที)']].map(function(v){return '<div class="field"><label>'+v[1]+'</label><input data-act="encvital" data-val="'+j+':'+v[0]+'" value="'+esc(p.encounter.vitals[v[0]]||'')+'"></div>';}).join('')+'</div>'+ 
+   '<label class="adv" style="display:block"><input type="checkbox" data-act="encconfirm" data-val="'+j+'" '+(p.encounter.confirmed?'checked':'')+'> ตรวจทานข้อมูลการรักษานี้แล้ว อนุญาตให้บันทึก</label></div>':'')+
+   (aps.length?'<div class="adv link"><b>นัดหมายที่ตรวจพบ</b>'+aps.map(function(a){return '<br>'+esc(dTxt(a.date))+' · '+esc(a.title||appointmentDeptName(a))+' · '+esc(appointmentSourceName(a.source_system))+(a.time?' · '+esc(a.time):'')+(a.place?' · '+esc(a.place):'')+' · '+Math.round(a.confidence*100)+'%';}).join('')+'</div>':'')+
+   (p.rawText?'<details style="margin-top:8px"'+(p.unmatched?' open':'')+'><summary class="link">ข้อความ OCR ที่อ่านได้</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:45vh;overflow:auto;background:#0b0e14;border:1px solid var(--line);border-radius:8px;padding:10px;font:12px/1.55 monospace">'+esc(p.rawText)+'</pre></details>':'')+'</div>';}
+ h+='<div class="hrow"><button class="btn cy" data-act="ocrconfirmhigh">'+t('confirmHigh')+'</button><div class="spacer"></div><button class="btn lm big" data-act="commit">'+t('confirm')+'</button></div></div>';
+ E('ocrReview').innerHTML=h;
+}
+function confirmHighConfidence(){
+ var changed=0,j,k,m,p;
+ for(j=0;j<PENDING.length;j++){p=PENDING[j];if(!p||p.duplicateOf>=0||p.existingDuplicate>=0)continue;
+  for(k in p.items){if(!p.items.hasOwnProperty(k))continue;m=p.meta[k]||{};
+   if(Number(m.confidence)>=0.9&&!m.needsReview&&m.validation!=='suspicious'){m.confirmed=true;if(p.canonical&&p.canonical.field_meta&&p.canonical.field_meta[k])p.canonical.field_meta[k].confirmed=true;changed++;}
+  }
+ }
+ for(j=0;j<PENDING.length;j++){p=PENDING[j];if(!p||!p.items)continue;var all=true,kk;for(kk in p.items){if(p.items.hasOwnProperty(kk)&&!((p.meta[kk]||{}).confirmed)){all=false;break;}}if(p.date&&all&&p.duplicateOf<0&&p.existingDuplicate<0)p.needsReview=false;}
+ showReview();
+ if(changed===0)alert(t('noHighConfidence'));else alert(t('confirmedHigh')+' '+changed);
+}
+function upsertAppointment(ap,fileName){
+ if(!ap||!ap.date||Number(ap.confidence)<0.85)return;
+ var source=ap.source_system||'hospital_app',list=DB.appointments||[],i,old=null;
+ for(i=0;i<list.length;i++){if(list[i].date===ap.date&&list[i].dept===ap.dept&&(list[i].source_system||'hospital_app')===source){old=list[i];break;}}
+ if(old&&!isNewerAppointment(ap,old))return;
+ var item={id:old?old.id:('ap_'+ap.date+'_'+ap.dept+'_'+source),date:ap.date,dept:ap.dept,type:ap.type||'clinic',title:ap.title||'',source_system:source,place:ap.place||'',time:ap.time||'',snapshot_date:ap.snapshot_date||null,source_file:ap.source_file||fileName||'',source_index:ap.source_index||0,confidence:ap.confidence||0,lab_date:ap.lab_date||null,updated_at:new Date().toISOString()};
+ if(old)list[i]=Object.assign({},old,item);else list.push(item);DB.appointments=list;
+}
+function commitOCR(){
+ var hasSavable=false,unmatchedCount=0,savedEncounterCount=0,j0;
+ for(j0=0;j0<PENDING.length;j0++){
+  var check=PENDING[j0],checkAps=check.appointmentCandidates||(check.appointmentCandidate?[check.appointmentCandidate]:[]);
+  if(check.unmatched)unmatchedCount++;
+  if(check.encounter&&check.encounter.confirmed&&check.encounter.date&&((check.encounter.diagnosis||check.encounter.symptoms||check.encounter.medications||check.encounter.title)))hasSavable=true;
+  if(checkAps.some(function(a){return a&&a.date&&Number(a.confidence)>=0.85;})||
+     (check.date&&check.duplicateOf<0&&check.existingDuplicate<0&&!check.needsReview&&Object.keys(check.items||{}).length>0))hasSavable=true;
+ }
+ if(!hasSavable){alert(LANG==='th'?'อ่านข้อความจากภาพได้ แต่ยังไม่มีข้อมูลที่ระบบจับคู่เพื่อบันทึก ข้อความ OCR ยังคงแสดงให้ตรวจสอบ แต่รายการนี้ยังบันทึกไม่ได้ กรุณาตรวจภาพและลองอัปโหลดใหม่':'OCR text was read, but no supported fields were found to save. The recognized text remains available for review, but this item cannot be saved. Check the image and try uploading it again.');return;}
+ var j,z;
+ for(j=0;j<PENDING.length;j++){var p=PENDING[j],mI={},eI={},anyM=false,anyE=false;
+  if(p.encounter&&p.encounter.confirmed&&p.encounter.date){upsertEncounter(p.encounter);savedEncounterCount++;}
+  var aps=p.appointmentCandidates|| (p.appointmentCandidate?[p.appointmentCandidate]:[]);for(var ai=0;ai<aps.length;ai++)upsertAppointment(aps[ai],p.file);
+  if(!p.date||p.duplicateOf>=0||p.existingDuplicate>=0||p.needsReview){continue;}
+  for(var k in p.items){if(!p.items.hasOwnProperty(k))continue;
+   if(!LM[k])continue;
+   if(LM[k].dp==='eye'){eI[k]=p.items[k];anyE=true;}else{mI[k]=p.items[k];anyM=true;}}
+  function put(dp,items){var ex=null;
+   for(z=0;z<DB.records.length;z++){if(DB.records[z].date===p.date&&DB.records[z].dept===dp)ex=DB.records[z];}
+   if(ex){for(var q in items){if(items.hasOwnProperty(q))ex.items[q]=items[q];}}
+   else{DB.records.push({id:'r'+(new Date()).getTime()+dp+j,date:p.date,dept:dp,note:'OCR',items:items,source_images:p.sourceFiles||[],ocr_canonical:p.canonical||null,review_status:'confirmed',domains:dp==='eye'?domainsForItems(items):['kidney_metabolic']});}}
+  if(anyM)put('med',mI);
+  if(anyE)put('eye',eI);}
+ save();PENDING=[];E('ocrReview').innerHTML='';renderAll();
+ alert(t('saved')+(savedEncounterCount?(LANG==='th'?' · บันทึกข้อมูลการรักษา '+savedEncounterCount+' ภาพ':' · saved '+savedEncounterCount+' encounter image(s)'):'')+(unmatchedCount?(LANG==='th'?' (มี '+unmatchedCount+' ภาพที่ยังต้องตรวจสอบหรือไม่ได้ยืนยัน)':' ('+unmatchedCount+' image(s) remain unconfirmed or unmatched)'):''));go(savedEncounterCount?'events':'dash');
+}
+function upsertEncounter(draft){
+ if(!draft||!draft.date)return;DB.encounters=DB.encounters||[];var old=null,i;
+ for(i=0;i<DB.encounters.length;i++){if(DB.encounters[i].date===draft.date&&DB.encounters[i].category==='acute_illness'){old=DB.encounters[i];break;}}
+ if(!old){old={id:'enc_'+draft.date+'_'+Date.now(),date:draft.date,category:'acute_illness',department:'',facility:'',title:'',symptoms:'',diagnosis:'',medications:[],vitals:{},source_images:[],raw_ocr:[],review_status:'confirmed'};DB.encounters.push(old);}
+ ['department','facility','physician','time','visitType','paymentRight','title','symptoms','diagnosis'].forEach(function(k){if(draft[k])old[k]=draft[k];});
+ var meds=String(draft.medications||'').split(/\r?\n/).map(function(x){return x.trim();}).filter(Boolean);old.medications=(old.medications||[]).concat(meds).filter(function(x,i,a){return a.indexOf(x)===i;});
+ old.vitals=Object.assign({},old.vitals||{});Object.keys(draft.vitals||{}).forEach(function(k){if(draft.vitals[k]!==''&&draft.vitals[k]!==undefined)old.vitals[k]=draft.vitals[k];});
+ old.source_images=(old.source_images||[]).concat(draft.sourceImages||[]).filter(function(x,i,a){return a.indexOf(x)===i;});old.raw_ocr=(old.raw_ocr||[]).concat(draft.rawText?[draft.rawText]:[]);old.updated_at=new Date().toISOString();
+}
+
+/* ========== 14. รายงานสำหรับพิมพ์ ========== */
+var REPORT_MODE='all';
+function showUserGuide(){
+ var box=E('mbox'),th=LANG==='th',h='';
+ h+='<div class="hrow"><h2 style="margin:0;color:var(--lime)">'+(th?'คู่มือการใช้งาน CKD Lab Tracker':'CKD Lab Tracker User Guide')+'</h2><div class="spacer"></div><button class="btn" data-act="close">'+(th?'ปิด':'Close')+'</button></div>';
+ if(th){
+  h+='<p>คู่มือฉบับนี้รวบรวมที่มา พัฒนาการ และวิธีใช้ Tracker รุ่นปัจจุบัน</p>';
+  h+='<h3>1. ที่มาและเป้าหมาย</h3><p>เริ่มจากแนวคิดทำเครื่องมือช่วยติดตามผลตรวจและสุขภาพของคุณแม่ที่เป็นโรคไตเรื้อรัง โดยรวบรวมข้อมูลจากอายุรกรรมและจักษุกรรมไว้ในที่เดียว เพื่อดูแนวโน้ม เตรียมพบแพทย์ และลดการค้นข้อมูลจากหลายแหล่ง</p>';
+  h+='<h3>2. พัฒนาการของแอป</h3><ul><li>ต่อยอดจากไฟล์ HTML เดิม โดยคงการเก็บข้อมูลใน browser และเพิ่มกราฟไต สัญญาณชีพ ประวัติผลตรวจ ยา การวินิจฉัย และเหตุการณ์ทางการแพทย์</li><li>เพิ่ม OCR สำหรับอ่านภาพผลตรวจ และดึงวันนัดจากภาพของแอปโรงพยาบาล/ศูนย์โรคไต โดยให้ตรวจทานก่อนบันทึก</li><li>Dashboard แสดงนัดหมายล่วงหน้าสูงสุด 3 รายการ รวมวันเจาะเลือดแยกจากวันพบแพทย์</li><li>เพิ่มรายงาน A ภาพรวม, B อายุรกรรม, C จักษุกรรม พร้อมปรับ Contrast กราฟรายงานให้อ่านง่ายขึ้น</li><li>แก้ PIN ให้รับตัวเลข 6 หลัก เช่น 197382; ใช้ PIN ในเครื่องเป็นด่านปลดล็อก โดยไม่มี Firebase Authentication ซ้อน</li><li>เชื่อม Firebase Realtime Database ที่ path <code>ckd_tracker</code> และรวมข้อมูลด้วย transaction; ภาพ Firebase ล่าสุดยืนยันว่ามีโครงสร้างข้อมูลแล้ว</li></ul>';
+  h+='<h3>3. เริ่มใช้งานและ PIN</h3><ol><li>เปิดหน้าเว็บบนอุปกรณ์ที่ต้องการใช้</li><li>กดปุ่ม PIN บนแถบด้านบน ครั้งแรกตั้ง PIN 6 หลักและกรอกยืนยัน ครั้งต่อไปกรอก PIN เดิมเพื่อปลดล็อกการบันทึก นำเข้า OCR และซิงก์</li><li>PIN เก็บแยกใน browser/อุปกรณ์นั้น ๆ ถ้าเปลี่ยนอุปกรณ์จะต้องตั้ง PIN บนอุปกรณ์ใหม่</li></ol>';
+  h+='<h3>4. บันทึกผลและใช้ OCR</h3><ul><li>เพิ่มผลตรวจผ่าน “อัปโหลดรูป (OCR)” เลือกแผนกอายุรกรรม/จักษุกรรม แล้วตรวจทานข้อมูลที่อ่านได้ก่อนยืนยัน</li><li>ไม่มีหน้ากรอกผลตรวจหรือบันทึกรายวันแล้ว ข้อมูลเดิมยังคงแสดงจากประวัติที่บันทึกไว้</li><li>OCR ใช้ Tesseract.js และโหลดส่วนประกอบจาก CDN จึงต้องต่ออินเทอร์เน็ต ระวังตัวเลข/วันที่ที่อ่านไม่ชัด และแก้ให้ตรงภาพก่อนบันทึก</li><li>นัดหมายที่อ่านได้จะสะสมจากหลายภาพและหลายแหล่ง; ตรวจวันนัดและวันเจาะเลือดใน Dashboard</li></ul>';
+  h+='<h3>5. Dashboard และรายงาน</h3><ul><li>Dashboard รวมผลล่าสุด แนวโน้ม eGFR สัญญาณชีพ จุดที่ควรตรวจสอบ เหตุการณ์ และนัดหมาย</li><li>ประวัติย้อนหลังดูผลตามเวลาและแผนก แตะแถว/กราฟเพื่อดูรายละเอียด</li><li>กด “พิมพ์รายงาน” แล้วเลือกรายงาน A/B/C จากนั้นพิมพ์หรือบันทึกเป็น PDF</li><li>ข้อความ AI Prompt ในรายงานเป็นแนวทางประกอบเอกสาร ไม่รับประกันว่า AI ทุกระบบจะทำตามเอง ผู้ใช้ต้องสั่งให้วิเคราะห์ PDF ด้วย</li></ul>';
+  h+='<h3>6. Firebase Sync และสำรองข้อมูล</h3><ul><li>ข้อมูล Cloud อยู่ใต้ <code>ckd_tracker</code>; เมื่อเปิดเว็บจะอ่านข้อมูล Cloud และหลังปลดล็อก PIN การบันทึกจะส่งการเปลี่ยนแปลงขึ้น Cloud</li><li>กด “ซิงก์ Cloud” เพื่อเริ่ม/สั่งซิงก์ หากฐานว่าง ระบบจะถามยืนยันก่อนส่งข้อมูลใน browser นี้เป็นชุดแรก</li><li>สำรอง/กู้คืนผ่านเมนู “ข้อมูล/สำรอง” ดาวน์โหลดหรือเลือกไฟล์ JSON</li><li>ชุด GitHub Pages ขั้นต่ำประกอบด้วย <code>index.html</code>, <code>app-icon.png</code> และ <code>app_db_payload.json</code> เพื่อโหลดข้อมูลตั้งต้น</li><li><b>หมายเหตุ:</b> PIN ปลดล็อกเฉพาะหน้าแอป ไม่ได้ป้องกัน Firebase โดยตรง หาก Rules เปิดอ่าน/เขียนสาธารณะ ผู้ที่เข้าถึงฐานได้อาจอ่าน แก้ไข หรือลบข้อมูล</li></ul>';
+  h+='<h3>7. ขอบเขตการใช้ข้อมูล</h3><p>กราฟและสีเตือนใช้ช่วยสังเกตข้อมูลที่บันทึกไว้ ไม่ใช่การวินิจฉัยหรือคำสั่งรักษา ตรวจทานข้อมูล OCR และปรึกษาทีมแพทย์ก่อนตัดสินใจเรื่องการรักษา</p>';
+ }else{
+  h+='<p>This guide summarizes the Tracker’s background, development, and current workflow.</p>';
+  h+='<h3>1. Purpose</h3><p>The project began as a way to follow the user’s mother’s chronic kidney disease results and related health information. It brings nephrology and ophthalmology records together to review trends and prepare for appointments.</p>';
+  h+='<h3>2. What was added</h3><ul><li>Daily vitals, lab history, medication, diagnoses, medical events, and kidney/eye charts.</li><li>OCR for lab and appointment screenshots, with review before saving; upcoming appointments show up to three items across sources.</li><li>Printable A overall, B nephrology, and C ophthalmology reports with improved chart contrast.</li><li>Fixed six-digit local PIN validation, including 197382. Firebase Authentication is intentionally not used.</li><li>Firebase Realtime Database sync under <code>ckd_tracker</code> using transactions. The latest Firebase screenshot shows the data tree.</li></ul>';
+  h+='<h3>3. PIN and editing</h3><ol><li>Open the app on each device.</li><li>Use the PIN button in the header. Set a six-digit PIN on first use, or enter the existing PIN to unlock editing, OCR commit, import, and sync.</li><li>The PIN is stored per browser/device and does not transfer to another device.</li></ol>';
+  h+='<h3>4. Save results and use OCR</h3><ul><li>Add lab results through Upload Images (OCR), choose nephrology or ophthalmology, and review recognized data before confirming.</li><li>Manual lab entry and daily-log pages have been removed. Existing records remain available in the history and dashboard.</li><li>OCR loads Tesseract.js from a CDN, so an internet connection is required. Verify unclear dates and values against the image.</li></ul>';
+  h+='<h3>5. Dashboard and reports</h3><ul><li>The dashboard summarizes latest results, eGFR trends, vitals, events, and upcoming appointments.</li><li>Use History to review records over time. Select Print Report and choose A, B, or C to print or save a PDF.</li><li>The included AI prompt is guidance; the user must still ask their AI system to analyze the PDF.</li></ul>';
+  h+='<h3>6. Firebase and backups</h3><ul><li>Cloud data is stored under <code>ckd_tracker</code>. Unlock the local PIN before writing. Use Sync Cloud to start or request a sync; an empty database prompts before the first upload.</li><li>Use Data / Backup to export or import JSON. The basic GitHub Pages deployment uses <code>index.html</code>, <code>app-icon.png</code>, and <code>app_db_payload.json</code>.</li><li><b>Note:</b> The local PIN does not protect Firebase directly. Public database Rules can allow others to read, change, or delete data.</li></ul>';
+  h+='<h3>7. Intended use</h3><p>Charts and flags help review recorded data; they are not a diagnosis or treatment instruction. Verify OCR and consult the care team before making medical decisions.</p>';
+ }
+ box.innerHTML=h;E('modal').className='modal on';
+}
+function showReportChooser(){
+ var box=E('mbox');
+ box.innerHTML='<h3 style="margin-top:0">เลือกรายงานที่ต้องการพิมพ์</h3>'+
+  '<p class="sub">ระบบจะสร้าง PDF ตามขอบเขตที่เลือก โดยไม่เปลี่ยนแผนกบน Dashboard</p>'+
+  '<div class="grid g3">'+
+  '<button class="btn lm big" data-act="report-mode" data-val="all">A · ภาพรวมสุขภาพ</button>'+
+  '<button class="btn cy big" data-act="report-mode" data-val="med">B · อายุรกรรม</button>'+
+  '<button class="btn mg big" data-act="report-mode" data-val="eye">C · จักษุกรรม</button></div>'+
+  '<div style="margin-top:12px;text-align:right"><button class="btn" data-act="close">ยกเลิก</button></div>';
+ E('modal').className='modal on';
+}
+function reportPatientAge(){
+ var birth=DB.patient&&DB.patient.birthDate?new Date(DB.patient.birthDate+'T00:00:00'):new Date('1947-10-20T00:00:00');
+ var now=new Date(),age=now.getFullYear()-birth.getFullYear();
+ /* Use calendar-year age to preserve the age convention explicitly supplied in the family record. */
+ return age;
+}
+function reportProfileHtml(){
+ var p=DB.patient||{},age=reportPatientAge(),diseases=Array.isArray(p.chronicDiseases)?p.chronicDiseases:[];
+ var bdate=p.birthDate||'1947-10-20',wt=(p.weightKg!==undefined&&p.weightKg!==null)?p.weightKg:68,ht=(p.heightCm!==undefined&&p.heightCm!==null)?p.heightCm:165;
+ var html='<h3>ข้อมูลพื้นฐานผู้ป่วย</h3><div class="pbox">';
+ html+='เพศหญิง · วันเกิด '+dTxt(bdate)+' · อายุ '+age+' ปี<br>';
+ html+='ส่วนสูง '+esc(String(ht))+' ซม. · น้ำหนักตามข้อมูลพื้นฐาน '+esc(String(wt))+' กก.<br>';
+ html+='โรคประจำตัว: '+(diseases.length?diseases.map(esc).join(' · '):'ไม่พบข้อมูล')+'<br>';
+ var egfr=last('med'),ev=egfr&&egfr.items?egfr.items.egfr:null;
+ if(ev!==null&&ev!==undefined)html+='eGFR ล่าสุดที่บันทึก: <b>'+esc(String(ev))+' mL/min/1.73 m²</b> ('+dTxt(egfr.date)+')<br>';
+ else html+='eGFR ล่าสุดที่บันทึก: ยังไม่มีข้อมูล<br>';
+ html+='</div>';return html;
+}
+function reportSourceRange(record,key){
+ try{var fm=record&&record.ocr_canonical&&record.ocr_canonical.field_meta&&record.ocr_canonical.field_meta[key];if(fm&&fm.reference_range)return String(fm.reference_range);}catch(e){}
+ try{var fm2=record&&record.field_meta&&record.field_meta[key];if(fm2&&fm2.reference_range)return String(fm2.reference_range);}catch(e2){}
+ return '';
+}
+function reportRangeBounds(range){
+ if(!range)return null;var x=String(range).replace(/,/g,'').replace(/−/g,'-'),m,lo=null,hi=null;
+ m=x.match(/(?:>=|≥|>|มากกว่า|ไม่น้อยกว่า)\s*(-?\d+(?:\.\d+)?)/i);if(m)lo=parseFloat(m[1]);
+ m=x.match(/(?:<=|≤|<|น้อยกว่า|ไม่เกิน)\s*(-?\d+(?:\.\d+)?)/i);if(m)hi=parseFloat(m[1]);
+ if(lo===null&&hi===null){m=x.match(/(-?\d+(?:\.\d+)?)\s*(?:-|ถึง|to|–|—)\s*(-?\d+(?:\.\d+)?)/i);if(m){lo=parseFloat(m[1]);hi=parseFloat(m[2]);}}
+ if(lo===null&&hi===null)return null;return {min:lo,max:hi};
+}
+function reportRiskClass(l,v,record){
+ if(!l||v===null||v===undefined||isNaN(v))return 'risk-black';
+ var f=flagL(l.k,v),range=reportRangeBounds(reportSourceRange(record,l.k));
+ if(range){if((range.min!==null&&v<range.min)||(range.max!==null&&v>range.max))f='abnormal';else f='ok';}
+ if(!f||f==='ok')return 'risk-black';
+ /* Critical thresholds are explicitly field-specific; otherwise an out-of-range result is a watch item. */
+ var critical=false;
+ if(l.k==='egfr'&&v<15)critical=true;
+ else if(l.k==='k'&&(v>=6||v<2.8))critical=true;
+ else if(l.k==='na'&&(v<125||v>155))critical=true;
+ else if(l.k==='hco3'&&v<12)critical=true;
+ else if(l.k==='a1c'&&v>=10)critical=true;
+ else if(l.k==='iop_od'&&v>=30)critical=true;
+ else if(l.k==='iop_os'&&v>=30)critical=true;
+ return critical?'risk-red':'risk-blue';
+}
+function dashboardRiskClass(l,v,record){var c=reportRiskClass(l,v,record);return c==='risk-red'?'dash-risk-red':(c==='risk-blue'?'dash-risk-blue':(v===null||v===undefined||isNaN(v)?'':'dash-risk-normal'));}
+function dashboardVitalClass(k,v){var f=flagV(k,v);return f==='ok'?'dash-risk-normal':((f==='hi'||f==='lo')?'dash-risk-blue':'');}
+function reportRiskLabel(cls){
+ if(LANG==='en')return cls==='risk-red'?'Special attention':(cls==='risk-blue'?'Monitor':'Within reference');
+ return cls==='risk-red'?'เฝ้าระวังเป็นพิเศษ':(cls==='risk-blue'?'เฝ้าระวัง':'ปกติ');
+}
+function reportReference(l,record){
+ var r=reportSourceRange(record,l.k)||l.reference_range||l.ref||refTxt(l);
+ return r===undefined||r===null||r===''?'-':String(r);
+}
+function reportAiPrompt(mode){
+ if(mode==='med')return 'คำสั่งสำหรับ AI Analysis — รายงานอายุรกรรม\\n'+
+ 'ให้ใช้ข้อมูลทั้งหมดใน PDF นี้เป็นบริบทหลัก หากผู้ใช้อัปโหลดไฟล์แล้วพิมพ์เพียง “สรุป” หรือส่งคำสั่งสั้น/ไม่ครบ ให้ถือว่าคำสั่งนี้เป็นแนวทางหลักและเริ่มวิเคราะห์ทันที โดยไม่ถามให้ผู้ใช้เขียน Prompt ใหม่\\n\\n'+
+ 'วิเคราะห์เฉพาะประเด็นอายุรกรรมที่มีหลักฐานในรายงาน โดยเน้นโรคไตเรื้อรังก่อนฟอกไต, eGFR, creatinine, BUN, potassium, sodium, bicarbonate, phosphorus, albuminuria/proteinuria, เบาหวาน/HbA1c, ความดัน, โรคหัวใจ, เก๊าท์, ยา/คำแนะนำ และแนวโน้มตามวันที่ เปรียบเทียบค่าปัจจุบันกับครั้งก่อนและช่วงอ้างอิงที่ระบุในรายงาน ระบุค่าที่ควรติดตามเป็นพิเศษพร้อมเหตุผล และสร้างรายการคำถามสำหรับปรึกษาแพทย์\\n\\n'+
+ 'ห้ามแต่งข้อมูลที่ไม่มีใน PDF ห้ามถือผลเก่าเป็นผลปัจจุบันโดยไม่ระบุวันที่ แยกข้อเท็จจริงกับการตีความ ไม่วินิจฉัยหรือสั่งปรับยา และระบุข้อจำกัด/ข้อมูลที่ขาดให้ชัดเจน';
+ if(mode==='eye')return 'คำสั่งสำหรับ AI Analysis — รายงานจักษุกรรม\\n'+
+ 'ให้ใช้ข้อมูลทั้งหมดใน PDF นี้เป็นบริบทหลัก หากผู้ใช้อัปโหลดไฟล์แล้วพิมพ์เพียง “สรุป” หรือส่งคำสั่งสั้น/ไม่ครบ ให้ถือว่าคำสั่งนี้เป็นแนวทางหลักและเริ่มวิเคราะห์ทันที โดยไม่ถามให้ผู้ใช้เขียน Prompt ใหม่\\n\\n'+
+ 'วิเคราะห์เฉพาะข้อมูลจักษุกรรมที่มีในรายงาน เช่น visual acuity, intraocular pressure (IOP), cup-to-disc ratio (CDR), OCT/RNFL, visual field และ diabetic retinopathy หากมี เปรียบเทียบสองตาและแนวโน้มตามวันที่ ระบุค่าที่เปลี่ยนจากรอบก่อน ประเด็นที่ควรติดตาม และคำถามที่ควรนำไปพบจักษุแพทย์ แยกโรคต้อหิน การมองเห็น และจอประสาทตาจากเบาหวานออกจากกัน ห้ามสรุปความสัมพันธ์เชิงสาเหตุหากหลักฐานไม่เพียงพอ\\n\\n'+
+ 'ห้ามแต่งข้อมูลที่ไม่มีใน PDF ห้ามถือผลเก่าเป็นผลปัจจุบันโดยไม่ระบุวันที่ แยกข้อเท็จจริงกับการตีความ และไม่ใช้แทนการตรวจหรือวินิจฉัยโดยจักษุแพทย์';
+ return 'คำสั่งสำหรับ AI Analysis — รายงานภาพรวมสุขภาพ\\n'+
+ 'ให้ใช้ข้อมูลทั้งหมดใน PDF นี้เป็นบริบทหลัก หากผู้ใช้อัปโหลดไฟล์แล้วพิมพ์เพียง “สรุป” หรือส่งคำสั่งสั้น/ไม่ครบ หรือเผลอกด Enter ก่อนเขียนคำสั่ง ให้ถือว่าคำสั่งนี้เป็นแนวทางหลักและเริ่มวิเคราะห์ทันที โดยไม่ถามให้ผู้ใช้เขียน Prompt ใหม่\\n\\n'+
+ 'สรุปข้อมูลพื้นฐานผู้ป่วย โรคประจำตัว 5 โรค ผลตรวจล่าสุดและแนวโน้มตามเวลา สิ่งที่เปลี่ยนจากรอบก่อน ประวัติเหตุการณ์ทางการแพทย์ทั้งหมด การพบแพทย์ ยา/คำแนะนำ และประเด็นจากอายุรกรรมกับจักษุกรรม วิเคราะห์ความสัมพันธ์ระหว่างไต เบาหวาน ความดัน โรคหัวใจ เก๊าท์ และข้อมูลตาอย่างระมัดระวัง โดยไม่สรุปเหตุและผลเกินหลักฐาน จัดลำดับประเด็นที่ควรติดตามและคำถามสำหรับทีมแพทย์\\n\\n'+
+ 'ห้ามแต่งผลตรวจ ประวัติ ยา หรือการวินิจฉัยที่ไม่มีใน PDF ห้ามใช้ผลเก่าแทนผลปัจจุบันโดยไม่ระบุวันที่ อ้างอิงค่าพร้อมวันที่และช่วงอ้างอิงที่ปรากฏในเอกสาร แยกข้อเท็จจริง การตีความ และข้อเสนอแนะ ไม่ใช้แทนการวินิจฉัยหรือคำสั่งรักษาจากแพทย์';
+}
+function buildReport(mode){
+ REPORT_MODE=mode||'all';
+ var j,h='',depts=REPORT_MODE==='all'?['med','eye']:[REPORT_MODE],today=dTxt(new Date().toISOString().slice(0,10));
+ var title=REPORT_MODE==='all'?'A · รายงานภาพรวมสุขภาพ':(REPORT_MODE==='med'?'B · รายงานอายุรกรรม':'C · รายงานจักษุกรรม');
+ h+='<h2>'+esc(title)+'</h2>';
+ h+='<div>'+t('patient')+' : '+esc(DB.patient.name||'คุณแม่')+' &nbsp; | &nbsp; '+t('printedOn')+' : '+today+'</div>';
+ h+=reportProfileHtml();
+ h+='<div class="pbox"><span class="risk-red">● '+t('riskSpecial')+'</span>　<span class="risk-blue">● '+t('riskWatch')+'</span>　<span class="risk-black">● '+t('riskNormal')+'</span></div>';
+ if(REPORT_MODE==='all'){
+  h+=buildReportOverview();
+  h+='<div class="pbox"><b>'+t('changeHint')+'</b><br>'+esc(t('reportDisclaimer'))+'</div>';
+  h+='<h3>คำสั่งสำหรับ AI Analysis</h3><div class="ai-prompt">'+esc(reportAiPrompt(REPORT_MODE))+'</div>';
+  h+='<div style="margin-top:26px">'+t('sigDoc')+' ............................................................</div>';
+  E('printArea').innerHTML=h;return;
+ }
+ h+='<div class="pbox"><b>'+t('changeT')+'</b><br>'+buildReportChangeSummary(REPORT_MODE)+'</div>';
+ for(var di=0;di<depts.length;di++){
+  var dp=depts[di];
+  h+='<h3>'+(dp==='eye'?t('deptEye'):t('deptMed'))+'</h3>';
+  var vs=(DB.visits||[]).slice().sort(byDate).reverse(),vFound=null;
+  for(j=0;j<vs.length;j++){if(vs[j].dept===dp&&!vFound)vFound=vs[j];}
+  if(vFound){h+='<div class="pbox">'+t('date')+' : '+dTxt(vFound.date)+' '+esc(vFound.time||'')+
+   ' | '+t('doctor')+' : '+esc(vFound.doctor||'-')+'<br>'+t('place')+' : '+esc(vFound.place||'-')+
+   ' | '+t('symptom')+' : '+esc(vFound.symptom||'-')+'<br>'+t('ptype')+' : '+esc(vFound.ptype||'-')+' | '+t('right')+' : '+esc(vFound.right||'-')+'</div>';}
+  var dxs=(DB.diagnoses||[]).slice().sort(byDate).reverse(),dh='';
+  for(j=0;j<dxs.length;j++){if(dxs[j].dept!==dp)continue;
+   dh+='<tr><td>'+esc(dxs[j].code||'')+'</td><td>'+esc(LANG==='th'?dxs[j].th:dxs[j].en)+'</td><td>'+(dxs[j].lv==='p'?t('primary'):t('secondary'))+'</td><td>'+dTxt(dxs[j].date)+'</td></tr>';}
+  if(dh)h+='<table><tr><th>ICD</th><th>'+t('dxT')+'</th><th>-</th><th>'+t('date')+'</th></tr>'+dh+'</table>';
+  var R=last(dp),Rp=prevR(dp);
+  if(R){var lh='';
+   for(j=0;j<LABS.length;j++){var l=LABS[j];if(l.dp!==dp)continue;
+    var v=R.items[l.k];if(v===undefined||v===null)continue;
+    var pv=Rp?Rp.items[l.k]:null,cls=reportRiskClass(l,v,R),srcRef=reportReference(l,R); 
+    lh+='<tr><td>'+nm(l)+'</td><td class="'+cls+'">'+fmtL(l.k,v)+' '+l.u+'</td><td>'+esc(srcRef)+'</td><td>'+((pv===undefined||pv===null)?'-':Number(pv).toFixed(l.dec))+'</td><td class="'+cls+'">'+reportRiskLabel(cls)+'</td></tr>';}
+   if(lh)h+='<table><tr><th>'+t('item')+'</th><th>'+dTxt(R.date)+'</th><th>'+t('ref')+'</th><th>'+(Rp?dTxt(Rp.date):'-')+'</th><th>การติดตาม</th></tr>'+lh+'</table>';}
+  var changes=reportDeptChanges(dp);
+  if(changes.length){h+='<h3>'+t('changeT')+'</h3><table><tr><th>'+t('item')+'</th><th>'+t('date')+'</th><th>Δ</th><th>%</th><th>การเปลี่ยนแปลง</th></tr>';
+   for(j=0;j<changes.length;j++){var c=changes[j],lobj=LM[c.key]||{k:c.key},cv=null;
+    var curRec=last(dp);if(curRec&&curRec.items)cv=curRec.items[c.key];
+    var cls2=cv===null?'risk-black':reportRiskClass(lobj,cv,curRec);
+    h+='<tr><td>'+esc(c.name)+'</td><td>'+dTxt(c.date)+'</td><td class="'+cls2+'">'+c.delta+'</td><td class="'+cls2+'">'+c.pct+'</td><td class="'+cls2+'">'+reportRiskLabel(cls2)+' · '+esc(c.label)+'</td></tr>';}
+   h+='</table>';}
+  var ml=medsOf(dp),mh='';
+  for(j=0;j<ml.length;j++){mh+='<tr><td>'+esc(ml[j].n)+'</td><td>'+esc(LANG==='th'?ml[j].th:ml[j].en)+'</td></tr>';}
+  if(mh)h+='<table><tr><th>'+t('medT')+'</th><th>-</th></tr>'+mh+'</table>';
+  var ad=labAdvice(dp);if(dp==='med')ad=ad.concat(vitalAdvice());
+  if(ad.length){h+='<div class="pbox"><b>'+t('adviceT')+'</b><br>'+ad.join('').replace(/<div class="adv[^"]*">/g,'- ').replace(/<\/div>/g,'<br>')+'</div>';}
+ }
+ h+='<h3>'+t('timelineT')+'</h3><div class="pbox">'+buildReportTimeline(REPORT_MODE)+'</div>';
+ if(REPORT_MODE==='all'){
+  h+='<h3>ประวัติเหตุการณ์ทางการแพทย์ทั้งหมด</h3><div class="pbox">'+buildReportMedicalEvents()+'</div>';
+ }
+ h+='<h3>'+t('trend')+'</h3>'+captureReportCharts(REPORT_MODE);
+ h+='<div class="pbox"><b>'+t('changeHint')+'</b><br>'+esc(t('reportDisclaimer'))+'</div>';
+ var D=lastDay();
+ if(D){h+='<h3>'+t('vitalsNow')+'</h3><table><tr><th>'+t('date')+'</th><th>BP</th><th>'+nm(VM.pulse)+'</th><th>'+nm(VM.wt)+'</th><th>'+nm(VM.fluid)+'</th><th>'+nm(VM.urine)+'</th></tr><tr><td>'+dTxt(D.date)+'</td><td>'+(D.sys||'-')+'/'+(D.dia||'-')+'</td><td>'+(D.pulse||'-')+'</td><td>'+(D.wt||'-')+'</td><td>'+(D.fluid||'-')+'</td><td>'+(D.urine||'-')+'</td></tr></table>';}
+ h+='<h3>คำสั่งสำหรับ AI Analysis</h3><div class="ai-prompt">'+esc(reportAiPrompt(REPORT_MODE))+'</div>';
+ h+='<div style="margin-top:26px">'+t('sigDoc')+' ............................................................</div>';
+ E('printArea').innerHTML=h;
+}
+function buildReportOverview(){
+ var careDate=latestCareDate();
+ var h='<div class="pbox"><b>ภาพรวมตามแนว Dashboard</b><br>สรุปสถานะล่าสุด นัดหมาย และประเด็นที่ควรติดตาม รายละเอียดผลตรวจและกราฟอยู่ในรายงานแยกแผนก B/C<br>วันที่การรักษาทั่วไป/เหตุการณ์ล่าสุด: '+(careDate?dTxt(careDate):'ไม่มีข้อมูล')+'</div>',dps=['med','eye'],j,k,latest,changes,shown=0;
+ h+='<h3>สถานะล่าสุดแยกแผนก</h3><table><tr><th>แผนก</th><th>ค่าหลักล่าสุด</th><th>วันที่</th><th>ติดตาม</th></tr>';
+ for(j=0;j<dps.length;j++){var dp=dps[j];latest=last(dp);var keys=dp==='med'?['egfr','cr','acr']:['iop_od','iop_os','cdr_od','cdr_os'],vals=[];
+  if(latest)for(k=0;k<keys.length;k++){var key=keys[k],lab=LM[key],value=latest.items&&latest.items[key];if(value===undefined||value===null||!lab)continue;var vcls=reportRiskClass(lab,value,latest);vals.push('<span class="'+vcls+'">'+esc(nm(lab))+' '+esc(fmtL(key,value))+' '+esc(lab.u)+'</span>');}
+  var first=latest&&latest.items?latest.items[keys[0]]:null,cls=first===null||first===undefined?'risk-black':reportRiskClass(LM[keys[0]]||{k:keys[0]},first,latest);
+  h+='<tr><td>'+(dp==='med'?t('deptMed'):t('deptEye'))+'</td><td>'+(vals.join('<br>')||t('noData'))+'</td><td>'+(latest?dTxt(latest.date):'-')+'</td><td class="'+cls+'">'+(latest?reportRiskLabel(cls):'-')+'</td></tr>';}
+ h+='</table>';
+ changes=reportDeptChanges('med').concat(reportDeptChanges('eye')).sort(function(a,b){return b.score-a.score;}).slice(0,6);
+ h+='<h3>การเปลี่ยนแปลงที่ควรสังเกต</h3><div class="pbox">'+(changes.length?changes.map(function(c){var lab=LM[c.key]||{k:c.key},dp=lab.dp==='eye'?'eye':'med',r=last(dp),v=r&&r.items?r.items[c.key]:null,cl=v===null||v===undefined?'risk-black':reportRiskClass(lab,v,r);return '<div class="'+cl+'">'+(dp==='eye'?t('deptEye'):t('deptMed'))+' · '+esc(c.name)+' '+esc(c.delta)+' ('+esc(c.pct)+') · '+reportRiskLabel(cl)+'</div>';}).join(''):'ไม่มีข้อมูลเปลี่ยนแปลงให้เปรียบเทียบ')+'</div>';
+ var ap=(DB.appointments||[]).filter(function(a){return a.date&&a.date>=new Date().toISOString().slice(0,10);}).slice().sort(byDate);
+ h+='<h3>นัดหมายล่วงหน้า</h3><div class="pbox">'+(ap.length?ap.slice(0,5).map(function(a){return '<div class="event-item"><b>'+dTxt(a.date)+'</b> '+esc(a.time||'')+' · '+esc(a.title||appointmentDeptName(a))+' · '+esc(appointmentSourceName(a.source_system||a.source))+(a.place?' · '+esc(a.place):'')+'</div>';}).join(''):'ไม่มีนัดหมายล่วงหน้าที่บันทึกไว้')+'</div>';
+ var day=lastDay();if(day){h+='<h3>'+t('vitalsNow')+'</h3><table><tr><th>'+t('date')+'</th><th>BP</th><th>'+nm(VM.pulse)+'</th><th>'+nm(VM.wt)+'</th><th>'+nm(VM.fluid)+'</th><th>'+nm(VM.urine)+'</th></tr><tr><td>'+dTxt(day.date)+'</td><td>'+(day.sys||'-')+'/'+(day.dia||'-')+'</td><td>'+(day.pulse||'-')+'</td><td>'+(day.wt||'-')+'</td><td>'+(day.fluid||'-')+'</td><td>'+(day.urine||'-')+'</td></tr></table>';}
+ h+='<h3>การเข้ารับการรักษาทั่วไป</h3><div class="pbox">'+buildReportEncounters()+'</div>';
+ h+='<h3>ประวัติเหตุการณ์พิเศษ</h3><div class="pbox">'+buildReportSpecialEvents()+'</div>';
+ return h;
+}
+function buildReportEncounters(){
+ var rows=(DB.encounters||[]).slice().sort(byDate).reverse();if(!rows.length)return 'ยังไม่มีข้อมูลการเข้ารับการรักษาทั่วไป';
+ return rows.map(function(e){var v=e.vitals||{},line='<div class="event-item"><b>'+dTxt(e.date||'')+(e.time?' · '+esc(e.time):'')+'</b> · '+esc(e.title||e.diagnosis||'การเข้ารับการรักษา');
+  if(e.department)line+='<br>แผนก: '+esc(e.department);if(e.facility)line+=' · สถานที่: '+esc(e.facility);if(e.physician)line+='<br>แพทย์: '+esc(e.physician);if(e.visitType||e.paymentRight)line+='<br>'+esc([e.visitType,e.paymentRight].filter(Boolean).join(' · '));if(e.diagnosis)line+='<br>การวินิจฉัย: '+esc(e.diagnosis);if(e.symptoms)line+='<br>อาการ: '+esc(e.symptoms);if(e.medications&&e.medications.length)line+='<br>ยาและวิธีใช้: '+esc(e.medications.join(' · '));
+  var vs=['BP '+(v.bp||''),v.temperatureC?'อุณหภูมิ '+v.temperatureC+'°C':'','ชีพจร '+(v.pulse||''),'หายใจ '+(v.respiration||''),v.weightKg?'น้ำหนัก '+v.weightKg+' กก.':'',v.heightCm?'ส่วนสูง '+v.heightCm+' ซม.':''].filter(function(x){return !/ $/.test(x);});if(vs.length)line+='<br>สัญญาณชีพ: '+esc(vs.join(' · '));if(e.status)line+='<br>สถานะ: '+esc(e.status);if(e.note)line+='<br>รายละเอียด: '+esc(e.note);if(e.source_images&&e.source_images.length)line+='<br>ภาพต้นทาง: '+esc(e.source_images.join(', '));return line+'</div>';}).join('');
+}
+function buildReportSpecialEvents(){
+ var rows=(DB.events||[]).slice().sort(byDate).reverse();if(!rows.length)return 'ยังไม่มีประวัติเหตุการณ์พิเศษที่บันทึกไว้';
+ return rows.map(function(e){var types={accident:'อุบัติเหตุ',fall:'หกล้ม',head_injury:'ศีรษะกระแทก',emergency:'ฉุกเฉิน',surgery:'ศัลยกรรม',orthopedics:'ออร์โธปิดิกส์',neurology:'สมองและระบบประสาท',other:'อื่น ๆ'},line='<div class="event-item"><b>'+dTxt(e.date||'')+'</b> · '+esc(e.title||types[e.type]||e.type||'เหตุการณ์พิเศษ');if(e.type)line+=' · '+esc(types[e.type]||e.type);if(e.department)line+='<br>แผนก: '+esc(e.department);if(e.place)line+=' · สถานที่: '+esc(e.place);if(e.status)line+='<br>สถานะ: '+esc(e.status);if(e.note)line+='<br>รายละเอียด/ผลตรวจ/คำสั่งแพทย์: '+esc(e.note);return line+'</div>';}).join('');
+}
+function reportDeptChanges(dp){
+ var r=recs(dp);if(r.length<2)return[];var cur=r[r.length-1],prev=r[r.length-2],out=[],j;
+ for(j=0;j<LABS.length;j++){var l=LABS[j];if(l.dp!==dp)continue;var a=prev.items[l.k],b=cur.items[l.k];
+  if(a===undefined||a===null||b===undefined||b===null)continue;var c=changeLabel(l.k,b,a);if(c)out.push({key:l.k,name:nm(l),date:cur.date,delta:(c.delta>0?'+':'')+c.delta.toFixed(l.dec),pct:c.pct===null?'-':(c.pct>0?'+':'')+c.pct.toFixed(0)+'%',label:c.notable?t('notableChange'):t('minorChange'),score:c.notable?1:0});}
+ out.sort(function(a,b){return b.score-a.score;});return out;
+}
+function buildReportChangeSummary(mode){
+ var a=[],dpList=mode==='all'?['med','eye']:[mode],j,k;
+ for(j=0;j<dpList.length;j++){var c=reportDeptChanges(dpList[j]);for(k=0;k<c.length;k++){
+  var cur=last(dpList[j]),val=cur&&cur.items?cur.items[c[k].key]:null,cls=val===null?'risk-black':reportRiskClass(LM[c[k].key]||{k:c[k].key},val,cur);
+  a.push('<span class="'+cls+'">'+(dpList[j]==='eye'?t('deptEye'):t('deptMed'))+' — '+esc(c[k].name)+' '+c[k].delta+' ('+c[k].pct+') · '+reportRiskLabel(cls)+' · '+esc(c[k].label)+'</span>');}}
+ return a.length?a.slice(0,20).join('<br>'):t('noData');
+}
+function buildReportTimeline(mode){
+ var a=[],rs=recs(mode==='all'?'any':mode),j;
+ for(j=0;j<rs.length;j++)a.push({date:rs[j].date,text:t('timelineLab')+' · '+(rs[j].dept==='eye'?t('deptEye'):t('deptMed'))});
+ for(j=0;j<(DB.visits||[]).length;j++){if(mode!=='all'&&DB.visits[j].dept!==mode)continue;a.push({date:DB.visits[j].date,text:t('timelineVisit')+' · '+(DB.visits[j].doctor||DB.visits[j].place||'-')});}
+ for(j=0;j<(DB.diagnoses||[]).length;j++){if(mode!=='all'&&DB.diagnoses[j].dept!==mode)continue;a.push({date:DB.diagnoses[j].date,text:t('timelineDx')+' · '+(DB.diagnoses[j].code||'')+' '+(LANG==='th'?DB.diagnoses[j].th:DB.diagnoses[j].en)});}
+ if(mode==='all')for(j=0;j<(DB.encounters||[]).length;j++)a.push({date:DB.encounters[j].date,text:'การรักษาทั่วไป · '+(DB.encounters[j].diagnosis||DB.encounters[j].title||'')});
+ a.sort(function(x,y){return x.date<y.date?1:-1;});return a.slice(0,30).map(function(x){return '<div style="padding:4px 0;border-bottom:1px solid #ccc"><b>'+dTxt(x.date)+'</b> · '+esc(x.text)+'</div>';}).join('')||t('noData');
+}
+function buildReportMedicalEvents(){
+ var es=(DB.events||[]).concat(DB.encounters||[]).slice().sort(function(a,b){return a.date<b.date?-1:(a.date>b.date?1:0);});
+ if(!es.length)return 'ยังไม่มีประวัติเหตุการณ์ทางการแพทย์ที่บันทึกไว้';
+ return es.map(function(e){
+  var types={accident:'อุบัติเหตุ',fall:'หกล้ม',head_injury:'ศีรษะกระแทก',emergency:'ฉุกเฉิน',surgery:'ศัลยกรรม',orthopedics:'ออร์โธปิดิกส์',neurology:'สมองและระบบประสาท',other:'อื่น ๆ'};
+  var eventType=types[e.type]||e.type||'เหตุการณ์ทางการแพทย์';
+  var line='<div class="event-item"><b>'+dTxt(e.date||'')+'</b> · '+esc(e.title||eventType);
+  if(e.type)line+=' · '+esc(eventType);
+  if(e.department)line+='<br>แผนก: '+esc(e.department);
+  if(e.place)line+=' · สถานที่: '+esc(e.place);
+  if(e.status)line+='<br>สถานะ: '+esc(e.status);
+  if(e.diagnosis)line+='<br>การวินิจฉัย: '+esc(e.diagnosis);
+  if(e.symptoms)line+='<br>อาการ: '+esc(e.symptoms);
+  if(e.medications&&e.medications.length)line+='<br>ยา: '+esc(e.medications.join(' · '));
+  if(e.vitals)line+='<br>สัญญาณชีพ: '+esc(['BP '+(e.vitals.bp||''),'Temp '+(e.vitals.temperatureC||'')+'°C','ชีพจร '+(e.vitals.pulse||''),'หายใจ '+(e.vitals.respiration||''),'น้ำหนัก '+(e.vitals.weightKg||'')+' กก.','ส่วนสูง '+(e.vitals.heightCm||'')+' ซม.'].filter(function(x){return !/ (?:°C)?$/.test(x);}).join(' · '));
+  if(e.note)line+='<br>รายละเอียด: '+esc(e.note);
+  return line+'</div>';
+ }).join('');
+}
+function reportCanvas(id){
+ var c=E(id);if(!c||!c.width||!c.height)return'';
+ try{
+  /* Prepare a print-friendly snapshot without changing the live dashboard chart. */
+  var tmp=document.createElement('canvas');tmp.width=c.width;tmp.height=c.height;
+  var x=tmp.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,tmp.width,tmp.height);x.drawImage(c,0,0);
+  var im=x.getImageData(0,0,tmp.width,tmp.height),d=im.data,i,r,g,b,mn,lum,target=null,strength,out;
+  for(i=0;i<d.length;i+=4){r=d[i];g=d[i+1];b=d[i+2];mn=Math.min(r,g,b);lum=(r+g+b)/3;target=null;
+   /* Turn the faint dashboard axis labels and grid into readable print grays. */
+   if(Math.max(r,g,b)-mn<16&&lum>210){d[i]=198;d[i+1]=204;d[i+2]=213;continue;}
+   if(b>g+10&&r<g&&lum>85&&lum<185){d[i]=71;d[i+1]=85;d[i+2]=105;continue;}
+   /* Keep each series recognizable while moving neon colors to darker print hues. */
+   if(g>r+35&&b>g+12)target=[0,105,150];
+   else if(r>g+18&&g>b+12)target=[150,96,0];
+   else if(r>b+12&&b>g+18)target=[174,35,103];
+   else if(g>r+10&&r>b+12)target=[47,117,37];
+   if(target){strength=Math.max(0,Math.min(1,(255-mn)/150));for(var q=0;q<3;q++){out=255+(target[q]-255)*strength;d[i+q]=Math.round(out);}}
+  }
+  x.putImageData(im,0,0);
+  return '<img class="report-chart" src="'+tmp.toDataURL('image/png')+'" style="max-width:100%;height:auto;margin:4px 0 10px">';
+ }catch(e){return '<img class="report-chart" src="'+c.toDataURL('image/png')+'" style="max-width:100%;height:auto;margin:4px 0 10px">';}
+}
+function buildReportCharts(mode){
+ var h='';
+ if(mode!=='eye')h+=reportCanvas('cScenario')+reportCanvas('cEgfr')+reportCanvas('cCombo');
+ if(mode!=='med')h+=reportCanvas('cIop')+reportCanvas('cCdr')+reportCanvas('cLinkCh');
+ return h||'<div class="pbox">'+t('noData')+'</div>';
+}
+function captureReportCharts(mode){
+ /* Department-specific dashboard charts are not always drawn when their section is hidden.
+    Render the selected report department before taking snapshots, then restore the user's view. */
+ var previousDept=DEPT,html='';
+ try{if(mode==='med'||mode==='eye')DEPT=mode;else DEPT='all';renderDash();html=buildReportCharts(mode);}
+ finally{DEPT=previousDept;renderDash();}
+ return html;
+}
+function doPrint(){showReportChooser();}
+
+/* ========== 15. Local administrator PIN ========== */
+/* This is a local convenience gate. Firebase Authentication is intentionally not used. */
+var ADMIN_UNLOCKED=false;
+var ADMIN_PIN_KEY='ckd_admin_pin_hash_v1';
+function pinHash(pin){var h=2166136261;for(var i=0;i<pin.length;i++){h^=pin.charCodeAt(i);h=Math.imul(h,16777619);}return('00000000'+(h>>>0).toString(16)).slice(-8);}
+function updateAdminUI(){
+ var b=E('adminPinBtn');if(b){b.textContent=LANG==='th'?(ADMIN_UNLOCKED?'PIN: ปลดล็อกแล้ว':'ปลดล็อก PIN'):(ADMIN_UNLOCKED?'PIN: Unlocked':'Unlock PIN');b.className=ADMIN_UNLOCKED?'btn lm':'btn';}
+ var mutating=document.querySelectorAll('[data-act="save-event"],[data-act="commit"],[data-act="pick"],[data-act="import"],[data-act="reset"],[data-act="clear"]');
+ for(var i=0;i<mutating.length;i++){mutating[i].disabled=!ADMIN_UNLOCKED;mutating[i].style.opacity=ADMIN_UNLOCKED?'1':'.48';mutating[i].title=ADMIN_UNLOCKED?'':(LANG==='th'?'ปลดล็อก PIN ก่อน':'Unlock PIN first');}
+ var navs=document.querySelectorAll('nav button[data-val="ocr"]');for(var j=0;j<navs.length;j++)navs[j].style.opacity=ADMIN_UNLOCKED?'1':'.55';
+ var eventForm=document.querySelector('#v-events .card');if(eventForm)eventForm.style.display=ADMIN_UNLOCKED?'block':'none';
+}
+function handleAdminPin(){
+ var saved=localStorage.getItem(ADMIN_PIN_KEY),pin,confirmPin;
+ if(ADMIN_UNLOCKED){if(window.confirm(LANG==='th'?'ต้องการล็อกโหมดแก้ไขหรือไม่?':'Lock editing mode?')){ADMIN_UNLOCKED=false;updateAdminUI();}return;}
+ if(!saved){pin=window.prompt(LANG==='th'?'ตั้ง PIN 6 หลัก':'Set a 6-digit PIN');if(pin===null)return;if(!/^\d{6}$/.test(pin)){alert(LANG==='th'?'PIN ต้องเป็นตัวเลข 6 หลัก':'PIN must be exactly 6 digits');return;}confirmPin=window.prompt(LANG==='th'?'กรอก PIN อีกครั้งเพื่อยืนยัน':'Re-enter PIN to confirm');if(confirmPin!==pin){alert(LANG==='th'?'PIN ไม่ตรงกัน':'PINs do not match');return;}localStorage.setItem(ADMIN_PIN_KEY,pinHash(pin));ADMIN_UNLOCKED=true;updateAdminUI();requestCloudSeedIfNeeded();return;}
+ pin=window.prompt(LANG==='th'?'กรอก PIN 6 หลัก':'Enter the 6-digit PIN');if(pin===null)return;if(!/^\d{6}$/.test(pin)||pinHash(pin)!==saved){alert(LANG==='th'?'PIN ไม่ถูกต้อง':'Incorrect PIN');return;}ADMIN_UNLOCKED=true;updateAdminUI();requestCloudSeedIfNeeded();
+}
+function requireAdmin(){if(ADMIN_UNLOCKED)return true;alert(LANG==='th'?'ปลดล็อกด้วย PIN 6 หลักก่อน':'Unlock with the 6-digit PIN first');return false;}
+
+/* ========== 16. นำทาง ========== */
+var CURVIEW='dash';
+function go(v){
+ CURVIEW=v;
+ var nb=document.querySelectorAll('nav button'),j;
+ for(j=0;j<nb.length;j++){nb[j].className=(nb[j].getAttribute('data-val')===v)?'on':'';}
+ var vs=document.querySelectorAll('.view');
+ for(j=0;j<vs.length;j++){vs[j].className='view'+(vs[j].id===('v-'+v)?' on':'');}
+ window.scrollTo(0,0);
+ if(v==='dash')renderDash();
+ if(v==='hist')renderHist();
+ if(v==='events')renderEvents();
+ if(v==='data')renderStat();
+}
+function setDept(d){
+ DEPT=d;try{localStorage.setItem('ckd_dept',d);}catch(e){}
+ var db=document.querySelectorAll('.depts button'),j;
+ for(j=0;j<db.length;j++){db[j].className=(db[j].getAttribute('data-val')===d)?'on':'';}
+ renderAll();go(CURVIEW);
+}
+function renderStat(){E('dbStat').textContent=DB.records.length+' '+t('records')+' / '+DB.daily.length+' '+t('dayrec');}
+function applyLang(){
+ document.documentElement.lang=LANG;
+ var ns=document.querySelectorAll('[data-i18n]'),j;
+ for(j=0;j<ns.length;j++){var v=I18N[LANG][ns[j].getAttribute('data-i18n')];if(v!==undefined)ns[j].innerHTML=v;}
+ E('langBtn').textContent=(LANG==='th')?'ENGLISH':'ไทย';
+ try{localStorage.setItem('ckd_lang',LANG);}catch(e){}
+}
+function renderAll(){applyLang();renderDash();renderHist();renderEvents();renderStat();updateAdminUI();updateFirebaseUI();}
+
+function findAct(node){
+ while(node&&node!==document.body){
+  if(node.getAttribute&&node.getAttribute('data-act'))return node;
+  node=node.parentNode;}
+ return null;
+}
+document.addEventListener('click',function(ev){
+ var el4=findAct(ev.target||ev.srcElement);
+ if(!el4)return;
+ var act=el4.getAttribute('data-act'),val=el4.getAttribute('data-val')||'',j;
+ var adminActions=['save-event','commit','pick','import','reset','clear'];
+ if(adminActions.indexOf(act)>=0&&!requireAdmin())return;
+ if(act==='nav'){
+  if(val==='ocr'&&!ADMIN_UNLOCKED){alert(LANG==='th'?'ปลดล็อก PIN ก่อนเข้าใช้งานส่วนนี้':'Unlock PIN to access this section');return;}
+  go(val);
+ }
+ else if(act==='dept'){setDept(val);}
+ else if(act==='lang'){LANG=(LANG==='th')?'en':'th';renderAll();go(CURVIEW);}
+ else if(act==='print'){doPrint();}
+ else if(act==='user-guide'){showUserGuide();}
+ else if(act==='cloud-sync'){syncFirebaseNow();}
+ else if(act==='admin-pin'){handleAdminPin();}
+ else if(act==='report-mode'){REPORT_MODE=val;E('modal').className='modal';buildReport(REPORT_MODE);window.print();}
+ else if(act==='detail'){var pr=val.split(':');openDetail(pr[0]==='vit'?'vit':'lab',pr[1]);}
+ else if(act==='close'){E('modal').className='modal';}
+ else if(act==='dmode'){MQ=(val==='q');drawDetail();}
+ else if(act==='mode'){HMODE=val;renderHist();}
+ else if(act==='save-event'){saveEvent();}
+ else if(act==='pick'){E('file').click();}
+ else if(act==='commit'){commitOCR();}
+ else if(act==='ocrdel'){var q2=val.split(':');delete PENDING[parseInt(q2[0],10)].items[q2[1]];showReview();}
+ else if(act==='export'){
+  var blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='health-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);}
+ else if(act==='import'){E('impFile').click();}
+ else if(act==='reset'){if(window.confirm(t('confirmReset'))){DB=seed();save();renderAll();go('dash');}}
+ else if(act==='clear'){if(window.confirm(t('confirmClear'))){DB=migrate({records:[],daily:[]});save();renderAll();go('dash');}}
+},false);
+document.addEventListener('change',function(ev){
+ var el6=ev.target||ev.srcElement;
+ if(!el6||!el6.getAttribute)return;
+ var act=el6.getAttribute('data-act'),val=el6.getAttribute('data-val')||'';
+ if(act==='ocrval'){var p2=val.split(':');PENDING[parseInt(p2[0],10)].items[p2[1]]=parseFloat(el6.value);}
+ else if(act==='ocrdate'){var odx=parseInt(val,10);PENDING[odx].date=el6.value;if(PENDING[odx].encounter)PENDING[odx].encounter.date=el6.value;}
+ else if(act==='encval'){var evp=val.split(':'),ed=PENDING[parseInt(evp[0],10)].encounter;if(ed)ed[evp[1]]=el6.value;}
+ else if(act==='encvital'){var vvp=val.split(':'),vd=PENDING[parseInt(vvp[0],10)].encounter;if(vd){vd.vitals=vd.vitals||{};vd.vitals[vvp[1]]=el6.value;}}
+ else if(act==='encconfirm'){var cix=parseInt(val,10),cd=PENDING[cix]&&PENDING[cix].encounter;if(cd)cd.confirmed=!!el6.checked;}
+},false);
+E('file').addEventListener('change',function(ev){
+ if(!ADMIN_UNLOCKED){ev.target.value='';return;}
+ var f=[],fs=ev.target.files,j;
+ for(j=0;j<fs.length;j++){f.push(fs[j]);}
+ if(f.length)runOCR(f);},false);
+E('impFile').addEventListener('change',function(ev){
+ if(!ADMIN_UNLOCKED){ev.target.value='';return;}
+ var f=ev.target.files[0];if(!f)return;
+ var rd=new FileReader();
+ rd.onload=function(){
+  try{var d=JSON.parse(rd.result);
+   if(d&&d.records){DB=migrate(d);save();renderAll();alert(t('saved'));go('dash');}}
+  catch(x){alert('Invalid file');}};
+ rd.readAsText(f);},false);
+var dz=E('drop');
+dz.addEventListener('dragover',function(ev){ev.preventDefault();dz.className='drop hot';},false);
+dz.addEventListener('dragleave',function(ev){ev.preventDefault();dz.className='drop';},false);
+dz.addEventListener('drop',function(ev){
+ ev.preventDefault();dz.className='drop';
+ var f=[],j;
+ if(ev.dataTransfer&&ev.dataTransfer.files){var fs=ev.dataTransfer.files;
+  for(j=0;j<fs.length;j++){if(fs[j].type.indexOf('image')===0)f.push(fs[j]);}}
+ if(!ADMIN_UNLOCKED){alert(LANG==='th'?'ปลดล็อก PIN ก่อนอัปโหลด':'Unlock PIN before upload');return;}
+ if(f.length)runOCR(f);},false);
+E('modal').addEventListener('click',function(ev){
+ if((ev.target||ev.srcElement).id==='modal')E('modal').className='modal';},false);
+window.addEventListener('resize',function(){
+ if(CURVIEW==='dash')renderDash();
+ if(E('modal').className.indexOf('on')>=0)drawDetail();},false);
+
+setDept(DEPT);
+updateAdminUI();
+startFirebase();
+go('dash');
+
+}catch(err){showErr(err&&err.message?err.message:String(err));}
+})();
+
+</script>
+</body>
+</html>
