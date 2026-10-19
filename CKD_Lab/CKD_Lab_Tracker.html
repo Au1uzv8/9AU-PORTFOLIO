@@ -1451,7 +1451,7 @@ function upsertEncounter(draft){
  old.source_images=(old.source_images||[]).concat(draft.sourceImages||[]).filter(function(x,i,a){return a.indexOf(x)===i;});old.raw_ocr=(old.raw_ocr||[]).concat(draft.rawText?[draft.rawText]:[]);old.updated_at=new Date().toISOString();
 }
 
-/* ========== 14. รายงานสำหรับพิมพ์ ========== */
+/* ========== 14. รายงานสำหรับพิมพ์ (แก้ไขรอบนี้: A ใช้โครงสร้างร่วมกับ B/C, ตัดจุดสี/ลงชื่อแพทย์, แก้เครื่องหมาย %) ========== */
 var REPORT_MODE='all';
 function showUserGuide(){
  var box=E('mbox'),th=LANG==='th',h='';
@@ -1459,19 +1459,19 @@ function showUserGuide(){
  if(th){
   h+='<p>คู่มือฉบับนี้รวบรวมที่มา พัฒนาการ และวิธีใช้ Tracker รุ่นปัจจุบัน</p>';
   h+='<h3>1. ที่มาและเป้าหมาย</h3><p>เริ่มจากแนวคิดทำเครื่องมือช่วยติดตามผลตรวจและสุขภาพของคุณแม่ที่เป็นโรคไตเรื้อรัง โดยรวบรวมข้อมูลจากอายุรกรรมและจักษุกรรมไว้ในที่เดียว เพื่อดูแนวโน้ม เตรียมพบแพทย์ และลดการค้นข้อมูลจากหลายแหล่ง</p>';
-  h+='<h3>2. พัฒนาการของแอป</h3><ul><li>ต่อยอดจากไฟล์ HTML เดิม โดยคงการเก็บข้อมูลใน browser และเพิ่มกราฟไต สัญญาณชีพ ประวัติผลตรวจ ยา การวินิจฉัย และเหตุการณ์ทางการแพทย์</li><li>เพิ่ม OCR สำหรับอ่านภาพผลตรวจ และดึงวันนัดจากภาพของแอปโรงพยาบาล/ศูนย์โรคไต โดยให้ตรวจทานก่อนบันทึก</li><li>Dashboard แสดงนัดหมายล่วงหน้าสูงสุด 3 รายการ รวมวันเจาะเลือดแยกจากวันพบแพทย์</li><li>เพิ่มรายงาน A ภาพรวม, B อายุรกรรม, C จักษุกรรม พร้อมปรับ Contrast กราฟรายงานให้อ่านง่ายขึ้น</li><li>ย้ายฐานข้อมูลจาก Firebase ไปเป็น Google Sheet เพื่อให้แก้ไขและตรวจสอบข้อมูลได้เองโดยตรง และยกเลิกระบบ PIN เพื่อให้ใช้งานสะดวกขึ้น</li></ul>';
+  h+='<h3>2. พัฒนาการของแอป</h3><ul><li>ต่อยอดจากไฟล์ HTML เดิม โดยคงการเก็บข้อมูลใน browser และเพิ่มกราฟไต สัญญาณชีพ ประวัติผลตรวจ ยา การวินิจฉัย และเหตุการณ์ทางการแพทย์</li><li>เพิ่ม OCR สำหรับอ่านภาพผลตรวจ และดึงวันนัดจากภาพของแอปโรงพยาบาล/ศูนย์โรคไต โดยให้ตรวจทานก่อนบันทึก</li><li>Dashboard แสดงนัดหมายล่วงหน้าสูงสุด 3 รายการ รวมวันเจาะเลือดแยกจากวันพบแพทย์</li><li>ย้ายฐานข้อมูลจาก Firebase ไปเป็น Google Sheet เพื่อให้แก้ไขและตรวจสอบข้อมูลได้เองโดยตรง และยกเลิกระบบ PIN เพื่อให้ใช้งานสะดวกขึ้น</li><li>ปรับโครงสร้างรายงาน A ให้ลงรายละเอียดผลตรวจแต่ละแผนกเหมือนรายงาน B/C ไม่ใช่สรุปแบบ Dashboard อีกต่อไป</li></ul>';
   h+='<h3>3. เริ่มใช้งานและการเชื่อมต่อ Google Sheet</h3><ol><li>เปิดหน้าเว็บบนอุปกรณ์ที่ต้องการใช้</li><li>ไปที่เมนู “ข้อมูล/สำรอง” ตรวจสอบว่าช่อง Web App URL มีค่าที่ถูกต้องแล้ว</li><li>กดปุ่ม “ซิงก์ Sheet” ที่แถบด้านบนเพื่ออ่าน/เขียนข้อมูลกับ Google Sheet</li></ol>';
   h+='<h3>4. บันทึกผลและใช้ OCR</h3><ul><li>เพิ่มผลตรวจผ่าน “อัปโหลดรูป (OCR)” เลือกแผนกอายุรกรรม/จักษุกรรม แล้วตรวจทานข้อมูลที่อ่านได้ก่อนยืนยัน</li><li>ไม่มีหน้ากรอกผลตรวจหรือบันทึกรายวันแล้ว ข้อมูลเดิมยังคงแสดงจากประวัติที่บันทึกไว้</li><li>OCR ใช้ Tesseract.js และโหลดส่วนประกอบจาก CDN จึงต้องต่ออินเทอร์เน็ต ระวังตัวเลข/วันที่ที่อ่านไม่ชัด และแก้ให้ตรงภาพก่อนบันทึก</li></ul>';
-  h+='<h3>5. Dashboard และรายงาน</h3><ul><li>Dashboard รวมผลล่าสุด แนวโน้ม eGFR สัญญาณชีพ จุดที่ควรตรวจสอบ เหตุการณ์ และนัดหมาย</li><li>ประวัติย้อนหลังดูผลตามเวลาและแผนก แตะแถว/กราฟเพื่อดูรายละเอียด</li><li>กด “พิมพ์รายงาน” แล้วเลือกรายงาน A/B/C จากนั้นพิมพ์หรือบันทึกเป็น PDF</li></ul>';
+  h+='<h3>5. Dashboard และรายงาน</h3><ul><li>Dashboard รวมผลล่าสุด แนวโน้ม eGFR สัญญาณชีพ จุดที่ควรตรวจสอบ เหตุการณ์ และนัดหมาย</li><li>ประวัติย้อนหลังดูผลตามเวลาและแผนก แตะแถว/กราฟเพื่อดูรายละเอียด</li><li>กด “พิมพ์รายงาน” แล้วเลือกรายงาน A (ภาพรวมทั้งสองแผนกแบบละเอียด), B (อายุรกรรม) หรือ C (จักษุกรรม) จากนั้นพิมพ์หรือบันทึกเป็น PDF</li><li>รายงาน A ไม่มีกราฟ (ชี้ให้ดูกราฟละเอียดที่รายงาน B/C แทน) และไม่มีหัวข้อนัดหมายล่วงหน้า (ดูที่ Dashboard แทน)</li></ul>';
   h+='<h3>6. Google Sheet Sync และสำรองข้อมูล</h3><ul><li>ข้อมูลทั้งหมดอ่าน/เขียนผ่าน Google Sheet ที่ตั้งค่า Web App URL ไว้ที่หน้า ข้อมูล/สำรอง</li><li>ข้อมูลยังสำรองไว้ในเครื่อง (localStorage) และซิงก์ขึ้น Sheet อัตโนมัติทุกครั้งที่บันทึก</li><li>สำรอง/กู้คืนผ่านเมนู “ข้อมูล/สำรอง” ดาวน์โหลดหรือเลือกไฟล์ JSON ได้เช่นเดิม</li><li><b>หมายเหตุ:</b> เนื่องจากไม่มี PIN แล้ว ผู้ที่ทราบ Web App URL จะสามารถอ่านและแก้ไขข้อมูลได้ จึงควรเก็บ URL นี้เป็นความลับ</li></ul>';
   h+='<h3>7. ขอบเขตการใช้ข้อมูล</h3><p>กราฟและสีเตือนใช้ช่วยสังเกตข้อมูลที่บันทึกไว้ ไม่ใช่การวินิจฉัยหรือคำสั่งรักษา ตรวจทานข้อมูล OCR และปรึกษาทีมแพทย์ก่อนตัดสินใจเรื่องการรักษา</p>';
  }else{
   h+='<p>This guide summarizes the Tracker’s background, development, and current workflow.</p>';
   h+='<h3>1. Purpose</h3><p>The project began as a way to follow the user’s mother’s chronic kidney disease results and related health information, combining nephrology and ophthalmology records in one place.</p>';
-  h+='<h3>2. What changed</h3><ul><li>Data storage moved from Firebase to Google Sheet so the family can edit and verify data directly; the local PIN gate was removed for convenience.</li></ul>';
+  h+='<h3>2. What changed</h3><ul><li>Data storage moved from Firebase to Google Sheet so the family can edit and verify data directly; the local PIN gate was removed for convenience. Report A now mirrors the detailed structure of B/C instead of a Dashboard-style summary.</li></ul>';
   h+='<h3>3. Connect Google Sheet</h3><ol><li>Open Data / Backup, confirm the Web App URL is correct.</li><li>Use the Sync Sheet button in the header to read/write with Google Sheet.</li></ol>';
   h+='<h3>4. Save results and use OCR</h3><ul><li>Add lab results through Upload Images (OCR), choose nephrology or ophthalmology, and review recognized data before confirming.</li></ul>';
-  h+='<h3>5. Dashboard and reports</h3><ul><li>Use Print Report and choose A, B, or C to print or save a PDF.</li></ul>';
+  h+='<h3>5. Dashboard and reports</h3><ul><li>Use Print Report and choose A (full detail overview), B, or C to print or save a PDF. Report A has no charts (see B/C for charts) and no upcoming-appointments section (see Dashboard).</li></ul>';
   h+='<h3>6. Google Sheet sync and backups</h3><ul><li>All data reads/writes through the Google Sheet configured in Data / Backup. localStorage remains an offline cache. Keep the Web App URL private since there is no PIN anymore.</li></ul>';
   h+='<h3>7. Intended use</h3><p>Charts and flags help review recorded data; they are not a diagnosis or treatment instruction.</p>';
  }
@@ -1556,6 +1556,68 @@ function reportAiPrompt(mode){
  'สรุปข้อมูลพื้นฐานผู้ป่วย โรคประจำตัว 5 โรค ผลตรวจล่าสุดและแนวโน้มตามเวลา สิ่งที่เปลี่ยนจากรอบก่อน ประวัติเหตุการณ์ทางการแพทย์ทั้งหมด การพบแพทย์ ยา/คำแนะนำ และประเด็นจากอายุรกรรมกับจักษุกรรม วิเคราะห์ความสัมพันธ์ระหว่างไต เบาหวาน ความดัน โรคหัวใจ เก๊าท์ และข้อมูลตาอย่างระมัดระวัง โดยไม่สรุปเหตุและผลเกินหลักฐาน จัดลำดับประเด็นที่ควรติดตามและคำถามสำหรับทีมแพทย์\\n\\n'+
  'ห้ามแต่งผลตรวจ ประวัติ ยา หรือการวินิจฉัยที่ไม่มีใน PDF ห้ามใช้ผลเก่าแทนผลปัจจุบันโดยไม่ระบุวันที่ อ้างอิงค่าพร้อมวันที่และช่วงอ้างอิงที่ปรากฏในเอกสาร แยกข้อเท็จจริง การตีความ และข้อเสนอแนะ ไม่ใช้แทนการวินิจฉัยหรือคำสั่งรักษาจากแพทย์';
 }
+function reportDeptChanges(dp){
+ var r=recs(dp);if(r.length<2)return[];var cur=r[r.length-1],prev=r[r.length-2],out=[],j;
+ for(j=0;j<LABS.length;j++){var l=LABS[j];if(l.dp!==dp)continue;var a=prev.items[l.k],b=cur.items[l.k];
+  if(a===undefined||a===null||b===undefined||b===null)continue;var c=changeLabel(l.k,b,a);if(c)out.push({key:l.k,name:nm(l),date:cur.date,delta:(c.delta>0?'+':'')+c.delta.toFixed(l.dec),pct:c.pct===null?'-':(c.delta>0?'+':(c.delta<0?'-':''))+c.pct.toFixed(0)+'%',label:c.notable?t('notableChange'):t('minorChange'),score:c.notable?1:0});}
+ out.sort(function(a,b){return b.score-a.score;});return out;
+}
+function buildReportChangeSummary(mode){
+ var a=[],dpList=mode==='all'?['med','eye']:[mode],j,k;
+ for(j=0;j<dpList.length;j++){var c=reportDeptChanges(dpList[j]);for(k=0;k<c.length;k++){
+  var cur=last(dpList[j]),val=cur&&cur.items?cur.items[c[k].key]:null,cls=val===null?'risk-black':reportRiskClass(LM[c[k].key]||{k:c[k].key},val,cur);
+  a.push('<span class="'+cls+'">'+(dpList[j]==='eye'?t('deptEye'):t('deptMed'))+' — '+esc(c[k].name)+' '+c[k].delta+' ('+c[k].pct+') · '+reportRiskLabel(cls)+' · '+esc(c[k].label)+'</span>');}}
+ return a.length?a.slice(0,20).join('<br>'):t('noData');
+}
+function buildReportTimeline(mode){
+ var a=[],rs=recs(mode==='all'?'any':mode),j;
+ for(j=0;j<rs.length;j++)a.push({date:rs[j].date,text:t('timelineLab')+' · '+(rs[j].dept==='eye'?t('deptEye'):t('deptMed'))});
+ for(j=0;j<(DB.visits||[]).length;j++){if(mode!=='all'&&DB.visits[j].dept!==mode)continue;a.push({date:DB.visits[j].date,text:t('timelineVisit')+' · '+(DB.visits[j].doctor||DB.visits[j].place||'-')});}
+ for(j=0;j<(DB.diagnoses||[]).length;j++){if(mode!=='all'&&DB.diagnoses[j].dept!==mode)continue;a.push({date:DB.diagnoses[j].date,text:t('timelineDx')+' · '+(DB.diagnoses[j].code||'')+' '+(LANG==='th'?DB.diagnoses[j].th:DB.diagnoses[j].en)});}
+ a.sort(function(x,y){return x.date<y.date?1:-1;});return a.slice(0,30).map(function(x){return '<div style="padding:4px 0;border-bottom:1px solid #ccc"><b>'+dTxt(x.date)+'</b> · '+esc(x.text)+'</div>';}).join('')||t('noData');
+}
+function buildReportEncounters(){
+ var rows=(DB.encounters||[]).slice().sort(byDate).reverse();if(!rows.length)return 'ยังไม่มีข้อมูลการเข้ารับการรักษาทั่วไป';
+ return rows.map(function(e){var v=e.vitals||{},line='<div class="event-item"><b>'+dTxt(e.date||'')+(e.time?' · '+esc(e.time):'')+'</b> · '+esc(e.title||e.diagnosis||'การเข้ารับการรักษา');
+  if(e.department)line+='<br>แผนก: '+esc(e.department);if(e.facility)line+=' · สถานที่: '+esc(e.facility);if(e.physician)line+='<br>แพทย์: '+esc(e.physician);if(e.visitType||e.paymentRight)line+='<br>'+esc([e.visitType,e.paymentRight].filter(Boolean).join(' · '));if(e.diagnosis)line+='<br>การวินิจฉัย: '+esc(e.diagnosis);if(e.symptoms)line+='<br>อาการ: '+esc(e.symptoms);if(e.medications&&e.medications.length)line+='<br>ยาและวิธีใช้: '+esc(e.medications.join(' · '));
+  var vs=['BP '+(v.bp||''),v.temperatureC?'อุณหภูมิ '+v.temperatureC+'°C':'','ชีพจร '+(v.pulse||''),'หายใจ '+(v.respiration||''),v.weightKg?'น้ำหนัก '+v.weightKg+' กก.':'',v.heightCm?'ส่วนสูง '+v.heightCm+' ซม.':''].filter(function(x){return !/ $/.test(x);});if(vs.length)line+='<br>สัญญาณชีพ: '+esc(vs.join(' · '));if(e.status)line+='<br>สถานะ: '+esc(e.status);if(e.note)line+='<br>รายละเอียด: '+esc(e.note);if(e.source_images&&e.source_images.length)line+='<br>ภาพต้นทาง: '+esc(e.source_images.join(', '));return line+'</div>';}).join('');
+}
+function buildReportSpecialEventsAsc(){
+ var rows=(DB.events||[]).slice().sort(function(a,b){return a.date<b.date?-1:(a.date>b.date?1:0);});
+ if(!rows.length)return 'ยังไม่มีประวัติเหตุการณ์พิเศษที่บันทึกไว้';
+ return rows.map(function(e){var types={accident:'อุบัติเหตุ',fall:'หกล้ม',head_injury:'ศีรษะกระแทก',emergency:'ฉุกเฉิน',surgery:'ศัลยกรรม',orthopedics:'ออร์โธปิดิกส์',neurology:'สมองและระบบประสาท',other:'อื่น ๆ'},line='<div class="event-item"><b>'+dTxt(e.date||'')+'</b> · '+esc(e.title||types[e.type]||e.type||'เหตุการณ์พิเศษ');if(e.type)line+=' · '+esc(types[e.type]||e.type);if(e.department)line+='<br>แผนก: '+esc(e.department);if(e.place)line+=' · สถานที่: '+esc(e.place);if(e.status)line+='<br>สถานะ: '+esc(e.status);if(e.note)line+='<br>รายละเอียด/ผลตรวจ/คำสั่งแพทย์: '+esc(e.note);return line+'</div>';}).join('');
+}
+function reportCanvas(id){
+ var c=E(id);if(!c||!c.width||!c.height)return'';
+ try{
+  var tmp=document.createElement('canvas');tmp.width=c.width;tmp.height=c.height;
+  var x=tmp.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,tmp.width,tmp.height);x.drawImage(c,0,0);
+  var im=x.getImageData(0,0,tmp.width,tmp.height),d=im.data,i,r,g,b,mn,lum,target=null,strength,out;
+  for(i=0;i<d.length;i+=4){r=d[i];g=d[i+1];b=d[i+2];mn=Math.min(r,g,b);lum=(r+g+b)/3;target=null;
+   if(Math.max(r,g,b)-mn<16&&lum>210){d[i]=198;d[i+1]=204;d[i+2]=213;continue;}
+   if(b>g+10&&r<g&&lum>85&&lum<185){d[i]=71;d[i+1]=85;d[i+2]=105;continue;}
+   if(g>r+35&&b>g+12)target=[0,105,150];
+   else if(r>g+18&&g>b+12)target=[150,96,0];
+   else if(r>b+12&&b>g+18)target=[174,35,103];
+   else if(g>r+10&&r>b+12)target=[47,117,37];
+   if(target){strength=Math.max(0,Math.min(1,(255-mn)/150));for(var q=0;q<3;q++){out=255+(target[q]-255)*strength;d[i+q]=Math.round(out);}}
+  }
+  x.putImageData(im,0,0);
+  return '<img class="report-chart" src="'+tmp.toDataURL('image/png')+'" style="max-width:100%;height:auto;margin:4px 0 10px">';
+ }catch(e){return '<img class="report-chart" src="'+c.toDataURL('image/png')+'" style="max-width:100%;height:auto;margin:4px 0 10px">';}
+}
+function buildReportCharts(mode){
+ var h='';
+ if(mode!=='eye')h+=reportCanvas('cScenario')+reportCanvas('cEgfr')+reportCanvas('cCombo');
+ if(mode!=='med')h+=reportCanvas('cIop')+reportCanvas('cCdr')+reportCanvas('cLinkCh');
+ return h||'<div class="pbox">'+t('noData')+'</div>';
+}
+function captureReportCharts(mode){
+ var previousDept=DEPT,html='';
+ try{if(mode==='med'||mode==='eye')DEPT=mode;else DEPT='all';renderDash();html=buildReportCharts(mode);}
+ finally{DEPT=previousDept;renderDash();}
+ return html;
+}
 function buildReport(mode){
  REPORT_MODE=mode||'all';
  var j,h='',depts=REPORT_MODE==='all'?['med','eye']:[REPORT_MODE],today=dTxt(new Date().toISOString().slice(0,10));
@@ -1563,14 +1625,6 @@ function buildReport(mode){
  h+='<h2>'+esc(title)+'</h2>';
  h+='<div>'+t('patient')+' : '+esc(DB.patient.name||'คุณแม่')+' &nbsp; | &nbsp; '+t('printedOn')+' : '+today+'</div>';
  h+=reportProfileHtml();
- h+='<div class="pbox"><span class="risk-red">● '+t('riskSpecial')+'</span>　<span class="risk-blue">● '+t('riskWatch')+'</span>　<span class="risk-black">● '+t('riskNormal')+'</span></div>';
- if(REPORT_MODE==='all'){
-  h+=buildReportOverview();
-  h+='<div class="pbox"><b>'+t('changeHint')+'</b><br>'+esc(t('reportDisclaimer'))+'</div>';
-  h+='<h3>คำสั่งสำหรับ AI Analysis</h3><div class="ai-prompt">'+esc(reportAiPrompt(REPORT_MODE))+'</div>';
-  h+='<div style="margin-top:26px">'+t('sigDoc')+' ............................................................</div>';
-  E('printArea').innerHTML=h;return;
- }
  h+='<div class="pbox"><b>'+t('changeT')+'</b><br>'+buildReportChangeSummary(REPORT_MODE)+'</div>';
  for(var di=0;di<depts.length;di++){
   var dp=depts[di];
@@ -1606,114 +1660,19 @@ function buildReport(mode){
  }
  h+='<h3>'+t('timelineT')+'</h3><div class="pbox">'+buildReportTimeline(REPORT_MODE)+'</div>';
  if(REPORT_MODE==='all'){
-  h+='<h3>ประวัติเหตุการณ์ทางการแพทย์ทั้งหมด</h3><div class="pbox">'+buildReportMedicalEvents()+'</div>';
+  h+='<h3>การเข้ารับการรักษาทั่วไป</h3><div class="pbox">'+buildReportEncounters()+'</div>';
+  h+='<h3>ประวัติเหตุการณ์ทางการแพทย์ทั้งหมด</h3><div class="pbox">'+buildReportSpecialEventsAsc()+'</div>';
  }
- h+='<h3>'+t('trend')+'</h3>'+captureReportCharts(REPORT_MODE);
+ if(REPORT_MODE==='all'){
+  h+='<h3>'+t('trend')+'</h3><div class="pbox">รายละเอียดกราฟและแนวโน้มทั้งหมดอยู่ในรายงาน B (อายุรกรรม) และ C (จักษุกรรม)</div>';
+ }else{
+  h+='<h3>'+t('trend')+'</h3>'+captureReportCharts(REPORT_MODE);
+ }
  h+='<div class="pbox"><b>'+t('changeHint')+'</b><br>'+esc(t('reportDisclaimer'))+'</div>';
  var D=lastDay();
  if(D){h+='<h3>'+t('vitalsNow')+'</h3><table><tr><th>'+t('date')+'</th><th>BP</th><th>'+nm(VM.pulse)+'</th><th>'+nm(VM.wt)+'</th><th>'+nm(VM.fluid)+'</th><th>'+nm(VM.urine)+'</th></tr><tr><td>'+dTxt(D.date)+'</td><td>'+(D.sys||'-')+'/'+(D.dia||'-')+'</td><td>'+(D.pulse||'-')+'</td><td>'+(D.wt||'-')+'</td><td>'+(D.fluid||'-')+'</td><td>'+(D.urine||'-')+'</td></tr></table>';}
  h+='<h3>คำสั่งสำหรับ AI Analysis</h3><div class="ai-prompt">'+esc(reportAiPrompt(REPORT_MODE))+'</div>';
- h+='<div style="margin-top:26px">'+t('sigDoc')+' ............................................................</div>';
  E('printArea').innerHTML=h;
-}
-function buildReportOverview(){
- var careDate=latestCareDate();
- var h='<div class="pbox"><b>ภาพรวมตามแนว Dashboard</b><br>สรุปสถานะล่าสุด นัดหมาย และประเด็นที่ควรติดตาม รายละเอียดผลตรวจและกราฟอยู่ในรายงานแยกแผนก B/C<br>วันที่การรักษาทั่วไป/เหตุการณ์ล่าสุด: '+(careDate?dTxt(careDate):'ไม่มีข้อมูล')+'</div>',dps=['med','eye'],j,k,latest,changes,shown=0;
- h+='<h3>สถานะล่าสุดแยกแผนก</h3><table><tr><th>แผนก</th><th>ค่าหลักล่าสุด</th><th>วันที่</th><th>ติดตาม</th></tr>';
- for(j=0;j<dps.length;j++){var dp=dps[j];latest=last(dp);var keys=dp==='med'?['egfr','cr','acr']:['iop_od','iop_os','cdr_od','cdr_os'],vals=[];
-  if(latest)for(k=0;k<keys.length;k++){var key=keys[k],lab=LM[key],value=latest.items&&latest.items[key];if(value===undefined||value===null||!lab)continue;var vcls=reportRiskClass(lab,value,latest);vals.push('<span class="'+vcls+'">'+esc(nm(lab))+' '+esc(fmtL(key,value))+' '+esc(lab.u)+'</span>');}
-  var first=latest&&latest.items?latest.items[keys[0]]:null,cls=first===null||first===undefined?'risk-black':reportRiskClass(LM[keys[0]]||{k:keys[0]},first,latest);
-  h+='<tr><td>'+(dp==='med'?t('deptMed'):t('deptEye'))+'</td><td>'+(vals.join('<br>')||t('noData'))+'</td><td>'+(latest?dTxt(latest.date):'-')+'</td><td class="'+cls+'">'+(latest?reportRiskLabel(cls):'-')+'</td></tr>';}
- h+='</table>';
- changes=reportDeptChanges('med').concat(reportDeptChanges('eye')).sort(function(a,b){return b.score-a.score;}).slice(0,6);
- h+='<h3>การเปลี่ยนแปลงที่ควรสังเกต</h3><div class="pbox">'+(changes.length?changes.map(function(c){var lab=LM[c.key]||{k:c.key},dp=lab.dp==='eye'?'eye':'med',r=last(dp),v=r&&r.items?r.items[c.key]:null,cl=v===null||v===undefined?'risk-black':reportRiskClass(lab,v,r);return '<div class="'+cl+'">'+(dp==='eye'?t('deptEye'):t('deptMed'))+' · '+esc(c.name)+' '+esc(c.delta)+' ('+esc(c.pct)+') · '+reportRiskLabel(cl)+'</div>';}).join(''):'ไม่มีข้อมูลเปลี่ยนแปลงให้เปรียบเทียบ')+'</div>';
- var ap=(DB.appointments||[]).filter(function(a){return a.date&&a.date>=new Date().toISOString().slice(0,10);}).slice().sort(byDate);
- h+='<h3>นัดหมายล่วงหน้า</h3><div class="pbox">'+(ap.length?ap.slice(0,5).map(function(a){return '<div class="event-item"><b>'+dTxt(a.date)+'</b> '+esc(a.time||'')+' · '+esc(a.title||appointmentDeptName(a))+' · '+esc(appointmentSourceName(a.source_system||a.source))+(a.place?' · '+esc(a.place):'')+'</div>';}).join(''):'ไม่มีนัดหมายล่วงหน้าที่บันทึกไว้')+'</div>';
- var day=lastDay();if(day){h+='<h3>'+t('vitalsNow')+'</h3><table><tr><th>'+t('date')+'</th><th>BP</th><th>'+nm(VM.pulse)+'</th><th>'+nm(VM.wt)+'</th><th>'+nm(VM.fluid)+'</th><th>'+nm(VM.urine)+'</th></tr><tr><td>'+dTxt(day.date)+'</td><td>'+(day.sys||'-')+'/'+(day.dia||'-')+'</td><td>'+(day.pulse||'-')+'</td><td>'+(day.wt||'-')+'</td><td>'+(day.fluid||'-')+'</td><td>'+(day.urine||'-')+'</td></tr></table>';}
- h+='<h3>การเข้ารับการรักษาทั่วไป</h3><div class="pbox">'+buildReportEncounters()+'</div>';
- h+='<h3>ประวัติเหตุการณ์พิเศษ</h3><div class="pbox">'+buildReportSpecialEvents()+'</div>';
- return h;
-}
-function buildReportEncounters(){
- var rows=(DB.encounters||[]).slice().sort(byDate).reverse();if(!rows.length)return 'ยังไม่มีข้อมูลการเข้ารับการรักษาทั่วไป';
- return rows.map(function(e){var v=e.vitals||{},line='<div class="event-item"><b>'+dTxt(e.date||'')+(e.time?' · '+esc(e.time):'')+'</b> · '+esc(e.title||e.diagnosis||'การเข้ารับการรักษา');
-  if(e.department)line+='<br>แผนก: '+esc(e.department);if(e.facility)line+=' · สถานที่: '+esc(e.facility);if(e.physician)line+='<br>แพทย์: '+esc(e.physician);if(e.visitType||e.paymentRight)line+='<br>'+esc([e.visitType,e.paymentRight].filter(Boolean).join(' · '));if(e.diagnosis)line+='<br>การวินิจฉัย: '+esc(e.diagnosis);if(e.symptoms)line+='<br>อาการ: '+esc(e.symptoms);if(e.medications&&e.medications.length)line+='<br>ยาและวิธีใช้: '+esc(e.medications.join(' · '));
-  var vs=['BP '+(v.bp||''),v.temperatureC?'อุณหภูมิ '+v.temperatureC+'°C':'','ชีพจร '+(v.pulse||''),'หายใจ '+(v.respiration||''),v.weightKg?'น้ำหนัก '+v.weightKg+' กก.':'',v.heightCm?'ส่วนสูง '+v.heightCm+' ซม.':''].filter(function(x){return !/ $/.test(x);});if(vs.length)line+='<br>สัญญาณชีพ: '+esc(vs.join(' · '));if(e.status)line+='<br>สถานะ: '+esc(e.status);if(e.note)line+='<br>รายละเอียด: '+esc(e.note);if(e.source_images&&e.source_images.length)line+='<br>ภาพต้นทาง: '+esc(e.source_images.join(', '));return line+'</div>';}).join('');
-}
-function buildReportSpecialEvents(){
- var rows=(DB.events||[]).slice().sort(byDate).reverse();if(!rows.length)return 'ยังไม่มีประวัติเหตุการณ์พิเศษที่บันทึกไว้';
- return rows.map(function(e){var types={accident:'อุบัติเหตุ',fall:'หกล้ม',head_injury:'ศีรษะกระแทก',emergency:'ฉุกเฉิน',surgery:'ศัลยกรรม',orthopedics:'ออร์โธปิดิกส์',neurology:'สมองและระบบประสาท',other:'อื่น ๆ'},line='<div class="event-item"><b>'+dTxt(e.date||'')+'</b> · '+esc(e.title||types[e.type]||e.type||'เหตุการณ์พิเศษ');if(e.type)line+=' · '+esc(types[e.type]||e.type);if(e.department)line+='<br>แผนก: '+esc(e.department);if(e.place)line+=' · สถานที่: '+esc(e.place);if(e.status)line+='<br>สถานะ: '+esc(e.status);if(e.note)line+='<br>รายละเอียด/ผลตรวจ/คำสั่งแพทย์: '+esc(e.note);return line+'</div>';}).join('');
-}
-function reportDeptChanges(dp){
- var r=recs(dp);if(r.length<2)return[];var cur=r[r.length-1],prev=r[r.length-2],out=[],j;
- for(j=0;j<LABS.length;j++){var l=LABS[j];if(l.dp!==dp)continue;var a=prev.items[l.k],b=cur.items[l.k];
-  if(a===undefined||a===null||b===undefined||b===null)continue;var c=changeLabel(l.k,b,a);if(c)out.push({key:l.k,name:nm(l),date:cur.date,delta:(c.delta>0?'+':'')+c.delta.toFixed(l.dec),pct:c.pct===null?'-':(c.pct>0?'+':'')+c.pct.toFixed(0)+'%',label:c.notable?t('notableChange'):t('minorChange'),score:c.notable?1:0});}
- out.sort(function(a,b){return b.score-a.score;});return out;
-}
-function buildReportChangeSummary(mode){
- var a=[],dpList=mode==='all'?['med','eye']:[mode],j,k;
- for(j=0;j<dpList.length;j++){var c=reportDeptChanges(dpList[j]);for(k=0;k<c.length;k++){
-  var cur=last(dpList[j]),val=cur&&cur.items?cur.items[c[k].key]:null,cls=val===null?'risk-black':reportRiskClass(LM[c[k].key]||{k:c[k].key},val,cur);
-  a.push('<span class="'+cls+'">'+(dpList[j]==='eye'?t('deptEye'):t('deptMed'))+' — '+esc(c[k].name)+' '+c[k].delta+' ('+c[k].pct+') · '+reportRiskLabel(cls)+' · '+esc(c[k].label)+'</span>');}}
- return a.length?a.slice(0,20).join('<br>'):t('noData');
-}
-function buildReportTimeline(mode){
- var a=[],rs=recs(mode==='all'?'any':mode),j;
- for(j=0;j<rs.length;j++)a.push({date:rs[j].date,text:t('timelineLab')+' · '+(rs[j].dept==='eye'?t('deptEye'):t('deptMed'))});
- for(j=0;j<(DB.visits||[]).length;j++){if(mode!=='all'&&DB.visits[j].dept!==mode)continue;a.push({date:DB.visits[j].date,text:t('timelineVisit')+' · '+(DB.visits[j].doctor||DB.visits[j].place||'-')});}
- for(j=0;j<(DB.diagnoses||[]).length;j++){if(mode!=='all'&&DB.diagnoses[j].dept!==mode)continue;a.push({date:DB.diagnoses[j].date,text:t('timelineDx')+' · '+(DB.diagnoses[j].code||'')+' '+(LANG==='th'?DB.diagnoses[j].th:DB.diagnoses[j].en)});}
- if(mode==='all')for(j=0;j<(DB.encounters||[]).length;j++)a.push({date:DB.encounters[j].date,text:'การรักษาทั่วไป · '+(DB.encounters[j].diagnosis||DB.encounters[j].title||'')});
- a.sort(function(x,y){return x.date<y.date?1:-1;});return a.slice(0,30).map(function(x){return '<div style="padding:4px 0;border-bottom:1px solid #ccc"><b>'+dTxt(x.date)+'</b> · '+esc(x.text)+'</div>';}).join('')||t('noData');
-}
-function buildReportMedicalEvents(){
- var es=(DB.events||[]).concat(DB.encounters||[]).slice().sort(function(a,b){return a.date<b.date?-1:(a.date>b.date?1:0);});
- if(!es.length)return 'ยังไม่มีประวัติเหตุการณ์ทางการแพทย์ที่บันทึกไว้';
- return es.map(function(e){
-  var types={accident:'อุบัติเหตุ',fall:'หกล้ม',head_injury:'ศีรษะกระแทก',emergency:'ฉุกเฉิน',surgery:'ศัลยกรรม',orthopedics:'ออร์โธปิดิกส์',neurology:'สมองและระบบประสาท',other:'อื่น ๆ'};
-  var eventType=types[e.type]||e.type||'เหตุการณ์ทางการแพทย์';
-  var line='<div class="event-item"><b>'+dTxt(e.date||'')+'</b> · '+esc(e.title||eventType);
-  if(e.type)line+=' · '+esc(eventType);
-  if(e.department)line+='<br>แผนก: '+esc(e.department);
-  if(e.place)line+=' · สถานที่: '+esc(e.place);
-  if(e.status)line+='<br>สถานะ: '+esc(e.status);
-  if(e.diagnosis)line+='<br>การวินิจฉัย: '+esc(e.diagnosis);
-  if(e.symptoms)line+='<br>อาการ: '+esc(e.symptoms);
-  if(e.medications&&e.medications.length)line+='<br>ยา: '+esc(e.medications.join(' · '));
-  if(e.vitals)line+='<br>สัญญาณชีพ: '+esc(['BP '+(e.vitals.bp||''),'Temp '+(e.vitals.temperatureC||'')+'°C','ชีพจร '+(e.vitals.pulse||''),'หายใจ '+(e.vitals.respiration||''),'น้ำหนัก '+(e.vitals.weightKg||'')+' กก.','ส่วนสูง '+(e.vitals.heightCm||'')+' ซม.'].filter(function(x){return !/ (?:°C)?$/.test(x);}).join(' · '));
-  if(e.note)line+='<br>รายละเอียด: '+esc(e.note);
-  return line+'</div>';
- }).join('');
-}
-function reportCanvas(id){
- var c=E(id);if(!c||!c.width||!c.height)return'';
- try{
-  var tmp=document.createElement('canvas');tmp.width=c.width;tmp.height=c.height;
-  var x=tmp.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,tmp.width,tmp.height);x.drawImage(c,0,0);
-  var im=x.getImageData(0,0,tmp.width,tmp.height),d=im.data,i,r,g,b,mn,lum,target=null,strength,out;
-  for(i=0;i<d.length;i+=4){r=d[i];g=d[i+1];b=d[i+2];mn=Math.min(r,g,b);lum=(r+g+b)/3;target=null;
-   if(Math.max(r,g,b)-mn<16&&lum>210){d[i]=198;d[i+1]=204;d[i+2]=213;continue;}
-   if(b>g+10&&r<g&&lum>85&&lum<185){d[i]=71;d[i+1]=85;d[i+2]=105;continue;}
-   if(g>r+35&&b>g+12)target=[0,105,150];
-   else if(r>g+18&&g>b+12)target=[150,96,0];
-   else if(r>b+12&&b>g+18)target=[174,35,103];
-   else if(g>r+10&&r>b+12)target=[47,117,37];
-   if(target){strength=Math.max(0,Math.min(1,(255-mn)/150));for(var q=0;q<3;q++){out=255+(target[q]-255)*strength;d[i+q]=Math.round(out);}}
-  }
-  x.putImageData(im,0,0);
-  return '<img class="report-chart" src="'+tmp.toDataURL('image/png')+'" style="max-width:100%;height:auto;margin:4px 0 10px">';
- }catch(e){return '<img class="report-chart" src="'+c.toDataURL('image/png')+'" style="max-width:100%;height:auto;margin:4px 0 10px">';}
-}
-function buildReportCharts(mode){
- var h='';
- if(mode!=='eye')h+=reportCanvas('cScenario')+reportCanvas('cEgfr')+reportCanvas('cCombo');
- if(mode!=='med')h+=reportCanvas('cIop')+reportCanvas('cCdr')+reportCanvas('cLinkCh');
- return h||'<div class="pbox">'+t('noData')+'</div>';
-}
-function captureReportCharts(mode){
- var previousDept=DEPT,html='';
- try{if(mode==='med'||mode==='eye')DEPT=mode;else DEPT='all';renderDash();html=buildReportCharts(mode);}
- finally{DEPT=previousDept;renderDash();}
- return html;
 }
 function doPrint(){showReportChooser();}
 
