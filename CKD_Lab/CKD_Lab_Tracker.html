@@ -108,7 +108,7 @@ small.note{color:var(--dim);font-size:11.5px;line-height:1.5;display:block;margi
     <div><h1 data-i18n="appName">Health Tracker</h1><div class="sub" data-i18n="appSub">ผู้ช่วยติดตามสุขภาพโรคไตเรื้อรังและจักษุ</div></div>
     <div class="spacer"></div>
     <button class="btn lm" data-act="user-guide" data-i18n="guideButton">เปิดคู่มือ</button>
-    <button class="btn lm" data-act="print" data-i18n="printBtn">พิมพ์รายงาน</button>
+    <button class="btn lm" data-act="print" id="printBtn" data-i18n="printBtn">พิมพ์รายงาน</button>
     <span class="badge" id="sheetStatus">Sheet: setup required</span>
     <button class="btn cy" data-act="sheet-sync" id="sheetSyncBtn">ซิงก์ Sheet</button>
     <button class="btn gold" data-act="lang" id="langBtn">ENGLISH</button>
@@ -394,8 +394,6 @@ advGood:'Nothing needs special attention',qLabel:'Quarter',avg7:'7-day average',
 doctor:'Doctor',place:'Location',symptom:'Complaint',ptype:'Patient type',right:'Coverage',primary:'Primary',secondary:'Secondary',
 reportT:'Health Summary Report',patient:'Patient',printedOn:'Printed on',sigDoc:'Doctor signature',noDrops:'No eye drops in this department',reportDisclaimer:'This report summarizes recorded data and is not a medical diagnosis.'}};
 
-
-// New P3 feature labels; kept separate so existing translation dictionaries remain untouched.
 I18N.th.navEvents='เหตุการณ์ทางการแพทย์';
 I18N.en.navEvents='Medical Events';
 I18N.th.appointmentT='นัดหมายและเหตุการณ์ล่วงหน้า'; I18N.en.appointmentT='Upcoming Appointments and Events';
@@ -409,8 +407,8 @@ I18N.th.guideTitle='คู่มือการใช้งาน'; I18N.en.guid
 I18N.th.guideHint='ที่มา วิธีบันทึกข้อมูล OCR รายงาน และ Google Sheet Sync'; I18N.en.guideHint='Project background, data entry, OCR, reports, and Google Sheet Sync';
 I18N.th.guideButton='เปิดคู่มือ'; I18N.en.guideButton='Open Guide';
 
-I18N.th.kidneyRiskHint='เก็บเป็นข้อมูลประกอบแยกจากกราฟ เพื่อไม่ให้กราฟหลักอ่านยาก และจะคำนวณเมื่อข้อมูลที่จำเป็นครบและตรวจสอบได้';
-I18N.en.kidneyRiskHint='Keep risk information separate from the main graph. Calculate only when required inputs and suitable calibration are verified.';
+I18N.th.kidneyRiskHint='คำนวณจากสมการ KFRE 4-variable สากล (Tangri et al.) หากข้อมูลจริงไม่ครบจะเติมค่าตัวอย่างและระบุไว้ชัดเจนว่าเป็น Dummy data';
+I18N.en.kidneyRiskHint='Calculated using the international 4-variable KFRE equation (Tangri et al.). Missing inputs are filled with example values and clearly flagged as dummy data.';
 I18N.th.eventT='การรักษาและเหตุการณ์ล่าสุด'; I18N.en.eventT='Recent Visits and Events';
 I18N.th.allEventHistory='ดูประวัติทั้งหมด'; I18N.en.allEventHistory='View full history';
 I18N.th.eventFormT='บันทึกเหตุการณ์ทางการแพทย์'; I18N.en.eventFormT='Record a Medical Event';
@@ -545,10 +543,20 @@ var DEFAULT_SHEET_URL='https://script.google.com/macros/s/AKfycbwlpFYnMbXgBqP1sX
 function getSheetUrl(){try{return localStorage.getItem(SHEET_URL_KEY)||DEFAULT_SHEET_URL;}catch(e){return DEFAULT_SHEET_URL;}}
 function setSheetUrl(u){try{localStorage.setItem(SHEET_URL_KEY,u);}catch(e){}}
 var sheetReady=false,sheetLocalDirty=false,sheetPushTimer=null,sheetSeedPromptShown=false;
+var APP_DATA_READY=false;
 function sheetStatus(text){var e=E('sheetStatus');if(e)e.textContent=(LANG==='th'?'Sheet: ':'Sheet: ')+text;}
 function updateSheetUI(){
  var b=E('sheetSyncBtn');if(b)b.textContent=LANG==='th'?'ซิงก์ Sheet':'Sync Sheet';
  var inp=E('sheetUrlInput');if(inp&&!inp.value)inp.value=getSheetUrl();
+}
+function setPrintReady(ready){
+ APP_DATA_READY=ready;
+ var b=E('printBtn');
+ if(!b)return;
+ b.disabled=!ready;
+ b.style.opacity=ready?'1':'.45';
+ b.style.cursor=ready?'pointer':'not-allowed';
+ b.title=ready?'':(LANG==='th'?'กำลังเตรียมข้อมูลและกราฟ กรุณารอสักครู่':'Preparing data and charts, please wait');
 }
 function mergeTrackerData(remote,local){
  remote=remote&&typeof remote==='object'?remote:{};local=local&&typeof local==='object'?local:{};
@@ -562,7 +570,7 @@ function mergeTrackerData(remote,local){
 }
 function startSheetSync(){
  var url=getSheetUrl();
- if(!url){sheetStatus(LANG==='th'?'ยังไม่ตั้งค่า URL':'URL not set');return;}
+ if(!url){sheetStatus(LANG==='th'?'ยังไม่ตั้งค่า URL':'URL not set');setPrintReady(true);return;}
  sheetStatus(LANG==='th'?'กำลังอ่านข้อมูล':'loading');
  fetch(url,{method:'GET'}).then(function(res){return res.json();}).then(function(data){
   if(data&&Array.isArray(data.records)){
@@ -571,6 +579,7 @@ function startSheetSync(){
     if(window.confirm(LANG==='th'?'Google Sheet ยังว่าง ต้องการอัปโหลดข้อมูลในเครื่องนี้ขึ้น Sheet เป็นชุดแรกหรือไม่?':'Google Sheet is empty. Upload this device current records as the initial copy?')){
      sheetReady=true;sheetLocalDirty=true;scheduleSheetPush();
     }else{sheetReady=true;sheetStatus(LANG==='th'?'Sheet ว่าง · ยังไม่อัปโหลดข้อมูล':'sheet empty · local data not uploaded');}
+    setPrintReady(true);
     return;
    }
    DB=migrate(sheetLocalDirty?mergeTrackerData(data,DB):mergeTrackerData(DB,data));
@@ -579,10 +588,12 @@ function startSheetSync(){
    if(typeof renderAll==='function')renderAll();
    sheetStatus(sheetLocalDirty?(LANG==='th'?'มีข้อมูลในเครื่องรอซิงก์':'local changes pending'):(LANG==='th'?'อ่านข้อมูลจาก Sheet แล้ว':'sheet data loaded'));
    if(sheetLocalDirty)scheduleSheetPush();
+   setPrintReady(true);
   }else{
    sheetReady=true;sheetStatus(LANG==='th'?'อ่านข้อมูลสำเร็จ แต่รูปแบบไม่ถูกต้อง':'loaded but invalid format');
+   setPrintReady(true);
   }
- })['catch'](function(){sheetStatus(LANG==='th'?'เชื่อมต่อไม่สำเร็จ · ตรวจ URL/อินเทอร์เน็ต':'connection failed · check URL/internet');});
+ })['catch'](function(){sheetStatus(LANG==='th'?'เชื่อมต่อไม่สำเร็จ · ตรวจ URL/อินเทอร์เน็ต':'connection failed · check URL/internet');setPrintReady(true);});
 }
 function sheetPushNow(){
  var url=getSheetUrl();if(!url)return;
@@ -666,12 +677,16 @@ function renderChangeDetection(){
  for(j=0;j<r.length;j++){for(k in (r[j].items||{})){if(r[j].items.hasOwnProperty(k))keys[k]=true;}}
  for(k in keys){var c=changeLabel(k,cur.items[k],prev.items[k]);if(c){rows.push({k:k,c:c,cur:cur.items[k],prev:prev.items[k]});}}
  rows.sort(function(a,b){return (b.c.notable?1:0)-(a.c.notable?1:0)||Math.abs(b.c.delta)-Math.abs(a.c.delta);});
+ var OVERVIEW_LIMIT=4;
+ var limited=(DEPT==='all'&&rows.length>OVERVIEW_LIMIT);
+ var shown=limited?rows.slice(0,OVERVIEW_LIMIT):rows;
  var h='<div class="grid g3">';
- for(j=0;j<rows.length;j++){var x=rows[j],l=LM[x.k],col=x.c.notable?'var(--gold)':'var(--dim)',sg=x.c.delta>0?'+':'';
+ for(j=0;j<shown.length;j++){var x=shown[j],l=LM[x.k],col=x.c.notable?'var(--gold)':'var(--dim)',sg=x.c.delta>0?'+':'';
   if(!l)continue;var risk=dashboardRiskClass(l,x.cur,cur);
   h+='<div class="card" style="margin:0;border-color:'+col+'"><div class="lbl">'+nm(l)+'</div><div class="num '+risk+'">'+fmtL(x.k,x.cur)+'</div><div class="sub">'+dTxt(prev.date)+' → '+dTxt(cur.date)+'</div><div class="trend">'+sg+x.c.delta.toFixed(l.dec)+(x.c.pct===null?'':' ('+sg+(x.c.delta<0?'-':'')+x.c.pct.toFixed(0)+'%)')+' · '+(x.c.notable?t('notableChange'):t('minorChange'))+'</div></div>';
  }
  h+='</div>';
+ if(limited){h+='<div class="sub" style="margin-top:8px">'+(LANG==='th'?('แสดง '+OVERVIEW_LIMIT+' รายการที่เปลี่ยนแปลงมากที่สุดจากทั้งหมด '+rows.length+' รายการ ดูครบทุกค่าที่แท็บอายุรกรรมหรือจักษุกรรม'):('Showing the top '+OVERVIEW_LIMIT+' of '+rows.length+' changes. See the department tab for the complete list.'))+'</div>';}
  body.innerHTML=h;
 }
 function renderAttention(){
@@ -688,10 +703,16 @@ function renderAttention(){
  if(c&&c.field_meta){for(k in c.field_meta){if(!c.field_meta.hasOwnProperty(k)||seen[k])continue;var fm=c.field_meta[k];if(fm.needs_review||((fm.validation||{}).status==='suspicious')){items.push({type:'ocr',k:k,label:LM[k]?nm(LM[k]):k,value:latest.items[k],flag:'review'});seen[k]=true;}}}
  if(latest.ocr_canonical&&(!latest.date||!(latest.source_images||[]).length))items.push({type:'source',label:t('date'),value:'?',flag:'review'});
  if(!items.length){body.innerHTML='<div class="adv good">'+t('advGood')+'</div>';return;}
+ items.sort(function(a,b){function rank(x){return x.flag==='dash-risk-red'?0:(x.flag==='review'?1:(x.flag==='dash-risk-blue'?2:3));}return rank(a)-rank(b);});
+ var OVERVIEW_LIMIT=4;
+ var limited=(DEPT==='all'&&items.length>OVERVIEW_LIMIT);
+ var shown=limited?items.slice(0,OVERVIEW_LIMIT):items;
  var h='<div class="grid g3">';
- for(j=0;j<items.length;j++){var x=items[j],col=x.flag==='review'?'var(--mag)':(x.flag==='dash-risk-red'?'var(--risk-red)':'var(--risk-blue)'),txt=x.type==='ocr'?t('review'):(x.type==='source'?t('needDate'):(x.flag==='dash-risk-red'?t('high'):t('low')));
+ for(j=0;j<shown.length;j++){var x=shown[j],col=x.flag==='review'?'var(--mag)':(x.flag==='dash-risk-red'?'var(--risk-red)':'var(--risk-blue)'),txt=x.type==='ocr'?t('review'):(x.type==='source'?t('needDate'):(x.flag==='dash-risk-red'?t('high'):t('low')));
   h+='<div class="card" style="margin:0;border-color:'+col+'"><div class="hrow"><b style="color:'+col+'">'+esc(x.label||'-')+'</b><div class="spacer"></div><span class="badge">'+esc(txt)+'</span></div><div class="num" style="margin-top:6px;color:'+col+'">'+(x.value===undefined||x.value===null?'—':fmtL(x.k,x.value))+'</div></div>';}
- h+='</div>';body.innerHTML=h;
+ h+='</div>';
+ if(limited){h+='<div class="sub" style="margin-top:8px">'+(LANG==='th'?('แสดง '+OVERVIEW_LIMIT+' จุดสำคัญที่สุดจากทั้งหมด '+items.length+' รายการ ดูครบทุกค่าที่แท็บอายุรกรรมหรือจักษุกรรม'):('Showing the top '+OVERVIEW_LIMIT+' of '+items.length+' flagged items. See the department tab for the complete list.'))+'</div>';}
+ body.innerHTML=h;
 }
 function renderTimeline(){
  var box=E('cTimelineBox'),body=E('timelineBody');if(!box||!body)return;
@@ -861,12 +882,38 @@ function renderAppointment(){
 }
 function appointmentDeptName(a){var d=a&&a.dept||'';if(d==='eye')return LANG==='th'?'นัดจักษุกรรม':'Ophthalmology';if(d==='kidney')return LANG==='th'?'นัดศูนย์โรคไต':'Kidney center';if(d==='med')return LANG==='th'?'นัดอายุรกรรม':'Internal Medicine';return LANG==='th'?'นัดหมาย':'Appointment';}
 function appointmentSourceName(s){if(s==='kidney_center')return LANG==='th'?'ศูนย์โรคไต':'Kidney center';if(s==='hospital_app')return LANG==='th'?'แอปโรงพยาบาล':'Hospital app';return s|| (LANG==='th'?'แหล่งนัดหมาย':'Appointment source');}
+function kfreCompute(ageVal,isMale,egfrVal,acrVal){
+ var safeAcr=Math.max(Number(acrVal)||1,1);
+ var xb=-0.2201*(ageVal/10-7.036)+0.2467*((isMale?1:0)-0.5642)-0.5567*(egfrVal/5-7.222)+0.4510*(Math.log(safeAcr)-5.137);
+ var risk2y=(1-Math.pow(0.9750,Math.exp(xb)))*100;
+ var risk5y=(1-Math.pow(0.9240,Math.exp(xb)))*100;
+ if(risk2y<0)risk2y=0;if(risk2y>100)risk2y=100;
+ if(risk5y<0)risk5y=0;if(risk5y>100)risk5y=100;
+ return{risk2y:risk2y,risk5y:risk5y};
+}
 function renderKidneyRisk(){
- var body=E('kidneyRiskBody');if(!body)return;var r=last('med'),items=r?r.items:{};
- var age=DB.patient&&DB.patient.birthDate?Math.floor((new Date().getTime()-new Date(DB.patient.birthDate+'T00:00:00').getTime())/31557600000):null;
- var missing=[];if(age===null)missing.push(LANG==='th'?'วันเกิด/อายุ':'age');if(!DB.patient||!DB.patient.sex)missing.push(LANG==='th'?'เพศ':'sex');if(items.egfr===undefined)missing.push('eGFR');if(items.acr===undefined)missing.push('UACR');
- if(missing.length){body.innerHTML='<div class="hrow"><div><div class="num" style="font-size:24px;color:var(--gold)">—</div><div class="sub">'+(LANG==='th'?'ยังไม่คำนวณ':'Not calculated')+'</div></div><div class="spacer"></div><span class="badge">'+(LANG==='th'?'ข้อมูลไม่ครบ':'Missing inputs')+'</span></div><div class="adv link">'+(LANG==='th'?'ต้องมีข้อมูลเพิ่มเติม: ':'Required: ')+esc(missing.join(', '))+'</div>';return;}
- body.innerHTML='<div class="hrow"><div><div class="num" style="font-size:24px;color:var(--cyan)">KFRE</div><div class="sub">'+(LANG==='th'?'พร้อมคำนวณเมื่อกำหนดภูมิภาค/Calibration ที่เหมาะสม':'Ready after region/calibration is specified')+'</div></div><div class="spacer"></div><span class="badge">'+(LANG==='th'?'ยังไม่แสดงตัวเลข':'Value withheld')+'</span></div><div class="adv good">'+(LANG==='th'?'ระบบเก็บตัวแปร 4-variable ที่จำเป็นไว้แล้ว แต่จะไม่แสดงเปอร์เซ็นต์จนกว่าจะกำหนดวิธี calibration ที่เหมาะสมกับประชากร':'The 4-variable inputs are present, but the percentage is withheld until an appropriate calibration is specified.')+'</div>';
+ var body=E('kidneyRiskBody');if(!body)return;
+ var r=last('med'),items=r?r.items:{};
+ var birthDate=DB.patient&&DB.patient.birthDate;
+ var age=birthDate?Math.floor((new Date().getTime()-new Date(birthDate+'T00:00:00').getTime())/31557600000):null;
+ var sex=DB.patient&&DB.patient.sex;
+ var egfrVal=items.egfr,acrVal=items.acr;
+ var dummyFields=[];
+ var useAge=age,useSex=sex,useEgfr=egfrVal,useAcr=acrVal;
+ if(useAge===null||useAge===undefined||isNaN(useAge)){useAge=70;dummyFields.push(LANG==='th'?'อายุ (ตัวอย่าง 70 ปี)':'Age (example 70y)');}
+ if(!useSex){useSex='F';dummyFields.push(LANG==='th'?'เพศ (ตัวอย่างหญิง)':'Sex (example female)');}
+ if(useEgfr===undefined||useEgfr===null||isNaN(useEgfr)){useEgfr=30;dummyFields.push(LANG==='th'?'eGFR (ตัวอย่าง 30 mL/min)':'eGFR (example 30 mL/min)');}
+ if(useAcr===undefined||useAcr===null||isNaN(useAcr)){useAcr=300;dummyFields.push(LANG==='th'?'UACR (ตัวอย่าง 300 mgA/gC)':'UACR (example 300 mgA/gC)');}
+ var isMale=(useSex==='M'||useSex==='m'||useSex==='male'||useSex==='Male');
+ var res=kfreCompute(Number(useAge),isMale,Number(useEgfr),Number(useAcr));
+ var riskClass=res.risk2y>=40?'dash-risk-red':(res.risk2y>=10?'dash-risk-blue':'dash-risk-normal');
+ var hasDummy=dummyFields.length>0;
+ var html='<div class="hrow"><div><div class="num '+riskClass+'" style="font-size:24px">'+res.risk2y.toFixed(1)+'%</div><div class="sub">'+(LANG==='th'?'ความเสี่ยงไตวายใน 2 ปี':'2-year kidney failure risk')+'</div></div><div class="spacer"></div><div style="text-align:right"><div class="num" style="font-size:18px;color:var(--dim)">'+res.risk5y.toFixed(1)+'%</div><div class="sub">'+(LANG==='th'?'ความเสี่ยงใน 5 ปี':'5-year risk')+'</div></div></div>';
+ if(hasDummy){
+  html+='<div class="adv link"><b>'+(LANG==='th'?'ข้อมูลจริงไม่ครบ ใช้ค่าตัวอย่างบางส่วน (Dummy data)':'Some real inputs are missing; example values used (Dummy data)')+'</b><br>'+esc(dummyFields.join(' · '))+'</div>';
+ }
+ html+='<div class="adv '+(hasDummy?'':'good')+'">'+(LANG==='th'?'คำนวณด้วยสมการ KFRE 4-variable (Tangri et al.) ที่ใช้อ้างอิงในหลายประเทศ ยังไม่ได้ปรับ Calibration เฉพาะประชากรไทย ใช้เป็นข้อมูลประกอบการพูดคุยกับแพทย์เท่านั้น ไม่ใช่การวินิจฉัย':'Calculated using the internationally validated 4-variable KFRE (Tangri et al.) equation; not locally calibrated for the Thai population. For discussion with your care team only - not a diagnosis.')+'</div>';
+ body.innerHTML=html;
 }
 function renderEventSummary(){
  var body=E('eventSummaryBody');if(!body)return;var enc=(DB.encounters||[]).slice().sort(byDate).reverse(),ev=(DB.events||[]).slice().sort(byDate).reverse(),h='',i;
@@ -1030,7 +1077,9 @@ function renderDash(){
  var al=[];
  if(!isEye){al=al.concat(labAdvice('med'));al=al.concat(vitalAdvice());}
  if(!isMed){al=al.concat(labAdvice('eye'));}
- E('advice').innerHTML=al.length?al.join(''):'<div class="adv good">'+t('advGood')+'</div>';
+ var adviceTotal=al.length,ADVICE_OVERVIEW_LIMIT=4,adviceLimited=(isAll&&adviceTotal>ADVICE_OVERVIEW_LIMIT);
+ if(adviceLimited){al=al.slice(0,ADVICE_OVERVIEW_LIMIT);}
+ E('advice').innerHTML=(al.length?al.join(''):'<div class="adv good">'+t('advGood')+'</div>')+(adviceLimited?('<div class="sub" style="margin-top:6px">'+(LANG==='th'?('แสดง '+ADVICE_OVERVIEW_LIMIT+' จาก '+adviceTotal+' คำแนะนำ ดูทั้งหมดที่แท็บอายุรกรรมหรือจักษุกรรม'):('Showing '+ADVICE_OVERVIEW_LIMIT+' of '+adviceTotal+' tips. See the department tab for the full list.'))+'</div>'):'');
 
  var vh='',vs=DB.visits.slice().sort(byDate).reverse();
  for(j=0;j<vs.length;j++){var vv=vs[j];if(!inDept(vv))continue;
@@ -1191,7 +1240,7 @@ function extractAppointment(txt,fileName,sourceIndex){
   if(!/อายุรกรรม/.test(deptLine)||/จักษุกรรม|จักษุ/.test(deptLine))continue;
   ctx=lines[i]+' '+deptLine+(i+1<lines.length?' '+lines[i+1]:'');
   timeMatch=ctx.match(/(?:เวลา\s*)?(\d{1,2}[:.]\d{2})/);
-  placeMatch=ctx.match(/(ห้องตรวจอายุรกรรม(?:\s*\([^)]*\))?(?:\s*ชั้น\s*\d+)?|แผนกอายุรกรรม(?:\s*\([^)]*\))?)/);
+  placeMatch=ctx.match(/(ห้องตรวจอายุรกรรม(?:\s*$[^)]*$)?(?:\s*ชั้น\s*\d+)?|แผนกอายุรกรรม(?:\s*$[^)]*$)?)/);
   for(j=0;j<ds.length;j++){
    d=ds[j];if(d.date<=new Date().toISOString().slice(0,10)&&!/นัด|appointment|next visit/i.test(ctx))continue;score=3;if(/ตรวจอายุรกรรม|ห้องตรวจอายุรกรรม|อายุรกรรม/.test(ctx))score+=1;if(timeMatch)score+=1;if(placeMatch)score+=1;
    cands.push({date:d.date,dept:'med',type:'internal_medicine',place:placeMatch?placeMatch[1].trim():'',time:timeMatch?timeMatch[1].replace('.',':'):'',snapshot_date:snapshot,lab_date:labDate,source_file:fileName||'',source_index:sourceIndex||0,confidence:Math.min(0.99,0.65+score*0.06)});
@@ -1451,7 +1500,7 @@ function upsertEncounter(draft){
  old.source_images=(old.source_images||[]).concat(draft.sourceImages||[]).filter(function(x,i,a){return a.indexOf(x)===i;});old.raw_ocr=(old.raw_ocr||[]).concat(draft.rawText?[draft.rawText]:[]);old.updated_at=new Date().toISOString();
 }
 
-/* ========== 14. รายงานสำหรับพิมพ์ (แก้ไขรอบนี้: A ใช้โครงสร้างร่วมกับ B/C, ตัดจุดสี/ลงชื่อแพทย์, แก้เครื่องหมาย %) ========== */
+/* ========== 14. รายงานสำหรับพิมพ์ ========== */
 var REPORT_MODE='all';
 function showUserGuide(){
  var box=E('mbox'),th=LANG==='th',h='';
@@ -1459,21 +1508,21 @@ function showUserGuide(){
  if(th){
   h+='<p>คู่มือฉบับนี้รวบรวมที่มา พัฒนาการ และวิธีใช้ Tracker รุ่นปัจจุบัน</p>';
   h+='<h3>1. ที่มาและเป้าหมาย</h3><p>เริ่มจากแนวคิดทำเครื่องมือช่วยติดตามผลตรวจและสุขภาพของคุณแม่ที่เป็นโรคไตเรื้อรัง โดยรวบรวมข้อมูลจากอายุรกรรมและจักษุกรรมไว้ในที่เดียว เพื่อดูแนวโน้ม เตรียมพบแพทย์ และลดการค้นข้อมูลจากหลายแหล่ง</p>';
-  h+='<h3>2. พัฒนาการของแอป</h3><ul><li>ต่อยอดจากไฟล์ HTML เดิม โดยคงการเก็บข้อมูลใน browser และเพิ่มกราฟไต สัญญาณชีพ ประวัติผลตรวจ ยา การวินิจฉัย และเหตุการณ์ทางการแพทย์</li><li>เพิ่ม OCR สำหรับอ่านภาพผลตรวจ และดึงวันนัดจากภาพของแอปโรงพยาบาล/ศูนย์โรคไต โดยให้ตรวจทานก่อนบันทึก</li><li>Dashboard แสดงนัดหมายล่วงหน้าสูงสุด 3 รายการ รวมวันเจาะเลือดแยกจากวันพบแพทย์</li><li>ย้ายฐานข้อมูลจาก Firebase ไปเป็น Google Sheet เพื่อให้แก้ไขและตรวจสอบข้อมูลได้เองโดยตรง และยกเลิกระบบ PIN เพื่อให้ใช้งานสะดวกขึ้น</li><li>ปรับโครงสร้างรายงาน A ให้ลงรายละเอียดผลตรวจแต่ละแผนกเหมือนรายงาน B/C ไม่ใช่สรุปแบบ Dashboard อีกต่อไป</li></ul>';
+  h+='<h3>2. พัฒนาการของแอป</h3><ul><li>ต่อยอดจากไฟล์ HTML เดิม โดยคงการเก็บข้อมูลใน browser และเพิ่มกราฟไต สัญญาณชีพ ประวัติผลตรวจ ยา การวินิจฉัย และเหตุการณ์ทางการแพทย์</li><li>เพิ่ม OCR สำหรับอ่านภาพผลตรวจ และดึงวันนัดจากภาพของแอปโรงพยาบาล/ศูนย์โรคไต โดยให้ตรวจทานก่อนบันทึก</li><li>Dashboard แสดงนัดหมายล่วงหน้าสูงสุด 3 รายการ รวมวันเจาะเลือดแยกจากวันพบแพทย์</li><li>ย้ายฐานข้อมูลจาก Firebase ไปเป็น Google Sheet เพื่อให้แก้ไขและตรวจสอบข้อมูลได้เองโดยตรง และยกเลิกระบบ PIN เพื่อให้ใช้งานสะดวกขึ้น</li><li>ปรับโครงสร้างรายงาน A ให้ลงรายละเอียดผลตรวจแต่ละแผนกเหมือนรายงาน B/C ไม่ใช่สรุปแบบ Dashboard อีกต่อไป</li><li>เพิ่มการคำนวณ KFRE จริงพร้อมระบุ Dummy data เมื่อข้อมูลไม่ครบ ลดจำนวนรายการซ้ำบนภาพรวม และแก้ปัญหากราฟในรายงานไม่ขึ้นเมื่อพิมพ์จากแท็บอื่น</li></ul>';
   h+='<h3>3. เริ่มใช้งานและการเชื่อมต่อ Google Sheet</h3><ol><li>เปิดหน้าเว็บบนอุปกรณ์ที่ต้องการใช้</li><li>ไปที่เมนู “ข้อมูล/สำรอง” ตรวจสอบว่าช่อง Web App URL มีค่าที่ถูกต้องแล้ว</li><li>กดปุ่ม “ซิงก์ Sheet” ที่แถบด้านบนเพื่ออ่าน/เขียนข้อมูลกับ Google Sheet</li></ol>';
   h+='<h3>4. บันทึกผลและใช้ OCR</h3><ul><li>เพิ่มผลตรวจผ่าน “อัปโหลดรูป (OCR)” เลือกแผนกอายุรกรรม/จักษุกรรม แล้วตรวจทานข้อมูลที่อ่านได้ก่อนยืนยัน</li><li>ไม่มีหน้ากรอกผลตรวจหรือบันทึกรายวันแล้ว ข้อมูลเดิมยังคงแสดงจากประวัติที่บันทึกไว้</li><li>OCR ใช้ Tesseract.js และโหลดส่วนประกอบจาก CDN จึงต้องต่ออินเทอร์เน็ต ระวังตัวเลข/วันที่ที่อ่านไม่ชัด และแก้ให้ตรงภาพก่อนบันทึก</li></ul>';
-  h+='<h3>5. Dashboard และรายงาน</h3><ul><li>Dashboard รวมผลล่าสุด แนวโน้ม eGFR สัญญาณชีพ จุดที่ควรตรวจสอบ เหตุการณ์ และนัดหมาย</li><li>ประวัติย้อนหลังดูผลตามเวลาและแผนก แตะแถว/กราฟเพื่อดูรายละเอียด</li><li>กด “พิมพ์รายงาน” แล้วเลือกรายงาน A (ภาพรวมทั้งสองแผนกแบบละเอียด), B (อายุรกรรม) หรือ C (จักษุกรรม) จากนั้นพิมพ์หรือบันทึกเป็น PDF</li><li>รายงาน A ไม่มีกราฟ (ชี้ให้ดูกราฟละเอียดที่รายงาน B/C แทน) และไม่มีหัวข้อนัดหมายล่วงหน้า (ดูที่ Dashboard แทน)</li></ul>';
+  h+='<h3>5. Dashboard และรายงาน</h3><ul><li>Dashboard รวมผลล่าสุด แนวโน้ม eGFR สัญญาณชีพ จุดที่ควรตรวจสอบ เหตุการณ์ และนัดหมาย โดยในแท็บภาพรวมจะจำกัดจำนวนรายการที่แสดงไม่ให้แน่นเกินไป ดูครบทุกค่าได้ที่แท็บแยกแผนก</li><li>ปุ่ม “พิมพ์รายงาน” จะกดได้ก็ต่อเมื่อระบบโหลดข้อมูลพร้อมแล้ว</li><li>กด “พิมพ์รายงาน” แล้วเลือกรายงาน A (ภาพรวมทั้งสองแผนกแบบละเอียด), B (อายุรกรรม) หรือ C (จักษุกรรม) จากนั้นพิมพ์หรือบันทึกเป็น PDF</li></ul>';
   h+='<h3>6. Google Sheet Sync และสำรองข้อมูล</h3><ul><li>ข้อมูลทั้งหมดอ่าน/เขียนผ่าน Google Sheet ที่ตั้งค่า Web App URL ไว้ที่หน้า ข้อมูล/สำรอง</li><li>ข้อมูลยังสำรองไว้ในเครื่อง (localStorage) และซิงก์ขึ้น Sheet อัตโนมัติทุกครั้งที่บันทึก</li><li>สำรอง/กู้คืนผ่านเมนู “ข้อมูล/สำรอง” ดาวน์โหลดหรือเลือกไฟล์ JSON ได้เช่นเดิม</li><li><b>หมายเหตุ:</b> เนื่องจากไม่มี PIN แล้ว ผู้ที่ทราบ Web App URL จะสามารถอ่านและแก้ไขข้อมูลได้ จึงควรเก็บ URL นี้เป็นความลับ</li></ul>';
-  h+='<h3>7. ขอบเขตการใช้ข้อมูล</h3><p>กราฟและสีเตือนใช้ช่วยสังเกตข้อมูลที่บันทึกไว้ ไม่ใช่การวินิจฉัยหรือคำสั่งรักษา ตรวจทานข้อมูล OCR และปรึกษาทีมแพทย์ก่อนตัดสินใจเรื่องการรักษา</p>';
+  h+='<h3>7. ขอบเขตการใช้ข้อมูล</h3><p>กราฟและสีเตือนใช้ช่วยสังเกตข้อมูลที่บันทึกไว้ ไม่ใช่การวินิจฉัยหรือคำสั่งรักษา ค่า KFRE ที่แสดงใช้สมการสากลที่ยังไม่ปรับ Calibration สำหรับประชากรไทย และหากข้อมูลจริงไม่ครบจะมีการเติมค่าตัวอย่างพร้อมระบุไว้ชัดเจน ใช้เพื่อประกอบการพูดคุยกับแพทย์เท่านั้น ตรวจทานข้อมูล OCR และปรึกษาทีมแพทย์ก่อนตัดสินใจเรื่องการรักษา</p>';
  }else{
   h+='<p>This guide summarizes the Tracker’s background, development, and current workflow.</p>';
   h+='<h3>1. Purpose</h3><p>The project began as a way to follow the user’s mother’s chronic kidney disease results and related health information, combining nephrology and ophthalmology records in one place.</p>';
-  h+='<h3>2. What changed</h3><ul><li>Data storage moved from Firebase to Google Sheet so the family can edit and verify data directly; the local PIN gate was removed for convenience. Report A now mirrors the detailed structure of B/C instead of a Dashboard-style summary.</li></ul>';
+  h+='<h3>2. What changed</h3><ul><li>Data storage moved from Firebase to Google Sheet so the family can edit and verify data directly; the local PIN gate was removed for convenience. Report A now mirrors the detailed structure of B/C. KFRE now computes a real estimate with clearly flagged dummy inputs when data is incomplete. The overview now limits repeated items for clarity, and a chart-rendering bug when printing from another tab was fixed.</li></ul>';
   h+='<h3>3. Connect Google Sheet</h3><ol><li>Open Data / Backup, confirm the Web App URL is correct.</li><li>Use the Sync Sheet button in the header to read/write with Google Sheet.</li></ol>';
   h+='<h3>4. Save results and use OCR</h3><ul><li>Add lab results through Upload Images (OCR), choose nephrology or ophthalmology, and review recognized data before confirming.</li></ul>';
-  h+='<h3>5. Dashboard and reports</h3><ul><li>Use Print Report and choose A (full detail overview), B, or C to print or save a PDF. Report A has no charts (see B/C for charts) and no upcoming-appointments section (see Dashboard).</li></ul>';
+  h+='<h3>5. Dashboard and reports</h3><ul><li>The Print Report button is enabled only after the app finishes loading data. Choose A (full detail overview), B, or C to print or save a PDF.</li></ul>';
   h+='<h3>6. Google Sheet sync and backups</h3><ul><li>All data reads/writes through the Google Sheet configured in Data / Backup. localStorage remains an offline cache. Keep the Web App URL private since there is no PIN anymore.</li></ul>';
-  h+='<h3>7. Intended use</h3><p>Charts and flags help review recorded data; they are not a diagnosis or treatment instruction.</p>';
+  h+='<h3>7. Intended use</h3><p>Charts and flags help review recorded data; they are not a diagnosis or treatment instruction. KFRE uses an international equation not calibrated for the Thai population, and missing inputs are substituted with clearly flagged example values.</p>';
  }
  box.innerHTML=h;E('modal').className='modal on';
 }
@@ -1614,8 +1663,18 @@ function buildReportCharts(mode){
 }
 function captureReportCharts(mode){
  var previousDept=DEPT,html='';
- try{if(mode==='med'||mode==='eye')DEPT=mode;else DEPT='all';renderDash();html=buildReportCharts(mode);}
- finally{DEPT=previousDept;renderDash();}
+ var dashSection=E('v-dash'),wasVisible=dashSection&&dashSection.className.indexOf(' on')>=0;
+ try{
+  if(dashSection&&!wasVisible){dashSection.className='view on';}
+  if(mode==='med'||mode==='eye')DEPT=mode;else DEPT='all';
+  renderDash();
+  html=buildReportCharts(mode);
+ }
+ finally{
+  DEPT=previousDept;
+  if(dashSection&&!wasVisible){dashSection.className='view';}
+  renderDash();
+ }
  return html;
 }
 function buildReport(mode){
