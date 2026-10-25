@@ -1,272 +1,1398 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>9AU Portfolio — Cashflow</title>
-  <link rel="apple-touch-icon" href="profile.png">
-  <link rel="icon" type="image/png" href="profile.png">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#161b22">
-  <script src="i18n.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body{font-family:'Sarabun',sans-serif;background:#0d1117;color:#c9d1d9;}
-    .fn{font-family:'JetBrains Mono',monospace;font-feature-settings:"tnum";}
-    .fb{font-family:'Chakra Petch',sans-serif;}
-    .cd{background:#161b22;border:1px solid #30363d;}
-    .nav-tab{padding:8px 16px;border-radius:10px;font-size:12px;font-weight:600;transition:.15s;white-space:nowrap;border:1px solid #30363d;text-decoration:none;display:inline-block;}
-    .nav-tab.active{background:#059669;color:#fff;border-color:#059669;}
-    .nav-tab:not(.active){background:#161b22;color:#64748b;}
-    .nav-tab:not(.active):hover{color:#fff;border-color:#475569;}
-    .no-scrollbar::-webkit-scrollbar{display:none;}
-  </style>
-</head>
-<body class="min-h-screen antialiased pb-16">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>9AU Trade Import v9.5 Ticker Review Fix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d1117;--s1:#161b22;--s2:#21262d;--s3:#2d333b;
+  --bd:#30363d;--bd2:#444c56;
+  --txt:#c9d1d9;--muted:#8b949e;--dim:#656d76;
+  --blue:#58a6ff;--blue-dim:rgba(88,166,255,.12);
+  --green:#3fb950;--green-dim:rgba(63,185,80,.12);
+  --orange:#d29922;--orange-dim:rgba(210,153,34,.12);
+  --red:#f85149;--red-dim:rgba(248,81,73,.12);
+  --purple:#a371f7;--purple-dim:rgba(163,113,247,.12);
+  --r:10px;--r-sm:7px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--txt);font-family:'Sarabun',system-ui,sans-serif;font-size:14px;line-height:1.6;padding-bottom:60px}
+.mono{font-family:'JetBrains Mono',monospace}
 
-<header class="border-b border-[#30363d] bg-[#161b22]/90 backdrop-blur sticky top-0 z-40">
-  <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
-    <div class="flex items-center gap-3 flex-shrink-0">
-      <div class="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-500 flex-shrink-0">
-        <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
-      </div>
-      <div>
-        <div class="text-sm font-bold text-white fb">กระแสเงินสด (Cashflow)</div>
-        <div class="text-[11px] text-gray-400">บันทึกเงินสดรับ-จ่าย และโอนย้ายสภาพคล่อง</div>
-      </div>
-    </div>
-    <div class="flex items-center gap-1.5">
-      <button onclick="toggleLang()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
-      <button onclick="loadBootstrap()" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-      </button>
-      <button onclick="logout()" class="p-2 text-rose-400 hover:text-rose-300 rounded-lg border border-[#30363d] bg-[#21262d] transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-      </button>
-    </div>
+header{position:sticky;top:0;z-index:40;background:rgba(13,17,23,.96);border-bottom:1px solid var(--bd);backdrop-filter:blur(12px)}
+.h-inner{max-width:1200px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600}
+.brand span{color:var(--blue)}
+.spacer{flex:1}
+.tag{font-size:11px;background:var(--s2);border:1px solid var(--bd);color:var(--muted);padding:3px 10px;border-radius:20px;white-space:nowrap}
+
+nav{max-width:1200px;margin:0 auto;padding:8px 16px 0;display:flex;gap:6px;flex-wrap:wrap}
+.nb{background:transparent;border:1px solid var(--bd);color:var(--muted);padding:8px 16px;border-radius:8px 8px 0 0;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;border-bottom:none;transition:all .15s}
+.nb:hover{color:var(--txt);border-color:var(--bd2)}
+.nb.on{background:var(--s1);color:var(--blue);border-color:var(--blue);font-weight:600}
+
+main{max-width:1200px;margin:0 auto;padding:18px 16px}
+.view{display:none}.view.on{display:block}
+
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.card-title{font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+
+.drop-zone{border:2px dashed var(--bd2);border-radius:var(--r);padding:40px 20px;text-align:center;transition:border-color .2s,background .2s;cursor:pointer;background:var(--bg)}
+.drop-zone:hover,.drop-zone.over{border-color:var(--blue);background:var(--blue-dim)}
+.drop-zone p{color:var(--muted);font-size:13.5px;margin-bottom:14px;line-height:1.7}
+
+.prog-bar{height:5px;background:var(--s2);border-radius:4px;overflow:hidden;margin:10px 0;display:none}
+.prog-fill{height:100%;background:var(--blue);width:0;transition:width .25s}
+.prog-stat{font-size:12px;color:var(--muted);text-align:center;min-height:18px}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r-sm);border:1px solid var(--bd);background:var(--s2);color:var(--txt);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;text-decoration:none}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn-blue{background:var(--blue);color:#0d1117;border-color:var(--blue)}
+.btn-blue:hover{background:#79c0ff;color:#0d1117;border-color:#79c0ff}
+.btn-green{background:var(--green-dim);color:var(--green);border-color:var(--green)}
+.btn-red{background:var(--red-dim);color:var(--red);border-color:var(--red)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.bg-buy{background:var(--green-dim);color:var(--green);border:1px solid rgba(63,185,80,.4)}
+.bg-sell{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,81,73,.4)}
+.bg-div{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(163,113,247,.4)}
+.bg-us{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(88,166,255,.3)}
+.bg-thai{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(210,153,34,.3)}
+.bg-ok{background:var(--green-dim);color:var(--green)}
+.bg-warn{background:var(--orange-dim);color:var(--orange)}
+.bg-err{background:var(--red-dim);color:var(--red)}
+.bg-gray{background:var(--s2);color:var(--muted);border:1px solid var(--bd)}
+
+/* Slip review */
+.slip-card{background:var(--bg);border-radius:var(--r);padding:14px;margin-bottom:10px;border:1px solid var(--bd)}
+.slip-card.warn{border-left:3px solid var(--orange);border-left-width:3px}
+.slip-card.pass{border-left:3px solid var(--green)}
+.slip-card.blocked{border-left:3px solid var(--red)}
+.slip-hd{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.slip-fn{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.fg{display:grid;gap:8px}
+.fg2{grid-template-columns:1fr 1fr}
+.fg3{grid-template-columns:1fr 1fr 1fr}
+.fg4{grid-template-columns:1fr 1fr 1fr 1fr}
+@media(max-width:640px){.fg2,.fg3,.fg4{grid-template-columns:1fr}}
+
+.f-item{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r-sm);padding:8px 10px}
+.f-item.c-ok{border-color:rgba(63,185,80,.35)}
+.f-item.c-warn{border-color:rgba(210,153,34,.45)}
+.f-item.c-err{border-color:rgba(248,81,73,.45)}
+.f-label{font-size:11px;color:var(--muted);margin-bottom:4px}
+.f-input{width:100%;background:var(--bg);border:1px solid var(--bd);color:var(--txt);padding:5px 8px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:13px;transition:border-color .15s}
+.f-input:focus{outline:none;border-color:var(--blue)}
+.c-tag{font-size:10px;margin-top:3px}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--bd);border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:9px 12px;text-align:left;background:var(--s2);color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--bd);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--bd);vertical-align:middle;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--s2)}
+.nr{text-align:right;font-family:'JetBrains Mono',monospace}
+.c-green{color:var(--green)}.c-red{color:var(--red)}.c-blue{color:var(--blue)}.c-orange{color:var(--orange)}.c-muted{color:var(--muted)}
+
+/* Form */
+.form-row{margin-bottom:10px}
+.form-row label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.form-row input,.form-row select{width:100%;background:var(--bg);border:1px solid var(--bd);color:var(--txt);padding:9px 12px;border-radius:var(--r-sm);font-family:inherit;font-size:14px;transition:border-color .15s}
+.form-row input:focus,.form-row select:focus{outline:none;border-color:var(--blue)}
+
+/* Act bar */
+.act-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.search-box{background:var(--s1);border:1px solid var(--bd);color:var(--txt);padding:7px 12px;border-radius:var(--r-sm);font-family:inherit;font-size:13px;width:150px;transition:border-color .15s}
+.search-box:focus{outline:none;border-color:var(--blue)}
+
+/* Stat pills */
+.stat-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.sp{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:10px 16px;min-width:100px}
+.sp-label{font-size:11px;color:var(--muted);margin-bottom:3px}
+.sp-val{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1}
+
+.empty{padding:36px;text-align:center;color:var(--muted);border:1px dashed var(--bd);border-radius:var(--r);font-size:13px}
+hr{border:none;border-top:1px solid var(--bd);margin:14px 0}
+
+/* Info boxes */
+.info-box{background:var(--blue-dim);border:1px solid rgba(88,166,255,.3);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;line-height:1.65;margin-bottom:12px}
+.warn-box{background:var(--orange-dim);border:1px solid rgba(210,153,34,.3);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;line-height:1.65;margin-bottom:12px}
+
+/* Modal overlay */
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-box{background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);max-width:620px;width:100%;max-height:90vh;overflow-y:auto;padding:20px}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--bd)}
+.modal-hd h3{font-size:15px;font-weight:700}
+.modal-ft{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--bd)}
+
+@media(max-width:700px){
+  .h-inner{padding:10px 12px}
+  main{padding:14px 12px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-inner">
+    <div class="brand">9AU<span>TradeImport</span></div>
+    <div class="tag mono">LocalStorage · v9.5 Ticker Review Fix</div>
+    <div class="spacer"></div>
+    <div class="tag">US: <strong id="cnt-us" class="c-blue">0</strong></div>
+    <div class="tag">Thai: <strong id="cnt-thai" class="c-orange">0</strong></div>
+    <div class="tag">CF: <strong id="cnt-cf" class="c-green">0</strong></div>
   </div>
-  <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
-    <a href="MyAssets.html"          class="nav-tab">Dashboard</a>
-    <a href="MyAssets_Thai.html"     class="nav-tab">หุ้นไทย</a>
-    <a href="MyAssets_US.html"       class="nav-tab">US ETF</a>
-    <a href="MyAssets_Forex.html"    class="nav-tab">FOREX MT5</a>
-    <a href="MyAssets_Cashflow.html" class="nav-tab active">Cashflow</a>
-    <a href="MyAssets_README.html"   class="nav-tab" style="color:#d97706">README</a>
-  </div>
+  <nav>
+    <button class="nb on" data-view="upload">อัปโหลด Slip (OCR)</button>
+    <button class="nb" data-view="us">หุ้น US</button>
+    <button class="nb" data-view="thai">หุ้น Thai</button>
+    <button class="nb" data-view="cashflow">Cashflow</button>
+    <button class="nb" data-view="backup">Backup / Restore</button>
+  </nav>
 </header>
 
-<main class="max-w-7xl mx-auto px-4 pt-5 space-y-5">
+<main>
 
-  <div id="loadingBanner" class="hidden flex items-center justify-center gap-2 p-3 rounded-xl bg-blue-950/40 border border-blue-800/50 text-blue-300 text-xs">
-    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-    กำลังโหลดข้อมูล...
-  </div>
-
-  <!-- SUMMARY -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-    <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">รับเข้าทั้งหมด</div><div class="text-xl font-bold text-emerald-400 fn" id="cfTotalIn">0.00 ฿</div></div>
-    <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">จ่ายออกทั้งหมด</div><div class="text-xl font-bold text-rose-400 fn" id="cfTotalOut">0.00 ฿</div></div>
-    <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">กระแสสุทธิ</div><div class="text-xl font-bold fn" id="cfNet">0.00 ฿</div></div>
-    <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">รายการทั้งหมด</div><div class="text-xl font-bold text-white fn" id="cfCount">0</div></div>
-  </div>
-
-  <!-- TOOLBAR + TABLE -->
-  <div class="cd rounded-2xl overflow-hidden">
-    <div class="p-4 border-b border-[#30363d] flex flex-col md:flex-row gap-3 items-center justify-between">
-      <h3 class="text-xs font-bold text-white uppercase tracking-wider">ประวัติกระแสเงินสด</h3>
-      <div class="flex items-center gap-2 flex-wrap">
-        <select id="filterCFType" onchange="renderCashflow()" class="bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-white focus:border-emerald-500 focus:outline-none">
-          <option value="">ทุกทิศทาง</option>
-          <option value="in">รับเข้า</option>
-          <option value="out">จ่ายออก</option>
-        </select>
-        <button onclick="openCFModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold">+ บันทึกรายการ</button>
-        <button onclick="exportCashflowCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">CSV</button>
-      </div>
+<!-- ===== UPLOAD ===== -->
+<section class="view on" id="v-upload">
+  <div class="card">
+    <div class="card-title">อัปโหลด Slip เพื่อบันทึกรายการ</div>
+    <div class="drop-zone" id="dropZone">
+      <p>ลาก Slip มาวางที่นี่ หรือกดเพื่อเลือกไฟล์<br>รองรับ JPG, PNG, WEBP — เลือกได้หลายใบพร้อมกัน<br><span style="font-size:12px;color:var(--dim)">ระบบอ่าน OCR ด้วย Tesseract.js ในเบราว์เซอร์ ไม่อัปโหลดไปไหน</span></p>
+      <button class="btn btn-blue" id="pickBtn">เลือก Slip</button>
     </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-left text-xs fn">
-        <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d]">
-          <tr>
-            <th class="py-3 px-4">วันที่</th>
-            <th class="py-3 px-3">ทิศทาง</th>
-            <th class="py-3 px-3">หมวดหมู่</th>
-            <th class="py-3 px-3">บัญชี</th>
-            <th class="py-3 px-3 text-right">จำนวน (฿)</th>
-            <th class="py-3 px-4">หมายเหตุ</th>
-            <th class="py-3 px-4 text-center">จัดการ</th>
-          </tr>
-        </thead>
-        <tbody id="cfBody" class="divide-y divide-[#30363d]"></tbody>
-      </table>
-    </div>
+    <input type="file" id="fileInput" accept="image/*" multiple hidden>
+    <div class="info-box" style="margin-top:10px;margin-bottom:0">คะแนนความมั่นใจเป็นค่าช่วยคัดกรอง ไม่ใช่การรับประกันความถูกต้อง: มากกว่า 90% จะแสดงพร้อมบันทึกหลังตรวจเลขและยอดแล้ว; ตั้งแต่ 90% ลงมา ให้ตรวจ/แก้ช่องที่เน้นและยืนยันก่อนบันทึก ภาพที่รวมหลายรายการจะถูกพักไว้ ไม่บันทึกเป็นรายการเดียว</div>
+    <div class="prog-bar" id="progBar"><div class="prog-fill" id="progFill"></div></div>
+    <div class="prog-stat" id="progStat"></div>
   </div>
+  <div id="ocrReview"></div>
+</section>
+
+<!-- ===== US TRADES ===== -->
+<section class="view" id="v-us">
+  <div class="act-bar">
+    <button class="btn btn-blue" id="addUSBtn">+ เพิ่ม Manual</button>
+    <button class="btn" id="exportUSCSV">Export CSV</button>
+    <div class="spacer"></div>
+    <input class="search-box" type="text" id="usSearch" placeholder="ค้นหา Ticker...">
+  </div>
+  <div class="stat-row" id="usStats"></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>วันที่</th><th>ประเภท</th><th>Ticker</th><th>Exchange</th>
+        <th class="nr">หุ้น</th><th class="nr">ราคา ($)</th>
+        <th class="nr">Gross ($)</th><th class="nr">Fee ($)</th>
+        <th class="nr">Net USD</th><th class="nr">FX</th>
+        <th class="nr">Net THB</th><th>Source</th><th></th>
+      </tr></thead>
+      <tbody id="usBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== THAI TRADES ===== -->
+<section class="view" id="v-thai">
+  <div class="act-bar">
+    <button class="btn btn-blue" id="addThaiBtn">+ เพิ่ม Manual</button>
+    <button class="btn" id="exportThaiCSV">Export CSV</button>
+    <div class="spacer"></div>
+    <input class="search-box" type="text" id="thaiSearch" placeholder="ค้นหา Ticker...">
+  </div>
+  <div class="stat-row" id="thaiStats"></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>วันที่</th><th>ประเภท</th><th>Ticker</th>
+        <th class="nr">หุ้น</th><th class="nr">ราคา (฿)</th>
+        <th class="nr">Gross (฿)</th><th class="nr">Fee (฿)</th>
+        <th class="nr">Net THB</th><th>Source</th><th></th>
+      </tr></thead>
+      <tbody id="thaiBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== CASHFLOW ===== -->
+<section class="view" id="v-cashflow">
+  <div class="act-bar">
+    <button class="btn btn-blue" id="addCFBtn">+ เพิ่ม Manual</button>
+    <button class="btn" id="exportCFCSV">Export CSV</button>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>วันที่</th><th>กระเป๋า</th><th>หมวดหมู่</th><th>บัญชี</th>
+        <th class="nr">USD ($)</th><th class="nr">THB (฿)</th><th>บันทึก</th><th></th>
+      </tr></thead>
+      <tbody id="cfBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== BACKUP ===== -->
+<section class="view" id="v-backup">
+  <div class="card">
+    <div class="card-title">Export ข้อมูล</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Export ข้อมูลทั้งหมดจาก LocalStorage เป็น JSON — ใช้สำรองหรือย้ายอุปกรณ์</p>
+    <button class="btn btn-green" id="exportAll">Export JSON Backup</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Import / กู้คืนข้อมูล</div>
+    <div class="warn-box">Import จะ <strong>เพิ่ม</strong> รายการใหม่เข้า LocalStorage (merge โดย id) ไม่ลบข้อมูลเดิม</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn" id="importBtn">Import JSON Backup</button>
+      <button class="btn btn-red" id="clearBtn">ล้างข้อมูลทั้งหมด</button>
+    </div>
+    <input type="file" id="importFile" accept=".json" hidden>
+  </div>
+  <div class="card">
+    <div class="card-title">สถิติ LocalStorage</div>
+    <div id="backupStats" class="stat-row"></div>
+  </div>
+</section>
 
 </main>
 
-<!-- MODAL: Cashflow -->
-<div id="modalCF" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-  <div class="cd rounded-2xl w-full max-w-md border border-[#30363d] overflow-hidden">
-    <div class="p-4 border-b border-[#30363d] flex items-center justify-between">
-      <h3 class="text-sm font-bold text-white fb">บันทึกกระแสเงินสด</h3>
-      <button onclick="closeModal('modalCF')" class="text-gray-400 hover:text-white text-lg">&times;</button>
+<!-- ===== MODAL ===== -->
+<div id="modal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <h3 id="modalTitle"></h3>
+      <button class="btn btn-sm" id="modalX">ปิด</button>
     </div>
-    <div class="p-5 space-y-4 text-xs">
-      <div>
-        <label class="block text-gray-400 mb-1.5">ทิศทางเงิน</label>
-        <div class="grid grid-cols-2 gap-2 font-semibold">
-          <button onclick="setCFType('out')" id="btnCFOut" class="py-2.5 rounded-xl border border-rose-500 bg-rose-500/20 text-rose-300 font-bold transition">โอนออก / จ่ายออก</button>
-          <button onclick="setCFType('in')"  id="btnCFIn"  class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">รับเข้า / โอนเข้าลงทุน</button>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div><label class="block text-gray-400 mb-1">วันที่</label>
-          <input type="date" id="cfDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-emerald-500 focus:outline-none">
-        </div>
-        <div><label class="block text-gray-400 mb-1">หมวดหมู่</label>
-          <select id="cfCategory" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-emerald-500 focus:outline-none"></select>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div><label class="block text-gray-400 mb-1">บัญชีที่ใช้</label>
-          <select id="cfAccount" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-emerald-500 focus:outline-none"></select>
-        </div>
-        <div><label class="block text-gray-400 mb-1">จำนวนเงิน (฿)</label>
-          <input type="number" step="any" id="cfAmount" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn font-bold focus:border-emerald-500 focus:outline-none">
-        </div>
-      </div>
-      <div><label class="block text-gray-400 mb-1">หมายเหตุ</label>
-        <input type="text" id="cfNote" placeholder="รายละเอียดเพิ่มเติม" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-emerald-500 focus:outline-none">
-      </div>
-    </div>
-    <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
-      <button onclick="closeModal('modalCF')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
-      <button onclick="submitCF()" id="btnSaveCF" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">บันทึก</button>
+    <div id="modalBody"></div>
+    <div class="modal-ft">
+      <button class="btn" id="modalCancel">ยกเลิก</button>
+      <button class="btn btn-blue" id="modalSave">บันทึก</button>
     </div>
   </div>
 </div>
 
 <script>
+(function(){
 'use strict';
-const BACKEND='https://script.google.com/macros/s/AKfycbw_P74pybIzkQ0SSa0RuO8lFgjbgDh5KSerIoL9NcNR1IVAOJ0Jyz3Vb4-khVlsEfNN/exec';
-let currentToken=localStorage.getItem('portfolio_token')||'';
-let appData=null, selectedCFType='out';
 
-if(!currentToken){location.replace('MyAssets.html');}
+/* ================================================================
+   STORAGE
+================================================================ */
+var KEYS={US:'9au_trades',THAI:'9au_thai_trades',CF:'9au_cashflow',SETTINGS:'9au_settings',SNAPSHOT:'9au_snapshot'};
 
-function apiCall(action,payload,cb){
-  const cbName='jcb_'+Math.round(1e6*Math.random());
-  const script=document.createElement('script');let done=false;
-  const timer=setTimeout(()=>{if(!done){done=true;cleanup();cb({ok:false,error:'timeout'});}},15000);
-  window[cbName]=data=>{if(!done){done=true;clearTimeout(timer);cleanup();cb(data);}};
-  script.onerror=()=>{if(!done){done=true;clearTimeout(timer);cleanup();cb({ok:false,error:'network'});}};
-  const ps=encodeURIComponent(JSON.stringify(payload||{}));
-  script.src=`${BACKEND}?callback=${cbName}&action=${action}&token=${encodeURIComponent(currentToken)}&payload=${ps}&_t=${Date.now()}`;
-  document.body.appendChild(script);
-  function cleanup(){delete window[cbName];if(script.parentNode)script.parentNode.removeChild(script);}
+function load(k){try{var v=localStorage.getItem(k);return v?JSON.parse(v):[];}catch(e){return[];}}
+function save(k,d){try{localStorage.setItem(k,JSON.stringify(d));}catch(e){alert('LocalStorage เต็ม — ไม่สามารถบันทึกได้');}}
+function genId(p){return p+'-'+Date.now()+'-'+Math.floor(Math.random()*9000+1000);}
+function nowIso(){return new Date().toISOString().replace('T',' ').slice(0,19);}
+function E(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmt(n,d){return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function r2(n){return Math.round((Number(n)||0)*100)/100;}
+
+/* ================================================================
+   DATE / NUMBER PARSERS
+================================================================ */
+var THMO={'ม.ค.':'01','ก.พ.':'02','มี.ค.':'03','เม.ย.':'04','พ.ค.':'05','มิ.ย.':'06',
+          'ก.ค.':'07','ส.ค.':'08','ก.ย.':'09','ต.ค.':'10','พ.ย.':'11','ธ.ค.':'12'};
+
+function normalizeOCRText(txt){
+  return String(txt||'').replace(/[๐-๙]/g,function(d){return String('๐๑๒๓๔๕๖๗๘๙'.indexOf(d));})
+    .replace(/[\u00a0\u200b]/g,' ').replace(/[‐‑‒–—]/g,'-');
 }
 
-function loadBootstrap(cb){
-  document.getElementById('loadingBanner').classList.remove('hidden');
-  apiCall('bootstrap',{},res=>{
-    document.getElementById('loadingBanner').classList.add('hidden');
-    if(!res.ok){if(res.error?.includes('บัตรผ่าน'))logout();return;}
-    appData=res.data;
-    populateDropdowns();
-    renderCashflow();
-    if(cb)cb();
+function parseThaiDate(txt){
+  txt=normalizeOCRText(txt);
+  var months={'ม.ค.':'01','มค':'01','มกราคม':'01','ก.พ.':'02','กพ':'02','กุมภาพันธ์':'02',
+    'มี.ค.':'03','มีค':'03','มีนาคม':'03','เม.ย.':'04','เมย':'04','เมษายน':'04',
+    'พ.ค.':'05','พค':'05','พฤษภาคม':'05','มิ.ย.':'06','มิย':'06','มิถุนายน':'06',
+    'ก.ค.':'07','กค':'07','กรกฎาคม':'07','ส.ค.':'08','สค':'08','สิงหาคม':'08',
+    'ก.ย.':'09','กย':'09','กันยายน':'09','ต.ค.':'10','ตค':'10','ตุลาคม':'10',
+    'พ.ย.':'11','พย':'11','พฤศจิกายน':'11','ธ.ค.':'12','ธค':'12','ธันวาคม':'12'};
+  var re=/(\d{1,2})\s*(ม\.ค\.|มค|มกราคม|ก\.พ\.|กพ|กุมภาพันธ์|มี\.ค\.|มีค|มีนาคม|เม\.ย\.|เมย|เมษายน|พ\.ค\.|พค|พฤษภาคม|มิ\.ย\.|มิย|มิถุนายน|ก\.ค\.|กค|กรกฎาคม|ส\.ค\.|สค|สิงหาคม|ก\.ย\.|กย|กันยายน|ต\.ค\.|ตค|ตุลาคม|พ\.ย\.|พย|พฤศจิกายน|ธ\.ค\.|ธค|ธันวาคม)\s*(\d{2,4})/i;
+  var m=txt.match(re);
+  if(m){
+    var d=parseInt(m[1],10), mo=months[m[2]]||months[m[2].toLowerCase()], yr=parseInt(m[3],10);
+    if(yr<100)yr+=2500;
+    if(yr>2400)yr-=543;
+    if(mo&&d>=1&&d<=31&&yr>=1900&&yr<=2100)return yr+'-'+mo+'-'+String(d).padStart(2,'0');
+  }
+  var en=txt.match(/\b(\d{1,2})[\s./-]+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s,./-]+(\d{2,4})\b/i);
+  if(en){var em={jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};var ey=parseInt(en[3],10);if(ey<100)ey+=2000;if(ey>=1900&&ey<=2100)return ey+'-'+em[en[2].slice(0,3).toLowerCase()]+'-'+String(parseInt(en[1],10)).padStart(2,'0');}
+  return null;
+}
+
+function parseTradeDate(txt){
+  txt=normalizeOCRText(txt);
+  var preferred=/(?:วันที่ส่งคำสั่ง|วันส่งคำสั่ง|วันที่ทำรายการ|วันที่ซื้อขาย|Trade\s*date|Order\s*date)[^\n]{0,100}/ig;
+  var m;
+  while((m=preferred.exec(txt))!==null){var d=parseThaiDate(m[0]);if(d)return d;}
+  return parseThaiDate(txt);
+}
+
+function parseNumAfter(txt,keywords){
+  txt=normalizeOCRText(txt);
+  for(var i=0;i<keywords.length;i++){
+    var re=new RegExp(keywords[i]+'[^\\d\\-]{0,55}(-?\\s*\\d[\\d, ]*(?:\\.\\s*\\d+)?)','i');
+    var m=txt.match(re);
+    if(m){var raw=m[1].replace(/\s/g,'').replace(/,/g,'');var v=parseFloat(raw);if(!isNaN(v))return v;}
+  }
+  return null;
+}
+
+function parseTradeShares(txt,side){
+  var shares=parseNumAfter(txt,['จำนวนหุ้น','จำนวนที่ซื้อ','จำนวนที่ขาย','ปริมาณ','Quantity','Shares']);
+  if(shares!=null)return shares;
+  var action=side==='SELL'?'(?:ขาย|SELL)':'(?:ซื้อ|BUY)';
+  var m=normalizeOCRText(txt).match(new RegExp(action+'\\s+[A-Z][A-Z0-9.]{1,9}[^\\d]{0,300}([\\d,]+(?:\\.\\d+)?)\\s*(?:หุ้น|shares)','i'));
+  if(!m)m=normalizeOCRText(txt).match(/([\d,]+(?:\.\d+)?)\s*(?:หุ้น|shares)/i);
+  return m?parseFloat(m[1].replace(/,/g,'')):null;
+}
+
+function inferTradePairFromGross(txt,gross){
+  if(gross==null||!isFinite(Number(gross)))return null;
+  txt=normalizeOCRText(txt);
+  var gm=/(?:มูลค่าหุ้น|มูลค่ารวม|ยอดหุ้น|Subtotal|Gross)[^\d]{0,60}[\d,]+(?:\.\d+)?/i.exec(txt);
+  var before=gm?txt.slice(0,gm.index):txt;
+  var nums=[],re=/\d[\d,]*(?:\.\d+)?/g,m;
+  while((m=re.exec(before))!==null){var v=parseFloat(m[0].replace(/,/g,''));if(isFinite(v)&&v>0&&v<=10000000)nums.push(v);}
+  var best=null;
+  for(var i=0;i<nums.length;i++)for(var j=0;j<nums.length;j++){
+    if(i===j)continue;
+    var shares=nums[i],price=nums[j];
+    if(shares>1000000||price>1000000)continue;
+    var err=Math.abs(shares*price-Number(gross));
+    var rolePenalty=(shares>1&&!Number.isInteger(shares)?0.00001:0)+(price<1?0.00001:0);
+    if(err<=0.015&&(!best||err+rolePenalty<best.score))best={shares:shares,price:price,error:err,score:err+rolePenalty};
+  }
+  return best;
+}
+
+function roundInferredShare(value){
+  var places=Math.abs(value)<1?7:4;
+  return Math.round((Number(value)+Number.EPSILON)*Math.pow(10,places))/Math.pow(10,places);
+}
+
+function parseFXRate(txt){
+  txt=normalizeOCRText(txt);
+  var m=txt.match(/1\s*USD\s*(?:=|:|ต่อ)\s*([\d,]+(?:\.\d+)?)/i);
+  if(!m)m=txt.match(/([\d,]+(?:\.\d+)?)\s*THB\s*(?:per|ต่อ)\s*USD/i);
+  if(m)return parseFloat(m[1].replace(/,/g,''));
+  var v=parseNumAfter(txt,['อัตราแลกเปลี่ยน','Exchange rate']);
+  return v!=null&&v>20?v:null;
+}
+
+function ocrTokenConfidence(value,words,fallback){
+  if(value==null)return 0;
+  if(!Array.isArray(words)||!words.length)return Math.min(fallback==null?0.82:fallback,0.89);
+  var wanted=String(value).toLowerCase().replace(/[^\da-zก-๙]/g,'');
+  var hits=[];
+  words.forEach(function(w){
+    var token=String(w.text||'').toLowerCase().replace(/[^\da-zก-๙]/g,'');
+    if(token&&wanted&&(token===wanted||wanted.indexOf(token)>=0||token.indexOf(wanted)>=0))hits.push(Math.max(0,Math.min(1,(Number(w.confidence)||0)/100)));
+  });
+  if(hits.length)return Math.min.apply(Math,hits);
+  var avg=words.reduce(function(a,w){return a+(Number(w.confidence)||0);},0)/words.length/100;
+  return Math.min(avg*0.82,0.89);
+}
+
+function ocrFieldConfidence(key,value,words,fallback){
+  if(value==null)return 0;
+  if(!Array.isArray(words)||!words.length)return Math.min(fallback==null?0.82:fallback,0.89);
+  var labels={
+    shares:['จำนวนหุ้น','จำนวนที่ซื้อ','จำนวนที่ขาย','ปริมาณ','Quantity','Shares'],
+    price:['ราคาที่ได้จริง','ราคาที่จับคู่','ราคาทำรายการ','ราคาที่ทำรายการ','ราคาซื้อขาย','ราคาต่อหน่วย','ราคาหุ้น','ราคาตลาด\\s*\\(Market\\)','Price per','Executed Price'],
+    gross:['มูลค่าหุ้น','มูลค่ารวม','ยอดหุ้น','Subtotal','Gross'],
+    commission:['ค่าคอมมิชชัน','ค่าคอมมิชชั่น','Commission','ค่านายหน้า'],
+    free_trade:['คูปองส่วนลด','รายการฟรี','ส่วนลด','Free trade'],
+    clearing_fee:['ค่าธรรมเนียมอื่น(?:\\s*ๆ)?','Clearing'],
+    vat:['VAT(?:\\s*7\\s*%)?','ภาษีมูลค่าเพิ่ม(?:\\s*7\\s*%)?','ภาษี 7'],
+    sec_fee:['SEC','ค่าธรรมเนียมตลาดหลักทรัพย์'],taf_fee:['TAF','ค่าธรรมเนียมการขาย'],
+    net_usd:['ยอดที่จะได้รับคืน','ยอดที่จะได้รับ','ยอดที่ได้รับ','ยอดเงินที่ได้รับ','ยอดที่ต้องชำระ','ยอดเงินที่ถอนได้','จำนวนเงินที่ได้รับ','จำนวนเงิน','ยอดรวม','ยอดชำระ','Total','Net amount'],
+    net_thb:['ยอดที่ต้องชำระ','ยอดที่จะได้รับคืน','ยอดที่ได้รับ','ยอดเงินที่ถอนได้','ยอดรวม','Net amount'],
+    amount:['จำนวนเงินปันผล','รับเงินปันผล','Amount','ปันผล'],fx_rate:['อัตราแลกเปลี่ยน','Exchange rate']
+  };
+  var flat='',ranges=[];
+  words.forEach(function(w){var start=flat.length;var t=String(w.text||'');flat+=(start?' ':'')+t;ranges.push({start:start+(start?1:0),end:flat.length,confidence:Math.max(0,Math.min(1,(Number(w.confidence)||0)/100))});});
+  var target=Number(value);
+  function evidence(labelPattern,valuePattern){
+    var lm=labelPattern.exec(flat);if(!lm)return null;
+    var tail=flat.slice(lm.index+lm[0].length,lm.index+lm[0].length+110);
+    var nm=valuePattern.exec(tail);if(!nm||Math.abs(parseFloat(nm[1].replace(/[\s,]/g,''))-target)>0.000001)return null;
+    var start=lm.index+lm[0].length+nm.index+nm[0].lastIndexOf(nm[1]),end=start+nm[1].length;
+    var valueScores=ranges.filter(function(r){return r.end>start-1&&r.start<end+2;}).map(function(r){return r.confidence;});
+    var labelEnd=lm.index+lm[0].length,labelScores=ranges.filter(function(r){return r.end>lm.index&&r.start<labelEnd;}).map(function(r){return r.confidence;});
+    return valueScores.length?Math.min.apply(Math,valueScores.concat(labelScores)):null;
+  }
+  if(key==='fx_rate'){var fx=evidence(/1\s*USD\s*(?:=|:|ต่อ)/i,/\s*([\d,]+(?:\.\d+)?)/);if(fx!=null)return fx;}
+  var list=labels[key]||[];
+  for(var i=0;i<list.length;i++){var s=evidence(new RegExp(list[i],'i'),/[^\d\-]{0,55}(-?\s*\d[\d, ]*(?:\.\s*\d+)?)/);if(s!=null)return s;}
+  return Math.min(words.reduce(function(a,w){return a+(Number(w.confidence)||0);},0)/words.length/100*0.82,0.89);
+}
+
+function ocrPatternConfidence(pattern,words,fallback){
+  if(!Array.isArray(words)||!words.length)return Math.min(fallback==null?0.82:fallback,0.89);
+  var hits=words.filter(function(w){return pattern.test(String(w.text||''));}).map(function(w){return Math.max(0,Math.min(1,(Number(w.confidence)||0)/100));});
+  return hits.length?Math.min.apply(Math,hits):Math.min(words.reduce(function(a,w){return a+(Number(w.confidence)||0);},0)/words.length/100*0.82,0.89);
+}
+
+function parseTicker(txt){
+  txt=normalizeOCRText(txt);
+  txt=txt.replace(/((?:ซื้อ|ขาย|BUY|SELL|Symbol|Ticker)\s+)([A-Z0-9](?:\s+[A-Z0-9]){1,8})(?=\s|$)/gi,function(_,lead,symbol){return lead+symbol.replace(/\s+/g,'');});
+  txt=txt.replace(/\b([A-Z0-9](?:\s+[A-Z0-9]){1,8})\s+(?=NASDAQ|NYSE|ARCA\b)/gi,function(_,symbol){return symbol.replace(/\s+/g,'')+' ';});
+  var m=txt.match(/(?:หุ้น|ซื้อ|ขาย|BUY|SELL|สัญลักษณ์|Symbol|Ticker)\s*[:：-]?\s*([A-Z][A-Z0-9.]{1,9})\b/i);
+  if(m)return m[1].toUpperCase();
+  m=txt.match(/(?:NASDAQ|NYSE(?:\s+Arca)?|NYSE\s+Arca)\s+([A-Z][A-Z0-9.]{1,9})\b/i);
+  if(m)return m[1].toUpperCase();
+  m=txt.match(/\b([A-Z][A-Z0-9.]{1,9})\s+(?:NASDAQ|NYSE(?:\s+Arca)?|ARCA)\b/i);
+  if(m&&!['BUY','SELL','USD','THB','MARKET','LIMIT'].includes(m[1].toUpperCase()))return m[1].toUpperCase();
+  var NOISE=['USD','THB','SET','VAT','SEC','TAF','BUY','SELL','DIV','OCR','THE','DIME','FAST','MARKET','LIMIT','NASDAQ','NYSE','ARCA'];
+  var all=txt.match(/\b([A-Z][A-Z0-9.]{1,9})\b/gi)||[];
+  var candidates=[];
+  for(var i=0;i<all.length;i++){var sym=all[i].toUpperCase();if(NOISE.indexOf(sym)<0&&candidates.indexOf(sym)<0)candidates.push(sym);}
+  return candidates.length===1?candidates[0]:null;
+}
+
+function parseExchange(txt){
+  if(/NASDAQ/i.test(txt))return'NASDAQ';
+  if(/NYSE\s*Arca/i.test(txt))return'NYSE Arca';
+  if(/NYSE/i.test(txt))return'NYSE';
+  if(/\bSET\b/.test(txt))return'SET';
+  return'';
+}
+
+function classifySlip(txt){
+  txt=normalizeOCRText(txt);
+  var hasTHB=/\bTHB\b|฿|บาท/.test(txt);
+  var hasUSD=/\bUSD\b|\$/.test(txt);
+  var hasSET=/\bSET\b/.test(txt);
+  var isDiv=/ปันผล|Dividend/i.test(txt);
+  var isSell=/ขาย|SELL/i.test(txt);
+  if(isDiv)return (hasSET||(hasTHB&&!hasUSD))?'DIV_THB':'DIV_USD';
+  if(hasSET||(hasTHB&&!hasUSD))return isSell?'THAI_SELL':'THAI_BUY';
+  return isSell?'US_SELL':'US_BUY';
+}
+
+/* ================================================================
+   SLIP PARSER
+================================================================ */
+function parseSlip(txt,filename,ocrWords,ocrMean){
+  txt=normalizeOCRText(txt);
+  var slipType=classifySlip(txt);
+  var date=parseTradeDate(txt);
+  var ticker=parseTicker(txt);
+  var exchange=parseExchange(txt);
+  var side=slipType.indexOf('DIV')===0?'DIV':(slipType.indexOf('SELL')>=0?'SELL':'BUY');
+
+  var fields={};
+  var meta={};
+
+  function sf(k,v,conf,label){
+    fields[k]=v;
+    var evidence=ocrFieldConfidence(k,v,ocrWords,ocrMean==null?conf:ocrMean);
+    meta[k]={label:label,confidence:Math.min(conf==null?1:conf,evidence),val:v};
+  }
+
+  if(slipType==='DIV_USD'||slipType==='DIV_THB'){
+    var isUSDDiv=(slipType==='DIV_USD');
+    var amt=parseNumAfter(txt,['จำนวนเงินปันผล','รับเงินปันผล','Amount','ปันผล']);
+    sf('amount',amt,amt!=null?1:0,isUSDDiv?'จำนวนเงินปันผล (USD)':'จำนวนเงินปันผล (฿)');
+    if(isUSDDiv){
+      var dfx=parseFXRate(txt);
+      sf('fx_rate',dfx,dfx!=null&&dfx>20?1:0,'FX Rate (THB)');
+    }
+
+  } else if(slipType==='US_BUY'||slipType==='US_SELL'){
+    var isSell=(slipType==='US_SELL');
+    var shares=parseTradeShares(txt,isSell?'SELL':'BUY');
+    var price=parseNumAfter(txt,['ราคาที่ได้จริง','ราคาที่จับคู่','ราคาทำรายการ','ราคาที่ทำรายการ','ราคาซื้อขาย','ราคาต่อหน่วย','ราคาหุ้น','ราคาตลาด\\s*\\(Market\\)','Price per','Executed Price','ราคา\\s*\\(Market\\)']);
+    var gross=parseNumAfter(txt,['มูลค่าหุ้น','มูลค่ารวม','ยอดหุ้น','Subtotal']);
+    var comm=parseNumAfter(txt,['ค่าคอมมิชชัน','ค่าคอมมิชชั่น','Commission','ค่านายหน้า']);
+    var ft=parseNumAfter(txt,['คูปองส่วนลด','รายการฟรี','ส่วนลด','Free trade']);
+    var vat=parseNumAfter(txt,['VAT(?:\\s*7\\s*%)?','ภาษีมูลค่าเพิ่ม(?:\\s*7\\s*%)?','ภาษี 7']);
+    var sec=parseNumAfter(txt,['SEC','ค่าธรรมเนียมตลาดหลักทรัพย์']);
+    var taf=parseNumAfter(txt,['TAF','ค่าธรรมเนียมการขาย']);
+    var net=parseNumAfter(txt,['ยอดที่จะได้รับคืน','ยอดที่จะได้รับ','ยอดที่ได้รับ','ยอดเงินที่ได้รับ','ยอดที่ต้องชำระ','ยอดเงินที่ถอนได้','จำนวนเงินที่ได้รับ','จำนวนเงิน','ยอดรวม','ยอดชำระ','Total','Net amount']);
+    var fx=parseFXRate(txt);
+
+    var pairInferred=false,secInferred=false;
+    if(shares==null&&price==null&&gross!=null){var pair=inferTradePairFromGross(txt,gross);if(pair){shares=pair.shares;price=pair.price;pairInferred=true;}}
+    if(shares==null&&price!=null&&gross!=null){shares=roundInferredShare(Number(gross)/Number(price));pairInferred=true;}
+    if(price==null&&shares!=null&&gross!=null){price=Math.round((Number(gross)/Number(shares)+Number.EPSILON)*10000)/10000;pairInferred=true;}
+    if(isSell&&sec==null&&net!=null&&gross!=null){
+      sec=Math.round((Math.abs(Number(gross)-Math.abs(Number(comm)||0)+Math.abs(Number(ft)||0)-Math.abs(Number(vat)||0)-Math.abs(Number(taf)||0)-Number(net))+Number.EPSILON)*100)/100;
+      secInferred=true;
+    }
+
+    sf('shares',shares,shares!=null&&shares>0?(pairInferred?0.85:1):0,'จำนวนหุ้น');
+    sf('price',price,price!=null&&price>0?(pairInferred?0.85:1):0,'ราคาต่อหุ้น (USD)');
+    sf('gross',gross,gross!=null&&gross>0?1:0,'Gross (USD)');
+    sf('commission',comm!=null?Math.abs(comm):0,comm!=null?1:0.82,'Commission (USD)');
+    sf('free_trade',ft!=null?Math.abs(ft):0,ft!=null?1:0.82,'Free Trade Coupon (USD)');
+    sf('vat',vat!=null?Math.abs(vat):0,vat!=null?1:0.82,'VAT (USD)');
+    if(isSell){
+      sf('sec_fee',sec!=null?Math.abs(sec):0,sec!=null?(secInferred?0.85:1):0.82,'SEC Fee (USD)');
+      sf('taf_fee',taf!=null?Math.abs(taf):0,taf!=null?1:0.82,'TAF Fee (USD)');
+    }
+    sf('net_usd',net,net!=null&&net>0?1:0,'Net Amount (USD)');
+    sf('fx_rate',fx,fx!=null&&fx>20?1:0,'FX Rate (THB)');
+
+  } else { // THAI_BUY / THAI_SELL
+    var tShares=parseTradeShares(txt,/ขาย|SELL/i.test(txt)?'SELL':'BUY');
+    var tPrice=parseNumAfter(txt,['ราคาที่ได้จริง','ราคาที่จับคู่','ราคาทำรายการ','ราคาที่ทำรายการ','ราคาซื้อขาย','ราคาต่อหน่วย','ราคาหุ้น','ราคาหุ้น\\s*\\(Market\\)']);
+    var tGross=parseNumAfter(txt,['มูลค่าหุ้น','มูลค่ารวม','Gross']);
+    var tComm=parseNumAfter(txt,['ค่าคอมมิชชัน','ค่าคอมมิชชั่น','Commission','ค่านายหน้า']);
+    var tClr=parseNumAfter(txt,['ค่าธรรมเนียมอื่น(?:\\s*ๆ)?','Clearing']);
+    var tVat=parseNumAfter(txt,['VAT(?:\\s*7\\s*%)?','ภาษีมูลค่าเพิ่ม(?:\\s*7\\s*%)?']);
+    var tNet=parseNumAfter(txt,['ยอดที่ต้องชำระ','ยอดที่จะได้รับคืน','ยอดที่ได้รับ','ยอดเงินที่ถอนได้','ยอดรวม','Net amount']);
+
+    sf('shares',tShares,tShares!=null&&tShares>0?1:0,'จำนวนหุ้น');
+    sf('price',tPrice,tPrice!=null&&tPrice>0?1:0,'ราคาต่อหุ้น (฿)');
+    sf('gross',tGross,tGross!=null&&tGross>0?1:0,'Gross (฿)');
+    sf('commission',tComm!=null?Math.abs(tComm):0,tComm!=null?1:0.82,'Commission (฿)');
+    sf('clearing_fee',tClr!=null?Math.abs(tClr):0,tClr!=null?1:0.82,'Clearing Fee (฿)');
+    sf('vat',tVat!=null?Math.abs(tVat):0,tVat!=null?1:0.82,'VAT (฿)');
+    sf('net_thb',tNet,tNet!=null&&tNet>0?1:0,'Net Amount (฿)');
+  }
+
+  // If an order-detail slip omits the headline net total, derive it from the
+  // visible gross and fee rows. Keep the derived value below the auto-accept
+  // threshold so the user still verifies it before saving.
+  if((slipType==='US_BUY'||slipType==='US_SELL')&&fields.net_usd==null&&fields.gross!=null){
+    var buyFee=(Math.abs(fields.commission||0)-Math.abs(fields.free_trade||0)+Math.abs(fields.vat||0));
+    var sellFee=(Math.abs(fields.commission||0)-Math.abs(fields.free_trade||0)+Math.abs(fields.vat||0)+Math.abs(fields.sec_fee||0)+Math.abs(fields.taf_fee||0));
+    var derivedNet=fields.gross+(side==='SELL'?-sellFee:buyFee);
+    fields.net_usd=Math.round((derivedNet+Number.EPSILON)*100)/100;
+    meta.net_usd={label:'Net Amount (USD, calculated)',confidence:0.85,val:fields.net_usd};
+  }
+
+  var coreKeys=slipType.indexOf('DIV')===0?(slipType==='DIV_USD'?['amount','fx_rate']:['amount']):slipType.indexOf('THAI')===0?['shares','price','gross','commission','clearing_fee','vat','net_thb']:['shares','price','gross','commission','free_trade','vat','net_usd','fx_rate'];
+  if(slipType==='US_SELL')coreKeys.push('sec_fee','taf_fee');
+  var coreScores=coreKeys.map(function(k){return meta[k]?meta[k].confidence:0;});
+  var tickerConfidence=ocrTokenConfidence(ticker,ocrWords,ocrMean==null?0.82:ocrMean);
+  var dateConfidence=ocrDateConfidence(date,txt,ocrWords,ocrMean==null?0.82:ocrMean);
+  var typeConfidence=ocrPatternConfidence(slipType.indexOf('DIV')===0?/(ปันผล|Dividend)/i:side==='SELL'?/(ขาย|SELL)/i:/(ซื้อ|BUY|Purchase)/i,ocrWords,ocrMean==null?0.82:ocrMean);
+  var overallConfidence=Math.min.apply(Math,[tickerConfidence,dateConfidence,typeConfidence].concat(coreScores));
+  var grossKey=slipType.indexOf('THAI')===0?'gross':'gross';
+  var netKey=slipType.indexOf('THAI')===0?'net_thb':'net_usd';
+  var feeTotal=slipType.indexOf('THAI')===0?(Math.abs(fields.commission||0)+Math.abs(fields.clearing_fee||0)+Math.abs(fields.vat||0)):(Math.abs(fields.commission||0)-Math.abs(fields.free_trade||0)+Math.abs(fields.vat||0)+Math.abs(fields.sec_fee||0)+Math.abs(fields.taf_fee||0));
+  var expectedNet=(fields[grossKey]||0)+(side==='SELL'?-feeTotal:feeTotal);
+  var actualNet=fields[netKey];
+  var amountTolerance=0.0051;
+  var arithmeticOk=actualNet==null||Math.abs(expectedNet-actualNet)<=amountTolerance;
+  var grossArithmeticOk=fields.shares==null||fields.price==null||fields.gross==null||Math.abs(fields.shares*fields.price-fields.gross)<=0.015;
+  arithmeticOk=arithmeticOk&&grossArithmeticOk;
+  if(!arithmeticOk)overallConfidence=Math.min(overallConfidence,0.65);
+  var actionMatches=[],actionRe=/(?:ซื้อ|ขาย|BUY|SELL)\s*([A-Z][A-Z0-9.]{1,9})|(?:ปันผล|Dividend)\s*([A-Z][A-Z0-9.]{1,9})/gi,am;
+  while((am=actionRe.exec(txt))!==null){var actionTicker=(am[1]||am[2]||'').toUpperCase();if(actionTicker&&!['TAF','SEC','USD','THB','SET','NASDAQ','NYSE','ARCA','MARKET','LIMIT'].includes(actionTicker))actionMatches.push(actionTicker);}
+  var multiTransaction=actionMatches.length>1;
+  if(multiTransaction)overallConfidence=Math.min(overallConfidence,0.5);
+  var needsReview=overallConfidence<=0.9||!arithmeticOk||multiTransaction;
+  var isBlocked=!ticker||!date||coreKeys.some(function(k){return fields[k]==null;})||multiTransaction;
+
+  return {slipType:slipType,side:side,date:date,ticker:ticker,exchange:exchange,qualityKeys:coreKeys,
+          fields:fields,meta:meta,filename:filename,needsReview:needsReview,isBlocked:isBlocked,
+          tickerConfidence:tickerConfidence,dateConfidence:dateConfidence,typeConfidence:typeConfidence,confidence:overallConfidence,
+          arithmeticOk:arithmeticOk,multiTransaction:multiTransaction,manualConfirmed:false};
+}
+
+function ocrDateConfidence(date,txt,words,fallback){
+  if(!date)return 0;
+  if(!Array.isArray(words)||!words.length)return Math.min(fallback==null?0.82:fallback,0.89);
+  var raw=normalizeOCRText(txt).match(/\d{1,2}\s*(?:ม\.ค\.|มค|มกราคม|ก\.พ\.|กพ|กุมภาพันธ์|มี\.ค\.|มีค|มีนาคม|เม\.ย\.|เมย|เมษายน|พ\.ค\.|พค|พฤษภาคม|มิ\.ย\.|มิย|มิถุนายน|ก\.ค\.|กค|กรกฎาคม|ส\.ค\.|สค|สิงหาคม|ก\.ย\.|กย|กันยายน|ต\.ค\.|ตค|ตุลาคม|พ\.ย\.|พย|พฤศจิกายน|ธ\.ค\.|ธค|ธันวาคม)\s*\d{2,4}/i);
+  if(!raw)return Math.min((Number(fallback)||0.82)*0.82,0.89);
+  var parts=raw[0].match(/\d+|[ก-๙.]+/g)||[], scores=[];
+  parts.forEach(function(part){var norm=part.toLowerCase().replace(/[^\da-zก-๙]/g,'');if(!norm)return;var found=[];words.forEach(function(w){var token=String(w.text||'').toLowerCase().replace(/[^\da-zก-๙]/g,'');if(token===norm||token.indexOf(norm)>=0||norm.indexOf(token)>=0)found.push(Math.max(0,Math.min(1,(Number(w.confidence)||0)/100)));});if(found.length)scores.push(Math.min.apply(Math,found));});
+  if(parts.length>=3&&scores.length>=parts.length)return Math.min.apply(Math,scores);
+  var avg=words.reduce(function(a,w){return a+(Number(w.confidence)||0);},0)/words.length/100;
+  return Math.min(avg*0.82,0.89);
+}
+
+/* ================================================================
+   TESSERACT
+================================================================ */
+function loadTess(cb){
+  if(window.Tesseract){cb();return;}
+  var s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+  s.onload=function(){cb();};
+  s.onerror=function(){alert('ไม่สามารถโหลด OCR Engine — ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');};
+  document.head.appendChild(s);
+}
+
+function prepareOCRInput(file){
+  if(!window.createImageBitmap)return Promise.resolve(file);
+  return createImageBitmap(file).then(function(bitmap){
+    var canvas=document.createElement('canvas');
+    var longest=Math.max(bitmap.width,bitmap.height);
+    var scale=Math.min(2,4000/longest);
+    canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+    canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+    var ctx=canvas.getContext('2d',{willReadFrequently:true});
+    if(!ctx){bitmap.close&&bitmap.close();return file;}
+    ctx.filter='grayscale(1) contrast(1.18)';
+    ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+    bitmap.close&&bitmap.close();
+    return canvas;
+  }).catch(function(){return file;});
+}
+
+/* ================================================================
+   OCR RUNNER
+================================================================ */
+var PENDING=[];
+
+function runOCR(files){
+  PENDING=[];
+  E('ocrReview').innerHTML='';
+  var pb=E('progBar');var pf=E('progFill');var ps=E('progStat');
+  pb.style.display='block';pf.style.width='0%';ps.textContent='';
+
+  loadTess(function(){
+    Tesseract.createWorker(['tha','eng']).then(function(worker){
+      var idx=0;
+      function next(){
+        if(idx>=files.length){
+          worker.terminate();
+          pf.style.width='100%';
+          ps.textContent='OCR เสร็จ — อ่านได้ '+PENDING.length+' รายการ';
+          setTimeout(function(){pb.style.display='none';ps.textContent='';},3000);
+          renderReview();
+          return;
+        }
+        ps.textContent='กำลังอ่าน '+(idx+1)+'/'+files.length+' — '+files[idx].name;
+        pf.style.width=Math.round(idx/files.length*100)+'%';
+        prepareOCRInput(files[idx]).then(function(image){return worker.recognize(image);}).then(function(res){
+          var txt=(res&&res.data&&res.data.text)?res.data.text:'';
+          var words=(res&&res.data&&Array.isArray(res.data.words))?res.data.words:[];
+          var mean=(res&&res.data&&Number.isFinite(res.data.confidence))?res.data.confidence/100:0.82;
+          var parsed=parseSlip(txt,files[idx].name,words,mean);
+          updateSlipQuality(parsed);
+          PENDING.push(parsed);
+          idx++;next();
+        }).catch(function(){idx++;next();});
+      }
+      next();
+    }).catch(function(){alert('OCR Error — กรุณาลองใหม่');});
   });
 }
-function logout(){currentToken='';localStorage.removeItem('portfolio_token');location.replace('MyAssets.html');}
 
-function renderCashflow(){
-  if(!appData)return;
-  const filter=document.getElementById('filterCFType').value;
-  let list=(appData.cashflow||[]).slice().reverse();
-  if(filter)list=list.filter(c=>c.type===filter);
+/* ================================================================
+   REVIEW RENDERER
+================================================================ */
+var TYPE_LABEL={US_BUY:'US ซื้อ',US_SELL:'US ขาย',THAI_BUY:'Thai ซื้อ',THAI_SELL:'Thai ขาย',DIV_USD:'ปันผล (USD)',DIV_THB:'ปันผล (฿)'};
+var TYPE_BADGE_CLS={US_BUY:'bg-buy bg-us',US_SELL:'bg-sell bg-us',THAI_BUY:'bg-buy bg-thai',THAI_SELL:'bg-sell bg-thai',DIV_USD:'bg-div',DIV_THB:'bg-div'};
+var SLIP_TYPES=['US_BUY','US_SELL','THAI_BUY','THAI_SELL','DIV_USD','DIV_THB'];
+var WALLET_LABEL={div_usd:'ปันผล (USD)',div_thb:'ปันผล (฿)',sell_usd:'พักขาย (USD)',sell_thb:'พักขาย (฿)',general:'ทั่วไป'};
+var WALLET_COLOR={div_usd:'#a371f7',div_thb:'#a371f7',sell_usd:'#58a6ff',sell_thb:'#d29922',general:'#656d76'};
 
-  let totalIn=0,totalOut=0;
-  list.forEach(c=>{const a=Number(c.amountTHB)||0;c.type==='in'?totalIn+=a:totalOut+=a;});
-  const net=totalIn-totalOut;
-
-  document.getElementById('cfTotalIn').textContent='+'+fmtN(totalIn)+' ฿';
-  document.getElementById('cfTotalOut').textContent='-'+fmtN(totalOut)+' ฿';
-  const nEl=document.getElementById('cfNet');
-  nEl.textContent=(net>=0?'+':'')+fmtN(net)+' ฿';
-  nEl.className='text-xl font-bold fn '+(net>=0?'text-emerald-400':'text-rose-400');
-  document.getElementById('cfCount').textContent=list.length;
-
-  const tbody=document.getElementById('cfBody');
-  if(!list.length){tbody.innerHTML=`<tr><td colspan="7" class="py-6 text-center text-gray-500">ไม่พบรายการกระแสเงินสด</td></tr>`;return;}
-  tbody.innerHTML=list.map(c=>{
-    const isIn=c.type==='in';
-    return `<tr class="hover:bg-[#1c2128]">
-      <td class="py-3 px-4 text-gray-300">${c.date}</td>
-      <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] ${isIn?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'}">${isIn?'รับเข้า':'จ่ายออก'}</span></td>
-      <td class="py-3 px-3 text-gray-300">${c.category||'-'}</td>
-      <td class="py-3 px-3 text-gray-400">${c.account||'-'}</td>
-      <td class="py-3 px-3 text-right font-bold ${isIn?'text-emerald-400':'text-rose-400'}">${isIn?'+':'-'}${fmtN(c.amountTHB)} ฿</td>
-      <td class="py-3 px-4 text-gray-400">${c.note||'-'}</td>
-      <td class="py-3 px-4 text-center"><button onclick="deleteCF('${c.id}')" class="text-rose-400 hover:text-white">ลบ</button></td>
-    </tr>`;
-  }).join('');
+function ccls(c){return c>0.9?'c-ok':c>=0.7?'c-warn':'c-err';}
+function ctag(c){
+  if(c>0.9)return '<span class="c-tag" style="color:var(--green)">'+Math.round(c*100)+'% OK</span>';
+  if(c>=0.7)return '<span class="c-tag" style="color:var(--orange)">'+Math.round(c*100)+'% — ตรวจสอบ</span>';
+  return '<span class="c-tag" style="color:var(--red)">'+Math.round(c*100)+'% — กรอกด้วยตนเอง</span>';
 }
 
-function populateDropdowns(){
-  const accSel=document.getElementById('cfAccount');
-  const accs=(appData?.accounts||[]).filter(a=>a.currency==='THB'&&a.id!=='A4'&&a.id!=='A5');
-  accSel.innerHTML=accs.map(a=>`<option value="${a.name}">${a.name}</option>`).join('');
-  updateCatDropdown(selectedCFType);
+function changeSlipType(p,type){
+  var prior=p.fields||{}, priorMeta=p.meta||{};
+  p.slipType=type;
+  p.side=type.indexOf('DIV')===0?'DIV':type.indexOf('SELL')>=0?'SELL':'BUY';
+  p.exchange=type.indexOf('THAI')===0?'SET':p.exchange;
+  var spec={
+    shares:'จำนวนหุ้น',price:type.indexOf('THAI')===0?'ราคาต่อหุ้น (฿)':'ราคาต่อหุ้น (USD)',gross:type.indexOf('THAI')===0?'Gross (฿)':'Gross (USD)',
+    commission:type.indexOf('THAI')===0?'Commission (฿)':'Commission (USD)',free_trade:'Free Trade Coupon (USD)',clearing_fee:'Clearing Fee (฿)',vat:type.indexOf('THAI')===0?'VAT (฿)':'VAT (USD)',sec_fee:'SEC Fee (USD)',taf_fee:'TAF Fee (USD)',net_usd:'Net Amount (USD)',net_thb:'Net Amount (฿)',fx_rate:'FX Rate (THB)',amount:type==='DIV_THB'?'จำนวนเงินปันผล (฿)':'จำนวนเงินปันผล (USD)'
+  };
+  var keys=type.indexOf('DIV')===0?(type==='DIV_USD'?['amount','fx_rate']:['amount']):type.indexOf('THAI')===0?['shares','price','gross','commission','clearing_fee','vat','net_thb']:['shares','price','gross','commission','free_trade','vat','net_usd','fx_rate'];
+  if(type==='US_SELL')keys.push('sec_fee','taf_fee');
+  var keep=['shares','price','gross','commission','vat'];
+  p.fields={};p.meta={};
+  keys.forEach(function(k){
+    var reusable=keep.indexOf(k)>=0&&Object.prototype.hasOwnProperty.call(prior,k);
+    var value=reusable?prior[k]:null;
+    p.fields[k]=value;
+    p.meta[k]={label:spec[k]||k,confidence:0,val:value};
+  });
+  p.qualityKeys=keys;
+  p.typeConfidence=1;
+  p.manualConfirmed=false;
 }
-function updateCatDropdown(type){
-  const sel=document.getElementById('cfCategory');
-  const inOpts=['โอนเข้าลงทุน','เงินเดือน / รายได้','ถอนกำไรจากพอร์ต','เงินปันผล / ดอกเบี้ย','เงินคืน / รายรับอื่นๆ'];
-  const outOpts=['โอนออก','ค่าใช้จ่ายทั่วไป','ออมเงิน','ถอนเงินสด','ค่าธรรมเนียม / อื่นๆ'];
-  sel.innerHTML=(type==='in'?inOpts:outOpts).map(c=>`<option>${c}</option>`).join('');
+
+function updateSlipQuality(p){
+  var scores=[p.tickerConfidence||0,p.dateConfidence||0,p.typeConfidence||0];
+  (p.qualityKeys||[]).forEach(function(k){scores.push(p.meta[k]?p.meta[k].confidence:0);});
+  p.confidence=scores.length?Math.min.apply(Math,scores):0;
+  var thai=p.slipType.indexOf('THAI')===0;
+  var gross=Number(p.fields.gross)||0;
+  var fee=thai?(Math.abs(p.fields.commission||0)+Math.abs(p.fields.clearing_fee||0)+Math.abs(p.fields.vat||0)):(Math.abs(p.fields.commission||0)-Math.abs(p.fields.free_trade||0)+Math.abs(p.fields.vat||0)+Math.abs(p.fields.sec_fee||0)+Math.abs(p.fields.taf_fee||0));
+  var net=p.fields[thai?'net_thb':'net_usd'];
+  var netOk=p.slipType.indexOf('DIV')===0||net==null||Math.abs((gross+(p.side==='SELL'?-fee:fee))-Number(net))<=0.0051;
+  var grossOk=p.slipType.indexOf('DIV')===0||p.fields.shares==null||p.fields.price==null||p.fields.gross==null||Math.abs(Number(p.fields.shares)*Number(p.fields.price)-gross)<=0.015;
+  p.arithmeticOk=netOk&&grossOk;
+  if(!p.arithmeticOk)p.confidence=Math.min(p.confidence,0.65);
+  p.needsReview=p.confidence<=0.9||!p.arithmeticOk||p.multiTransaction;
+  var invalid=(p.qualityKeys||[]).some(function(k){
+    var v=p.fields[k];
+    if(v==null||!Number.isFinite(Number(v)))return true;
+    if(k==='shares'||k==='price')return Number(v)<=0;
+    if(k==='fx_rate')return Number(v)<=20||Number(v)>100;
+    if(k==='gross'||k==='net_usd'||k==='net_thb')return Number(v)<0;
+    if(k==='commission'||k==='free_trade'||k==='clearing_fee'||k==='vat'||k==='sec_fee'||k==='taf_fee')return Number(v)<0;
+    return false;
+  });
+  p.isBlocked=!p.ticker||!p.date||invalid||p.multiTransaction;
 }
-function setCFType(t){
-  selectedCFType=t;
-  const bOut=document.getElementById('btnCFOut'),bIn=document.getElementById('btnCFIn');
-  if(t==='out'){bOut.className='py-2.5 rounded-xl border border-rose-500 bg-rose-500/20 text-rose-300 font-bold transition';bIn.className='py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition';}
-  else{bIn.className='py-2.5 rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold transition';bOut.className='py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition';}
-  updateCatDropdown(t);
+
+function renderReview(){
+  if(!PENDING.length){E('ocrReview').innerHTML='<div class="empty">ไม่พบรายการ</div>';return;}
+  var h='<div class="card"><div class="card-title">ตรวจสอบก่อนบันทึก ('+PENDING.length+' รายการ — ต้องกดยืนยันบันทึก)</div>';
+
+  for(var i=0;i<PENDING.length;i++){
+    var p=PENDING[i];
+    var sc=p.isBlocked?'blocked':(p.needsReview?'warn':'pass');
+    var sb=p.isBlocked?'<span class="badge bg-err">บล็อก</span>':p.needsReview?'<span class="badge bg-warn">ตรวจสอบ</span>':'<span class="badge bg-ok">พร้อม</span>';
+
+    h+='<div class="slip-card '+sc+'"><div class="slip-hd">';
+    h+='<span class="slip-fn">'+esc(p.filename)+'</span>';
+    h+='<span class="badge '+TYPE_BADGE_CLS[p.slipType]+'">'+TYPE_LABEL[p.slipType]+'</span>';
+    h+=sb;
+    h+='<span class="badge '+(p.confidence>0.9?'bg-ok':'bg-warn')+'">ความมั่นใจ '+Math.round((p.confidence||0)*100)+'%</span>';
+    h+='</div>';
+    if(p.multiTransaction)h+='<div class="warn-box">พบข้อความคล้ายรายการซื้อ/ขาย/ปันผลหลายรายการในภาพเดียว ระบบพักรายการนี้ไว้เพื่อป้องกันการรวมข้อมูลผิด กรุณาแยกภาพให้เหลือหนึ่งรายการต่อภาพ</div>';
+    if(!p.ticker)h+='<div class="warn-box">อ่าน Ticker ไม่พบ กรุณากรอกสัญลักษณ์หุ้นจากสลิปด้วยตนเองก่อนบันทึก</div>';
+    if(!p.arithmeticOk)h+='<div class="warn-box">ยอดสุทธิไม่สอดคล้องกับมูลค่าหุ้นและค่าธรรมเนียม โปรดตรวจจุดทศนิยมและแก้ข้อมูลก่อนบันทึก</div>';
+
+    // Core fields: ticker, date, type
+    h+='<div class="fg fg3" style="margin-bottom:10px">';
+    h+='<div class="f-item"><div class="f-label">Ticker</div>';
+    h+='<input class="f-input" style="text-transform:uppercase" data-pi="'+i+'" data-pf="ticker" value="'+esc(p.ticker||'')+'" placeholder="'+(p.ticker?'เช่น QQQI':'อ่านไม่พบ — กรอกเอง')+'"></div>';
+    h+='<div class="f-item"><div class="f-label">วันที่</div>';
+    h+='<input class="f-input" type="date" data-pi="'+i+'" data-pf="date" value="'+esc(p.date||'')+'"></div>';
+    h+='<div class="f-item"><div class="f-label">ประเภท</div><select class="f-input" data-pi="'+i+'" data-pf="slipType">';
+    SLIP_TYPES.forEach(function(t){h+='<option value="'+t+'"'+(p.slipType===t?' selected':'')+'>'+TYPE_LABEL[t]+'</option>';});
+    h+='</select></div></div>';
+
+    // Numeric fields
+    var fkeys=Object.keys(p.meta);
+    if(fkeys.length){
+      h+='<div class="fg fg4">';
+      fkeys.forEach(function(fk){
+        var fm=p.meta[fk];
+        h+='<div class="f-item '+ccls(fm.confidence)+'">';
+        h+='<div class="f-label">'+esc(fm.label||fk)+'</div>';
+        h+='<input class="f-input mono" type="number" step="any" data-pi="'+i+'" data-pf="f:'+fk+'" value="'+(fm.val!=null?fm.val:'')+'">';
+        h+=ctag(fm.confidence);
+        h+='</div>';
+      });
+      h+='</div>';
+    }
+    if(p.needsReview&&!p.isBlocked)h+='<label class="info-box" style="display:block;margin-top:10px;margin-bottom:0"><input type="checkbox" data-pi="'+i+'" data-pf="manualConfirmed" '+(p.manualConfirmed?'checked':'')+'> ฉันตรวจและแก้ข้อมูลช่องที่คะแนนต่ำกว่า 90% แล้ว</label>';
+    h+='</div>'; // slip-card
+  }
+
+  h+='<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">';
+  h+='<button class="btn" id="ocrCancel">ยกเลิก</button>';
+  h+='<button class="btn btn-blue" id="ocrCommit">บันทึกรายการที่พร้อม</button>';
+  h+='</div></div>';
+
+  E('ocrReview').innerHTML=h;
+
+  // Live edits
+  E('ocrReview').querySelectorAll('[data-pi]').forEach(function(el){
+    el.addEventListener('change',function(){
+      var idx=parseInt(el.dataset.pi,10);
+      var fld=el.dataset.pf;
+      var val=el.value;
+      if(fld==='ticker')         PENDING[idx].ticker=val.toUpperCase().trim();
+      else if(fld==='date')      PENDING[idx].date=val;
+      else if(fld==='manualConfirmed'){PENDING[idx].manualConfirmed=el.checked;renderReview();return;}
+      else if(fld==='slipType'){ changeSlipType(PENDING[idx],val); }
+      else if(fld.indexOf('f:')===0){
+        var k=fld.slice(2);
+        var num=val===''?null:parseFloat(val);
+        PENDING[idx].fields[k]=num;
+        if(PENDING[idx].meta[k]){PENDING[idx].meta[k].val=num;PENDING[idx].meta[k].confidence=1;}
+      }
+      if(fld==='ticker')PENDING[idx].tickerConfidence=1;
+      if(fld==='date')PENDING[idx].dateConfidence=1;
+      PENDING[idx].manualConfirmed=false;
+      updateSlipQuality(PENDING[idx]);renderReview();
+    });
+  });
+
+  E('ocrCancel').addEventListener('click',function(){PENDING=[];E('ocrReview').innerHTML='';});
+  E('ocrCommit').addEventListener('click',commitOCR);
 }
-function openCFModal(){
-  document.getElementById('cfAmount').value='';
-  document.getElementById('cfNote').value='';
-  document.getElementById('cfDate').value=new Date().toISOString().slice(0,10);
-  setCFType('out');
-  openModal('modalCF');
+
+/* ================================================================
+   COMMIT
+================================================================ */
+function commitOCR(){
+  var usD=load(KEYS.US);
+  var thD=load(KEYS.THAI);
+  var cfD=load(KEYS.CF);
+  var ok=0;var skip=0;
+
+  PENDING.forEach(function(p){
+    if(p.isBlocked||!p.date||!p.ticker||!p.arithmeticOk||(p.needsReview&&!p.manualConfirmed)){skip++;return;}
+    var f=p.fields;
+    var st=p.slipType;
+
+    if(st==='US_BUY'||st==='US_SELL'){
+      var isSell=(st==='US_SELL');
+      var comm=Math.abs(f.commission||0);
+      var ft=Math.abs(f.free_trade||0);
+      var vat=Math.abs(f.vat||0);
+      var sec=Math.abs(f.sec_fee||0);
+      var taf=Math.abs(f.taf_fee||0);
+      var fee=isSell?(comm-ft+vat+sec+taf):(comm-ft+vat);
+      var netUSD=f.net_usd||(((f.gross||0))+(isSell?-fee:fee));
+      var fx=f.fx_rate||33.0;
+      usD.push({
+        id:genId('T'),date:p.date,source:'ocr',source_file:p.filename,
+        side:isSell?'SELL':'BUY',ticker:p.ticker,exchange:p.exchange||'',
+        shares:f.shares||0,price:f.price||0,gross:f.gross||0,
+        commission:r2(comm),free_trade:r2(ft),vat:r2(vat),
+        sec_fee:r2(sec),taf_fee:r2(taf),total_fee:r2(fee),
+        net_usd:r2(netUSD),fx_rate:r2(fx),net_thb:r2(netUSD*fx),
+        created_at:nowIso()
+      });
+      // US SELL → พักเงินใน CF กระเป๋า sell_usd
+      if(isSell){
+        cfD.push({
+          id:genId('C'),date:p.date,type:'in',wallet:'sell_usd',
+          category:'พักเงินขายหุ้น (USD)',account:'บัญชีลงทุนสหรัฐ',
+          amount_usd:r2(netUSD),fx_rate:r2(fx),amount_thb:r2(netUSD*fx),
+          note:'ขาย '+p.ticker+' '+fmt(f.shares||0,4)+' หุ้น @ $'+fmt(f.price||0,2),
+          source:'ocr',source_file:p.filename,created_at:nowIso()
+        });
+      }
+      ok++;
+
+    } else if(st==='THAI_BUY'||st==='THAI_SELL'){
+      var isTSell=(st==='THAI_SELL');
+      var tc=Math.abs(f.commission||0);
+      var tclr=Math.abs(f.clearing_fee||0);
+      var tvat=Math.abs(f.vat||0);
+      var tfee=tc+tclr+tvat;
+      var tnet=f.net_thb||(((f.gross||0))+(isTSell?-tfee:tfee));
+      thD.push({
+        id:genId('TH'),date:p.date,source:'ocr',source_file:p.filename,
+        side:isTSell?'SELL':'BUY',ticker:p.ticker,exchange:'SET',
+        shares:f.shares||0,price:f.price||0,gross:f.gross||0,
+        commission:r2(tc),clearing_fee:r2(tclr),vat:r2(tvat),
+        total_fee:r2(tfee),net_thb:r2(tnet),created_at:nowIso()
+      });
+      // Thai SELL → พักเงินใน CF กระเป๋า sell_thb
+      if(isTSell){
+        cfD.push({
+          id:genId('C'),date:p.date,type:'in',wallet:'sell_thb',
+          category:'พักเงินขายหุ้น (฿)',account:'บัญชีลงทุนไทย',
+          amount_usd:0,fx_rate:0,amount_thb:r2(tnet),
+          note:'ขาย '+p.ticker+' '+fmt(f.shares||0,0)+' หุ้น @ ฿'+fmt(f.price||0,2),
+          source:'ocr',source_file:p.filename,created_at:nowIso()
+        });
+      }
+      ok++;
+
+    } else if(st==='DIV_USD'){
+      var dAmt=f.amount||0;
+      var dFx=f.fx_rate||33.0;
+      cfD.push({
+        id:genId('D'),date:p.date,type:dAmt<0?'out':'in',wallet:'div_usd',
+        category:dAmt<0?'ภาษีหัก ณ ที่จ่ายเงินปันผล':'เงินปันผล / ดอกเบี้ย',account:'บัญชีลงทุนสหรัฐ',
+        amount_usd:r2(Math.abs(dAmt)),fx_rate:r2(dFx),amount_thb:r2(Math.abs(dAmt)*dFx),
+        note:(dAmt<0?'ภาษีหัก ณ ที่จ่ายเงินปันผล ':'ปันผล ')+p.ticker+' ('+p.date+')',
+        source:'ocr',source_file:p.filename,created_at:nowIso()
+      });
+      ok++;
+
+    } else if(st==='DIV_THB'){
+      var dAmtT=f.amount||0;
+      cfD.push({
+        id:genId('D'),date:p.date,type:dAmtT<0?'out':'in',wallet:'div_thb',
+        category:dAmtT<0?'ภาษีหัก ณ ที่จ่ายเงินปันผล':'เงินปันผล / ดอกเบี้ย',account:'บัญชีลงทุนไทย',
+        amount_usd:0,fx_rate:0,amount_thb:r2(Math.abs(dAmtT)),
+        note:(dAmtT<0?'ภาษีหัก ณ ที่จ่ายเงินปันผล ':'ปันผล ')+p.ticker+' ('+p.date+')',
+        source:'ocr',source_file:p.filename,created_at:nowIso()
+      });
+      ok++;
+    }
+  });
+
+  save(KEYS.US,usD);save(KEYS.THAI,thD);save(KEYS.CF,cfD);
+  PENDING=[];E('ocrReview').innerHTML='';
+  refreshCounts();renderUSTable();renderThaiTable();renderCFTable();
+  alert('บันทึกแล้ว '+ok+' รายการ'+(skip?' (ข้าม '+skip+' รายการ)':''));
 }
-function submitCF(){
-  const amount=Number(document.getElementById('cfAmount').value);
-  if(amount<=0)return alert('กรุณากรอกจำนวนเงิน');
-  const btn=document.getElementById('btnSaveCF');btn.textContent='กำลังบันทึก...';btn.disabled=true;
-  apiCall('addCashflow',{type:selectedCFType,category:document.getElementById('cfCategory').value,account:document.getElementById('cfAccount').value,amountTHB:amount,date:document.getElementById('cfDate').value,note:document.getElementById('cfNote').value.trim()},res=>{
-    btn.textContent='บันทึก';btn.disabled=false;
-    if(res.ok){closeModal('modalCF');loadBootstrap();}else alert('ผิดพลาด: '+res.error);
+
+/* ================================================================
+   US TABLE
+================================================================ */
+function renderUSTable(){
+  var all=load(KEYS.US);
+  var q=(E('usSearch')?E('usSearch').value.toUpperCase().trim():'');
+  var show=q?all.filter(function(r){return(r.ticker||'').toUpperCase().indexOf(q)>=0;}):all;
+  show=show.slice().reverse();
+
+  // Stats
+  var buyC=0,sellC=0,totalTHB=0;
+  all.forEach(function(r){if(r.side==='BUY'){buyC++;totalTHB+=r.net_thb||0;}else sellC++;});
+  var st=E('usStats');
+  if(st)st.innerHTML=
+    '<div class="sp"><div class="sp-label">รายการทั้งหมด</div><div class="sp-val c-blue">'+all.length+'</div></div>'+
+    '<div class="sp"><div class="sp-label">BUY</div><div class="sp-val c-green">'+buyC+'</div></div>'+
+    '<div class="sp"><div class="sp-label">SELL</div><div class="sp-val c-red">'+sellC+'</div></div>'+
+    '<div class="sp"><div class="sp-label">ต้นทุน BUY (฿)</div><div class="sp-val" style="font-size:14px">฿'+fmt(totalTHB,0)+'</div></div>';
+
+  var b=E('usBody');if(!b)return;
+  if(!show.length){b.innerHTML='<tr><td colspan="13"><div class="empty" style="border:none">ยังไม่มีรายการ</div></td></tr>';return;}
+  var h='';
+  show.forEach(function(r){
+    var is=r.side==='BUY';
+    h+='<tr>';
+    h+='<td class="mono c-muted">'+esc(r.date||'-')+'</td>';
+    h+='<td><span class="badge '+(is?'bg-buy':'bg-sell')+'">'+esc(r.side)+'</span></td>';
+    h+='<td style="font-weight:700;color:var(--blue)">'+esc(r.ticker||'-')+'</td>';
+    h+='<td class="c-muted" style="font-size:12px">'+esc(r.exchange||'-')+'</td>';
+    h+='<td class="nr">'+fmt(r.shares,4)+'</td>';
+    h+='<td class="nr">'+fmt(r.price,2)+'</td>';
+    h+='<td class="nr">'+fmt(r.gross,2)+'</td>';
+    h+='<td class="nr c-muted">'+fmt(r.total_fee,2)+'</td>';
+    h+='<td class="nr" style="font-weight:600">'+fmt(r.net_usd,2)+'</td>';
+    h+='<td class="nr c-muted">'+fmt(r.fx_rate,2)+'</td>';
+    h+='<td class="nr c-blue" style="font-weight:600">฿'+fmt(r.net_thb,0)+'</td>';
+    h+='<td><span class="badge bg-gray" style="font-size:10px">'+esc(r.source||'manual')+'</span></td>';
+    h+='<td><button class="btn btn-sm btn-red" data-del-us="'+esc(r.id)+'">ลบ</button></td>';
+    h+='</tr>';
+  });
+  b.innerHTML=h;
+  b.querySelectorAll('[data-del-us]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      if(!confirm('ลบรายการนี้?'))return;
+      save(KEYS.US,load(KEYS.US).filter(function(r){return r.id!==btn.dataset.delUs;}));
+      refreshCounts();renderUSTable();
+    });
   });
 }
-function deleteCF(id){
-  if(!confirm('ยืนยันลบรายการนี้?'))return;
-  apiCall('deleteCashflow',{id},res=>{if(res.ok)loadBootstrap();else alert('ผิดพลาด: '+res.error);});
-}
-function exportCashflowCSV(){
-  if(!appData?.cashflow)return;
-  const h=['id','date','type','category','account','amountTHB','note'];
-  let csv=h.join(',')+'\n';
-  appData.cashflow.forEach(c=>{csv+=h.map(k=>`"${String(c[k]||'').replace(/"/g,'""')}"`).join(',')+'\n';});
-  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`CASHFLOW_${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a);a.click();a.remove();
-}
-function fmtN(n,d=2){return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
-function openModal(id){document.getElementById(id).classList.remove('hidden');}
-function closeModal(id){document.getElementById(id).classList.add('hidden');}
 
-document.addEventListener('DOMContentLoaded',loadBootstrap);
+/* ================================================================
+   THAI TABLE
+================================================================ */
+function renderThaiTable(){
+  var all=load(KEYS.THAI);
+  var q=(E('thaiSearch')?E('thaiSearch').value.toUpperCase().trim():'');
+  var show=q?all.filter(function(r){return(r.ticker||'').toUpperCase().indexOf(q)>=0;}):all;
+  show=show.slice().reverse();
+
+  var buyC=0,sellC=0,totalTHB=0;
+  all.forEach(function(r){if(r.side==='BUY'){buyC++;totalTHB+=r.net_thb||0;}else sellC++;});
+  var st=E('thaiStats');
+  if(st)st.innerHTML=
+    '<div class="sp"><div class="sp-label">รายการทั้งหมด</div><div class="sp-val c-blue">'+all.length+'</div></div>'+
+    '<div class="sp"><div class="sp-label">BUY</div><div class="sp-val c-green">'+buyC+'</div></div>'+
+    '<div class="sp"><div class="sp-label">SELL</div><div class="sp-val c-red">'+sellC+'</div></div>'+
+    '<div class="sp"><div class="sp-label">ต้นทุน BUY (฿)</div><div class="sp-val" style="font-size:14px">฿'+fmt(totalTHB,0)+'</div></div>';
+
+  var b=E('thaiBody');if(!b)return;
+  if(!show.length){b.innerHTML='<tr><td colspan="10"><div class="empty" style="border:none">ยังไม่มีรายการ</div></td></tr>';return;}
+  var h='';
+  show.forEach(function(r){
+    var is=r.side==='BUY';
+    h+='<tr>';
+    h+='<td class="mono c-muted">'+esc(r.date||'-')+'</td>';
+    h+='<td><span class="badge '+(is?'bg-buy':'bg-sell')+'">'+esc(r.side)+'</span></td>';
+    h+='<td style="font-weight:700;color:var(--orange)">'+esc(r.ticker||'-')+'</td>';
+    h+='<td class="nr">'+fmt(r.shares,0)+'</td>';
+    h+='<td class="nr">'+fmt(r.price,2)+'</td>';
+    h+='<td class="nr">'+fmt(r.gross,2)+'</td>';
+    h+='<td class="nr c-muted">'+fmt(r.total_fee,2)+'</td>';
+    h+='<td class="nr c-orange" style="font-weight:600">฿'+fmt(r.net_thb,2)+'</td>';
+    h+='<td><span class="badge bg-gray" style="font-size:10px">'+esc(r.source||'manual')+'</span></td>';
+    h+='<td><button class="btn btn-sm btn-red" data-del-thai="'+esc(r.id)+'">ลบ</button></td>';
+    h+='</tr>';
+  });
+  b.innerHTML=h;
+  b.querySelectorAll('[data-del-thai]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      if(!confirm('ลบรายการนี้?'))return;
+      save(KEYS.THAI,load(KEYS.THAI).filter(function(r){return r.id!==btn.dataset.delThai;}));
+      refreshCounts();renderThaiTable();
+    });
+  });
+}
+
+/* ================================================================
+   CASHFLOW TABLE
+================================================================ */
+function renderCFTable(){
+  var all=load(KEYS.CF);
+
+  // Wallet balance summaries
+  var wSum={div_usd:{usd:0,thb:0},div_thb:{usd:0,thb:0},sell_usd:{usd:0,thb:0},sell_thb:{usd:0,thb:0}};
+  all.forEach(function(r){
+    var w=r.wallet||'general';
+    if(wSum[w]){wSum[w].usd+=r.amount_usd||0;wSum[w].thb+=r.amount_thb||0;}
+  });
+
+  // Insert wallet cards before table (into parent section)
+  var sec=E('v-cashflow');
+  var existCards=sec.querySelector('#cfWalletCards');
+  var cardsHTML=
+    '<div id="cfWalletCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:14px">'+
+    walletCard('ปันผล (USD)','div_usd',wSum.div_usd.usd,'USD','#a371f7')+
+    walletCard('ปันผล (฿)','div_thb',wSum.div_thb.thb,'THB','#a371f7')+
+    walletCard('พักเงินขาย (USD)','sell_usd',wSum.sell_usd.usd,'USD','#58a6ff')+
+    walletCard('พักเงินขาย (฿)','sell_thb',wSum.sell_thb.thb,'THB','#d29922')+
+    '</div>';
+  if(existCards)existCards.outerHTML=cardsHTML;
+  else{var actBar=sec.querySelector('.act-bar');if(actBar)actBar.insertAdjacentHTML('afterend',cardsHTML);}
+
+  var data=all.slice().reverse();
+  var b=E('cfBody');if(!b)return;
+  if(!data.length){b.innerHTML='<tr><td colspan="8"><div class="empty" style="border:none">ยังไม่มีรายการ</div></td></tr>';return;}
+  var h='';
+  data.forEach(function(r){
+    var w=r.wallet||'general';
+    var wLabel=WALLET_LABEL[w]||w;
+    var wColor=WALLET_COLOR[w]||'#656d76';
+    var isIn=r.type==='in';
+    var hasUSD=(r.amount_usd&&r.amount_usd!==0);
+    h+='<tr>';
+    h+='<td class="mono c-muted">'+esc(r.date||'-')+'</td>';
+    h+='<td><span class="badge" style="background:rgba(0,0,0,.3);color:'+wColor+';border:1px solid '+wColor+'40;font-size:10px">'+esc(wLabel)+'</span></td>';
+    h+='<td style="font-size:12px">'+esc(r.category||'-')+'</td>';
+    h+='<td class="c-muted" style="font-size:12px">'+esc(r.account||'-')+'</td>';
+    h+='<td class="nr mono" style="font-size:12px;color:'+wColor+'">'+(hasUSD?(isIn?'+':'-')+'$'+fmt(r.amount_usd||0,2):'-')+'</td>';
+    h+='<td class="nr mono '+(isIn?'c-green':'c-red')+'" style="font-weight:600">'+(isIn?'+':'-')+'฿'+fmt(r.amount_thb||0,2)+'</td>';
+    h+='<td class="c-muted" style="font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis">'+esc(r.note||'-')+'</td>';
+    h+='<td><button class="btn btn-sm btn-red" data-del-cf="'+esc(r.id)+'">ลบ</button></td>';
+    h+='</tr>';
+  });
+  b.innerHTML=h;
+  b.querySelectorAll('[data-del-cf]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      if(!confirm('ลบรายการนี้?'))return;
+      save(KEYS.CF,load(KEYS.CF).filter(function(r){return r.id!==btn.dataset.delCf;}));
+      refreshCounts();renderCFTable();
+    });
+  });
+}
+
+function walletCard(label,key,val,unit,color){
+  var display=unit==='USD'?'$'+fmt(val,2):'฿'+fmt(val,2);
+  return '<div class="sp" style="border-left:3px solid '+color+'">'+
+    '<div class="sp-label">'+label+'</div>'+
+    '<div class="sp-val" style="color:'+color+';font-size:16px">'+display+'</div>'+
+    '</div>';
+}
+
+/* ================================================================
+   BACKUP
+================================================================ */
+function renderBackupStats(){
+  var el=E('backupStats');if(!el)return;
+  var h='';
+  [{k:KEYS.US,l:'US Trades'},{k:KEYS.THAI,l:'Thai Trades'},{k:KEYS.CF,l:'Cashflow'},{k:KEYS.SNAPSHOT,l:'Snapshots'}].forEach(function(x){
+    h+='<div class="sp"><div class="sp-label">'+x.l+'</div><div class="sp-val c-blue">'+load(x.k).length+'</div></div>';
+  });
+  el.innerHTML=h;
+}
+
+function dlCSV(rows,headers,name){
+  var csv=headers.join(',')+'\n';
+  rows.forEach(function(r){
+    csv+=headers.map(function(h){return '"'+String(r[h]!=null?r[h]:'').replace(/"/g,'""')+'"';}).join(',')+'\n';
+  });
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=name+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+/* ================================================================
+   COUNTS
+================================================================ */
+function refreshCounts(){
+  E('cnt-us').textContent=load(KEYS.US).length;
+  E('cnt-thai').textContent=load(KEYS.THAI).length;
+  E('cnt-cf').textContent=load(KEYS.CF).length;
+}
+
+/* ================================================================
+   MODAL
+================================================================ */
+var _modalSave=null;
+function openModal(title,bodyHTML,onSave){
+  E('modalTitle').textContent=title;
+  E('modalBody').innerHTML=bodyHTML;
+  _modalSave=onSave;
+  E('modal').style.display='flex';
+}
+function closeModal(){E('modal').style.display='none';E('modalBody').innerHTML='';_modalSave=null;}
+function gv(id){var e=E(id);return e?e.value:'';}
+function gn(id){return parseFloat(gv(id))||0;}
+
+// Reusable form row builder
+function fr(id,label,type,def){
+  var h='<div class="form-row"><label>'+label+'</label>';
+  if(type==='date')h+='<input id="f_'+id+'" type="date" value="'+esc(def||new Date().toISOString().slice(0,10))+'">';
+  else if(type==='num')h+='<input id="f_'+id+'" type="number" step="any" value="'+esc(def||0)+'">';
+  else if(type==='text')h+='<input id="f_'+id+'" type="text" value="'+esc(def||'')+'">';
+  else if(typeof type==='object'){
+    h+='<select id="f_'+id+'">';
+    type.forEach(function(o){h+='<option value="'+esc(o[0])+'"'+(String(def)===String(o[0])?' selected':'')+'>'+esc(o[1])+'</option>';});
+    h+='</select>';
+  }
+  h+='</div>';return h;
+}
+
+function buildUSForm(){
+  return '<div class="fg fg2">'+
+    fr('date','วันที่','date','')+
+    fr('side','ประเภท',[['BUY','ซื้อ BUY'],['SELL','ขาย SELL']],'')+
+    '</div><div class="fg fg3">'+
+    fr('ticker','Ticker','text','')+
+    fr('exchange','Exchange',[['NASDAQ','NASDAQ'],['NYSE','NYSE'],['NYSE Arca','NYSE Arca']],'')+
+    fr('fx_rate','FX Rate (THB)','num',33)+
+    '</div><div class="fg fg3">'+
+    fr('shares','จำนวนหุ้น','num','')+
+    fr('price','ราคาต่อหุ้น ($)','num','')+
+    fr('gross','Gross ($)','num','')+
+    '</div><div class="fg fg3">'+
+    fr('commission','Commission ($)','num',0)+
+    fr('free_trade','Free Trade Coupon ($)','num',0)+
+    fr('vat','VAT ($)','num',0)+
+    '</div><div class="fg fg3">'+
+    fr('sec_fee','SEC Fee ($)','num',0)+
+    fr('taf_fee','TAF Fee ($)','num',0)+
+    fr('net_usd','Net Amount USD ($)','num','')+
+    '</div>';
+}
+
+function buildThaiForm(){
+  return '<div class="fg fg2">'+
+    fr('date','วันที่','date','')+
+    fr('side','ประเภท',[['BUY','ซื้อ BUY'],['SELL','ขาย SELL']],'')+
+    '</div><div class="fg fg2">'+
+    fr('ticker','Ticker','text','')+
+    fr('shares','จำนวนหุ้น','num','')+
+    '</div><div class="fg fg3">'+
+    fr('price','ราคาต่อหุ้น (฿)','num','')+
+    fr('gross','Gross (฿)','num','')+
+    fr('commission','Commission (฿)','num',0)+
+    '</div><div class="fg fg3">'+
+    fr('clearing_fee','Clearing Fee (฿)','num',0)+
+    fr('vat','VAT (฿)','num',0)+
+    fr('net_thb','Net Amount (฿)','num','')+
+    '</div>';
+}
+
+function buildCFForm(){
+  return '<div class="fg fg2">'+
+    fr('date','วันที่','date','')+
+    fr('type','ทิศทาง',[['in','รับเข้า'],['out','จ่ายออก']],'')+
+    '</div>'+
+    fr('wallet','กระเป๋า (Wallet)',[
+      ['general','ทั่วไป'],
+      ['div_usd','ปันผล (USD)'],['div_thb','ปันผล (฿)'],
+      ['sell_usd','พักเงินขายหุ้น (USD)'],['sell_thb','พักเงินขายหุ้น (฿)']
+    ],'')+
+    fr('category','หมวดหมู่',[
+      ['โอนเข้าลงทุน','โอนเข้าลงทุน'],['เงินเดือน / รายได้','เงินเดือน / รายได้'],
+      ['ถอนกำไรจากพอร์ต','ถอนกำไรจากพอร์ต'],['เงินปันผล / ดอกเบี้ย','เงินปันผล / ดอกเบี้ย'],
+      ['พักเงินขายหุ้น (USD)','พักเงินขายหุ้น (USD)'],['พักเงินขายหุ้น (฿)','พักเงินขายหุ้น (฿)'],
+      ['ค่าใช้จ่ายทั่วไป','ค่าใช้จ่ายทั่วไป'],['โอนออก','โอนออก'],['ออมเงิน','ออมเงิน']
+    ],'')+
+    fr('account','บัญชี',[
+      ['บัญชีลงทุนสหรัฐ','Dime (US)'],['บัญชีลงทุนไทย','Dime (Thai)'],
+      ['บัญชีใช้จ่าย','SCB'],['เงินสด','Cash'],['เงินสำรองฉุกเฉิน','K Plus (Emergency)']
+    ],'')+
+    '<div class="fg fg2">'+
+    fr('amount_usd','จำนวนเงิน USD ($) — ถ้ามี','num',0)+
+    fr('fx_rate','FX Rate (ถ้าเป็น USD)','num',33)+
+    '</div>'+
+    fr('amount_thb','จำนวนเงิน THB (฿)','num','')+
+    fr('note','บันทึก','text','');
+}
+
+/* ================================================================
+   NAV
+================================================================ */
+function go(view){
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.toggle('on',b.dataset.view===view);});
+  document.querySelectorAll('.view').forEach(function(s){s.classList.toggle('on',s.id==='v-'+view);});
+  if(view==='us')renderUSTable();
+  if(view==='thai')renderThaiTable();
+  if(view==='cashflow')renderCFTable();
+  if(view==='backup')renderBackupStats();
+}
+
+/* ================================================================
+   EVENT BINDINGS
+================================================================ */
+// Nav
+document.querySelectorAll('.nb').forEach(function(b){
+  b.addEventListener('click',function(){go(b.dataset.view);});
+});
+
+// Drop zone
+var dz=E('dropZone');
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave',function(){dz.classList.remove('over');});
+dz.addEventListener('drop',function(e){
+  e.preventDefault();dz.classList.remove('over');
+  var files=[];var fs=e.dataTransfer.files;
+  for(var i=0;i<fs.length;i++){if(fs[i].type.indexOf('image')===0)files.push(fs[i]);}
+  if(files.length)runOCR(files);
+});
+dz.addEventListener('click',function(e){if(e.target===dz||e.target.tagName==='P')E('fileInput').click();});
+E('pickBtn').addEventListener('click',function(e){e.stopPropagation();E('fileInput').click();});
+E('fileInput').addEventListener('change',function(e){
+  var f=[];for(var i=0;i<e.target.files.length;i++)f.push(e.target.files[i]);
+  if(f.length)runOCR(f);
+  e.target.value='';
+});
+
+// Modal
+E('modalX').addEventListener('click',closeModal);
+E('modalCancel').addEventListener('click',closeModal);
+E('modal').addEventListener('click',function(e){if(e.target===E('modal'))closeModal();});
+E('modalSave').addEventListener('click',function(){if(_modalSave)_modalSave();});
+
+// Add US
+E('addUSBtn').addEventListener('click',function(){
+  openModal('เพิ่มรายการ US Stocks',buildUSForm(),function(){
+    var isSell=gv('side')==='SELL';
+    var c=gn('commission'),ft=gn('free_trade'),v=gn('vat'),s=gn('sec_fee'),t=gn('taf_fee');
+    var fee=isSell?(c-ft+v+s+t):(c-ft+v);
+    var nu=gn('net_usd')||(gn('gross')+(isSell?-fee:fee));
+    var fx=gn('fx_rate')||33;
+    var tk=gv('ticker').toUpperCase().trim();
+    if(!tk||!gv('date')){alert('กรุณาระบุ Ticker และวันที่');return;}
+    var d=load(KEYS.US);
+    d.push({id:genId('T'),date:gv('date'),source:'manual',source_file:'',
+            side:gv('side'),ticker:tk,exchange:gv('exchange'),
+            shares:gn('shares'),price:gn('price'),gross:gn('gross'),
+            commission:r2(c),free_trade:r2(ft),vat:r2(v),sec_fee:r2(s),taf_fee:r2(t),
+            total_fee:r2(fee),net_usd:r2(nu),fx_rate:r2(fx),net_thb:r2(nu*fx),
+            created_at:nowIso()});
+    save(KEYS.US,d);closeModal();refreshCounts();renderUSTable();
+  });
+});
+
+// Add Thai
+E('addThaiBtn').addEventListener('click',function(){
+  openModal('เพิ่มรายการ Thai Stocks',buildThaiForm(),function(){
+    var isSell=gv('side')==='SELL';
+    var c=gn('commission'),cl=gn('clearing_fee'),v=gn('vat');
+    var fee=c+cl+v;
+    var nt=gn('net_thb')||(gn('gross')+(isSell?-fee:fee));
+    var tk=gv('ticker').toUpperCase().trim();
+    if(!tk||!gv('date')){alert('กรุณาระบุ Ticker และวันที่');return;}
+    var d=load(KEYS.THAI);
+    d.push({id:genId('TH'),date:gv('date'),source:'manual',source_file:'',
+            side:gv('side'),ticker:tk,exchange:'SET',
+            shares:gn('shares'),price:gn('price'),gross:gn('gross'),
+            commission:r2(c),clearing_fee:r2(cl),vat:r2(v),
+            total_fee:r2(fee),net_thb:r2(nt),created_at:nowIso()});
+    save(KEYS.THAI,d);closeModal();refreshCounts();renderThaiTable();
+  });
+});
+
+// Add Cashflow
+E('addCFBtn').addEventListener('click',function(){
+  openModal('เพิ่มรายการ Cashflow',buildCFForm(),function(){
+    if(!gv('date')||!gn('amount_thb')){alert('กรุณาระบุวันที่และจำนวนเงิน (฿)');return;}
+    var cfAusd=gn('amount_usd');var cfFx=gn('fx_rate')||33;
+    // Auto-compute THB from USD if THB not filled but USD is
+    var cfThb=gn('amount_thb')||(cfAusd?r2(cfAusd*cfFx):0);
+    var d=load(KEYS.CF);
+    d.push({id:genId('C'),date:gv('date'),type:gv('type'),
+            wallet:gv('wallet')||'general',
+            category:gv('category'),account:gv('account'),
+            amount_usd:r2(cfAusd),fx_rate:r2(cfFx),
+            amount_thb:r2(cfThb),note:gv('note'),
+            source:'manual',created_at:nowIso()});
+    save(KEYS.CF,d);closeModal();refreshCounts();renderCFTable();
+  });
+});
+
+// Search
+if(E('usSearch'))   E('usSearch').addEventListener('input',  renderUSTable);
+if(E('thaiSearch')) E('thaiSearch').addEventListener('input', renderThaiTable);
+
+// CSV exports
+E('exportUSCSV').addEventListener('click',function(){
+  dlCSV(load(KEYS.US),
+    ['id','date','side','ticker','exchange','shares','price','gross','commission','free_trade','vat','sec_fee','taf_fee','total_fee','net_usd','fx_rate','net_thb','source'],
+    'US_TRADES');
+});
+E('exportThaiCSV').addEventListener('click',function(){
+  dlCSV(load(KEYS.THAI),
+    ['id','date','side','ticker','exchange','shares','price','gross','commission','clearing_fee','vat','total_fee','net_thb','source'],
+    'THAI_TRADES');
+});
+E('exportCFCSV').addEventListener('click',function(){
+  dlCSV(load(KEYS.CF),
+    ['id','date','type','category','account','amount_thb','note'],
+    'CASHFLOW');
+});
+
+// Full backup export
+E('exportAll').addEventListener('click',function(){
+  var bk={exported_at:nowIso()};
+  Object.keys(KEYS).forEach(function(k){bk[KEYS[k]]=load(KEYS[k]);});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(bk,null,2)],{type:'application/json'}));
+  a.download='9AU_Backup_'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+});
+
+// Import
+E('importBtn').addEventListener('click',function(){E('importFile').click();});
+E('importFile').addEventListener('change',function(e){
+  var f=e.target.files[0];if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    try{
+      var data=JSON.parse(rd.result);
+      var added=0;
+      Object.keys(KEYS).forEach(function(k){
+        var key=KEYS[k];
+        if(!data[key]||!Array.isArray(data[key]))return;
+        var ex=load(key);
+        var ids={};ex.forEach(function(r){ids[r.id]=1;});
+        data[key].forEach(function(r){if(r.id&&!ids[r.id]){ex.push(r);added++;}});
+        save(key,ex);
+      });
+      refreshCounts();renderBackupStats();
+      alert('Import สำเร็จ — เพิ่ม '+added+' รายการ');
+    }catch(ex){alert('ไฟล์ไม่ถูกต้อง: '+ex.message);}
+  };
+  rd.readAsText(f);
+  e.target.value='';
+});
+
+// Clear all
+E('clearBtn').addEventListener('click',function(){
+  if(!confirm('ล้างข้อมูลทั้งหมด? ไม่สามารถกู้คืนได้'))return;
+  if(!confirm('ยืนยันอีกครั้ง'))return;
+  Object.keys(KEYS).forEach(function(k){localStorage.removeItem(KEYS[k]);});
+  refreshCounts();renderBackupStats();
+  alert('ล้างข้อมูลแล้ว');
+});
+
+/* ================================================================
+   INIT
+================================================================ */
+refreshCounts();
+
+})();
 </script>
 </body>
 </html>
