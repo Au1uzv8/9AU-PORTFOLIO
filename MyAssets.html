@@ -30,10 +30,10 @@
     /* Risk Monitor badges */
     .rm-badge    { display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:9999px;white-space:nowrap; }
     .rm-watch    { background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.35); }
-    .rm-sl12     { background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.4); } /* v9 */
+    .rm-sl12     { background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.4); }
     .rm-sl15     { background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.45); }
     .rm-sl20     { background:rgba(239,68,68,.18);color:#ef4444;border:1px solid rgba(239,68,68,.5);animation:pulse 1.5s infinite; }
-    .rm-wl-prox  { background:rgba(99,102,241,.15);color:#818cf8;border:1px solid rgba(99,102,241,.4); } /* v9: Watchlist proximity */
+    .rm-wl-prox  { background:rgba(99,102,241,.15);color:#818cf8;border:1px solid rgba(99,102,241,.4); }
     .rm-tp       { background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.35); }
     .rm-tp-str   { background:rgba(16,185,129,.22);color:#34d399;border:1px solid rgba(16,185,129,.6); }
   </style>
@@ -100,7 +100,7 @@
       <button onclick="exportMonthlyCSV()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-amber-400 hover:bg-[#30363d] font-semibold transition" title="Export Monthly Report (CSV)">CSV</button>
       <button onclick="toggleLang()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
       <button onclick="triggerSnapshot()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-emerald-400 hover:bg-[#30363d] font-semibold transition">Snapshot</button>
-      <button onclick="loadBootstrap()"   class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="รีเฟรช">
+      <button onclick="bootstrapOnce(true)" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="รีเฟรช">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
       </button>
       <button onclick="logout()" class="p-2 text-rose-400 hover:text-rose-300 rounded-lg border border-[#30363d] bg-[#21262d] transition" title="ออกจากระบบ">
@@ -113,10 +113,10 @@
   <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
     <a href="MyAssets.html"           class="nav-tab active">Dashboard</a>
     <a href="MyAssets_Thai.html"      class="nav-tab">หุ้นไทย</a>
-    <a href="MyAssets_US.html"        class="nav-tab">US ETF</a>
-    <a href="MyAssets_Forex.html"     class="nav-tab">FOREX MT5</a>
-    <a href="MyAssets_Cashflow.html"  class="nav-tab">Cashflow</a>
-    <a href="MyAssets_README.html"    class="nav-tab" style="color:#d97706">README</a>
+    <a href="MyAssets_US.html"        class="nav-tab">หุ้นสหรัฐ</a>
+    <a href="MyAssets_Forex.html"     class="nav-tab">ตลาดค่าเงิน</a>
+    <a href="MyAssets_Cashflow.html"  class="nav-tab">สภาพคล่อง</a>
+    <a href="MyAssets_README.html"    class="nav-tab" style="color:#d97706">คู่มือใช้งาน</a>
   </div>
 </header>
 
@@ -166,12 +166,12 @@
       <div class="text-[10px] mt-0.5"><span id="d6ThaiPct" class="fn text-gray-400">0.00%</span></div>
     </div>
     <div class="cd rounded-2xl p-4 border-l-4 border-l-blue-400">
-      <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-1">US ETF</div>
+      <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-1">หุ้นสหรัฐ</div>
       <div class="text-lg font-bold fn" id="d6USPnl">0.00 ฿</div>
       <div class="text-[10px] mt-0.5"><span id="d6USPct" class="fn text-gray-400">0.00%</span></div>
     </div>
     <div class="cd rounded-2xl p-4 border-l-4 border-l-indigo-400">
-      <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-1">FOREX MT5</div>
+      <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-1">ตลาดค่าเงิน</div>
       <div class="text-lg font-bold fn" id="d6FxPnl">0.00 ฿</div>
       <div class="text-[10px] mt-0.5"><span id="d6FxPct" class="fn text-gray-400">0.00%</span></div>
     </div>
@@ -238,12 +238,12 @@
   <div>
     <div class="flex items-center justify-between mb-2">
       <h2 class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-blue-400"></span> Group-2: US Stocks & ETF
+        <span class="w-2 h-2 rounded-full bg-blue-400"></span> Group-2: หุ้นสหรัฐ
       </h2>
       <a href="MyAssets_US.html" class="text-xs fn text-gray-400 hover:text-blue-300 transition">ดูรายละเอียด →</a>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-      <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">ต้นทุนรวม (netTHB)</div><div class="text-xl font-bold text-white fn" id="valUSCostTHB">0.00 ฿</div><div class="text-xs text-gray-400 fn">$ <span id="valUSCostUSD">0.00</span></div></div>
+      <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">ต้นทุนรวม</div><div class="text-xl font-bold text-white fn" id="valUSCostTHB">0.00 ฿</div><div class="text-xs text-gray-400 fn">$ <span id="valUSCostUSD">0.00</span></div></div>
       <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">มูลค่าปัจจุบัน</div><div class="text-xl font-bold text-white fn" id="valUSMarketTHB">0.00 ฿</div><div class="text-xs text-gray-400 fn">$ <span id="valUSMarketUSD">0.00</span></div></div>
       <div class="cd rounded-2xl p-4">
         <div class="text-xs text-gray-400 mb-1 flex justify-between">กำไร/ขาดทุน <span id="usPnlPct" class="fn text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-300">0.00%</span></div>
@@ -257,7 +257,7 @@
   <div>
     <div class="flex items-center justify-between mb-2">
       <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-indigo-400"></span> Group-3: FOREX MT5 (Live)
+        <span class="w-2 h-2 rounded-full bg-indigo-400"></span> Group-3: ตลาดค่าเงิน (Live)
       </h2>
       <a href="MyAssets_Forex.html" class="text-xs fn text-gray-400 hover:text-indigo-300 transition">ดูรายละเอียด →</a>
     </div>
@@ -323,10 +323,9 @@
 <script>
 'use strict';
 
-/* ── Config ─────────────────────────────────────────────── */
 const BACKEND = 'https://script.google.com/macros/s/AKfycbw_P74pybIzkQ0SSa0RuO8lFgjbgDh5KSerIoL9NcNR1IVAOJ0Jyz3Vb4-khVlsEfNN/exec';
 const FB_CFG  = {
-  apiKey:            "AIzaSyBOJsWzqqt9DfvyHHRjbAZMSiGevd7UOsE",
+  apiKey:            "***************************************",
   authDomain:        "au-portfolio-7d687.firebaseapp.com",
   databaseURL:       "https://au-portfolio-7d687-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId:         "au-portfolio-7d687",
@@ -335,34 +334,29 @@ const FB_CFG  = {
   appId:             "1:806351101494:web:c832da2ef2baff90d18297"
 };
 
-/* ── State ───────────────────────────────────────────────── */
-/* v9: Local PIN + session cache keys */
 const LS_PIN_HASH  = '9au_pin_hash';
 const LS_PIN_SALT  = '9au_pin_salt';
 const LS_PIN_EXP   = '9au_pin_expiry';
 const LS_SESS_TOK  = 'portfolio_token';
 const LS_SESS_EXP  = '9au_sess_expiry';
 const SS_CACHE     = '9au_bscache';
-const CACHE_TTL_MS = 5  * 60 * 1000;    /* sessionStorage: 5 min */
-const PIN_TTL_MS   = 12 * 3600 * 1000;  /* local PIN: 12 h */
-const SESS_TTL_MS  = 72 * 3600 * 1000;  /* token: 72 h */
+const CACHE_TTL_MS = 5  * 60 * 1000;
+const PIN_TTL_MS   = 12 * 3600 * 1000;
+const SESS_TTL_MS  = 72 * 3600 * 1000;
 
 let currentToken = localStorage.getItem(LS_SESS_TOK) || '';
 let enteredPin   = '';
-let appData      = null;          // bootstrap data (history / accounts)
-let rtData       = null;          // Firebase realtime snapshot
+let appData      = null;
+let rtData       = null;
 let chartAlloc   = null;
-let btcLive      = null;          // { usd, chg } จาก CoinGecko (live)
-let lastCalc     = null;          // ค่าที่คำนวณล่าสุดจาก renderDashboard (ใช้ใน Export CSV)
+let btcLive      = null;
+let lastCalc     = null;
 let chartForex   = null;
 let chartTrend   = null;
 
-/* ── Firebase Init ───────────────────────────────────────── */
 firebase.initializeApp(FB_CFG);
 const db = firebase.database();
 
-/* v9: ใช้ .once() ต่อ cycle แทน .on() persistent ─ ตัด WebSocket overhead
-   ดึงใหม่ทุก 5 นาทีตรงกับ pushToFirebase_() trigger ใน Code.gs       */
 function startFirebaseListen() {
   fetchBtcLive();
   setInterval(fetchBtcLive, 60000);
@@ -390,10 +384,9 @@ function startFirebaseListen() {
   }
 
   fetchRt();
-  setInterval(fetchRt, 5 * 60 * 1000); /* sync กับ pushToFirebase_() ทุก 5 นาที */
+  setInterval(fetchRt, 5 * 60 * 1000);
 }
 
-/* ── JSONP (Bootstrap — history / accounts only) ─────────── */
 function apiCall(action, payload, cb) {
   const cbName = 'jcb_' + Math.round(1e6 * Math.random());
   const script = document.createElement('script');
@@ -419,10 +412,6 @@ function apiCall(action, payload, cb) {
   }
 }
 
-/* ── v9: Local PIN + Session Cache ──────────────────────── */
-
-/* PBKDF2 — Web Crypto API native, ไม่ต้องลง library
-   ใช้เวลา ~150 ms ต่อครั้ง — เกิดแค่เมื่อ login + ทุก 12 h */
 async function hashPIN(pin, salt) {
   const enc  = new TextEncoder();
   const key  = await crypto.subtle.importKey(
@@ -433,18 +422,16 @@ async function hashPIN(pin, salt) {
   return btoa(String.fromCharCode(...new Uint8Array(bits)));
 }
 
-/* คืนค่า: false = ต้อง login ครั้งแรก, 'need_pin' = มี cache ให้ verify local */
 async function tryLocalUnlock() {
   const pinHash = localStorage.getItem(LS_PIN_HASH);
   const pinSalt = localStorage.getItem(LS_PIN_SALT);
   const pinExp  = Number(localStorage.getItem(LS_PIN_EXP) || 0);
   const tok     = localStorage.getItem(LS_SESS_TOK) || '';
-  if (!pinHash || !pinSalt || !tok) return false;   /* ไม่มี cache */
-  if (Date.now() > pinExp) return false;             /* PIN cache หมดอายุ */
-  return 'need_pin';                                 /* มี cache — แสดง keypad verify local */
+  if (!pinHash || !pinSalt || !tok) return false;
+  if (Date.now() > pinExp) return false;
+  return 'need_pin';
 }
 
-/* ต่ออายุ token background — ไม่รบกวน UI */
 function autoRenewToken(cb) {
   const banner = document.getElementById('renewBanner');
   if (banner) banner.classList.remove('hidden');
@@ -456,18 +443,15 @@ function autoRenewToken(cb) {
       localStorage.setItem(LS_SESS_EXP, String(Date.now() + SESS_TTL_MS));
       cb(true);
     } else {
-      /* grace period หมด — ต้อง full login */
       logout();
     }
   });
 }
 
-/* sequence หลังยืนยันตัวตนสำเร็จ — ทั้ง login ครั้งแรก และ local verify */
 function unlockApp() {
   document.getElementById('pinOverlay').classList.add('hidden');
   const sessExp = Number(localStorage.getItem(LS_SESS_EXP) || 0);
   if (currentToken && Date.now() > sessExp) {
-    /* token หมดอายุ — ต่อ session แบบ silent ก่อน unlock */
     autoRenewToken(ok => { if (ok) { startFirebaseListen(); bootstrapOnce(); } });
     return;
   }
@@ -475,8 +459,6 @@ function unlockApp() {
   bootstrapOnce();
 }
 
-/* bootstrap พร้อม sessionStorage cache — โหลดครั้งเดียวต่อ session
-   ครั้งถัดไปที่เปิด page ใหม่ภายใน 5 นาที → restore จาก cache ทันที */
 function bootstrapOnce(forceRefresh) {
   if (!forceRefresh) {
     try {
@@ -486,23 +468,21 @@ function bootstrapOnce(forceRefresh) {
         appData = cache.data;
         populateAccounts();
         renderDashboard();
-        return; /* ใช้ cache — ไม่ไป network */
+        return;
       }
-    } catch(e) { /* cache corrupt — fetch ใหม่ */ }
+    } catch(e) {}
   }
   loadBootstrap(() => {
     try {
       sessionStorage.setItem(SS_CACHE, JSON.stringify({ data: appData, ts: Date.now() }));
-    } catch(e) { /* sessionStorage เต็ม — ข้ามได้ */ }
+    } catch(e) {}
   });
 }
 
-/* ล้าง cache เพื่อบังคับ re-fetch หลัง write ops */
 function invalidateCache() {
   try { sessionStorage.removeItem(SS_CACHE); } catch(e) {}
 }
 
-/* ── PIN Logic ───────────────────────────────────────────── */
 function pressPin(n) {
   if (enteredPin.length < 6) { enteredPin += n; updateDots(); if (enteredPin.length===6) submitPin(); }
 }
@@ -521,12 +501,11 @@ function submitPin() {
   const salt = localStorage.getItem(LS_PIN_SALT);
   const pExp = Number(localStorage.getItem(LS_PIN_EXP) || 0);
 
-  /* ── Case A: มี local hash ยังไม่หมดอายุ → verify ใน browser (0 ms network) ── */
   if (hash && salt && Date.now() < pExp) {
     err.textContent = 'กำลังตรวจสอบ (local)...';
     hashPIN(pin, salt).then(computed => {
       if (computed === hash) {
-        localStorage.setItem(LS_PIN_EXP, String(Date.now() + PIN_TTL_MS)); /* ต่ออายุ PIN */
+        localStorage.setItem(LS_PIN_EXP, String(Date.now() + PIN_TTL_MS));
         err.textContent = '';
         enteredPin = ''; updateDots();
         unlockApp();
@@ -538,14 +517,12 @@ function submitPin() {
     return;
   }
 
-  /* ── Case B: ไม่มี cache หรือ หมดอายุ → ตรวจกับ Code.gs (ครั้งแรก / ทุก 12 h) ── */
   err.textContent = 'กำลังตรวจสอบ...';
   apiCall('login', { pin }, res => {
     if (res.ok && res.data?.token) {
       currentToken = res.data.token;
       localStorage.setItem(LS_SESS_TOK, currentToken);
       localStorage.setItem(LS_SESS_EXP, String(Date.now() + SESS_TTL_MS));
-      /* สร้าง PBKDF2 hash สำหรับครั้งถัดไป — async, ไม่บล็อก UI */
       const newSalt = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()));
       hashPIN(pin, newSalt).then(h => {
         localStorage.setItem(LS_PIN_HASH, h);
@@ -568,7 +545,6 @@ function logout() {
   location.reload();
 }
 
-/* ── Bootstrap (history, accounts, snapshot) ─────────────── */
 function loadBootstrap(cb, _retry) {
   _retry = _retry || 0;
   document.getElementById('loadingBanner').classList.remove('hidden');
@@ -580,45 +556,53 @@ function loadBootstrap(cb, _retry) {
       return;
     }
     appData = res.data;
+    try { sessionStorage.setItem(SS_CACHE, JSON.stringify({ data: appData, ts: Date.now() })); } catch(e) {}
     populateAccounts();
     renderDashboard();
     if (cb) cb();
   });
 }
 
-/* ── Render Dashboard ────────────────────────────────────── */
+/* ── Render Dashboard (Synced 100% with Thai & US Tabs) ───── */
 function renderDashboard() {
-  const fx   = rtData?.fxRate || appData?.summary?.fxRate || 33.14;
-  const sum  = appData?.summary || {};
+  const fx    = rtData?.fxRate || appData?.summary?.fxRate || 33.14;
+  const sum   = appData?.summary || {};
   const terms = rtData?.terminals || sum.terminals || {};
 
-  /* Group 1 — from bootstrap */
+  /* Group 1 — Liquidity */
   setText('valG1Total',    fmtN(sum.totalGroup1THB) + ' ฿');
   setText('valCash',       fmtN(sum.cashTHB) + ' ฿');
   setText('valBank',       fmtN(sum.bankTHB) + ' ฿');
   setText('valEmergency',  fmtN(sum.emergencyTHB) + ' ฿');
 
-  /* Group 4 Thai */
+  /* Group 4 — Thai Stocks */
   setText('valThaiCost',   fmtN(sum.thaiCostTHB) + ' ฿');
   setText('valThaiMarket', fmtN(sum.thaiMarketTHB) + ' ฿');
   setPnl('valThaiPnl', 'thaiPnlPct', sum.thaiPnlTHB, sum.thaiPnlPct, '฿');
 
-  /* Group 2 US */
-  setText('valUSCostTHB',   fmtN(sum.usTotalNetTHBCost) + ' ฿');
-  setText('valUSCostUSD',   fmtN(sum.usCostUSD));
-  setText('valUSMarketTHB', fmtN(sum.usInvestTHB) + ' ฿');
-  setText('valUSMarketUSD', fmtN(sum.usInvestUSD));
-  setPnl('valUSPnlTHB', 'usPnlPct', sum.usPnlTHB, sum.usPnlPct, '฿');
-  setText('valUSPnlUSD', (sum.usPnlUSD>=0?'+':'')+fmtN(sum.usPnlUSD));
+  /* Group 2 — US Stocks (คูณ fx ปัจจุบันเพื่อให้ตรงกับ Tab หุ้นสหรัฐ 100%) */
+  const usCostUSD   = Number(sum.usCostUSD) || 0;
+  const usMarketUSD = Number(sum.usInvestUSD) || 0;
+  const usPnlUSD    = usMarketUSD - usCostUSD;
+  const usCostTHB   = usCostUSD * fx;
+  const usMarketTHB = usMarketUSD * fx;
+  const usPnlTHB    = usPnlUSD * fx;
+  const usPnlPct    = usCostUSD > 0 ? (usPnlUSD / usCostUSD * 100) : 0;
 
-  /* Group 3 Forex — prefer Firebase realtime */
+  setText('valUSCostTHB',   fmtN(usCostTHB) + ' ฿');
+  setText('valUSCostUSD',   fmtN(usCostUSD));
+  setText('valUSMarketTHB', fmtN(usMarketTHB) + ' ฿');
+  setText('valUSMarketUSD', fmtN(usMarketUSD));
+  setPnl('valUSPnlTHB', 'usPnlPct', usPnlTHB, usPnlPct, '฿');
+  setText('valUSPnlUSD', (usPnlUSD>=0?'+':'')+fmtN(usPnlUSD));
+
+  /* Group 3 — Forex */
   let fxBalUSD=0, fxEqUSD=0, fxPnlUSD=0;
   ['Terminal-01','Terminal-02','Terminal-03','Terminal-04'].forEach((k,i)=>{
     const t   = terms[k] || {};
     const idx = i+1;
-    const ids = ['lT','vT','vT'];
-    setText('lT'+idx,   t.terminalTitle || k);
-    setText('vT'+idx+'Eq',  '$'+fmtN(t.equityUSD||0));
+    setText('lT'+idx,      t.terminalTitle || k);
+    setText('vT'+idx+'Eq', '$'+fmtN(t.equityUSD||0));
     const pEl = document.getElementById('vT'+idx+'Pnl');
     if (pEl) {
       const v = t.pnlUSD||0;
@@ -638,42 +622,35 @@ function renderDashboard() {
   setText('valFxPnlUSD', (fxPnlUSD>=0?'+':'')+fmtN(fxPnlUSD));
 
   /* Net Worth */
-  const nw = (sum.totalGroup1THB||0)+(sum.thaiMarketTHB||0)+(sum.usInvestTHB||0)+fxEqUSD*fx;
+  const nw = (sum.totalGroup1THB||0)+(sum.thaiMarketTHB||0)+usMarketTHB+fxEqUSD*fx;
   setText('valNetWorthTHB', fmtN(nw)+' ฿');
   setText('valNetWorthUSD', fmtN(nw/fx));
 
-  renderAllocPie(sum, fxEqUSD*fx, fx);
+  renderAllocPie(sum, usMarketTHB, fxEqUSD*fx, fx);
   renderForexChart(terms);
   renderTrendChart(appData?.snapshot||[]);
   lastCalc = { fx, nw, terms, fxBalUSD, fxEqUSD, fxPnlUSD, fxPct };
   renderTicker();
-  renderD6(sum, fxEqUSD*fx, fxPnlUSD, fxPct, fxBalUSD*fx);
+  renderD6(sum, usPnlTHB, usPnlPct, fxEqUSD*fx, fxPnlUSD, fxPct);
   renderRiskMonitor(sum);
 }
 
-/* ── Risk Monitor (SL / TP Status Panel) ────────────────── */
 function renderRiskMonitor(sum) {
   const panel = document.getElementById('riskMonitor');
   const body  = document.getElementById('riskMonitorBody');
   if (!panel || !body) return;
 
   const items = [];
-
-  /* รวม US + Thai positions แล้วคำนวณ diffPct */
   (sum.positions || []).forEach(function(p) {
     if ((p.shares || 0) <= 0) return;
-    items.push({ ticker: p.ticker, diffPct: p.diffPct || 0, market: 'US',
-                 url: 'MyAssets_US.html' });
+    items.push({ ticker: p.ticker, diffPct: p.diffPct || 0, market: 'US', url: 'MyAssets_US.html' });
   });
   (sum.thaiPositions || []).forEach(function(p) {
     if ((p.shares || 0) <= 0) return;
-    /* Thai pnlPct/diffPct ขึ้นอยู่กับ version — ลอง diffPct ก่อน ถ้าไม่มีใช้ pnlPct */
     const dp = (p.diffPct != null ? p.diffPct : p.pnlPct) || 0;
-    items.push({ ticker: p.ticker, diffPct: dp, market: 'TH',
-                 url: 'MyAssets_Thai.html' });
+    items.push({ ticker: p.ticker, diffPct: dp, market: 'TH', url: 'MyAssets_Thai.html' });
   });
 
-  /* v9: เพิ่ม Watchlist proximity items จาก appData.alerts */
   const wlItems = [];
   if (appData && appData.alerts) {
     appData.alerts.forEach(function(a) {
@@ -686,12 +663,10 @@ function renderRiskMonitor(sum) {
       const isBuy = a.isBuyAlertActive === true || a.isBuyAlertActive === 'TRUE';
       const isSell= a.isSellAlertActive === true || a.isSellAlertActive === 'TRUE';
       if (curP <= 0) return;
-      /* Buy proximity: ราคาอยู่เหนือ target ≤ 5% */
       if (isBuy && bTgt > 0) {
         const dist = (curP - bTgt) / bTgt;
         if (dist >= 0 && dist <= 0.05) wlItems.push({ ticker:a.ticker, label:'WL ซื้อ', sub:fmtN(dist*100,1)+'%', cls:'rm-wl-prox' });
       }
-      /* Sell proximity: ราคาอยู่ใต้ target ≤ 5% */
       if (isSell && sTgt > 0) {
         const dist = (sTgt - curP) / sTgt;
         if (dist >= 0 && dist <= 0.05) wlItems.push({ ticker:a.ticker, label:'WL ขาย', sub:fmtN(dist*100,1)+'%', cls:'rm-wl-prox' });
@@ -699,7 +674,6 @@ function renderRiskMonitor(sum) {
     });
   }
 
-  /* กรองเฉพาะที่อยู่ใน Risk หรือ TP zone (v9: WATCH เริ่มที่ -10%) */
   const risky = items.filter(function(p) {
     return p.diffPct <= -10 || p.diffPct >= 40;
   });
@@ -707,16 +681,15 @@ function renderRiskMonitor(sum) {
   if (!risky.length && !wlItems.length) { panel.classList.add('hidden'); return; }
   panel.classList.remove('hidden');
 
-  /* Position badges */
   const posHtml = risky.map(function(p) {
     const d = p.diffPct;
     let cls = '', label = '';
-    if      (d <= -15) { cls = 'rm-sl15';  label = 'SL-15%'; }
-    else if (d <= -12) { cls = 'rm-sl12';  label = 'SL-12%'; }
-    else if (d <= -10) { cls = 'rm-watch'; label = 'WATCH';   }  /* v9: -10% */
-    else if (d >= 60)  { cls = 'rm-tp-str';label = 'Full TP'; }
-    else if (d >= 50)  { cls = 'rm-tp-str';label = 'Partial TP'; }
-    else               { cls = 'rm-tp';    label = 'Watch TP'; }
+    if      (d <= -15) { cls = 'rm-sl15';   label = 'SL-15%'; }
+    else if (d <= -12) { cls = 'rm-sl12';   label = 'SL-12%'; }
+    else if (d <= -10) { cls = 'rm-watch';  label = 'WATCH'; }
+    else if (d >= 60)  { cls = 'rm-tp-str'; label = 'Full TP'; }
+    else if (d >= 50)  { cls = 'rm-tp-str'; label = 'Partial TP'; }
+    else               { cls = 'rm-tp';     label = 'Watch TP'; }
 
     const grpCls = p.market === 'TH'
       ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
@@ -730,7 +703,6 @@ function renderRiskMonitor(sum) {
          + '</a>';
   }).join('');
 
-  /* Watchlist proximity badges */
   const wlHtml = wlItems.map(function(w) {
     return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#0d1117] border border-[#30363d]">'
          + '<span class="text-xs font-bold text-white fn">' + w.ticker + '</span>'
@@ -742,8 +714,7 @@ function renderRiskMonitor(sum) {
   body.innerHTML = posHtml + wlHtml;
 }
 
-/* ── D-6: Performance Row + Top Gainers/Losers ──────────── */
-function renderD6(sum, fxEqTHB, fxPnlUSD, fxPct, fxBalTHB) {
+function renderD6(sum, usPnlTHB, usPnlPct, fxEqTHB, fxPnlUSD, fxPct) {
   const fx = rtData?.fxRate || sum.fxRate || 33.14;
   function setBar(idPnl, idPct, pnl, pct, unit) {
     const el = document.getElementById(idPnl);
@@ -756,10 +727,9 @@ function renderD6(sum, fxEqTHB, fxPnlUSD, fxPct, fxBalTHB) {
     ep.className   = 'fn text-[10px] ' + (pnl >= 0 ? 'text-emerald-400' : 'text-rose-400');
   }
   setBar('d6ThaiPnl','d6ThaiPct', sum.thaiPnlTHB||0, sum.thaiPnlPct||0, '฿');
-  setBar('d6USPnl',  'd6USPct',   sum.usPnlTHB  ||0, sum.usPnlPct  ||0, '฿');
-  setBar('d6FxPnl',  'd6FxPct',   fxPnlUSD*fx,       fxPct||0,           '฿');
+  setBar('d6USPnl',  'd6USPct',   usPnlTHB||0,       usPnlPct||0,       '฿');
+  setBar('d6FxPnl',  'd6FxPct',   fxPnlUSD*fx,       fxPct||0,          '฿');
 
-  /* Snapshot ล่าสุด */
   const snaps = (appData?.snapshot||[]).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   const snap  = snaps[0];
   const sdEl  = document.getElementById('d6SnapDate');
@@ -769,7 +739,6 @@ function renderD6(sum, fxEqTHB, fxPnlUSD, fxPct, fxBalTHB) {
     snEl.textContent = '฿' + fmtN(snap.netWorthTHB||0, 0);
   }
 
-  /* Top Gainers / Losers — รวม Thai + US */
   const positions = [];
   (sum.positions||[]).forEach(p => {
     if ((p.shares||0) > 0) positions.push({
@@ -778,7 +747,7 @@ function renderD6(sum, fxEqTHB, fxPnlUSD, fxPct, fxBalTHB) {
   });
   (sum.thaiPositions||[]).forEach(p => {
     if ((p.shares||0) > 0) positions.push({
-      ticker:p.ticker, diffTHB:p.pnlTHB||0, diffPct:p.pnlPct||0, group:'TH'
+      ticker:p.ticker, diffTHB:p.diffTHB||0, diffPct:p.diffPct||0, group:'TH'
     });
   });
   positions.sort((a,b) => b.diffPct - a.diffPct);
@@ -811,7 +780,6 @@ function renderD6(sum, fxEqTHB, fxPnlUSD, fxPct, fxBalTHB) {
   if (lu) lu.textContent = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
 }
 
-/* ── Header Price Ticker (D-1: BTC / Gold Spot / Thai Gold) ─ */
 const COINGECKO_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true';
 
 function fetchBtcLive() {
@@ -836,12 +804,10 @@ function renderTicker() {
       <span class="text-white font-bold">${val > 0 ? unit + fmtN(val, 0) : '--'}</span>${extra || ''}
     </span>`;
 
-  /* v9: แสดงเฉพาะราคาปัจจุบัน ไม่แสดง % change 24h */
   const html = chip('BTC/USD', btc, '$') + chip('Gold Spot', gold, '$') + chip('Thai Gold', thai, '฿');
   ['tickerTop','tickerStrip'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = html; });
 }
 
-/* ── Export Monthly Report CSV (D-2) ─────────────────────── */
 function exportMonthlyCSV() {
   if (!appData || !lastCalc) { alert('ข้อมูลยังไม่พร้อม กรุณารอโหลดเสร็จแล้วลองใหม่'); return; }
 
@@ -875,7 +841,7 @@ function exportMonthlyCSV() {
   add(['Group-1 Liquidity Total','',r2(sum.totalGroup1THB),'','','','','']);
   add(['Group-4 Thai Stocks', r2(sum.thaiCostTHB), r2(sum.thaiMarketTHB), r2(sum.thaiPnlTHB),
        r2(sum.thaiPnlPct!=null?sum.thaiPnlPct:pct(sum.thaiPnlTHB,sum.thaiCostTHB)),'','','']);
-  add(['Group-2 US Stocks & ETF', r2(sum.usTotalNetTHBCost), r2(sum.usInvestTHB), r2(sum.usPnlTHB),
+  add(['Group-2 US Stocks & ETF', r2((sum.usCostUSD||0)*fx), r2((sum.usInvestUSD||0)*fx), r2((sum.usPnlUSD||0)*fx),
        r2(sum.usPnlPct), r2(sum.usCostUSD), r2(sum.usInvestUSD), r2(sum.usPnlUSD)]);
   add(['Group-3 FOREX MT5', r2(fxBalUSD*fx), r2(fxEqUSD*fx), r2(fxPnlUSD*fx),
        r2(fxPct), r2(fxBalUSD), r2(fxEqUSD), r2(fxPnlUSD)]);
@@ -918,13 +884,12 @@ function exportMonthlyCSV() {
   URL.revokeObjectURL(url);
 }
 
-/* ── Charts ──────────────────────────────────────────────── */
 const PIE_COLORS = ['#3b82f6','#10b981','#f59e0b','#a855f7'];
-const TABS = ['MyAssets_Thai.html','MyAssets_US.html','MyAssets_Forex.html','MyAssets.html'];
 
-function renderAllocPie(sum, fxEqTHB, fx) {
-  const data   = [sum.thaiMarketTHB||0, sum.usInvestTHB||0, fxEqTHB, sum.totalGroup1THB||0];
-  const labels = ['หุ้นไทย','US ETF','FOREX MT5','สภาพคล่อง'];
+function renderAllocPie(sum, usMarketTHB, fxEqTHB, fx) {
+  const data   = [sum.thaiMarketTHB||0, usMarketTHB||0, fxEqTHB, sum.totalGroup1THB||0];
+  const rawLbl = ['หุ้นไทย','หุ้นสหรัฐ','ตลาดค่าเงิน','สภาพคล่อง'];
+  const labels = rawLbl.map(l => typeof window.t === 'function' ? window.t(l) : l);
   const total  = data.reduce((a,b)=>a+b,0)||1;
   const ctx    = document.getElementById('chartAlloc');
   if (chartAlloc) chartAlloc.destroy();
@@ -952,10 +917,11 @@ function renderForexChart(terms) {
   const keys = ['Terminal-01','Terminal-02','Terminal-03','Terminal-04'];
   const init = [380,580,1050,690];
   const cols = ['#3b82f6','#a855f7','#f59e0b','#10b981'];
+  const trFn = s => typeof window.t === 'function' ? window.t(s) : s;
   chartForex = new Chart(ctx, {
     type:'line',
     data:{
-      labels:['เริ่มพอร์ต (08/01)','ปัจจุบัน'],
+      labels:[trFn('เริ่มพอร์ต (08/01)'), trFn('ปัจจุบัน')],
       datasets: keys.map((k,i)=>({
         label: (terms[k]?.terminalTitle||k),
         data:  [init[i], terms[k]?.equityUSD||init[i]],
@@ -976,10 +942,11 @@ function renderForexChart(terms) {
 function renderTrendChart(snaps) {
   const ctx = document.getElementById('chartTrend');
   if (chartTrend) chartTrend.destroy();
+  const trFn = s => typeof window.t === 'function' ? window.t(s) : s;
   chartTrend = new Chart(ctx, {
     type:'line',
     data:{
-      labels: snaps.length ? snaps.map(s=>s.date) : ['วันนี้'],
+      labels: snaps.length ? snaps.map(s=>s.date) : [trFn('วันนี้')],
       datasets:[{
         label:'Net Worth (THB)',
         data: snaps.length ? snaps.map(s=>s.netWorthTHB) : [appData?.summary?.grandTotalTHB||0],
@@ -997,7 +964,6 @@ function renderTrendChart(snaps) {
   });
 }
 
-/* ── Account Modal ───────────────────────────────────────── */
 function populateAccounts() {
   const sel = document.getElementById('accSelect');
   const accs = (appData?.accounts||[]).filter(a=>a.currency==='THB'&&a.id!=='A4'&&a.id!=='A5');
@@ -1022,7 +988,6 @@ function triggerSnapshot() {
   apiCall('saveSnapshot',{},res=>{ if(res.ok){alert('บันทึกสำเร็จ');invalidateCache();loadBootstrap();} });
 }
 
-/* ── Helpers ─────────────────────────────────────────────── */
 function fmtN(n,d=2) { return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
 function setText(id,v) { const el=document.getElementById(id); if(el)el.textContent=v; }
 function setPnl(valId,pctId,val,pct,unit) {
@@ -1033,7 +998,6 @@ function setPnl(valId,pctId,val,pct,unit) {
 function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-/* ── Init ────────────────────────────────────────────────── */
 window.onLangChange = function() { if (typeof appData !== 'undefined' && appData) { renderDashboard(); } };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1042,11 +1006,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cacheState = await tryLocalUnlock();
 
   if (cacheState === 'need_pin') {
-    /* มี local PIN hash — แสดง keypad แต่ verify ใน browser (ไม่ไป network) */
     if (subtitle) subtitle.textContent = 'กรอกรหัสเพื่อปลดล็อก (verify local — 0 ms)';
     overlay.classList.remove('hidden');
-    /* pre-load sessionStorage cache แบบ silent ถ้ายังไม่หมดอายุ
-       เพื่อให้ renderDashboard() พร้อมทันทีหลัง PIN ผ่าน */
     try {
       const raw = sessionStorage.getItem(SS_CACHE);
       if (raw) {
@@ -1055,11 +1016,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     } catch(e) {}
   } else if (currentToken) {
-    /* token ยังใช้ได้ แต่ไม่มี local PIN cache (เครื่องใหม่ / localStorage cleared) */
     overlay.classList.add('hidden');
     unlockApp();
   } else {
-    /* ไม่มีอะไรเลย — first visit */
     if (subtitle) subtitle.textContent = 'กรุณากรอกรหัสความปลอดภัย 6 หลัก';
     overlay.classList.remove('hidden');
   }

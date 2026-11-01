@@ -1,16 +1,6 @@
 /* ============================================================
- *  i18n.js — 9AU Portfolio shared TH/EN translator  (v1.0, 2026-09-29)
+ *  i18n.js — 9AU Portfolio shared TH/EN translator (Updated for v9 Labels)
  *  วางไฟล์นี้ไว้โฟลเดอร์เดียวกับ MyAssets*.html ทั้ง 6 ไฟล์
- *
- *  หลักการ
- *  - ภาษาที่บันทึกใน localStorage 'portfolio_lang' ('th' | 'en') ใช้ร่วมกันทุกหน้า
- *  - โหมด EN: แปลข้อความไทยทั้งหน้า (text node, placeholder, title, alert/confirm/prompt)
- *    และแปลเนื้อหาที่ JS สร้างใหม่ทีหลังด้วย MutationObserver
- *  - โหมด TH: คืนข้อความเดิมทุกจุด
- *  - ปุ่มแสดง "ภาษาปลายทาง": หน้าไทยแสดง EN / หน้าอังกฤษแสดง TH
- *  - ข้อความที่ไม่มีในพจนานุกรมจะแสดงเป็นภาษาเดิม (ไม่ทำให้หน้าพัง)
- *  - window.t(text) ใช้แปลข้อความบน Chart (canvas) ซึ่ง DOM translator แตะไม่ได้
- *  - หน้าที่มี Chart กำหนด window.onLangChange = function(lang){...} เพื่อ re-render
  * ============================================================ */
 (function () {
   'use strict';
@@ -21,8 +11,24 @@
 
   /* ── พจนานุกรม TH -> EN (key ต้องตรงกับข้อความหลัง trim) ── */
   var DICT = {
-    /* ทั่วไป / PIN */
+    /* ทั่วไป / PIN / ป้ายชื่อใหม่ */
     'กรุณากรอกรหัสความปลอดภัย 6 หลัก': 'Please enter your 6-digit security PIN',
+    'กรอกรหัสเพื่อปลดล็อก (verify local — 0 ms)': 'Enter PIN to unlock (verify local — 0 ms)',
+    'กำลังตรวจสอบ (local)...': 'Verifying (local)...',
+    'กำลังต่ออายุ session... (ครั้งเดียวทุก 3 วัน)': 'Renewing session... (once every 3 days)',
+    'คลิกที่หุ้นเพื่อดูรายละเอียด': 'Click a stock to view details',
+    'หุ้นสหรัฐ': 'US Stocks',
+    'ตลาดค่าเงิน': 'FOREX MT5',
+    'คู่มือใช้งาน': 'User Guide',
+    'Group-2: หุ้นสหรัฐ': 'Group-2: US Stocks',
+    'GROUP-2: หุ้นสหรัฐ': 'GROUP-2: US Stocks',
+    'Group-3: ตลาดค่าเงิน (Live)': 'Group-3: FOREX MT5 (Live)',
+    'GROUP-3: ตลาดค่าเงิน (LIVE)': 'GROUP-3: FOREX MT5 (LIVE)',
+    'Group-3: ตลาดค่าเงิน': 'Group-3: FOREX MT5',
+    'GROUP-3: ตลาดค่าเงิน': 'GROUP-3: FOREX MT5',
+    'Snapshot ล่าสุด': 'Latest Snapshot',
+    'SNAPSHOT ล่าสุด': 'LATEST SNAPSHOT',
+    'อัปเดต:': 'Updated:',
     'ล้าง': 'Clear',
     'รีเฟรช': 'Refresh',
     'รีเฟรช Bootstrap': 'Refresh Bootstrap',
@@ -209,9 +215,12 @@
     /* README */
     'README — คู่มือระบบ': 'README — System Manual',
     'v8.2.0 | อัปเดต 2026-09-14': 'v8.2.0 | Updated 2026-09-14',
+    'v8.3.0 | อัปเดต 2026-10-03': 'v8.3.0 | Updated 2026-10-03',
     'อัปเดตล่าสุด: 2026-09-25': 'Last updated: 2026-09-25',
+    'อัปเดตล่าสุด: 2026-10-03': 'Last updated: 2026-10-03',
     'คู่มือการใช้งาน & Context Summary': 'User Guide & Context Summary',
     'พิมพ์เขียวสถาปัตยกรรม | การแก้ไข | Hybrid Firebase Migration': 'Architecture Blueprint | Fixes | Hybrid Firebase Migration',
+    'พิมพ์เขียวสถาปัตยกรรม | การแก้ไข | Hybrid Firebase Migration | Semi-Auto Alert Engine': 'Architecture Blueprint | Fixes | Hybrid Firebase Migration | Semi-Auto Alert Engine',
     '1. แนวคิดและที่มาของระบบ': '1. Concept and Origin of the System',
     'รวมศูนย์สินทรัพย์ 4 กลุ่มหลัก (All-in-One Net Worth):': 'Consolidates assets into 4 main groups (All-in-One Net Worth):',
     'สภาพคล่องเงินบาท — เงินสด, ธนาคาร, เงินสำรองฉุกเฉิน': 'THB liquidity — cash, bank, emergency fund',
@@ -246,13 +255,13 @@
     'ใช้ localStorage เก็บ token ร่วมกันทุกหน้า Login ครั้งเดียวใช้ได้ทุก Tab (12 ชั่วโมง)': 'Store the token in localStorage shared by all pages; one login works across every Tab (12 hours)',
     'ทุก 5 นาที (Time-based)': 'Every 5 minutes (Time-based)',
     '7. ข้อดีของระบบ': '7. System Strengths',
+    '8. ข้อดีของระบบ': '8. System Strengths',
     'Firebase push <300ms แทน JSONP poll': 'Firebase push <300ms instead of JSONP polling',
     'ตรงกับ Dime App และ MT5': 'Matches Dime App and MT5',
     'แก้ไขง่าย ระบุไฟล์ชัดเจน ไม่รวน': 'Easy to edit, clear file targets, no breakage',
     'แจ้งเตือนราคาเป้าหมายอัตโนมัติ': 'Automatic target price alerts',
     '8. บทสรุป': '8. Summary',
-    'ระบบ v8.2 Hybrid Firebase ได้แก้ปัญหา Timeout และไฟล์ขนาดใหญ่ ด้วยการแยก 1 Tab = 1 HTML ไฟล์ และเปลี่ยนข้อมูล Realtime มาดึงจาก Firebase RTDB แทน Apps Script โดยตรง ทำให้ระบบเสถียร แก้ไขง่าย และ Response เร็วขึ้นอย่างมีนัยสำคัญ':
-      'The v8.2 Hybrid Firebase system solves the Timeout and oversized-file problems by splitting the app into 1 Tab = 1 HTML file and fetching Realtime data from Firebase RTDB instead of calling Apps Script directly. This makes the system stable, easy to edit, and significantly faster to respond.'
+    '9. บทสรุป': '9. Summary'
   };
 
   /* ── กฎสำหรับข้อความประกอบ (มีตัวเลข/ข้อความแปรผัน) ── */
@@ -283,7 +292,6 @@
     return null;
   }
 
-  /* แปลสตริง (เก็บช่องว่างหน้า-หลัง / รองรับหลายบรรทัด) — คืน null ถ้าไม่มีอะไรเปลี่ยน */
   function tr(s) {
     if (!s || !THAI.test(s)) return null;
     var core = s.trim();
@@ -305,9 +313,8 @@
     return out === null ? null : lead + out + trail;
   }
 
-  /* ── DOM: text node ── */
-  var nodeMap = new WeakMap();   // node -> { orig, out }
-  var attrMap = new WeakMap();   // element -> { attr: { orig, out } }
+  var nodeMap = new WeakMap();
+  var attrMap = new WeakMap();
   var ATTRS   = ['placeholder', 'title', 'aria-label'];
   var SKIP    = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, NOSCRIPT: 1 };
 
@@ -366,7 +373,6 @@
     for (var i = 0; i < els.length; i++) els[i].textContent = lbl;
   }
 
-  /* ── observer: แปลเนื้อหาที่ JS สร้าง/แก้ไขทีหลัง (ทำงานเฉพาะโหมด EN) ── */
   var observer = null;
   function startObserver() {
     if (observer || !window.MutationObserver || !document.body) return;
@@ -392,7 +398,6 @@
     if (typeof window.onLangChange === 'function') { try { window.onLangChange(lang); } catch (e) { console.error(e); } }
   }
 
-  /* ── alert / confirm / prompt ── */
   ['alert', 'confirm', 'prompt'].forEach(function (name) {
     var orig = window[name].bind(window);
     window[name] = function (msg, def) {
@@ -402,7 +407,6 @@
     };
   });
 
-  /* ── Public API ── */
   window.t          = function (s) { if (lang !== 'en' || s === undefined || s === null) return s; var o = tr(String(s)); return o !== null ? o : s; };
   window.getLang    = function () { return lang; };
   window.setLang    = setLang;

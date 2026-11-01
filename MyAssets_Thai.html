@@ -58,10 +58,10 @@
   <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
     <a href="MyAssets.html"          class="nav-tab">Dashboard</a>
     <a href="MyAssets_Thai.html"     class="nav-tab active">หุ้นไทย</a>
-    <a href="MyAssets_US.html"       class="nav-tab">US ETF</a>
-    <a href="MyAssets_Forex.html"    class="nav-tab">FOREX MT5</a>
-    <a href="MyAssets_Cashflow.html" class="nav-tab">Cashflow</a>
-    <a href="MyAssets_README.html"   class="nav-tab" style="color:#d97706">README</a>
+    <a href="MyAssets_US.html"       class="nav-tab">หุ้นสหรัฐ</a>
+    <a href="MyAssets_Forex.html"    class="nav-tab">ตลาดค่าเงิน</a>
+    <a href="MyAssets_Cashflow.html" class="nav-tab">สภาพคล่อง</a>
+    <a href="MyAssets_README.html"   class="nav-tab" style="color:#d97706">คู่มือใช้งาน</a>
   </div>
 </header>
 
@@ -317,7 +317,7 @@
 
 const BACKEND = 'https://script.google.com/macros/s/AKfycbw_P74pybIzkQ0SSa0RuO8lFgjbgDh5KSerIoL9NcNR1IVAOJ0Jyz3Vb4-khVlsEfNN/exec';
 const FB_CFG  = {
-  apiKey:"AIzaSyBOJsWzqqt9DfvyHHRjbAZMSiGevd7UOsE",
+  apiKey:"***************************************",
   authDomain:"au-portfolio-7d687.firebaseapp.com",
   databaseURL:"https://au-portfolio-7d687-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId:"au-portfolio-7d687",
@@ -325,6 +325,7 @@ const FB_CFG  = {
   messagingSenderId:"806351101494",
   appId:"1:806351101494:web:c832da2ef2baff90d18297"
 };
+const SS_CACHE = '9au_bscache';
 
 let currentToken = localStorage.getItem('portfolio_token') || '';
 let appData      = null;
@@ -336,10 +337,8 @@ let chartTG = null, chartTS = null;
 
 const PIE_COLORS = ['#3b82f6','#10b981','#f59e0b','#a855f7','#ef4444','#06b6d4','#84cc16','#f97316'];
 
-/* ── Auth guard ──────────────────────────────────────────── */
 if (!currentToken) { location.replace('MyAssets.html'); }
 
-/* ── Firebase ────────────────────────────────────────────── */
 firebase.initializeApp(FB_CFG);
 const db = firebase.database();
 db.ref('realtime').on('value', snap => {
@@ -350,7 +349,6 @@ db.ref('realtime').on('value', snap => {
   }
 });
 
-/* ── JSONP ───────────────────────────────────────────────── */
 function apiCall(action, payload, cb) {
   const cbName = 'jcb_'+Math.round(1e6*Math.random());
   const script = document.createElement('script');
@@ -364,21 +362,24 @@ function apiCall(action, payload, cb) {
   function cleanup(){ delete window[cbName]; if(script.parentNode)script.parentNode.removeChild(script); }
 }
 
+function invalidateCache() {
+  try { sessionStorage.removeItem(SS_CACHE); } catch(e) {}
+}
+
 function loadBootstrap(cb) {
   document.getElementById('loadingBanner').classList.remove('hidden');
   apiCall('bootstrap',{},res=>{
     document.getElementById('loadingBanner').classList.add('hidden');
     if (!res.ok){ if(res.error?.includes('บัตรผ่าน'))logout(); return; }
     appData = res.data;
+    try { sessionStorage.setItem(SS_CACHE, JSON.stringify({ data: appData, ts: Date.now() })); } catch(e) {}
     renderThaiView();
     if (cb) cb();
   });
 }
 
-function logout(){ currentToken=''; localStorage.removeItem('portfolio_token'); location.replace('MyAssets.html'); }
+function logout(){ currentToken=''; localStorage.removeItem('portfolio_token'); invalidateCache(); location.replace('MyAssets.html'); }
 
-/* ── Render ──────────────────────────────────────────────── */
-/* ── 52W Range Inline (D-4) ──────────────────────────────── */
 function range52Cell(cur, low, high, dec) {
   cur = Number(cur) || 0; low = Number(low) || 0; high = Number(high) || 0;
   if (!(high > low) || cur <= 0) return '<span class="text-gray-600">-</span>';
@@ -406,7 +407,6 @@ function renderThaiView() {
   const wl    = (sum.watchlist||[]).filter(w=>w.ticker?.startsWith('BKK:'));
   const priceMap = rtData?.priceMap || {};
 
-  // Update positions with Firebase realtime prices
   thai.forEach(p => {
     if (priceMap[p.ticker]) {
       const lp = priceMap[p.ticker];
@@ -430,7 +430,6 @@ function renderThaiView() {
 
   document.getElementById('thaiWLCount').textContent = wl.length;
 
-  // Holdings table
   const tbody = document.getElementById('thaiHoldingsBody');
   if (!thai.length) {
     tbody.innerHTML = `<tr><td colspan="9" class="py-6 text-center text-gray-500">ยังไม่มีหุ้นไทยในพอร์ต</td></tr>`;
@@ -479,7 +478,6 @@ function renderThaiLogs() {
     </tr>`).join('');
 }
 
-/* ── Pie Charts ──────────────────────────────────────────── */
 function renderThaiPies(thai) {
   const gMap={};
   thai.forEach(p=>{ gMap[p.group||'อื่นๆ']=(gMap[p.group||'อื่นๆ']||0)+p.marketTHB; });
@@ -509,7 +507,6 @@ function buildPie(canvasId,labels,data,setter,old,legId) {
   }
 }
 
-/* ── Thai Trade Modal ────────────────────────────────────── */
 function openThaiTradeModal() {
   thaiEditId=null;
   document.getElementById('thaiTradeModalTitle').textContent='บันทึกรายการหุ้นไทย';
@@ -563,17 +560,16 @@ function submitThaiTrade() {
   if (thaiEditId) payload.id=thaiEditId;
   apiCall(action,payload,res=>{
     btn.textContent='บันทึก'; btn.disabled=false;
-    if(res.ok){ closeThaiTradeModal(); loadBootstrap(); }
+    if(res.ok){ closeThaiTradeModal(); invalidateCache(); loadBootstrap(); }
     else alert('ผิดพลาด: '+res.error);
   });
 }
 
 function deleteThaiTrade(id) {
   if(!confirm('ยืนยันลบรายการนี้?'))return;
-  apiCall('deleteThaiTrade',{id},res=>{ if(res.ok)loadBootstrap(); else alert('ผิดพลาด: '+res.error); });
+  apiCall('deleteThaiTrade',{id},res=>{ if(res.ok){ invalidateCache(); loadBootstrap(); } else alert('ผิดพลาด: '+res.error); });
 }
 
-/* ── Watchlist ───────────────────────────────────────────── */
 function openThaiWatchlist() { renderThaiWLTable(); openModal('modalThaiWatchlist'); }
 function renderThaiWLTable(wl) {
   wl = wl || ((appData?.summary?.watchlist||[]).filter(w=>w.ticker?.startsWith('BKK:')));
@@ -593,17 +589,16 @@ function addThaiWL() {
   const ticker=document.getElementById('newThaiWL').value.trim().toUpperCase();
   if(!ticker)return alert('กรุณาระบุ Ticker');
   apiCall('saveAlert',{ticker,type:'WATCHLIST'},res=>{
-    if(res.ok){ document.getElementById('newThaiWL').value=''; loadBootstrap(()=>renderThaiWLTable()); }
+    if(res.ok){ document.getElementById('newThaiWL').value=''; invalidateCache(); loadBootstrap(()=>renderThaiWLTable()); }
     else alert('ผิดพลาด: '+res.error);
   });
 }
 function deleteWL(id,e) {
   if(e)e.stopPropagation();
   if(!confirm('ยืนยันลบออกจาก Watchlist?'))return;
-  apiCall('deleteAlert',{id},res=>{ if(res.ok)loadBootstrap(()=>renderThaiWLTable()); else alert('ผิดพลาด: '+res.error); });
+  apiCall('deleteAlert',{id},res=>{ if(res.ok){ invalidateCache(); loadBootstrap(()=>renderThaiWLTable()); } else alert('ผิดพลาด: '+res.error); });
 }
 
-/* ── Alert Modal ─────────────────────────────────────────── */
 function openThaiAlert(ticker,type) {
   closeModal('modalThaiWatchlist');
   const t=ticker.toUpperCase();
@@ -651,7 +646,7 @@ function submitThaiAlert() {
     isSellAlertActive:document.getElementById('thaiAltSellChk').checked,
     note:document.getElementById('thaiAltNote').value.trim()
   },res=>{
-    if(res.ok){ closeModal('modalThaiAlert'); loadBootstrap(()=>renderThaiWLTable()); }
+    if(res.ok){ closeModal('modalThaiAlert'); invalidateCache(); loadBootstrap(()=>renderThaiWLTable()); }
     else alert('ผิดพลาด: '+res.error);
   });
 }
@@ -660,7 +655,6 @@ function testThaiTelegram() {
   apiCall('testTelegram',{ticker:activeThaiTicker},res=>{ if(res.ok)alert('ส่ง Telegram สำเร็จ!'); else alert('ส่งไม่สำเร็จ: '+res.error); });
 }
 
-/* ── CSV Export ──────────────────────────────────────────── */
 function exportThaiCSV() {
   if(!appData?.thaiTrades)return;
   const h=['id','date','side','ticker','shares','price','commission','clearingFee','vat','totalFee','netTHB','note'];
@@ -672,12 +666,10 @@ function exportThaiCSV() {
   document.body.appendChild(a); a.click(); a.remove();
 }
 
-/* ── Helpers ─────────────────────────────────────────────── */
 function fmtN(n,d=2){ return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
 function openModal(id){ document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
 
-/* ── Init ────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', loadBootstrap);
 </script>
 <script>
