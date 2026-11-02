@@ -105,6 +105,7 @@
     </div>
     <div id="tickerTop" class="hidden md:flex items-center gap-2 fn text-[11px]"></div>
     <div class="flex items-center gap-1.5">
+      <button onclick="openModal('modalAccount')" class="no-print px-2.5 py-1 text-xs rounded-lg border border-blue-500/50 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white font-semibold transition cursor-pointer">จัดการบัญชี Group-1</button>
       <button onclick="printPDF()" id="btnPrintPDF" class="no-print px-2.5 py-1 text-xs rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white font-semibold transition cursor-pointer" title="Print PDF">Print PDF</button>
       <button onclick="exportMonthlyCSV()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-amber-400 hover:bg-[#30363d] font-semibold transition" title="Export Monthly Report (CSV)">CSV</button>
       <button onclick="toggleLang()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
@@ -149,22 +150,32 @@
     <div id="riskMonitorBody" class="px-4 py-3 flex flex-wrap gap-2"></div>
   </div>
 
-  <!-- NET WORTH HERO -->
-  <div class="cd rounded-2xl p-5 border border-blue-500/30 bg-gradient-to-r from-blue-950/30 via-[#161b22] to-[#161b22] flex flex-col md:flex-row items-center justify-between gap-4">
-    <div class="flex items-center gap-4">
-      <div class="w-14 h-14 rounded-2xl overflow-hidden border-2 border-blue-400 shadow-xl flex-shrink-0">
+  <!-- NET WORTH HERO (ปรับโครงสร้างเป็น 3 ช่องเหมือน Group ย่อย) -->
+  <div class="cd rounded-2xl p-5 border border-blue-500/30 bg-gradient-to-r from-blue-950/30 via-[#161b22] to-[#161b22]">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-xl overflow-hidden border-2 border-blue-400 shadow-lg flex-shrink-0">
         <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
       </div>
       <div>
         <div class="text-xs font-semibold text-blue-400 uppercase tracking-wider">มูลค่าสินทรัพย์สุทธิรวม (Net Worth)</div>
-        <div class="text-3xl font-extrabold text-white fn" id="valNetWorthTHB">0.00 ฿</div>
-        <div class="text-xs text-gray-400 fn">≈ $ <span id="valNetWorthUSD">0.00</span> USD</div>
-        <div class="text-[10px] text-gray-600 fn mt-0.5">อัปเดต: <span id="valLastUpdate">-</span></div>
+        <div class="text-[10px] text-gray-500 fn">อัปเดต: <span id="valLastUpdate">-</span></div>
       </div>
     </div>
-    <button onclick="openModal('modalAccount')" class="no-print px-3 py-2 rounded-xl bg-[#21262d] border border-[#30363d] text-gray-300 hover:text-white text-xs font-semibold transition">
-      จัดการบัญชี Group-1
-    </button>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
+        <div class="text-[11px] text-gray-400">ต้นทุนรวมสุทธิ</div>
+        <div class="text-lg font-bold text-white fn mt-1" id="valNwCost">0.00 ฿</div>
+      </div>
+      <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
+        <div class="text-[11px] text-gray-400">มูลค่าปัจจุบัน</div>
+        <div class="text-lg font-bold text-white fn mt-1" id="valNetWorthTHB">0.00 ฿</div>
+        <div class="text-xs text-gray-400 fn">≈ $ <span id="valNetWorthUSD">0.00</span> USD</div>
+      </div>
+      <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
+        <div class="text-[11px] text-gray-400 mb-1 flex justify-between">กำไร/ขาดทุนสุทธิ <span id="nwPnlPct" class="fn text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-300">0.00%</span></div>
+        <div class="text-lg font-bold fn mt-1" id="valNwPnl">0.00 ฿</div>
+      </div>
+    </div>
   </div>
 
   <!-- PERFORMANCE ROW (D-6) -->
@@ -205,7 +216,7 @@
   <div class="cd rounded-2xl p-5">
     <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">สัดส่วนสินทรัพย์รวม</div>
     <div class="flex flex-col md:flex-row items-center gap-6">
-      <div class="relative w-48 h-48 flex-shrink-0"><canvas id="chartAlloc"></canvas></div>
+      <div class="relative w-48 h-48 flex-shrink-0 flex justify-center items-center"><canvas id="chartAlloc"></canvas></div>
       <div class="grid grid-cols-2 gap-3 w-full text-xs fn" id="allocLegend"></div>
     </div>
   </div>
@@ -328,7 +339,7 @@
   </div>
 </div>
 
-<!-- ── SCRIPT ──────────────────────────────────────────────── -->
+<!-- ── SCRIPT ────────────────────────────────________________ -->
 <script>
 'use strict';
 
@@ -625,9 +636,26 @@ function renderDashboard() {
   setPnl('valFxPnlTHB','fxPnlPct', fxPnlUSD*fx, fxPct, '฿');
   setText('valFxPnlUSD', (fxPnlUSD>=0?'+':'')+fmtN(fxPnlUSD));
 
+  // Net Worth (Hero Card 3 Boxes)
   const nw = (sum.totalGroup1THB||0)+(sum.thaiMarketTHB||0)+usMarketTHB+fxEqUSD*fx;
+  const totalCostNw = (sum.totalGroup1THB||0)+(sum.thaiCostTHB||0)+usCostTHB+(fxBalUSD*fx);
+  const nwPnl = nw - totalCostNw;
+  const nwPct = totalCostNw > 0 ? (nwPnl / totalCostNw * 100) : 0;
+
   setText('valNetWorthTHB', fmtN(nw)+' ฿');
   setText('valNetWorthUSD', fmtN(nw/fx));
+  setText('valNwCost', fmtN(totalCostNw)+' ฿');
+  
+  const pnlNwEl = document.getElementById('valNwPnl');
+  const pctNwEl = document.getElementById('nwPnlPct');
+  if (pnlNwEl) {
+    pnlNwEl.textContent = (nwPnl>=0?'+':'')+fmtN(nwPnl)+' ฿';
+    pnlNwEl.className = 'text-lg font-bold fn mt-1 '+(nwPnl>=0?'text-emerald-400':'text-rose-400');
+  }
+  if (pctNwEl) {
+    pctNwEl.textContent = (nwPct>=0?'+':'')+fmtN(nwPct,2)+'%';
+    pctNwEl.className = 'fn text-[10px] px-1.5 py-0.5 rounded '+(nwPct>=0?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300');
+  }
 
   renderAllocPie(sum, usMarketTHB, fxEqUSD*fx, fx);
   renderForexChart(terms);
