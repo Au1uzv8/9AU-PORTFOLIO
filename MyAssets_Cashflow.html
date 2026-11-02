@@ -81,6 +81,21 @@
     กำลังโหลดข้อมูล...
   </div>
 
+  <!-- GROUP-1: สภาพคล่อง (THB) เหมือนหน้า Dashboard -->
+  <div>
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Group-1: สภาพคล่อง (THB)
+      </h2>
+      <span class="text-xs fn text-gray-400">รวม: <strong class="text-emerald-300" id="valG1Total">0.00 ฿</strong></span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">เงินสดคงเหลือ</div><div class="text-xl font-bold text-white fn" id="valCash">0.00 ฿</div></div>
+      <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">บัญชีธนาคาร</div><div class="text-xl font-bold text-white fn" id="valBank">0.00 ฿</div></div>
+      <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">เงินสำรองฉุกเฉิน</div><div class="text-xl font-bold text-emerald-400 fn" id="valEmergency">0.00 ฿</div></div>
+    </div>
+  </div>
+
   <!-- WALLET CARDS (กระเป๋ากลาง 4 หมวด) -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
     <div class="cd rounded-2xl p-4 border-l-4 border-l-purple-500">
@@ -105,7 +120,10 @@
   <div class="cd rounded-2xl overflow-hidden">
     <div class="p-4 border-b border-[#30363d] flex flex-wrap gap-2 justify-between items-center">
       <h3 class="text-xs font-bold text-white uppercase tracking-wider">ประวัติกระแสเงินสด & กระเป๋ากลาง (บันทึกตรง Google Sheet)</h3>
-      <button onclick="openCashflowModal()" class="no-print px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">+ บันทึกรายการใหม่</button>
+      <div class="no-print flex items-center gap-2">
+        <button onclick="exportCashflowCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">Export CSV</button>
+        <button onclick="openCashflowModal()" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">+ บันทึกรายการใหม่</button>
+      </div>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-left text-xs fn">
@@ -205,7 +223,7 @@
   </div>
 </div>
 
-<!-- ── SCRIPT ──────────────────────────────────────────────── -->
+<!-- ── SCRIPT ────────────────────────────────________________ -->
 <script>
 'use strict';
 const BACKEND = 'https://script.google.com/macros/s/AKfycbw_P74pybIzkQ0SSa0RuO8lFgjbgDh5KSerIoL9NcNR1IVAOJ0Jyz3Vb4-khVlsEfNN/exec';
@@ -258,8 +276,15 @@ function logout(){ currentToken=''; localStorage.removeItem('portfolio_token'); 
 
 function renderCashflowView() {
   if (!appData) return;
+  const sum = appData.summary || {};
+  
+  // Render Group-1 (Liquidity) เหมือนหน้า Dashboard
+  document.getElementById('valG1Total').textContent   = fmtN(sum.totalGroup1THB) + ' ฿';
+  document.getElementById('valCash').textContent      = fmtN(sum.cashTHB) + ' ฿';
+  document.getElementById('valBank').textContent      = fmtN(sum.bankTHB) + ' ฿';
+  document.getElementById('valEmergency').textContent = fmtN(sum.emergencyTHB) + ' ฿';
+
   const list = (appData.cashflow || []).slice().reverse();
-  const fx = rtData?.fxRate || appData?.summary?.fxRate || 33.14;
 
   let divUSD=0, divTHB=0, sellUSD=0, sellTHB=0;
   appData.cashflow.forEach(r => {
@@ -348,6 +373,24 @@ function deleteCashflow(id) {
     if (res.ok) { invalidateCache(); loadBootstrap(); }
     else alert('ผิดพลาด: '+res.error);
   });
+}
+
+function exportCashflowCSV() {
+  if (!appData?.cashflow) return;
+  const h = ['id','date','type','wallet','category','account','amount_usd','amount_thb','note'];
+  let csv = h.join(',') + '\n';
+  appData.cashflow.forEach(r => {
+    csv += h.map(k => `"${String(r[k] || r[k.replace('_','')] || '').replace(/"/g,'""')}"`).join(',') + '\n';
+  });
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Cashflow_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /* ── Print PDF ───────────────────────────────────────────── */
