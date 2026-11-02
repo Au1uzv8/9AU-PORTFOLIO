@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>9AU Portfolio — FOREX MT5</title>
+  <title>9AU Portfolio — ตลาดค่าเงิน</title>
   <link rel="apple-touch-icon" href="profile.png">
   <link rel="icon" type="image/png" href="profile.png">
   <link rel="manifest" href="manifest.json">
@@ -11,6 +11,7 @@
   <script src="i18n.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -27,6 +28,13 @@
     .nav-tab:not(.active):hover{color:#fff;border-color:#475569;}
     .no-scrollbar::-webkit-scrollbar{display:none;}
     .live-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:9999px;background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.25);}
+    .no-print { display: inline-block; }
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body { background: #0d1117 !important; color: #c9d1d9 !important; }
+      .no-print { display: none !important; }
+      .cd { break-inside: avoid; page-break-inside: avoid; }
+    }
   </style>
 </head>
 <body class="min-h-screen antialiased pb-16">
@@ -39,7 +47,7 @@
       </div>
       <div>
         <div class="text-sm font-bold text-white fb flex items-center gap-2">
-          FOREX MT5
+          ตลาดค่าเงิน
           <span class="live-badge"><span class="w-1.5 h-1.5 rounded-full bg-indigo-400 pulse-dot"></span>Firebase Live</span>
         </div>
         <div class="text-[11px] text-gray-400">
@@ -49,11 +57,12 @@
       </div>
     </div>
     <div class="flex items-center gap-1.5">
-      <button onclick="toggleLang()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
-      <button onclick="loadBootstrap()" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="รีเฟรช Bootstrap">
+      <button onclick="printPDF()" id="btnPrintPDF" class="no-print px-2.5 py-1 text-xs rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white font-semibold transition cursor-pointer" title="Print PDF">Print PDF</button>
+      <button onclick="toggleLang()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
+      <button onclick="loadBootstrap()" class="no-print p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="รีเฟรช Bootstrap">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
       </button>
-      <button onclick="logout()" class="p-2 text-rose-400 hover:text-rose-300 rounded-lg border border-[#30363d] bg-[#21262d] transition">
+      <button onclick="logout()" class="no-print p-2 text-rose-400 hover:text-rose-300 rounded-lg border border-[#30363d] bg-[#21262d] transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
       </button>
     </div>
@@ -61,14 +70,14 @@
   <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
     <a href="MyAssets.html"          class="nav-tab">Dashboard</a>
     <a href="MyAssets_Thai.html"     class="nav-tab">หุ้นไทย</a>
-    <a href="MyAssets_US.html"       class="nav-tab">US ETF</a>
-    <a href="MyAssets_Forex.html"    class="nav-tab active">FOREX MT5</a>
-    <a href="MyAssets_Cashflow.html" class="nav-tab">Cashflow</a>
-    <a href="MyAssets_README.html"   class="nav-tab" style="color:#d97706">README</a>
+    <a href="MyAssets_US.html"       class="nav-tab">หุ้นสหรัฐ</a>
+    <a href="MyAssets_Forex.html"    class="nav-tab active">ตลาดค่าเงิน</a>
+    <a href="MyAssets_Cashflow.html" class="nav-tab">สภาพคล่อง</a>
+    <a href="MyAssets_README.html"   class="nav-tab" style="color:#d97706">คู่มือใช้งาน</a>
   </div>
 </header>
 
-<main class="max-w-7xl mx-auto px-4 pt-5 space-y-5">
+<main id="printArea" class="max-w-7xl mx-auto px-4 pt-5 space-y-5">
 
   <!-- SUMMARY CARDS -->
   <div class="cd rounded-2xl p-4 border border-indigo-500/30">
@@ -134,7 +143,7 @@
         <h2 class="text-sm font-bold text-white fb">Terminal Detail (ดึงสดจาก Firebase ← REALTIME Sheet)</h2>
         <p class="text-xs text-gray-400 mt-0.5">อัปเดตทุก 5 นาทีโดย Apps Script Trigger</p>
       </div>
-      <button onclick="exportForexCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">CSV</button>
+      <button onclick="exportForexCSV()" class="no-print px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">CSV</button>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-left text-xs fn">
@@ -175,7 +184,7 @@
 <script>
 'use strict';
 const BACKEND='https://script.google.com/macros/s/AKfycbw_P74pybIzkQ0SSa0RuO8lFgjbgDh5KSerIoL9NcNR1IVAOJ0Jyz3Vb4-khVlsEfNN/exec';
-const FB_CFG={apiKey:"AIzaSyBOJsWzqqt9DfvyHHRjbAZMSiGevd7UOsE",authDomain:"au-portfolio-7d687.firebaseapp.com",databaseURL:"https://au-portfolio-7d687-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"au-portfolio-7d687",storageBucket:"au-portfolio-7d687.firebasestorage.app",messagingSenderId:"806351101494",appId:"1:806351101494:web:c832da2ef2baff90d18297"};
+const FB_CFG={apiKey:"***************************************",authDomain:"au-portfolio-7d687.firebaseapp.com",databaseURL:"https://au-portfolio-7d687-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"au-portfolio-7d687",storageBucket:"au-portfolio-7d687.firebasestorage.app",messagingSenderId:"806351101494",appId:"1:806351101494:web:c832da2ef2baff90d18297"};
 
 let currentToken=localStorage.getItem('portfolio_token')||'';
 let rtData=null, appData=null;
@@ -233,7 +242,6 @@ function renderForexView(){
     totalPnl+=(t.pnlUSD||0);
   });
 
-  // Summary
   document.getElementById('fxTotalBal').textContent=fmtN(totalBal);
   document.getElementById('fxTotalBalTHB').textContent=fmtN(totalBal*fx);
   document.getElementById('fxTotalEq').textContent=fmtN(totalEq);
@@ -242,7 +250,6 @@ function renderForexView(){
   pEl.textContent=(totalPnl>=0?'+':'')+'$'+fmtN(totalPnl)+' ('+(totalBal>0?(totalPnl>=0?'+':'')+fmtN(totalPnl/totalBal*100):'0.00')+'%)';
   pEl.className='text-lg font-bold fn mt-1 '+(totalPnl>=0?'text-emerald-400':'text-rose-400');
 
-  // Terminal cards
   const maxGrowth=Math.max(...TERM_KEYS.map((k,i)=>{const t=terms[k]||{};return t.balanceUSD>0?((t.equityUSD||0)-(t.balanceUSD||0))/(t.balanceUSD)*100:0;}),0.01);
   TERM_KEYS.forEach((k,i)=>{
     const t=terms[k]||{};
@@ -260,7 +267,6 @@ function renderForexView(){
     if(grEl){grEl.textContent=(growthPct>=0?'+':'')+fmtN(growthPct)+'% growth';grEl.className='text-[10px] fn mt-1 '+(growthPct>=0?'text-emerald-400':'text-rose-400');}
   });
 
-  // Detail table
   const tbody=document.getElementById('forexTableBody');
   tbody.innerHTML=TERM_KEYS.map(k=>{
     const t=terms[k]||{terminalTitle:k,terminalDetail:k,balanceUSD:0,equityUSD:0,pnlUSD:0,growth:0,sinc:'2026-08-01'};
@@ -283,10 +289,11 @@ function renderForexView(){
 function renderGrowthChart(terms){
   const ctx=document.getElementById('chartForexGrowth');
   if(chartGrowth)chartGrowth.destroy();
+  const trFn = s => typeof window.t === 'function' ? window.t(s) : s;
   chartGrowth=new Chart(ctx,{
     type:'line',
     data:{
-      labels:[t('เริ่มพอร์ต (2026-08-01)'),t('ปัจจุบัน')],
+      labels:[trFn('เริ่มพอร์ต (2026-08-01)'),trFn('ปัจจุบัน')],
       datasets:TERM_KEYS.map((k,i)=>({
         label:(terms[k]?.terminalTitle||'T'+(i+1)),
         data:[INIT_BAL[i], terms[k]?.equityUSD||INIT_BAL[i]],
@@ -294,7 +301,7 @@ function renderGrowthChart(terms){
         pointBackgroundColor:TERM_COLORS[i],pointRadius:4
       }))
     },
-    options:{responsive:true,maintainAspectRatio:false,
+    options:{responsive:true,maintainAspectRatio:false,animation:false,
       plugins:{legend:{labels:{color:'#8b949e',font:{family:'JetBrains Mono',size:10}}}},
       scales:{
         x:{grid:{color:'#21262d'},ticks:{color:'#8b949e',font:{family:'JetBrains Mono'}}},
@@ -313,7 +320,7 @@ function renderPieChart(terms){
   chartPie=new Chart(ctx,{
     type:'doughnut',
     data:{labels,datasets:[{data,backgroundColor:TERM_COLORS,borderColor:'#161b22',borderWidth:2}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false}}}
+    options:{responsive:true,maintainAspectRatio:false,animation:false,cutout:'60%',plugins:{legend:{display:false}}}
   });
   const leg=document.getElementById('forexPieLegend');
   leg.innerHTML=labels.map((l,i)=>`
@@ -340,6 +347,29 @@ function exportForexCSV(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download=`FOREX_MT5_${new Date().toISOString().slice(0,10)}.csv`;
   document.body.appendChild(a);a.click();a.remove();
+}
+
+/* ── Print PDF (Fixed Stable Version) ────────────────────── */
+function printPDF(){
+  const btn = document.getElementById('btnPrintPDF');
+  if (btn) { btn.textContent = 'กำลังสร้าง PDF...'; btn.disabled = true; }
+
+  const element = document.getElementById('printArea');
+  const opt = {
+    margin:       5,
+    filename:     `FOREX_MT5_${new Date().toISOString().slice(0,10)}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#0d1117', scrollY: 0 },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    if (btn) { btn.textContent = 'Print PDF'; btn.disabled = false; }
+  }).catch((err) => {
+    console.error('PDF Export Error:', err);
+    if (btn) { btn.textContent = 'Print PDF'; btn.disabled = false; }
+    alert('ไม่สามารถสร้างไฟล์ PDF ได้: ' + err);
+  });
 }
 
 function fmtN(n,d=2){return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}

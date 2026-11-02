@@ -11,6 +11,7 @@
   <script src="i18n.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <!-- Firebase Compat SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -36,6 +37,13 @@
     .rm-wl-prox  { background:rgba(99,102,241,.15);color:#818cf8;border:1px solid rgba(99,102,241,.4); }
     .rm-tp       { background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.35); }
     .rm-tp-str   { background:rgba(16,185,129,.22);color:#34d399;border:1px solid rgba(16,185,129,.6); }
+    .no-print { display: inline-block; }
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body { background: #0d1117 !important; color: #c9d1d9 !important; }
+      .no-print { display: none !important; }
+      .cd { break-inside: avoid; page-break-inside: avoid; }
+    }
   </style>
 </head>
 <body class="min-h-screen antialiased pb-16">
@@ -97,13 +105,14 @@
     </div>
     <div id="tickerTop" class="hidden md:flex items-center gap-2 fn text-[11px]"></div>
     <div class="flex items-center gap-1.5">
-      <button onclick="exportMonthlyCSV()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-amber-400 hover:bg-[#30363d] font-semibold transition" title="Export Monthly Report (CSV)">CSV</button>
-      <button onclick="toggleLang()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
-      <button onclick="triggerSnapshot()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-emerald-400 hover:bg-[#30363d] font-semibold transition">Snapshot</button>
-      <button onclick="bootstrapOnce(true)" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="รีเฟรช">
+      <button onclick="printPDF()" id="btnPrintPDF" class="no-print px-2.5 py-1 text-xs rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white font-semibold transition cursor-pointer" title="Print PDF">Print PDF</button>
+      <button onclick="exportMonthlyCSV()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-amber-400 hover:bg-[#30363d] font-semibold transition" title="Export Monthly Report (CSV)">CSV</button>
+      <button onclick="toggleLang()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
+      <button onclick="triggerSnapshot()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-emerald-400 hover:bg-[#30363d] font-semibold transition">Snapshot</button>
+      <button onclick="bootstrapOnce(true)" class="no-print p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="รีเฟรช">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
       </button>
-      <button onclick="logout()" class="p-2 text-rose-400 hover:text-rose-300 rounded-lg border border-[#30363d] bg-[#21262d] transition" title="ออกจากระบบ">
+      <button onclick="logout()" class="no-print p-2 text-rose-400 hover:text-rose-300 rounded-lg border border-[#30363d] bg-[#21262d] transition" title="ออกจากระบบ">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
       </button>
     </div>
@@ -121,7 +130,7 @@
 </header>
 
 <!-- ── MAIN ───────────────────────────────────────────────── -->
-<main class="max-w-7xl mx-auto px-4 pt-5 space-y-5">
+<main id="printArea" class="max-w-7xl mx-auto px-4 pt-5 space-y-5">
 
   <!-- Loading Banner -->
   <div id="loadingBanner" class="hidden flex items-center justify-center gap-2 p-3 rounded-xl bg-blue-950/40 border border-blue-800/50 text-blue-300 text-xs">
@@ -153,7 +162,7 @@
         <div class="text-[10px] text-gray-600 fn mt-0.5">อัปเดต: <span id="valLastUpdate">-</span></div>
       </div>
     </div>
-    <button onclick="openModal('modalAccount')" class="px-3 py-2 rounded-xl bg-[#21262d] border border-[#30363d] text-gray-300 hover:text-white text-xs font-semibold transition">
+    <button onclick="openModal('modalAccount')" class="no-print px-3 py-2 rounded-xl bg-[#21262d] border border-[#30363d] text-gray-300 hover:text-white text-xs font-semibold transition">
       จัดการบัญชี Group-1
     </button>
   </div>
@@ -222,7 +231,7 @@
       <h2 class="text-xs font-bold text-teal-400 uppercase tracking-wider flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-teal-400"></span> Group-4: หุ้นไทย
       </h2>
-      <a href="MyAssets_Thai.html" class="text-xs fn text-gray-400 hover:text-teal-300 transition">ดูรายละเอียด →</a>
+      <a href="MyAssets_Thai.html" class="no-print text-xs fn text-gray-400 hover:text-teal-300 transition">ดูรายละเอียด →</a>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
       <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">ต้นทุนรวม</div><div class="text-xl font-bold text-white fn" id="valThaiCost">0.00 ฿</div></div>
@@ -240,7 +249,7 @@
       <h2 class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-blue-400"></span> Group-2: หุ้นสหรัฐ
       </h2>
-      <a href="MyAssets_US.html" class="text-xs fn text-gray-400 hover:text-blue-300 transition">ดูรายละเอียด →</a>
+      <a href="MyAssets_US.html" class="no-print text-xs fn text-gray-400 hover:text-blue-300 transition">ดูรายละเอียด →</a>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
       <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">ต้นทุนรวม</div><div class="text-xl font-bold text-white fn" id="valUSCostTHB">0.00 ฿</div><div class="text-xs text-gray-400 fn">$ <span id="valUSCostUSD">0.00</span></div></div>
@@ -259,7 +268,7 @@
       <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-indigo-400"></span> Group-3: ตลาดค่าเงิน (Live)
       </h2>
-      <a href="MyAssets_Forex.html" class="text-xs fn text-gray-400 hover:text-indigo-300 transition">ดูรายละเอียด →</a>
+      <a href="MyAssets_Forex.html" class="no-print text-xs fn text-gray-400 hover:text-indigo-300 transition">ดูรายละเอียด →</a>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
       <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">Balance รวม</div><div class="text-xl font-bold text-white fn" id="valFxBalTHB">0.00 ฿</div><div class="text-xs text-gray-400 fn">$ <span id="valFxBalUSD">0.00</span></div></div>
@@ -563,24 +572,20 @@ function loadBootstrap(cb, _retry) {
   });
 }
 
-/* ── Render Dashboard (Synced 100% with Thai & US Tabs) ───── */
 function renderDashboard() {
   const fx    = rtData?.fxRate || appData?.summary?.fxRate || 33.14;
   const sum   = appData?.summary || {};
   const terms = rtData?.terminals || sum.terminals || {};
 
-  /* Group 1 — Liquidity */
   setText('valG1Total',    fmtN(sum.totalGroup1THB) + ' ฿');
   setText('valCash',       fmtN(sum.cashTHB) + ' ฿');
   setText('valBank',       fmtN(sum.bankTHB) + ' ฿');
   setText('valEmergency',  fmtN(sum.emergencyTHB) + ' ฿');
 
-  /* Group 4 — Thai Stocks */
   setText('valThaiCost',   fmtN(sum.thaiCostTHB) + ' ฿');
   setText('valThaiMarket', fmtN(sum.thaiMarketTHB) + ' ฿');
   setPnl('valThaiPnl', 'thaiPnlPct', sum.thaiPnlTHB, sum.thaiPnlPct, '฿');
 
-  /* Group 2 — US Stocks (คูณ fx ปัจจุบันเพื่อให้ตรงกับ Tab หุ้นสหรัฐ 100%) */
   const usCostUSD   = Number(sum.usCostUSD) || 0;
   const usMarketUSD = Number(sum.usInvestUSD) || 0;
   const usPnlUSD    = usMarketUSD - usCostUSD;
@@ -596,7 +601,6 @@ function renderDashboard() {
   setPnl('valUSPnlTHB', 'usPnlPct', usPnlTHB, usPnlPct, '฿');
   setText('valUSPnlUSD', (usPnlUSD>=0?'+':'')+fmtN(usPnlUSD));
 
-  /* Group 3 — Forex */
   let fxBalUSD=0, fxEqUSD=0, fxPnlUSD=0;
   ['Terminal-01','Terminal-02','Terminal-03','Terminal-04'].forEach((k,i)=>{
     const t   = terms[k] || {};
@@ -621,7 +625,6 @@ function renderDashboard() {
   setPnl('valFxPnlTHB','fxPnlPct', fxPnlUSD*fx, fxPct, '฿');
   setText('valFxPnlUSD', (fxPnlUSD>=0?'+':'')+fmtN(fxPnlUSD));
 
-  /* Net Worth */
   const nw = (sum.totalGroup1THB||0)+(sum.thaiMarketTHB||0)+usMarketTHB+fxEqUSD*fx;
   setText('valNetWorthTHB', fmtN(nw)+' ฿');
   setText('valNetWorthUSD', fmtN(nw/fx));
@@ -896,7 +899,7 @@ function renderAllocPie(sum, usMarketTHB, fxEqTHB, fx) {
   chartAlloc = new Chart(ctx, {
     type:'doughnut',
     data:{ labels, datasets:[{ data, backgroundColor:PIE_COLORS, borderColor:'#161b22', borderWidth:2 }] },
-    options:{ responsive:true, maintainAspectRatio:false, cutout:'65%', plugins:{ legend:{ display:false } } }
+    options:{ responsive:true, maintainAspectRatio:false, animation:false, cutout:'65%', plugins:{ legend:{ display:false } } }
   });
   const leg = document.getElementById('allocLegend');
   const urls = ['MyAssets_Thai.html','MyAssets_US.html','MyAssets_Forex.html','MyAssets.html'];
@@ -929,7 +932,7 @@ function renderForexChart(terms) {
       }))
     },
     options:{
-      responsive:true, maintainAspectRatio:false,
+      responsive:true, maintainAspectRatio:false, animation:false,
       plugins:{ legend:{ labels:{ color:'#8b949e', font:{ family:'JetBrains Mono', size:10 } } } },
       scales:{
         x:{ grid:{ color:'#21262d' }, ticks:{ color:'#8b949e' } },
@@ -954,7 +957,7 @@ function renderTrendChart(snaps) {
       }]
     },
     options:{
-      responsive:true, maintainAspectRatio:false,
+      responsive:true, maintainAspectRatio:false, animation:false,
       plugins:{ legend:{ display:false } },
       scales:{
         x:{ grid:{ color:'#21262d' }, ticks:{ color:'#8b949e' } },
@@ -986,6 +989,29 @@ function submitUpdateAccount() {
 function triggerSnapshot() {
   if (!confirm('บันทึก Snapshot วันนี้?')) return;
   apiCall('saveSnapshot',{},res=>{ if(res.ok){alert('บันทึกสำเร็จ');invalidateCache();loadBootstrap();} });
+}
+
+/* ── Print PDF ───────────────────────────────────────────── */
+function printPDF(){
+  const btn = document.getElementById('btnPrintPDF');
+  if (btn) { btn.textContent = 'กำลังสร้าง PDF...'; btn.disabled = true; }
+
+  const element = document.getElementById('printArea');
+  const opt = {
+    margin:       5,
+    filename:     `Dashboard_${new Date().toISOString().slice(0,10)}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#0d1117', scrollY: 0 },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    if (btn) { btn.textContent = 'Print PDF'; btn.disabled = false; }
+  }).catch((err) => {
+    console.error('PDF Export Error:', err);
+    if (btn) { btn.textContent = 'Print PDF'; btn.disabled = false; }
+    alert('ไม่สามารถสร้างไฟล์ PDF ได้: ' + err);
+  });
 }
 
 function fmtN(n,d=2) { return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
@@ -1020,7 +1046,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     unlockApp();
   } else {
     if (subtitle) subtitle.textContent = 'กรุณากรอกรหัสความปลอดภัย 6 หลัก';
-    overlay.classList.remove('hidden');
+    overlay.classList.add('hidden');
   }
 });
 </script>

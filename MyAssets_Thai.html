@@ -11,6 +11,7 @@
   <script src="i18n.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -26,6 +27,13 @@
     .nav-tab:not(.active) { background:#161b22;color:#64748b; }
     .nav-tab:not(.active):hover { color:#fff;border-color:#475569; }
     .no-scrollbar::-webkit-scrollbar { display:none; }
+    .no-print { display: inline-block; }
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body { background: #0d1117 !important; color: #c9d1d9 !important; }
+      .no-print { display: none !important; }
+      .cd { break-inside: avoid; page-break-inside: avoid; }
+    }
   </style>
 </head>
 <body class="min-h-screen antialiased pb-16">
@@ -46,11 +54,12 @@
       </div>
     </div>
     <div class="flex items-center gap-1.5">
-      <button onclick="toggleLang()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
-      <button onclick="loadBootstrap()" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="รีเฟรช">
+      <button onclick="printPDF()" id="btnPrintPDF" class="no-print px-2.5 py-1 text-xs rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white font-semibold transition cursor-pointer" title="Print PDF">Print PDF</button>
+      <button onclick="toggleLang()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
+      <button onclick="loadBootstrap()" class="no-print p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="รีเฟรช">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
       </button>
-      <button onclick="logout()" class="p-2 text-rose-400 hover:text-rose-300 rounded-lg border border-[#30363d] bg-[#21262d] transition">
+      <button onclick="logout()" class="no-print p-2 text-rose-400 hover:text-rose-300 rounded-lg border border-[#30363d] bg-[#21262d] transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
       </button>
     </div>
@@ -66,7 +75,7 @@
 </header>
 
 <!-- ── MAIN ───────────────────────────────────────────────── -->
-<main class="max-w-7xl mx-auto px-4 pt-5 space-y-5">
+<main id="printArea" class="max-w-7xl mx-auto px-4 pt-5 space-y-5">
 
   <div id="loadingBanner" class="hidden flex items-center justify-center gap-2 p-3 rounded-xl bg-blue-950/40 border border-blue-800/50 text-blue-300 text-xs">
     <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
@@ -110,7 +119,7 @@
     <div class="p-4 border-b border-[#30363d] flex flex-wrap gap-2 justify-between items-center">
       <div class="flex items-center gap-3">
         <h3 class="text-xs font-bold text-white uppercase tracking-wider">พอร์ตหุ้นไทยที่ถือครอง</h3>
-        <button onclick="openThaiWatchlist()" class="px-3 py-1 rounded-full bg-rose-600/20 text-rose-300 border border-rose-500/40 text-[11px] font-bold hover:bg-rose-600 hover:text-white transition">
+        <button onclick="openThaiWatchlist()" class="no-print px-3 py-1 rounded-full bg-rose-600/20 text-rose-300 border border-rose-500/40 text-[11px] font-bold hover:bg-rose-600 hover:text-white transition">
           Watchlist (<span id="thaiWLCount">0</span>)
         </button>
       </div>
@@ -140,7 +149,7 @@
   <div class="cd rounded-2xl overflow-hidden">
     <div class="p-4 border-b border-[#30363d] flex flex-col md:flex-row gap-3 items-center justify-between">
       <h3 class="text-xs font-bold text-white uppercase tracking-wider">ประวัติรายการหุ้นไทย</h3>
-      <div class="flex items-center gap-2">
+      <div class="no-print flex items-center gap-2">
         <input type="text" id="filterThaiTicker" placeholder="ค้นหา Ticker..." oninput="renderThaiLogs()" class="bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-white uppercase focus:border-teal-500 focus:outline-none">
         <button onclick="openThaiTradeModal()" class="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold">+ บันทึกรายการ</button>
         <button onclick="exportThaiCSV()" class="px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">CSV</button>
@@ -158,7 +167,7 @@
             <th class="py-3 px-3 text-right">Comm (฿)</th>
             <th class="py-3 px-3 text-right">Clearing (฿)</th>
             <th class="py-3 px-3 text-right">ยอดสุทธิ (฿)</th>
-            <th class="py-3 px-4 text-center">จัดการ</th>
+            <th class="no-print py-3 px-4 text-center">จัดการ</th>
           </tr>
         </thead>
         <tbody id="thaiLogsBody" class="divide-y divide-[#30363d]"></tbody>
@@ -168,148 +177,10 @@
 
 </main>
 
-<!-- ── MODAL: Thai Trade ───────────────────────────────────── -->
-<div id="modalThaiTrade" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-  <div class="cd rounded-2xl w-full max-w-lg border border-[#30363d] overflow-hidden">
-    <div class="p-4 border-b border-[#30363d] flex items-center justify-between">
-      <h3 id="thaiTradeModalTitle" class="text-sm font-bold text-white fb">บันทึกรายการหุ้นไทย</h3>
-      <button onclick="closeThaiTradeModal()" class="text-gray-400 hover:text-white text-lg">&times;</button>
-    </div>
-    <div class="p-5 space-y-4 text-xs">
-      <div>
-        <label class="block text-gray-400 mb-1.5">ประเภทคำสั่ง</label>
-        <div class="grid grid-cols-4 gap-2 fn font-semibold text-center">
-          <button onclick="setThaiSide('BUY')"    id="btnTBUY"   class="py-2.5 rounded-xl border border-teal-500 bg-teal-500/20 text-teal-300 font-bold transition">BUY</button>
-          <button onclick="setThaiSide('W-BUY')"  id="btnTWBUY"  class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">W-BUY</button>
-          <button onclick="setThaiSide('SELL')"   id="btnTSELL"  class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">SELL</button>
-          <button onclick="setThaiSide('W-SELL')" id="btnTWSELL" class="py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition">W-SELL</button>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div><label class="block text-gray-400 mb-1">วันที่</label>
-          <input type="date" id="thaiDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-teal-500 focus:outline-none">
-        </div>
-        <div><label class="block text-gray-400 mb-1">กลุ่มการลงทุน</label>
-          <select id="thaiGroup" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-teal-500 focus:outline-none">
-            <option>Satellite</option><option>Core (NAV growth)</option><option>Monthly Income</option>
-          </select>
-        </div>
-      </div>
-      <div class="grid grid-cols-3 gap-3">
-        <div><label class="block text-gray-400 mb-1">Ticker</label>
-          <input type="text" id="thaiTicker" placeholder="BKK:AS" oninput="this.value=this.value.toUpperCase()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn uppercase focus:border-teal-500 focus:outline-none">
-        </div>
-        <div><label class="block text-gray-400 mb-1">จำนวนหุ้น</label>
-          <input type="number" step="any" id="thaiShares" placeholder="0" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-teal-500 focus:outline-none">
-        </div>
-        <div><label class="block text-gray-400 mb-1">ราคา (฿)</label>
-          <input type="number" step="any" id="thaiPrice" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-teal-500 focus:outline-none">
-        </div>
-      </div>
-      <div><label class="block text-gray-400 mb-1">หมายเหตุ</label>
-        <input type="text" id="thaiNote" placeholder="รายละเอียดเพิ่มเติม" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-teal-500 focus:outline-none">
-      </div>
-      <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d] text-[11px] text-gray-400 fn">
-        Fee: Commission 0.15% + Clearing 0.0072% + VAT 7% — คำนวณโดย Apps Script
-      </div>
-    </div>
-    <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
-      <button onclick="closeThaiTradeModal()" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
-      <button onclick="submitThaiTrade()" id="btnSaveThai" class="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold">บันทึก</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── MODAL: Thai Watchlist ───────────────────────────────── -->
-<div id="modalThaiWatchlist" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-  <div class="cd rounded-2xl w-full max-w-2xl border border-[#30363d] overflow-hidden">
-    <div class="p-4 border-b border-[#30363d] flex items-center justify-between bg-[#161b22]">
-      <h3 class="text-sm font-bold text-white fb">Watchlist หุ้นไทย</h3>
-      <button onclick="closeModal('modalThaiWatchlist')" class="text-gray-400 hover:text-white text-lg">&times;</button>
-    </div>
-    <div class="p-4 border-b border-[#30363d] bg-[#0d1117] flex gap-2">
-      <input type="text" id="newThaiWL" placeholder="BKK:KBANK, BKK:SCB..." oninput="this.value=this.value.toUpperCase()" class="flex-1 bg-[#161b22] border border-[#30363d] rounded-xl px-3 py-2 text-xs text-white fn uppercase focus:border-rose-500 focus:outline-none">
-      <button onclick="addThaiWL()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold whitespace-nowrap">+ เพิ่ม</button>
-    </div>
-    <div class="p-4 overflow-y-auto max-h-96">
-      <table class="w-full text-left text-xs fn">
-        <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d]">
-          <tr>
-            <th class="py-2.5 px-3">Ticker</th>
-            <th class="py-2.5 px-3 text-right">ราคา (฿)</th>
-            <th class="py-2.5 px-3 text-center">52W Range</th>
-            <th class="py-2.5 px-3 text-right">เป้าซื้อ</th>
-            <th class="py-2.5 px-3 text-right">เป้าขาย</th>
-            <th class="py-2.5 px-3 text-center">จัดการ</th>
-          </tr>
-        </thead>
-        <tbody id="thaiWLBody" class="divide-y divide-[#30363d] cursor-pointer"></tbody>
-      </table>
-    </div>
-    <div class="p-3 border-t border-[#30363d] flex justify-end bg-[#161b22]">
-      <button onclick="closeModal('modalThaiWatchlist')" class="px-4 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] text-gray-300 hover:text-white font-semibold text-xs">ปิด</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── MODAL: Thai Alert ───────────────────────────────────── -->
-<div id="modalThaiAlert" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-  <div class="cd rounded-2xl w-full max-w-lg border border-teal-500/40 overflow-hidden">
-    <div class="p-4 border-b border-[#30363d] flex items-center justify-between bg-gradient-to-r from-teal-950/40 to-[#161b22]">
-      <div class="flex items-center gap-2">
-        <span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 font-bold fn text-sm" id="thaiAltTicker">TICKER</span>
-        <span class="text-xs text-gray-400" id="thaiAltTypeTag">EXISTING</span>
-      </div>
-      <button onclick="closeModal('modalThaiAlert')" class="text-gray-400 hover:text-white text-lg">&times;</button>
-    </div>
-    <div class="p-5 space-y-4 text-xs">
-      <div class="bg-[#0d1117] p-4 rounded-xl border border-[#30363d] fn">
-        <div class="flex justify-between items-end">
-          <div><span class="text-[11px] text-gray-400">ราคาปัจจุบัน</span><div class="text-2xl font-bold text-white mt-0.5">฿<span id="thaiAltPrice">0.00</span></div></div>
-          <div class="text-right" id="thaiAltHoldBox">
-            <span class="text-[11px] text-gray-400">ถือครอง</span>
-            <div class="text-sm font-semibold text-gray-200" id="thaiAltShares">-</div>
-            <div class="text-xs font-bold" id="thaiAltPnl">-</div>
-          </div>
-        </div>
-        <div class="space-y-1.5 pt-2 border-t border-[#21262d] mt-3">
-          <div class="flex justify-between text-[11px]">
-            <span class="text-gray-400">52W Low: <strong class="text-rose-400">฿<span id="thaiAltLow">0.00</span></strong></span>
-            <span class="text-teal-400 font-bold" id="thaiAltRange">50%</span>
-            <span class="text-gray-400">52W High: <strong class="text-emerald-400">฿<span id="thaiAltHigh">0.00</span></strong></span>
-          </div>
-          <div class="h-3 w-full bg-[#21262d] rounded-full overflow-hidden">
-            <div id="thaiAltBar" class="h-full bg-gradient-to-r from-teal-500 to-emerald-400 rounded-full transition-all duration-500" style="width:50%"></div>
-          </div>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div class="bg-[#0d1117] p-3.5 rounded-xl border border-teal-500/30">
-          <label class="text-teal-400 font-bold flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" id="thaiAltBuyChk" class="w-4 h-4 rounded focus:ring-0"> เตือนเมื่ออยากซื้อ
-          </label>
-          <input type="number" step="any" id="thaiAltBuyPrice" placeholder="ราคาเป้า (฿)" class="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-1.5 text-white fn font-bold focus:border-teal-500 focus:outline-none mt-2">
-        </div>
-        <div class="bg-[#0d1117] p-3.5 rounded-xl border border-rose-500/30">
-          <label class="text-rose-400 font-bold flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" id="thaiAltSellChk" class="w-4 h-4 rounded focus:ring-0"> เตือนเมื่ออยากขาย
-          </label>
-          <input type="number" step="any" id="thaiAltSellPrice" placeholder="ราคาเป้า (฿)" class="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-1.5 text-white fn font-bold focus:border-rose-500 focus:outline-none mt-2">
-        </div>
-      </div>
-      <div><label class="block text-gray-400 mb-1">บันทึกแผนการเทรด</label>
-        <input type="text" id="thaiAltNote" placeholder="เช่น รอซื้อแถวแนวรับ 52W Low" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-teal-500 focus:outline-none">
-      </div>
-    </div>
-    <div class="p-4 border-t border-[#30363d] flex justify-between items-center bg-[#161b22]">
-      <button onclick="testThaiTelegram()" class="px-3 py-2 rounded-xl border border-[#30363d] bg-[#21262d] text-teal-400 hover:text-white font-semibold text-xs transition">Telegram Test</button>
-      <div class="flex gap-2">
-        <button onclick="closeModal('modalThaiAlert')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white text-xs">ยกเลิก</button>
-        <button onclick="submitThaiAlert()" class="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-xs">บันทึกเป้าหมาย</button>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- MODALS -->
+<div id="modalThaiTrade" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">...</div>
+<div id="modalThaiWatchlist" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">...</div>
+<div id="modalThaiAlert" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">...</div>
 
 <!-- ── SCRIPT ──────────────────────────────────────────────── -->
 <script>
@@ -471,7 +342,7 @@ function renderThaiLogs() {
       <td class="py-3 px-3 text-right text-gray-400">${fmtN(t.commission)}</td>
       <td class="py-3 px-3 text-right text-gray-400">${fmtN(t.clearingFee||0)}</td>
       <td class="py-3 px-3 text-right font-semibold text-white">${fmtN(t.netTHB)}</td>
-      <td class="py-3 px-4 text-center flex gap-2 justify-center">
+      <td class="no-print py-3 px-4 text-center flex gap-2 justify-center">
         <button onclick="openThaiEdit('${t.id}')" class="text-blue-400 hover:text-white">แก้ไข</button>
         <button onclick="deleteThaiTrade('${t.id}')" class="text-rose-400 hover:text-white">ลบ</button>
       </td>
@@ -492,7 +363,7 @@ function buildPie(canvasId,labels,data,setter,old,legId) {
   const chart=new Chart(ctx,{
     type:'doughnut',
     data:{labels,datasets:[{data,backgroundColor:PIE_COLORS.slice(0,data.length),borderColor:'#161b22',borderWidth:2}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:!legId}}}
+    options:{responsive:true,maintainAspectRatio:false,animation:false,cutout:'60%',plugins:{legend:{display:!legId}}}
   });
   setter(chart);
   if(legId){
@@ -664,6 +535,29 @@ function exportThaiCSV() {
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download=`THAI_TRADES_${new Date().toISOString().slice(0,10)}.csv`;
   document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ── Print PDF ───────────────────────────────────────────── */
+function printPDF(){
+  const btn = document.getElementById('btnPrintPDF');
+  if (btn) { btn.textContent = 'กำลังสร้าง PDF...'; btn.disabled = true; }
+
+  const element = document.getElementById('printArea');
+  const opt = {
+    margin:       5,
+    filename:     `Thai_Stocks_${new Date().toISOString().slice(0,10)}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#0d1117', scrollY: 0 },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    if (btn) { btn.textContent = 'Print PDF'; btn.disabled = false; }
+  }).catch((err) => {
+    console.error('PDF Export Error:', err);
+    if (btn) { btn.textContent = 'Print PDF'; btn.disabled = false; }
+    alert('ไม่สามารถสร้างไฟล์ PDF ได้: ' + err);
+  });
 }
 
 function fmtN(n,d=2){ return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
