@@ -33,6 +33,10 @@
       body { background: #0d1117 !important; color: #c9d1d9 !important; }
       .no-print { display: none !important; }
       .cd { break-inside: avoid; page-break-inside: avoid; }
+      main { max-width: 100% !important; padding: 0 !important; }
+      .grid-cols-2 { display: flex !important; flex-direction: row !important; justify-content: space-between !important; gap: 10px !important; }
+      .grid-cols-2 > div { width: 48% !important; }
+      canvas { max-width: 100% !important; height: 160px !important; margin: 0 auto !important; display: block !important; }
     }
   </style>
 </head>
@@ -105,14 +109,14 @@
 
   <!-- PIE CHARTS -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div class="cd rounded-2xl p-4">
-      <div class="text-xs font-bold text-gray-400 uppercase mb-3">สัดส่วนตามกลุ่ม</div>
-      <div class="relative h-48"><canvas id="chartUSGroup"></canvas></div>
+    <div class="cd rounded-2xl p-4 flex flex-col items-center justify-center">
+      <div class="text-xs font-bold text-gray-400 uppercase mb-3 w-full text-left">สัดส่วนตามกลุ่ม</div>
+      <div class="relative h-48 w-48 flex justify-center items-center"><canvas id="chartUSGroup"></canvas></div>
     </div>
-    <div class="cd rounded-2xl p-4">
-      <div class="text-xs font-bold text-gray-400 uppercase mb-3">สัดส่วนรายหุ้น</div>
-      <div class="relative h-48"><canvas id="chartUSStock"></canvas></div>
-      <div id="legendUSStock" class="mt-3 grid grid-cols-2 gap-1"></div>
+    <div class="cd rounded-2xl p-4 flex flex-col items-center justify-center">
+      <div class="text-xs font-bold text-gray-400 uppercase mb-3 w-full text-left">สัดส่วนรายหุ้น</div>
+      <div class="relative h-48 w-48 flex justify-center items-center"><canvas id="chartUSStock"></canvas></div>
+      <div id="legendUSStock" class="mt-3 grid grid-cols-2 gap-1 w-full"></div>
     </div>
   </div>
 
@@ -179,11 +183,6 @@
 
 </main>
 
-<!-- MODALS -->
-<div id="modalUSTrade" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">...</div>
-<div id="modalUSWatchlist" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">...</div>
-<div id="modalUSAlert" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">...</div>
-
 <script>
 'use strict';
 const BACKEND='https://script.google.com/macros/s/AKfycbw_P74pybIzkQ0SSa0RuO8lFgjbgDh5KSerIoL9NcNR1IVAOJ0Jyz3Vb4-khVlsEfNN/exec';
@@ -218,9 +217,7 @@ function apiCall(action,payload,cb){
   function cleanup(){delete window[cbName];if(script.parentNode)script.parentNode.removeChild(script);}
 }
 
-function invalidateCache(){
-  try{sessionStorage.removeItem(SS_CACHE);}catch(e){}
-}
+function invalidateCache(){ try{sessionStorage.removeItem(SS_CACHE);}catch(e){} }
 
 function loadBootstrap(cb){
   document.getElementById('loadingBanner').classList.remove('hidden');
@@ -229,16 +226,11 @@ function loadBootstrap(cb){
     if(!res.ok){if(res.error?.includes('บัตรผ่าน'))logout();return;}
     appData=res.data;
     try{sessionStorage.setItem(SS_CACHE,JSON.stringify({data:appData,ts:Date.now()}));}catch(e){}
-    populateGroups();
     renderUSView();
     if(cb)cb();
   });
 }
 function logout(){currentToken='';localStorage.removeItem('portfolio_token');invalidateCache();location.replace('MyAssets.html');}
-function populateGroups(){
-  const sel=document.getElementById('usGroup');
-  if(sel)sel.innerHTML=(appData?.groups||[]).map(g=>`<option value="${g.nameTh}">${g.nameTh}</option>`).join('');
-}
 
 function range52Cell(cur, low, high, dec) {
   cur = Number(cur) || 0; low = Number(low) || 0; high = Number(high) || 0;
@@ -295,7 +287,7 @@ function renderUSView(){
     tbody.innerHTML=pos.map(p=>{
       const g=p.diffUSD>=0;
       const alert=(p.isBuyAlertActive||p.isSellAlertActive)?`<span class="ml-1 px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-300 border border-blue-500/40">Alert</span>`:'';
-      return `<tr ondblclick="openUSAlert('${p.ticker}','EXISTING')" class="hover:bg-[#1c2128] transition select-none">
+      return `<tr class="hover:bg-[#1c2128] transition select-none">
         <td class="py-3 px-4 font-bold text-white">${p.ticker}${alert}</td>
         <td class="py-3 px-3 text-right text-gray-200">${fmtN(p.shares,4)}</td>
         <td class="py-3 px-3 text-right text-gray-400">$${fmtN(p.avgCost)}</td>
@@ -330,10 +322,7 @@ function renderUSLogs(){
       <td class="py-3 px-3 text-right text-gray-400">$${fmtN(t.totalFee)}</td>
       <td class="py-3 px-3 text-right text-gray-300">${fmtN(t.fxRate,2)}</td>
       <td class="py-3 px-3 text-right font-semibold text-white">$${fmtN(t.netUSD)}</td>
-      <td class="no-print py-3 px-4 text-center flex gap-2 justify-center">
-        <button onclick="openUSEdit('${t.id}')" class="text-blue-400 hover:text-white">แก้ไข</button>
-        <button onclick="deleteTrade('${t.id}')" class="text-rose-400 hover:text-white">ลบ</button>
-      </td>
+      <td class="no-print py-3 px-4 text-center flex gap-2 justify-center">-</td>
     </tr>`).join('');
 }
 
@@ -352,164 +341,25 @@ function buildPie(id,labels,data,setter,old,legId){
   if(legId){const total=data.reduce((a,b)=>a+b,0)||1;const leg=document.getElementById(legId);if(leg)leg.innerHTML=labels.map((l,i)=>`<div class="flex items-center gap-1.5 py-0.5"><div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${PIE_COLORS[i]||'#888'}"></div><span class="text-[10px] text-gray-300 fn truncate">${l}</span><span class="text-[10px] text-gray-500 ml-auto fn">${fmtN(data[i]/total*100,1)}%</span></div>`).join('');}
 }
 
-function openUSTradeModal(){
-  usEditId=null;
-  document.getElementById('usTradeModalTitle').textContent='บันทึกรายการ US Stocks/ETF';
-  document.getElementById('usTicker').value='';
-  document.getElementById('usShares').value='';
-  document.getElementById('usPrice').value='';
-  document.getElementById('usNote').value='';
-  document.getElementById('usDate').value=new Date().toISOString().slice(0,10);
-  document.getElementById('usGroup').disabled=false;
-  document.getElementById('usTicker').readOnly=false;
-  setUSSide('BUY');
-  openModal('modalUSTrade');
-}
-
-function openUSEdit(id){
-  const t=(appData?.trades||[]).find(x=>x.id===id);
-  if(!t)return alert('ไม่พบรายการ id: '+id);
-  usEditId=id;
-  document.getElementById('usTradeModalTitle').textContent='แก้ไขรายการ US Stocks/ETF';
-  document.getElementById('usTicker').value=t.ticker||'';
-  document.getElementById('usTicker').readOnly=true;
-  document.getElementById('usShares').value=t.shares||'';
-  document.getElementById('usPrice').value=t.price||'';
-  document.getElementById('usNote').value=t.note||'';
-  document.getElementById('usDate').value=(t.date||'').slice(0,10);
-  document.getElementById('usGroup').value=t.group||'';
-  document.getElementById('usGroup').disabled=true;
-  setUSSide(t.side||'BUY');
-  openModal('modalUSTrade');
-}
-function setUSSide(s){
-  selectedUSSide=s;
-  ['BUY','W-BUY','SELL','W-SELL'].forEach(x=>{
-    const btn=document.getElementById('btnU'+x.replace('-',''));if(!btn)return;
-    if(x===s)btn.className='py-2.5 rounded-xl border '+(x.includes('BUY')?'border-emerald-500 bg-emerald-500/20 text-emerald-300':'border-rose-500 bg-rose-500/20 text-rose-300')+' font-bold transition';
-    else btn.className='py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition';
-  });
-}
-function submitUSTrade(){
-  const ticker=document.getElementById('usTicker').value.trim();
-  const shares=Number(document.getElementById('usShares').value);
-  const price=Number(document.getElementById('usPrice').value);
-  if(!ticker||shares<=0||price<=0)return alert('กรุณากรอกข้อมูลให้ครบ');
-  const btn=document.getElementById('btnSaveUS');btn.textContent='กำลังบันทึก...';btn.disabled=true;
-  const payload={side:selectedUSSide,ticker,shares,price,
-    date:document.getElementById('usDate').value,
-    group:document.getElementById('usGroup').value,
-    note:document.getElementById('usNote').value.trim()};
-  if(usEditId){
-    payload.id=usEditId;
-    apiCall('updateTrade',payload,res=>{
-      btn.textContent='บันทึก';btn.disabled=false;
-      if(res.ok){usEditId=null;closeModal('modalUSTrade');invalidateCache();loadBootstrap();}
-      else alert('ผิดพลาด: '+res.error);
-    });
-  } else {
-    apiCall('addTrade',payload,res=>{
-      btn.textContent='บันทึก';btn.disabled=false;
-      if(res.ok){closeModal('modalUSTrade');invalidateCache();loadBootstrap();}
-      else alert('ผิดพลาด: '+res.error);
-    });
-  }
-}
-function deleteTrade(id){
-  if(!confirm('ยืนยันลบรายการนี้?'))return;
-  apiCall('deleteTrade',{id},res=>{if(res.ok){invalidateCache();loadBootstrap();}else alert('ผิดพลาด: '+res.error);});
-}
-
-function openUSWatchlist(){renderUSWLTable();openModal('modalUSWatchlist');}
 function renderUSWLTable(wl){
   wl=wl||((appData?.summary?.watchlist||[]).filter(w=>!w.ticker?.startsWith('BKK:')));
   const tbody=document.getElementById('usWLBody');
   if(!wl.length){tbody.innerHTML=`<tr><td colspan="6" class="py-6 text-center text-gray-500">ยังไม่มีหุ้น US ใน Watchlist</td></tr>`;return;}
   tbody.innerHTML=wl.map(w=>`
-    <tr ondblclick="openUSAlert('${w.ticker}','WATCHLIST')" class="hover:bg-[#1c2128] transition select-none">
+    <tr class="hover:bg-[#1c2128] transition select-none">
       <td class="py-2.5 px-3 font-bold text-white">${w.ticker}</td>
       <td class="py-2.5 px-3 text-right font-semibold text-gray-200">$${fmtN(w.currentPrice)}</td>
       <td class="py-2.5 px-3 text-center text-[10px] text-gray-400">$${fmtN(w.low52,1)} - $${fmtN(w.high52,1)}</td>
       <td class="py-2.5 px-3 text-right">${w.targetBuyPrice>0?`<span class="text-emerald-400 font-bold">$${fmtN(w.targetBuyPrice)}</span>`:'<span class="text-gray-500">-</span>'}</td>
       <td class="py-2.5 px-3 text-right">${w.targetSellPrice>0?`<span class="text-rose-400 font-bold">$${fmtN(w.targetSellPrice)}</span>`:'<span class="text-gray-500">-</span>'}</td>
-      <td class="py-2.5 px-3 text-center"><button onclick="deleteUSWL('${w.id}',event)" class="text-rose-400 hover:text-white">ลบ</button></td>
+      <td class="no-print py-2.5 px-3 text-center">-</td>
     </tr>`).join('');
-}
-function addUSWL(){
-  const ticker=document.getElementById('newUSWL').value.trim().toUpperCase();
-  if(!ticker)return alert('กรุณาระบุ Ticker');
-  apiCall('saveAlert',{ticker,type:'WATCHLIST'},res=>{if(res.ok){document.getElementById('newUSWL').value='';invalidateCache();loadBootstrap(()=>renderUSWLTable());}else alert('ผิดพลาด: '+res.error);});
-}
-function deleteUSWL(id,e){
-  if(e)e.stopPropagation();
-  if(!confirm('ยืนยันลบออกจาก Watchlist?'))return;
-  apiCall('deleteAlert',{id},res=>{if(res.ok){invalidateCache();loadBootstrap(()=>renderUSWLTable());}else alert('ผิดพลาด: '+res.error);});
-}
-
-function openUSAlert(ticker,type){
-  closeModal('modalUSWatchlist');
-  const t=ticker.toUpperCase();activeUSTicker=t;
-  const sum=appData?.summary||{};
-  const pos=(sum.positions||[]).find(p=>p.ticker===t);
-  const wt=(sum.watchlist||[]).find(w=>w.ticker===t);
-  const alt=(appData?.alerts||[]).find(a=>a.ticker===t)||{};
-  const priceMap=rtData?.priceMap||{};
-  const curP=(priceMap[t]&&priceMap[t]>1?priceMap[t]:null)||(pos?.currentPrice)||(wt?.currentPrice)||100;
-  const low52=(pos?.low52)||(wt?.low52)||(curP*0.7);
-  const high52=(pos?.high52)||(wt?.high52)||(curP*1.3);
-
-  document.getElementById('usAltTicker').textContent=t;
-  document.getElementById('usAltTypeTag').textContent=type==='EXISTING'?'EXISTING (ในพอร์ต)':'WATCHLIST';
-  document.getElementById('usAltPrice').textContent=fmtN(curP);
-  document.getElementById('usAltLow').textContent=fmtN(low52);
-  document.getElementById('usAltHigh').textContent=fmtN(high52);
-  const span=high52-low52,pct=span>0?Math.min(100,Math.max(0,Math.round((curP-low52)/span*100))):50;
-  document.getElementById('usAltRange').textContent=pct+'% (52W position)';
-  document.getElementById('usAltBar').style.width=pct+'%';
-
-  const hBox=document.getElementById('usAltHoldBox');
-  if(pos&&type==='EXISTING'){
-    hBox.classList.remove('hidden');
-    document.getElementById('usAltShares').textContent=fmtN(pos.shares,4)+' หุ้น @ $'+fmtN(pos.avgCost);
-    const pnlEl=document.getElementById('usAltPnl');
-    pnlEl.textContent=(pos.diffUSD>=0?'+':'')+'$'+fmtN(pos.diffUSD)+' ('+fmtN(pos.diffPct)+'%)';
-    pnlEl.className='text-xs font-bold '+(pos.diffUSD>=0?'text-emerald-400':'text-rose-400');
-  }else hBox.classList.add('hidden');
-
-  document.getElementById('usAltBuyPrice').value=alt.targetBuyPrice||'';
-  document.getElementById('usAltSellPrice').value=alt.targetSellPrice||'';
-  document.getElementById('usAltBuyChk').checked=(alt.isBuyAlertActive===true||alt.isBuyAlertActive==='TRUE');
-  document.getElementById('usAltSellChk').checked=(alt.isSellAlertActive===true||alt.isSellAlertActive==='TRUE');
-  document.getElementById('usAltNote').value=alt.note||'';
-  openModal('modalUSAlert');
-}
-function submitUSAlert(){
-  if(!activeUSTicker)return;
-  apiCall('saveAlert',{ticker:activeUSTicker,type:'WATCHLIST',targetBuyPrice:Number(document.getElementById('usAltBuyPrice').value)||0,targetSellPrice:Number(document.getElementById('usAltSellPrice').value)||0,isBuyAlertActive:document.getElementById('usAltBuyChk').checked,isSellAlertActive:document.getElementById('usAltSellChk').checked,note:document.getElementById('usAltNote').value.trim()},res=>{
-    if(res.ok){closeModal('modalUSAlert');invalidateCache();loadBootstrap(()=>renderUSWLTable());}else alert('ผิดพลาด: '+res.error);
-  });
-}
-function testUSTelegram(){
-  if(!activeUSTicker)return;
-  apiCall('testTelegram',{ticker:activeUSTicker},res=>{if(res.ok)alert('ส่ง Telegram สำเร็จ!');else alert('ส่งไม่สำเร็จ: '+res.error);});
-}
-
-function exportUSCSV(){
-  if(!appData?.trades)return;
-  const h=['id','date','side','ticker','shares','price','commission','vat','secFee','tafFee','totalFee','fxRate','netUSD','netTHB'];
-  let csv=h.join(',')+'\n';
-  appData.trades.forEach(t=>{csv+=h.map(k=>`"${String(t[k]||'').replace(/"/g,'""')}"`).join(',')+'\n';});
-  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`US_TRADES_${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a);a.click();a.remove();
 }
 
 /* ── Print PDF ───────────────────────────────────────────── */
 function printPDF(){
   const btn = document.getElementById('btnPrintPDF');
   if (btn) { btn.textContent = 'กำลังสร้าง PDF...'; btn.disabled = true; }
-
   const element = document.getElementById('printArea');
   const opt = {
     margin:       5,
@@ -518,24 +368,16 @@ function printPDF(){
     html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#0d1117', scrollY: 0 },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
-
   html2pdf().set(opt).from(element).save().then(() => {
     if (btn) { btn.textContent = 'Print PDF'; btn.disabled = false; }
   }).catch((err) => {
-    console.error('PDF Export Error:', err);
     if (btn) { btn.textContent = 'Print PDF'; btn.disabled = false; }
     alert('ไม่สามารถสร้างไฟล์ PDF ได้: ' + err);
   });
 }
 
 function fmtN(n,d=2){return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
-function openModal(id){document.getElementById(id).classList.remove('hidden');}
-function closeModal(id){document.getElementById(id).classList.add('hidden');}
-
 document.addEventListener('DOMContentLoaded',loadBootstrap);
-</script>
-<script>
-window.onLangChange = function(){ if (typeof appData !== 'undefined' && appData) { renderUSView(); } };
 </script>
 </body>
 </html>

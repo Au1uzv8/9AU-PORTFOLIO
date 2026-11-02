@@ -33,6 +33,10 @@
       body { background: #0d1117 !important; color: #c9d1d9 !important; }
       .no-print { display: none !important; }
       .cd { break-inside: avoid; page-break-inside: avoid; }
+      main { max-width: 100% !important; padding: 0 !important; }
+      .grid-cols-2 { display: flex !important; flex-direction: row !important; justify-content: space-between !important; gap: 10px !important; }
+      .grid-cols-2 > div { width: 48% !important; }
+      canvas { max-width: 100% !important; height: 160px !important; margin: 0 auto !important; display: block !important; }
     }
   </style>
 </head>
@@ -103,14 +107,14 @@
 
   <!-- PIE CHARTS -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div class="cd rounded-2xl p-4">
-      <div class="text-xs font-bold text-gray-400 uppercase mb-3">สัดส่วนตามกลุ่ม</div>
-      <div class="relative h-48"><canvas id="chartThaiGroup"></canvas></div>
+    <div class="cd rounded-2xl p-4 flex flex-col items-center justify-center">
+      <div class="text-xs font-bold text-gray-400 uppercase mb-3 w-full text-left">สัดส่วนตามกลุ่ม</div>
+      <div class="relative h-48 w-48 flex justify-center items-center"><canvas id="chartThaiGroup"></canvas></div>
     </div>
-    <div class="cd rounded-2xl p-4">
-      <div class="text-xs font-bold text-gray-400 uppercase mb-3">สัดส่วนรายหุ้น</div>
-      <div class="relative h-48"><canvas id="chartThaiStock"></canvas></div>
-      <div id="legendThaiStock" class="mt-3 grid grid-cols-2 gap-1"></div>
+    <div class="cd rounded-2xl p-4 flex flex-col items-center justify-center">
+      <div class="text-xs font-bold text-gray-400 uppercase mb-3 w-full text-left">สัดส่วนรายหุ้น</div>
+      <div class="relative h-48 w-48 flex justify-center items-center"><canvas id="chartThaiStock"></canvas></div>
+      <div id="legendThaiStock" class="mt-3 grid grid-cols-2 gap-1 w-full"></div>
     </div>
   </div>
 
@@ -177,25 +181,10 @@
 
 </main>
 
-<!-- MODALS -->
-<div id="modalThaiTrade" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">...</div>
-<div id="modalThaiWatchlist" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">...</div>
-<div id="modalThaiAlert" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">...</div>
-
-<!-- ── SCRIPT ──────────────────────────────────────────────── -->
 <script>
 'use strict';
-
 const BACKEND = 'https://script.google.com/macros/s/AKfycbw_P74pybIzkQ0SSa0RuO8lFgjbgDh5KSerIoL9NcNR1IVAOJ0Jyz3Vb4-khVlsEfNN/exec';
-const FB_CFG  = {
-  apiKey:"***************************************",
-  authDomain:"au-portfolio-7d687.firebaseapp.com",
-  databaseURL:"https://au-portfolio-7d687-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:"au-portfolio-7d687",
-  storageBucket:"au-portfolio-7d687.firebasestorage.app",
-  messagingSenderId:"806351101494",
-  appId:"1:806351101494:web:c832da2ef2baff90d18297"
-};
+const FB_CFG  = { apiKey:"***************************************", authDomain:"au-portfolio-7d687.firebaseapp.com", databaseURL:"https://au-portfolio-7d687-default-rtdb.asia-southeast1.firebasedatabase.app", projectId:"au-portfolio-7d687", storageBucket:"au-portfolio-7d687.firebasestorage.app", messagingSenderId:"806351101494", appId:"1:806351101494:web:c832da2ef2baff90d18297" };
 const SS_CACHE = '9au_bscache';
 
 let currentToken = localStorage.getItem('portfolio_token') || '';
@@ -205,7 +194,6 @@ let selectedThaiSide = 'BUY';
 let thaiEditId   = null;
 let activeThaiTicker = null;
 let chartTG = null, chartTS = null;
-
 const PIE_COLORS = ['#3b82f6','#10b981','#f59e0b','#a855f7','#ef4444','#06b6d4','#84cc16','#f97316'];
 
 if (!currentToken) { location.replace('MyAssets.html'); }
@@ -233,9 +221,7 @@ function apiCall(action, payload, cb) {
   function cleanup(){ delete window[cbName]; if(script.parentNode)script.parentNode.removeChild(script); }
 }
 
-function invalidateCache() {
-  try { sessionStorage.removeItem(SS_CACHE); } catch(e) {}
-}
+function invalidateCache() { try { sessionStorage.removeItem(SS_CACHE); } catch(e) {} }
 
 function loadBootstrap(cb) {
   document.getElementById('loadingBanner').classList.remove('hidden');
@@ -298,7 +284,6 @@ function renderThaiView() {
   const pEl = document.getElementById('thaiPnlEl');
   pEl.textContent = (pnl>=0?'+':'')+fmtN(pnl)+' ฿ ('+(pct>=0?'+':'')+fmtN(pct)+'%)';
   pEl.className   = 'text-lg font-bold fn mt-1 '+(pnl>=0?'text-emerald-400':'text-rose-400');
-
   document.getElementById('thaiWLCount').textContent = wl.length;
 
   const tbody = document.getElementById('thaiHoldingsBody');
@@ -307,7 +292,7 @@ function renderThaiView() {
   } else {
     tbody.innerHTML = thai.map(p=>{
       const g = p.diffTHB>=0;
-      return `<tr ondblclick="openThaiAlert('${p.ticker}','EXISTING')" class="hover:bg-[#1c2128] transition select-none">
+      return `<tr class="hover:bg-[#1c2128] transition select-none">
         <td class="py-3 px-4 font-bold text-white">${p.ticker}</td>
         <td class="py-3 px-3 text-right text-gray-200">${fmtN(p.shares,0)}</td>
         <td class="py-3 px-3 text-right text-gray-400">${fmtN(p.avgCost)}</td>
@@ -342,10 +327,7 @@ function renderThaiLogs() {
       <td class="py-3 px-3 text-right text-gray-400">${fmtN(t.commission)}</td>
       <td class="py-3 px-3 text-right text-gray-400">${fmtN(t.clearingFee||0)}</td>
       <td class="py-3 px-3 text-right font-semibold text-white">${fmtN(t.netTHB)}</td>
-      <td class="no-print py-3 px-4 text-center flex gap-2 justify-center">
-        <button onclick="openThaiEdit('${t.id}')" class="text-blue-400 hover:text-white">แก้ไข</button>
-        <button onclick="deleteThaiTrade('${t.id}')" class="text-rose-400 hover:text-white">ลบ</button>
-      </td>
+      <td class="no-print py-3 px-4 text-center flex gap-2 justify-center">-</td>
     </tr>`).join('');
 }
 
@@ -378,170 +360,25 @@ function buildPie(canvasId,labels,data,setter,old,legId) {
   }
 }
 
-function openThaiTradeModal() {
-  thaiEditId=null;
-  document.getElementById('thaiTradeModalTitle').textContent='บันทึกรายการหุ้นไทย';
-  document.getElementById('thaiTicker').value='';
-  document.getElementById('thaiShares').value='';
-  document.getElementById('thaiPrice').value='';
-  document.getElementById('thaiNote').value='';
-  document.getElementById('thaiDate').value=new Date().toISOString().slice(0,10);
-  document.getElementById('thaiGroup').disabled=false;
-  setThaiSide('BUY');
-  openModal('modalThaiTrade');
-}
-function openThaiEdit(id) {
-  const t=(appData?.thaiTrades||[]).find(x=>x.id===id); if(!t) return;
-  thaiEditId=id;
-  document.getElementById('thaiTradeModalTitle').textContent='แก้ไขรายการหุ้นไทย';
-  document.getElementById('thaiTicker').value=t.ticker||'';
-  document.getElementById('thaiShares').value=t.shares||'';
-  document.getElementById('thaiPrice').value=t.price||'';
-  document.getElementById('thaiNote').value=t.note||'';
-  document.getElementById('thaiDate').value=t.date||'';
-  document.getElementById('thaiGroup').value=t.group||'Satellite';
-  document.getElementById('thaiGroup').disabled=true;
-  setThaiSide(t.side||'BUY');
-  openModal('modalThaiTrade');
-}
-function closeThaiTradeModal() { thaiEditId=null; closeModal('modalThaiTrade'); }
-
-function setThaiSide(s) {
-  selectedThaiSide=s;
-  ['BUY','W-BUY','SELL','W-SELL'].forEach(x=>{
-    const id='btnT'+x.replace('-','');
-    const btn=document.getElementById(id); if(!btn)return;
-    if(x===s) btn.className='py-2.5 rounded-xl border '+(x.includes('BUY')?'border-teal-500 bg-teal-500/20 text-teal-300':'border-rose-500 bg-rose-500/20 text-rose-300')+' font-bold transition';
-    else btn.className='py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] text-gray-400 transition';
-  });
-}
-
-function submitThaiTrade() {
-  const ticker=document.getElementById('thaiTicker').value.trim();
-  const shares=Number(document.getElementById('thaiShares').value);
-  const price =Number(document.getElementById('thaiPrice').value);
-  if (!ticker||shares<=0||price<=0) return alert('กรุณากรอกข้อมูลให้ครบ');
-  const btn=document.getElementById('btnSaveThai');
-  btn.textContent='กำลังบันทึก...'; btn.disabled=true;
-  const payload={side:selectedThaiSide,ticker,shares,price,
-    date:document.getElementById('thaiDate').value,
-    group:document.getElementById('thaiGroup').value,
-    note:document.getElementById('thaiNote').value.trim()};
-  const action = thaiEditId ? 'updateThaiTrade' : 'addThaiTrade';
-  if (thaiEditId) payload.id=thaiEditId;
-  apiCall(action,payload,res=>{
-    btn.textContent='บันทึก'; btn.disabled=false;
-    if(res.ok){ closeThaiTradeModal(); invalidateCache(); loadBootstrap(); }
-    else alert('ผิดพลาด: '+res.error);
-  });
-}
-
-function deleteThaiTrade(id) {
-  if(!confirm('ยืนยันลบรายการนี้?'))return;
-  apiCall('deleteThaiTrade',{id},res=>{ if(res.ok){ invalidateCache(); loadBootstrap(); } else alert('ผิดพลาด: '+res.error); });
-}
-
-function openThaiWatchlist() { renderThaiWLTable(); openModal('modalThaiWatchlist'); }
 function renderThaiWLTable(wl) {
   wl = wl || ((appData?.summary?.watchlist||[]).filter(w=>w.ticker?.startsWith('BKK:')));
   const tbody=document.getElementById('thaiWLBody');
   if(!wl.length){ tbody.innerHTML=`<tr><td colspan="6" class="py-6 text-center text-gray-500">ยังไม่มีหุ้นไทยใน Watchlist</td></tr>`; return; }
   tbody.innerHTML=wl.map(w=>`
-    <tr ondblclick="openThaiAlert('${w.ticker}','WATCHLIST')" class="hover:bg-[#1c2128] transition select-none">
+    <tr class="hover:bg-[#1c2128] transition select-none">
       <td class="py-2.5 px-3 font-bold text-white">${w.ticker}</td>
       <td class="py-2.5 px-3 text-right font-semibold text-gray-200">${fmtN(w.currentPrice)}</td>
       <td class="py-2.5 px-3 text-center text-[10px] text-gray-400">${fmtN(w.low52,2)} - ${fmtN(w.high52,2)}</td>
       <td class="py-2.5 px-3 text-right">${w.targetBuyPrice>0?`<span class="text-teal-400 font-bold">${fmtN(w.targetBuyPrice)}</span>`:'<span class="text-gray-500">-</span>'}</td>
       <td class="py-2.5 px-3 text-right">${w.targetSellPrice>0?`<span class="text-rose-400 font-bold">${fmtN(w.targetSellPrice)}</span>`:'<span class="text-gray-500">-</span>'}</td>
-      <td class="py-2.5 px-3 text-center"><button onclick="deleteWL('${w.id}',event)" class="text-rose-400 hover:text-white">ลบ</button></td>
+      <td class="no-print py-2.5 px-3 text-center">-</td>
     </tr>`).join('');
-}
-function addThaiWL() {
-  const ticker=document.getElementById('newThaiWL').value.trim().toUpperCase();
-  if(!ticker)return alert('กรุณาระบุ Ticker');
-  apiCall('saveAlert',{ticker,type:'WATCHLIST'},res=>{
-    if(res.ok){ document.getElementById('newThaiWL').value=''; invalidateCache(); loadBootstrap(()=>renderThaiWLTable()); }
-    else alert('ผิดพลาด: '+res.error);
-  });
-}
-function deleteWL(id,e) {
-  if(e)e.stopPropagation();
-  if(!confirm('ยืนยันลบออกจาก Watchlist?'))return;
-  apiCall('deleteAlert',{id},res=>{ if(res.ok){ invalidateCache(); loadBootstrap(()=>renderThaiWLTable()); } else alert('ผิดพลาด: '+res.error); });
-}
-
-function openThaiAlert(ticker,type) {
-  closeModal('modalThaiWatchlist');
-  const t=ticker.toUpperCase();
-  activeThaiTicker=t;
-  const sum=appData?.summary||{};
-  const pos=(sum.thaiPositions||[]).find(p=>p.ticker===t);
-  const wt=(sum.watchlist||[]).find(w=>w.ticker===t);
-  const alt=(appData?.alerts||[]).find(a=>a.ticker===t)||{};
-  const curP=(pos?.currentPrice)||(wt?.currentPrice)||(rtData?.priceMap?.[t])||0;
-  const low52=(pos?.low52)||(wt?.low52)||(curP*0.7);
-  const high52=(pos?.high52)||(wt?.high52)||(curP*1.3);
-
-  document.getElementById('thaiAltTicker').textContent=t;
-  document.getElementById('thaiAltTypeTag').textContent=type==='EXISTING'?'EXISTING (ในพอร์ต)':'WATCHLIST';
-  document.getElementById('thaiAltPrice').textContent=fmtN(curP);
-  document.getElementById('thaiAltLow').textContent=fmtN(low52);
-  document.getElementById('thaiAltHigh').textContent=fmtN(high52);
-  const span=high52-low52, pct=span>0?Math.min(100,Math.max(0,Math.round((curP-low52)/span*100))):50;
-  document.getElementById('thaiAltRange').textContent=pct+'% (52W position)';
-  document.getElementById('thaiAltBar').style.width=pct+'%';
-
-  const hBox=document.getElementById('thaiAltHoldBox');
-  if(pos&&type==='EXISTING'){
-    hBox.classList.remove('hidden');
-    document.getElementById('thaiAltShares').textContent=fmtN(pos.shares,0)+' หุ้น @ ฿'+fmtN(pos.avgCost);
-    const pnlEl=document.getElementById('thaiAltPnl');
-    pnlEl.textContent=(pos.diffTHB>=0?'+':'')+'฿'+fmtN(pos.diffTHB)+' ('+fmtN(pos.diffPct)+'%)';
-    pnlEl.className='text-xs font-bold '+(pos.diffTHB>=0?'text-emerald-400':'text-rose-400');
-  } else hBox.classList.add('hidden');
-
-  document.getElementById('thaiAltBuyPrice').value=alt.targetBuyPrice||'';
-  document.getElementById('thaiAltSellPrice').value=alt.targetSellPrice||'';
-  document.getElementById('thaiAltBuyChk').checked=(alt.isBuyAlertActive===true||alt.isBuyAlertActive==='TRUE');
-  document.getElementById('thaiAltSellChk').checked=(alt.isSellAlertActive===true||alt.isSellAlertActive==='TRUE');
-  document.getElementById('thaiAltNote').value=alt.note||'';
-  openModal('modalThaiAlert');
-}
-function submitThaiAlert() {
-  if(!activeThaiTicker)return;
-  apiCall('saveAlert',{
-    ticker:activeThaiTicker, type:'WATCHLIST',
-    targetBuyPrice: Number(document.getElementById('thaiAltBuyPrice').value)||0,
-    targetSellPrice:Number(document.getElementById('thaiAltSellPrice').value)||0,
-    isBuyAlertActive: document.getElementById('thaiAltBuyChk').checked,
-    isSellAlertActive:document.getElementById('thaiAltSellChk').checked,
-    note:document.getElementById('thaiAltNote').value.trim()
-  },res=>{
-    if(res.ok){ closeModal('modalThaiAlert'); invalidateCache(); loadBootstrap(()=>renderThaiWLTable()); }
-    else alert('ผิดพลาด: '+res.error);
-  });
-}
-function testThaiTelegram() {
-  if(!activeThaiTicker)return;
-  apiCall('testTelegram',{ticker:activeThaiTicker},res=>{ if(res.ok)alert('ส่ง Telegram สำเร็จ!'); else alert('ส่งไม่สำเร็จ: '+res.error); });
-}
-
-function exportThaiCSV() {
-  if(!appData?.thaiTrades)return;
-  const h=['id','date','side','ticker','shares','price','commission','clearingFee','vat','totalFee','netTHB','note'];
-  let csv=h.join(',')+'\n';
-  appData.thaiTrades.forEach(t=>{ csv+=h.map(k=>`"${String(t[k]||'').replace(/"/g,'""')}"`).join(',')+'\n'; });
-  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`THAI_TRADES_${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a); a.click(); a.remove();
 }
 
 /* ── Print PDF ───────────────────────────────────────────── */
 function printPDF(){
   const btn = document.getElementById('btnPrintPDF');
   if (btn) { btn.textContent = 'กำลังสร้าง PDF...'; btn.disabled = true; }
-
   const element = document.getElementById('printArea');
   const opt = {
     margin:       5,
@@ -550,24 +387,16 @@ function printPDF(){
     html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#0d1117', scrollY: 0 },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
-
   html2pdf().set(opt).from(element).save().then(() => {
     if (btn) { btn.textContent = 'Print PDF'; btn.disabled = false; }
   }).catch((err) => {
-    console.error('PDF Export Error:', err);
     if (btn) { btn.textContent = 'Print PDF'; btn.disabled = false; }
     alert('ไม่สามารถสร้างไฟล์ PDF ได้: ' + err);
   });
 }
 
 function fmtN(n,d=2){ return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
-function openModal(id){ document.getElementById(id).classList.remove('hidden'); }
-function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
-
 document.addEventListener('DOMContentLoaded', loadBootstrap);
-</script>
-<script>
-window.onLangChange = function(){ if (typeof appData !== 'undefined' && appData) { renderThaiView(); } };
 </script>
 </body>
 </html>
