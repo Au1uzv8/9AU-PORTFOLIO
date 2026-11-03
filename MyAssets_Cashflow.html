@@ -73,7 +73,7 @@
   </div>
 </header>
 
-<!-- ── MAIN ───────────────────────────────────────────────── -->
+<!-- ── MAIN ────────────────────────────────________________ -->
 <main id="printArea" class="max-w-7xl mx-auto px-4 pt-5 space-y-5">
 
   <div id="loadingBanner" class="hidden flex items-center justify-center gap-2 p-3 rounded-xl bg-blue-950/40 border border-blue-800/50 text-blue-300 text-xs">
@@ -81,16 +81,19 @@
     กำลังโหลดข้อมูล...
   </div>
 
-  <!--- GROUP-1: สภาพคล่อง (THB) เหมือนหน้า Dashboard --->
+  <!-- GROUP-1: สภาพคล่อง (THB) 3 ประเภทหลัก + ปุ่มจัดการ -->
   <div>
     <div class="flex items-center justify-between mb-2">
       <h2 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Group-1: สภาพคล่อง (THB)
       </h2>
-      <span class="text-xs fn text-gray-400">รวม: <strong class="text-emerald-300" id="valG1Total">0.00 ฿</strong></span>
+      <div class="flex items-center gap-3">
+        <button onclick="openAccountModal()" class="no-print px-3 py-1 rounded-lg bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-600 hover:text-white text-[11px] font-bold transition">จัดการบัญชี Group-1</button>
+        <span class="text-xs fn text-gray-400">รวม: <strong class="text-emerald-300" id="valG1Total">0.00 ฿</strong></span>
+      </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-      <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">เงินสดคงเหลือ</div><div class="text-xl font-bold text-white fn" id="valCash">0.00 ฿</div></div>
+      <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">เงินสด</div><div class="text-xl font-bold text-white fn" id="valCash">0.00 ฿</div></div>
       <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">บัญชีธนาคาร</div><div class="text-xl font-bold text-white fn" id="valBank">0.00 ฿</div></div>
       <div class="cd rounded-2xl p-4"><div class="text-xs text-gray-400 mb-1">เงินสำรองฉุกเฉิน</div><div class="text-xl font-bold text-emerald-400 fn" id="valEmergency">0.00 ฿</div></div>
     </div>
@@ -146,7 +149,7 @@
 
 </main>
 
-<!-- ── MODAL: Cashflow ──────────────────────────────────────── -->
+<!-- ── MODAL: Cashflow Minimum Input Priority (ตัดหมวดซื้อ/ขายออก) ── -->
 <div id="modalCashflow" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
   <div class="cd rounded-2xl w-full max-w-md border border-[#30363d] overflow-hidden">
     <div class="p-4 border-b border-[#30363d] flex items-center justify-between">
@@ -154,63 +157,60 @@
       <button onclick="closeModal('modalCashflow')" class="text-gray-400 hover:text-white text-lg">&times;</button>
     </div>
     <div class="p-5 space-y-4 text-xs">
-      <div class="grid grid-cols-2 gap-3">
+      
+      <!-- Priority 1: วันที่ -->
+      <div>
+        <label class="block text-gray-400 mb-1">1. วันที่</label>
+        <input type="date" id="cfDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-rose-500 focus:outline-none">
+      </div>
+
+      <!-- Priority 2: กระเป๋ากลาง + หมวดหมู่ (ไม่มีซื้อ/ขายแล้ว) -->
+      <div class="grid grid-cols-2 gap-3 bg-[#0d1117]/60 p-3 rounded-xl border border-[#30363d]">
         <div>
-          <label class="block text-gray-400 mb-1">วันที่</label>
-          <input type="date" id="cfDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-rose-500 focus:outline-none">
+          <label class="block text-gray-400 mb-1">2.1 กระเป๋ากลาง (Wallet)</label>
+          <select id="cfWallet" onchange="onWalletOrCategoryChange()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-rose-500 focus:outline-none">
+            <option value="general">ทั่วไป</option>
+            <option value="div_usd">ปันผล (USD)</option>
+            <option value="div_thb">ปันผล (฿)</option>
+            <option value="sell_usd">พักเงินขายหุ้น (USD)</option>
+            <option value="sell_thb">พักเงินขายหุ้น (฿)</option>
+          </select>
         </div>
         <div>
-          <label class="block text-gray-400 mb-1">ทิศทาง</label>
-          <select id="cfType" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-rose-500 focus:outline-none">
-            <option value="in">รับเข้า / เงินเข้า</option>
-            <option value="out">จ่ายออก / โอนออก</option>
+          <label class="block text-gray-400 mb-1">2.2 หมวดหมู่</label>
+          <select id="cfCategory" onchange="onWalletOrCategoryChange()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-rose-500 focus:outline-none">
+            <option value="โอนเข้าลงทุน (รอซื้อ)">โอนเข้าลงทุน (รอซื้อ)</option>
+            <option value="โอนออกจากกระเป๋าลงทุน">โอนออกจากกระเป๋าลงทุน</option>
+            <option value="รับโอนปันผล">รับโอนปันผล</option>
+            <option value="เงินสดค้างกระเป๋า/แลกเงิน">เงินสดค้างกระเป๋า/แลกเงิน</option>
           </select>
         </div>
       </div>
+
+      <!-- Priority 3: ทิศทาง (Auto Interlock) -->
       <div>
-        <label class="block text-gray-400 mb-1">กระเป๋ากลาง (Wallet)</label>
-        <select id="cfWallet" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-rose-500 focus:outline-none">
-          <option value="general">ทั่วไป</option>
-          <option value="div_usd">ปันผล (USD)</option>
-          <option value="div_thb">ปันผล (฿)</option>
-          <option value="sell_usd">พักเงินขายหุ้น (USD)</option>
-          <option value="sell_thb">พักเงินขายหุ้น (฿)</option>
+        <label class="block text-gray-400 mb-1">3. ทิศทาง (ระบบเลือกให้อัตโนมัติ)</label>
+        <select id="cfType" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-rose-500 focus:outline-none font-bold" disabled>
+          <option value="in">รับเข้า / เงินเข้า (+)</option>
+          <option value="out">จ่ายออก / โอนออก (-)</option>
         </select>
       </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-gray-400 mb-1">หมวดหมู่</label>
-          <select id="cfCategory" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-rose-500 focus:outline-none">
-            <option>โอนเข้าลงทุน</option>
-            <option>เงินปันผล / ดอกเบี้ย</option>
-            <option>พักเงินขายหุ้น (USD)</option>
-            <option>พักเงินขายหุ้น (฿)</option>
-            <option>ถอนกำไรจากพอร์ต</option>
-            <option>ค่าใช้จ่ายทั่วไป</option>
-            <option>อื่นๆ</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-gray-400 mb-1">บัญชี</label>
-          <select id="cfAccount" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-rose-500 focus:outline-none">
-            <option>บัญชีลงทุนสหรัฐ</option>
-            <option>บัญชีลงทุนไทย</option>
-            <option>บัญชีใช้จ่าย</option>
-            <option>เงินสด</option>
-            <option>เงินสำรองฉุกเฉิน</option>
-          </select>
-        </div>
+
+      <!-- Priority 4: สภาพคล่อง Group-1 (Enable เฉพาะเมื่อ Wallet = 'general') -->
+      <div>
+        <label class="block text-gray-400 mb-1">4. สภาพคล่อง (บัญชี Group-1)</label>
+        <select id="cfAccount" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-rose-500 focus:outline-none">
+          <option>เงินสด</option>
+          <option>บัญชีธนาคาร</option>
+          <option>เงินสำรองฉุกเฉิน</option>
+        </select>
       </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-gray-400 mb-1">จำนวนเงิน USD ($)</label>
-          <input type="number" step="any" id="cfUSD" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-rose-500 focus:outline-none">
-        </div>
-        <div>
-          <label class="block text-gray-400 mb-1">จำนวนเงิน THB (฿)</label>
-          <input type="number" step="any" id="cfTHB" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-rose-500 focus:outline-none">
-        </div>
+
+      <div>
+        <label class="block text-gray-400 mb-1" id="lblAmount">จำนวนเงิน (฿)</label>
+        <input type="number" step="any" id="cfAmount" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-rose-500 focus:outline-none font-bold">
       </div>
+
       <div>
         <label class="block text-gray-400 mb-1">หมายเหตุ</label>
         <input type="text" id="cfNote" placeholder="รายละเอียดเพิ่มเติม" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-rose-500 focus:outline-none">
@@ -219,6 +219,30 @@
     <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
       <button onclick="closeModal('modalCashflow')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
       <button onclick="submitCashflow()" id="btnSaveCF" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Account Group-1 Manager ───────────────────────── -->
+<div id="modalAccount" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="cd rounded-2xl w-full max-w-md border border-[#30363d] overflow-hidden">
+    <div class="p-4 border-b border-[#30363d] flex items-center justify-between">
+      <h3 class="text-sm font-bold text-white fb">จัดการยอดบัญชี Group-1 (สภาพคล่อง THB)</h3>
+      <button onclick="closeModal('modalAccount')" class="text-gray-400 hover:text-white text-lg">&times;</button>
+    </div>
+    <div class="p-5 space-y-4 text-xs">
+      <div>
+        <label class="block text-gray-400 mb-1">เลือกบัญชี</label>
+        <select id="accSelect" onchange="onAccChange()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-rose-500 focus:outline-none"></select>
+      </div>
+      <div>
+        <label class="block text-gray-400 mb-1">ยอดเงินสด (THB)</label>
+        <input type="number" step="any" id="accBalance" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn font-bold focus:border-rose-500 focus:outline-none">
+      </div>
+    </div>
+    <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
+      <button onclick="closeModal('modalAccount')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ปิด</button>
+      <button onclick="submitUpdateAccount()" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold">อัปเดต</button>
     </div>
   </div>
 </div>
@@ -267,6 +291,7 @@ function loadBootstrap(cb) {
     if (!res.ok){ if(res.error?.includes('บัตรผ่าน'))logout(); return; }
     appData = res.data;
     try { sessionStorage.setItem(SS_CACHE, JSON.stringify({ data: appData, ts: Date.now() })); } catch(e) {}
+    populateAccounts();
     renderCashflowView();
     if (cb) cb();
   });
@@ -278,7 +303,6 @@ function renderCashflowView() {
   if (!appData) return;
   const sum = appData.summary || {};
   
-  // Render Group-1 (Liquidity) เหมือนหน้า Dashboard
   document.getElementById('valG1Total').textContent   = fmtN(sum.totalGroup1THB) + ' ฿';
   document.getElementById('valCash').textContent      = fmtN(sum.cashTHB) + ' ฿';
   document.getElementById('valBank').textContent      = fmtN(sum.bankTHB) + ' ฿';
@@ -330,10 +354,38 @@ function renderCashflowView() {
 
 function openCashflowModal() {
   document.getElementById('cfDate').value = new Date().toISOString().slice(0,10);
-  document.getElementById('cfUSD').value = '';
-  document.getElementById('cfTHB').value = '';
+  document.getElementById('cfAmount').value = '';
   document.getElementById('cfNote').value = '';
+  document.getElementById('cfWallet').value = 'general';
+  document.getElementById('cfCategory').value = 'โอนเข้าลงทุน (รอซื้อ)';
+  onWalletOrCategoryChange();
   openModal('modalCashflow');
+}
+
+/* Interlock & Auto-Direction ตามกระเป๋าและหมวดหมู่ */
+function onWalletOrCategoryChange() {
+  const wallet = document.getElementById('cfWallet').value;
+  const category = document.getElementById('cfCategory').value;
+  const typeSel = document.getElementById('cfType');
+  const accountSel = document.getElementById('cfAccount');
+
+  // 1. เงื่อนไขช่องสภาพคล่อง (บัญชี Group-1): เปิดใช้เฉพาะเมื่อ Wallet = 'general'
+  if (wallet === 'general') {
+    accountSel.disabled = false;
+    accountSel.parentElement.style.opacity = '1';
+  } else {
+    accountSel.disabled = true;
+    accountSel.parentElement.style.opacity = '0.4';
+  }
+
+  // 2. พิจารณาทิศทางอัตโนมัติ
+  if (wallet.includes('div') || wallet.includes('sell')) {
+    typeSel.value = 'in';
+  } else if (category === 'โอนออกจากกระเป๋าลงทุน') {
+    typeSel.value = 'out';
+  } else {
+    typeSel.value = 'in';
+  }
 }
 
 function submitCashflow() {
@@ -341,21 +393,19 @@ function submitCashflow() {
   const type = document.getElementById('cfType').value;
   const wallet = document.getElementById('cfWallet').value;
   const category = document.getElementById('cfCategory').value;
-  const account = document.getElementById('cfAccount').value;
-  const amountUSD = Number(document.getElementById('cfUSD').value) || 0;
-  let amountTHB = Number(document.getElementById('cfTHB').value) || 0;
+  const account = (wallet === 'general') ? document.getElementById('cfAccount').value : '';
+  const amountTHB = Number(document.getElementById('cfAmount').value) || 0;
   const note = document.getElementById('cfNote').value.trim();
 
-  if (!date || (amountTHB === 0 && amountUSD === 0)) return alert('กรุณาระบุวันที่และจำนวนเงินให้ถูกต้อง');
-  if (amountTHB === 0 && amountUSD > 0) {
-    const fx = rtData?.fxRate || appData?.summary?.fxRate || 33.14;
-    amountTHB = Math.round(amountUSD * fx * 100) / 100;
-  }
+  if (!date || amountTHB <= 0) return alert('กรุณาระบุวันที่และจำนวนเงิน (฿) ให้ถูกต้อง');
+
+  const fx = rtData?.fxRate || appData?.summary?.fxRate || 33.14;
+  const amountUSD = wallet.includes('_usd') ? Math.round((amountTHB / fx) * 100) / 100 : 0;
 
   const btn = document.getElementById('btnSaveCF');
   btn.textContent = 'กำลังบันทึก...'; btn.disabled = true;
 
-  apiCall('addCashflow', { date, type, wallet, category, account, amountTHB, amount_usd: amountUSD, note }, res => {
+  apiCall('addCashflow', { date, type, wallet, category, account, ticker: '', amountTHB, amount_usd: amountUSD, note }, res => {
     btn.textContent = 'บันทึก'; btn.disabled = false;
     if (res.ok) {
       closeModal('modalCashflow');
@@ -371,6 +421,29 @@ function deleteCashflow(id) {
   if (!confirm('ยืนยันลบรายการนี้?')) return;
   apiCall('deleteCashflow', { id }, res => {
     if (res.ok) { invalidateCache(); loadBootstrap(); }
+    else alert('ผิดพลาด: '+res.error);
+  });
+}
+
+/* Group-1 Account Manager Modals */
+function populateAccounts() {
+  const sel = document.getElementById('accSelect');
+  if(!sel || !appData?.accounts) return;
+  const accs = appData.accounts.filter(a => a.currency === 'THB' && a.id !== 'A4' && a.id !== 'A5');
+  sel.innerHTML = accs.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+  onAccChange();
+}
+function onAccChange() {
+  const id = document.getElementById('accSelect').value;
+  const acc = (appData?.accounts || []).find(a => a.id === id);
+  if (acc) document.getElementById('accBalance').value = acc.openingBalance || 0;
+}
+function openAccountModal() { openModal('modalAccount'); }
+function submitUpdateAccount() {
+  const id = document.getElementById('accSelect').value;
+  const bal = Number(document.getElementById('accBalance').value);
+  apiCall('updateAccount', { id, openingBalance: bal }, res => {
+    if (res.ok) { closeModal('modalAccount'); invalidateCache(); loadBootstrap(); }
     else alert('ผิดพลาด: '+res.error);
   });
 }
