@@ -73,7 +73,7 @@
   </div>
 </header>
 
-<!-- ── MAIN ────────────────────────────────________________ -->
+<!-- ── MAIN ───────────────────────────────────────────────── -->
 <main id="printArea" class="max-w-7xl mx-auto px-4 pt-5 space-y-5">
 
   <div id="loadingBanner" class="hidden flex items-center justify-center gap-2 p-3 rounded-xl bg-blue-950/40 border border-blue-800/50 text-blue-300 text-xs">
@@ -135,7 +135,7 @@
             <th class="py-3 px-4">วันที่</th>
             <th class="py-3 px-3">ประเภท / กระเป๋า</th>
             <th class="py-3 px-3">หมวดหมู่</th>
-            <th class="py-3 px-3">บัญชี</th>
+            <th class="py-3 px-3">บัญชี / Ticker</th>
             <th class="py-3 px-3 text-right">จำนวน ($)</th>
             <th class="py-3 px-3 text-right">จำนวน (฿)</th>
             <th class="py-3 px-3">หมายเหตุ</th>
@@ -149,7 +149,7 @@
 
 </main>
 
-<!-- ── MODAL: Cashflow Minimum Input Priority (ตัดหมวดซื้อ/ขายออก) ── -->
+<!-- ── MODAL: Cashflow Minimum Input Priority ───────────────── -->
 <div id="modalCashflow" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
   <div class="cd rounded-2xl w-full max-w-md border border-[#30363d] overflow-hidden">
     <div class="p-4 border-b border-[#30363d] flex items-center justify-between">
@@ -164,7 +164,7 @@
         <input type="date" id="cfDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-rose-500 focus:outline-none">
       </div>
 
-      <!-- Priority 2: กระเป๋ากลาง + หมวดหมู่ (ไม่มีซื้อ/ขายแล้ว) -->
+      <!-- Priority 2: กระเป๋ากลาง + หมวดหมู่ -->
       <div class="grid grid-cols-2 gap-3 bg-[#0d1117]/60 p-3 rounded-xl border border-[#30363d]">
         <div>
           <label class="block text-gray-400 mb-1">2.1 กระเป๋ากลาง (Wallet)</label>
@@ -179,8 +179,8 @@
         <div>
           <label class="block text-gray-400 mb-1">2.2 หมวดหมู่</label>
           <select id="cfCategory" onchange="onWalletOrCategoryChange()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-rose-500 focus:outline-none">
+            <option value="ซื้อ/ขาย">ซื้อ / ขาย สินทรัพย์</option>
             <option value="โอนเข้าลงทุน (รอซื้อ)">โอนเข้าลงทุน (รอซื้อ)</option>
-            <option value="โอนออกจากกระเป๋าลงทุน">โอนออกจากกระเป๋าลงทุน</option>
             <option value="รับโอนปันผล">รับโอนปันผล</option>
             <option value="เงินสดค้างกระเป๋า/แลกเงิน">เงินสดค้างกระเป๋า/แลกเงิน</option>
           </select>
@@ -196,14 +196,21 @@
         </select>
       </div>
 
-      <!-- Priority 4: สภาพคล่อง Group-1 (Enable เฉพาะเมื่อ Wallet = 'general') -->
-      <div>
-        <label class="block text-gray-400 mb-1">4. สภาพคล่อง (บัญชี Group-1)</label>
-        <select id="cfAccount" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-rose-500 focus:outline-none">
-          <option>เงินสด</option>
-          <option>บัญชีธนาคาร</option>
-          <option>เงินสำรองฉุกเฉิน</option>
-        </select>
+      <!-- Priority 4: สภาพคล่อง Group-1 (Enable เฉพาะเมื่อ Wallet = 'general') และช่องเลือก Ticker (เฉพาะที่ถือครอง shares > 0) -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-gray-400 mb-1">4.1 สภาพคล่อง (บัญชี Group-1)</label>
+          <select id="cfAccount" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-rose-500 focus:outline-none">
+            <option>เงินสด</option>
+            <option>บัญชีธนาคาร</option>
+            <option>เงินสำรองฉุกเฉิน</option>
+          </select>
+        </div>
+        <div id="tickerBox" class="hidden">
+          <label class="block text-gray-400 mb-1">4.2 เลือก Ticker (ที่ถือครองอยู่)</label>
+          <input list="tickerList" id="cfTicker" placeholder="เลือกหุ้นในพอร์ต" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-rose-500 focus:outline-none uppercase">
+          <datalist id="tickerList"></datalist>
+        </div>
       </div>
 
       <div>
@@ -292,6 +299,7 @@ function loadBootstrap(cb) {
     appData = res.data;
     try { sessionStorage.setItem(SS_CACHE, JSON.stringify({ data: appData, ts: Date.now() })); } catch(e) {}
     populateAccounts();
+    populateTickers();
     renderCashflowView();
     if (cb) cb();
   });
@@ -341,7 +349,7 @@ function renderCashflowView() {
       <td class="py-3 px-4 text-gray-300">${r.date || '-'}</td>
       <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] border border-rose-500/30 text-rose-300">${r.wallet || 'general'}</span></td>
       <td class="py-3 px-3 text-white font-medium">${r.category || '-'}</td>
-      <td class="py-3 px-3 text-gray-400">${r.account || '-'}</td>
+      <td class="py-3 px-3 text-gray-400">${r.account || (r.ticker ? 'Ticker: '+r.ticker : '-')}</td>
       <td class="py-3 px-3 text-right text-indigo-300">${amtUSD ? (isIn?'+':'-')+'$'+fmtN(amtUSD) : '-'}</td>
       <td class="py-3 px-3 text-right font-bold ${isIn?'text-emerald-400':'text-rose-400'}">${isIn?'+':'-'}฿${fmtN(amtTHB)}</td>
       <td class="py-3 px-3 text-gray-400">${r.note || '-'}</td>
@@ -357,7 +365,8 @@ function openCashflowModal() {
   document.getElementById('cfAmount').value = '';
   document.getElementById('cfNote').value = '';
   document.getElementById('cfWallet').value = 'general';
-  document.getElementById('cfCategory').value = 'โอนเข้าลงทุน (รอซื้อ)';
+  document.getElementById('cfCategory').value = 'ซื้อ/ขาย';
+  document.getElementById('cfTicker').value = '';
   onWalletOrCategoryChange();
   openModal('modalCashflow');
 }
@@ -368,6 +377,7 @@ function onWalletOrCategoryChange() {
   const category = document.getElementById('cfCategory').value;
   const typeSel = document.getElementById('cfType');
   const accountSel = document.getElementById('cfAccount');
+  const tickerBox = document.getElementById('tickerBox');
 
   // 1. เงื่อนไขช่องสภาพคล่อง (บัญชี Group-1): เปิดใช้เฉพาะเมื่อ Wallet = 'general'
   if (wallet === 'general') {
@@ -378,7 +388,14 @@ function onWalletOrCategoryChange() {
     accountSel.parentElement.style.opacity = '0.4';
   }
 
-  // 2. พิจารณาทิศทางอัตโนมัติ
+  // 2. เงื่อนไขช่อง Ticker: แสดงเฉพาะเมื่อเลือกหมวดหมู่ซื้อ/ขาย
+  if (category === 'ซื้อ/ขาย') {
+    tickerBox.classList.remove('hidden');
+  } else {
+    tickerBox.classList.add('hidden');
+  }
+
+  // 3. พิจารณาทิศทางอัตโนมัติ
   if (wallet.includes('div') || wallet.includes('sell')) {
     typeSel.value = 'in';
   } else if (category === 'โอนออกจากกระเป๋าลงทุน') {
@@ -388,12 +405,32 @@ function onWalletOrCategoryChange() {
   }
 }
 
+/* เติมรายชื่อ Ticker เฉพาะที่ถือครองอยู่ปัจจุบัน (shares > 0) ทั้งหุ้นไทยและสหรัฐ */
+function populateTickers() {
+  const dl = document.getElementById('tickerList');
+  if (!dl || !appData || !appData.summary) return;
+  const set = new Set();
+  
+  // กรองเฉพาะหุ้น US ที่ถือครองอยู่ปัจจุบัน (shares > 0)
+  (appData.summary.positions || []).forEach(p => {
+    if (p.ticker && Number(p.shares) > 0) set.add(p.ticker);
+  });
+  
+  // กรองเฉพาะหุ้นไทยที่ถือครองอยู่ปัจจุบัน (shares > 0)
+  (appData.summary.thaiPositions || []).forEach(p => {
+    if (p.ticker && Number(p.shares) > 0) set.add(p.ticker);
+  });
+
+  dl.innerHTML = Array.from(set).map(tk => `<option value="${tk}">`).join('');
+}
+
 function submitCashflow() {
   const date = document.getElementById('cfDate').value;
   const type = document.getElementById('cfType').value;
   const wallet = document.getElementById('cfWallet').value;
   const category = document.getElementById('cfCategory').value;
   const account = (wallet === 'general') ? document.getElementById('cfAccount').value : '';
+  const ticker = document.getElementById('cfTicker').value.trim().toUpperCase();
   const amountTHB = Number(document.getElementById('cfAmount').value) || 0;
   const note = document.getElementById('cfNote').value.trim();
 
@@ -405,7 +442,7 @@ function submitCashflow() {
   const btn = document.getElementById('btnSaveCF');
   btn.textContent = 'กำลังบันทึก...'; btn.disabled = true;
 
-  apiCall('addCashflow', { date, type, wallet, category, account, ticker: '', amountTHB, amount_usd: amountUSD, note }, res => {
+  apiCall('addCashflow', { date, type, wallet, category, account, ticker, amountTHB, amount_usd: amountUSD, note }, res => {
     btn.textContent = 'บันทึก'; btn.disabled = false;
     if (res.ok) {
       closeModal('modalCashflow');
@@ -450,10 +487,15 @@ function submitUpdateAccount() {
 
 function exportCashflowCSV() {
   if (!appData?.cashflow) return;
-  const h = ['id','date','type','wallet','category','account','amount_usd','amount_thb','note'];
+  const h = ['id','date','type','wallet','category','account','ticker','amount_usd','amount_thb','note'];
+  // Explicit map: CSV header (snake_case) → actual object key (camelCase with abbreviations)
+  const KEY_MAP = { 'amount_usd': 'amountUSD', 'amount_thb': 'amountTHB' };
   let csv = h.join(',') + '\n';
   appData.cashflow.forEach(r => {
-    csv += h.map(k => `"${String(r[k] || r[k.replace('_','')] || '').replace(/"/g,'""')}"`).join(',') + '\n';
+    csv += h.map(k => {
+      const val = r[k] !== undefined ? r[k] : (r[KEY_MAP[k]] !== undefined ? r[KEY_MAP[k]] : '');
+      return `"${String(val).replace(/"/g,'""')}"`;
+    }).join(',') + '\n';
   });
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
