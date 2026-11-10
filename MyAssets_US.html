@@ -36,7 +36,7 @@
       main { max-width: 100% !important; padding: 0 !important; }
       .grid-cols-2 { display: flex !important; flex-direction: row !important; justify-content: space-between !important; gap: 10px !important; }
       .grid-cols-2 > div { width: 48% !important; }
-      canvas { max-width: 100% !important; height: 160px !important; margin: 0 auto !important; display: block !important; }
+      canvas { max-width: 100% !important; width: 100% !important; height: 160px !important; min-height: 160px !important; margin: 0 auto !important; display: block !important; }
     }
   </style>
 </head>
@@ -111,11 +111,11 @@
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div class="cd rounded-2xl p-4 flex flex-col items-center justify-center">
       <div class="text-xs font-bold text-gray-400 uppercase mb-3 w-full text-left">สัดส่วนตามกลุ่ม</div>
-      <div class="relative h-48 w-48 flex justify-center items-center"><canvas id="chartUSGroup"></canvas></div>
+      <div class="relative h-48 w-48 flex justify-center items-center" style="width:192px;height:192px;"><canvas id="chartUSGroup" width="192" height="192"></canvas></div>
     </div>
     <div class="cd rounded-2xl p-4 flex flex-col items-center justify-center">
       <div class="text-xs font-bold text-gray-400 uppercase mb-3 w-full text-left">สัดส่วนรายหุ้น</div>
-      <div class="relative h-48 w-48 flex justify-center items-center"><canvas id="chartUSStock"></canvas></div>
+      <div class="relative h-48 w-48 flex justify-center items-center" style="width:192px;height:192px;"><canvas id="chartUSStock" width="192" height="192"></canvas></div>
       <div id="legendUSStock" class="mt-3 grid grid-cols-2 gap-1 w-full"></div>
     </div>
   </div>
@@ -199,7 +199,7 @@
         <div><label class="block text-gray-400 mb-1">วันที่</label>
           <input type="date" id="usDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-blue-500 focus:outline-none"></div>
         <div><label class="block text-gray-400 mb-1">Ticker (เช่น AAPL)</label>
-          <input type="text" id="usTicker" placeholder="AAPL" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn uppercase focus:border-blue-500 focus:outline-none"></div>
+          <input type="text" id="usTicker" placeholder="AAPL" oninput="onUSTickerInput(this.value)" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn uppercase focus:border-blue-500 focus:outline-none"></div>
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div><label class="block text-gray-400 mb-1">จำนวนหุ้น</label>
@@ -207,14 +207,24 @@
         <div><label class="block text-gray-400 mb-1">ราคา ($/หุ้น)</label>
           <input type="number" step="any" id="usPrice" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-blue-500 focus:outline-none"></div>
       </div>
-      <div><label class="block text-gray-400 mb-1">กลุ่มหุ้น</label>
+      <div>
+        <label class="block text-gray-400 mb-1">กลุ่มหุ้น</label>
+        <!-- BUY: user selects group -->
         <select id="usGroup" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none">
           <option value="Satellite (หุ้นผันผวน)">Satellite — หุ้นผันผวน</option>
           <option value="Dividend (หุ้นปันผล)">Dividend — หุ้นปันผล</option>
           <option value="Core (หุ้นเสถียร)">Core — หุ้นเสถียร</option>
-        </select></div>
+        </select>
+        <!-- SELL: read-only from positions data -->
+        <div id="usGroupReadOnly" class="hidden w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-gray-400 fn text-xs italic">กรอก Ticker เพื่อดึงกลุ่มหุ้น</div>
+      </div>
       <div><label class="block text-gray-400 mb-1">หมายเหตุ</label>
         <input type="text" id="usNote" placeholder="รายละเอียดเพิ่มเติม" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></div>
+      <!-- Wallet auto-sync info (always ON) -->
+      <div id="usWalletSyncBadge" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#0d1117] border border-blue-500/20 text-[11px] fn text-blue-400">
+        <span class="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0"></span>
+        <span id="usWalletSyncInfo">BUY → หักจากกระเป๋า USD (sell_usd)</span>
+      </div>
     </div>
     <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
       <button onclick="closeModal('modalUSTrade')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
@@ -451,7 +461,8 @@ function printPDF(){
     margin:       5,
     filename:     `US_Stocks_${new Date().toISOString().slice(0,10)}.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#0d1117', scrollY: 0 },
+    html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#0d1117', scrollY: 0,
+                    onclone: (doc) => { doc.querySelectorAll('canvas').forEach(c => { if(!c.width||!c.height)c.remove(); }); } },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
   html2pdf().set(opt).from(element).save().then(() => {
@@ -483,6 +494,21 @@ function closeModal(id) { document.getElementById(id)?.classList.add('hidden'); 
 
 function setUSSide(side) {
   selectedUSSide = side;
+  // Switch group field: BUY = select, SELL = read-only
+  const sel = document.getElementById('usGroup');
+  const ro  = document.getElementById('usGroupReadOnly');
+  if (side === 'BUY') {
+    sel?.classList.remove('hidden'); ro?.classList.add('hidden');
+  } else {
+    sel?.classList.add('hidden'); ro?.classList.remove('hidden');
+    onUSTickerInput(document.getElementById('usTicker')?.value || '');
+  }
+  // Update wallet badge
+  const badge = document.getElementById('usWalletSyncInfo');
+  if (badge) badge.textContent = side === 'BUY'
+    ? 'BUY → หักจากกระเป๋า USD (sell_usd)'
+    : 'SELL → นำเงินเข้ากระเป๋า USD (sell_usd)';
+  // Side buttons
   document.getElementById('btnUSBUY').className  = side === 'BUY'
     ? 'flex-1 py-2 rounded-xl font-bold border border-blue-500 bg-blue-600/30 text-blue-300'
     : 'flex-1 py-2 rounded-xl font-bold border border-[#30363d] bg-[#21262d] text-gray-400';
@@ -500,7 +526,27 @@ function openUSTradeModal() {
   document.getElementById('usPrice').value  = '';
   document.getElementById('usGroup').selectedIndex = 0;
   document.getElementById('usNote').value   = '';
+  // reset group field to BUY mode
+  document.getElementById('usGroup')?.classList.remove('hidden');
+  document.getElementById('usGroupReadOnly')?.classList.add('hidden');
+  const badge = document.getElementById('usWalletSyncInfo');
+  if (badge) badge.textContent = 'BUY → หักจากกระเป๋า USD (sell_usd)';
   openModal('modalUSTrade');
+}
+
+function onUSTickerInput(val) {
+  if (selectedUSSide !== 'SELL') return;
+  const ticker = (val || '').trim().toUpperCase();
+  const ro     = document.getElementById('usGroupReadOnly');
+  if (!ro) return;
+  const pos = (appData?.summary?.positions || []).find(p => p.ticker === ticker);
+  if (pos?.group) {
+    ro.textContent  = pos.group;
+    ro.className    = 'w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-teal-300 fn text-xs font-semibold';
+  } else {
+    ro.textContent  = ticker ? ticker + ' — ไม่พบในพอร์ต' : 'กรอก Ticker เพื่อดึงกลุ่มหุ้น';
+    ro.className    = 'w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-gray-400 fn text-xs italic';
+  }
 }
 
 function submitUSTrade() {
@@ -513,12 +559,21 @@ function submitUSTrade() {
   const fx  = rtData?.fxRate || appData?.summary?.fxRate || 33.14;
   const btn = document.getElementById('btnSaveUS');
   btn.textContent = 'กำลังบันทึก...'; btn.disabled = true;
+  // Group: BUY = user-selected, SELL = from positions (read-only)
+  let group;
+  if (selectedUSSide === 'SELL') {
+    const pos = (appData?.summary?.positions || []).find(p => p.ticker === ticker);
+    group = pos?.group || '';
+  } else {
+    group = document.getElementById('usGroup').value.trim();
+  }
   apiCall('addTrade', {
     side:   selectedUSSide,
     date:   document.getElementById('usDate').value,
     ticker, shares, price, fxRate: fx,
-    group:  document.getElementById('usGroup').value.trim(),
-    note:   document.getElementById('usNote').value.trim()
+    group,
+    note:   document.getElementById('usNote').value.trim(),
+    useWallet: 'sell_usd'   // always sync กระเป๋ากลาง USD
   }, res => {
     btn.textContent = 'บันทึก'; btn.disabled = false;
     if (res.ok) {

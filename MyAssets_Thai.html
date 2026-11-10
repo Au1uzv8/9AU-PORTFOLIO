@@ -213,6 +213,18 @@
         </select></div>
       <div><label class="block text-gray-400 mb-1">หมายเหตุ</label>
         <input type="text" id="thNote" placeholder="รายละเอียดเพิ่มเติม" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-teal-500 focus:outline-none"></div>
+      <!-- Wallet sync toggle -->
+      <label id="thWalletSyncRow" class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-[#0d1117] border border-teal-500/30 cursor-pointer select-none">
+        <div>
+          <div class="text-xs font-bold text-teal-300" id="thWalletSyncLabel">หักจากกระเป๋า ฿ (sell_thb)</div>
+          <div class="text-[10px] text-gray-500 fn" id="thWalletSyncSub">BUY → หักออก &nbsp;|&nbsp; SELL → เพิ่มเข้า</div>
+        </div>
+        <div class="relative">
+          <input type="checkbox" id="thWalletSync" class="sr-only" checked>
+          <div id="thWalletSyncTrack" class="w-10 h-5 rounded-full bg-teal-600 transition-colors"></div>
+          <div id="thWalletSyncThumb" class="absolute top-0.5 left-5 w-4 h-4 rounded-full bg-white shadow transition-transform"></div>
+        </div>
+      </label>
     </div>
     <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
       <button onclick="closeModal('modalThaiTrade')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
@@ -502,6 +514,7 @@ function closeModal(id) { document.getElementById(id)?.classList.add('hidden'); 
 
 function setThaiSide(side) {
   selectedThaiSide = side;
+  updateThWalletSyncUI(side);
   document.getElementById('btnThaiBUY').className  = side === 'BUY'
     ? 'flex-1 py-2 rounded-xl font-bold border border-teal-500 bg-teal-600/30 text-teal-300'
     : 'flex-1 py-2 rounded-xl font-bold border border-[#30363d] bg-[#21262d] text-gray-400';
@@ -519,7 +532,25 @@ function openThaiTradeModal() {
   document.getElementById('thPrice').value  = '';
   document.getElementById('thGroup').selectedIndex = 0;
   document.getElementById('thNote').value   = '';
+  const cb = document.getElementById('thWalletSync');
+  if (cb) { cb.checked = true; updateThWalletSyncUI('BUY'); }
   openModal('modalThaiTrade');
+}
+
+function updateThWalletSyncUI(side) {
+  const lbl  = document.getElementById('thWalletSyncLabel');
+  const sub  = document.getElementById('thWalletSyncSub');
+  const track= document.getElementById('thWalletSyncTrack');
+  const thumb= document.getElementById('thWalletSyncThumb');
+  const cb   = document.getElementById('thWalletSync');
+  if (!lbl) return;
+  const on    = cb ? cb.checked : true;
+  const isBuy = side === 'BUY';
+  lbl.textContent  = on ? (isBuy ? 'หักจากกระเป๋า ฿ (sell_thb)' : 'โอนเข้ากระเป๋า ฿ (sell_thb)') : 'ไม่ sync กระเป๋ากลาง';
+  lbl.className    = 'text-xs font-bold ' + (on ? 'text-teal-300' : 'text-gray-500');
+  sub.textContent  = on ? (isBuy ? 'เงิน BUY จะถูกหักออกจากกระเป๋า ฿' : 'เงิน SELL จะถูกเพิ่มเข้ากระเป๋า ฿') : 'ไม่มีผลต่อกระเป๋ากลาง';
+  if (track) track.className = 'w-10 h-5 rounded-full transition-colors ' + (on ? 'bg-teal-600' : 'bg-gray-600');
+  if (thumb) thumb.className = 'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ' + (on ? 'left-5' : 'left-0.5');
 }
 
 function submitThaiTrade() {
@@ -531,12 +562,15 @@ function submitThaiTrade() {
   }
   const btn = document.getElementById('btnSaveThai');
   btn.textContent = 'กำลังบันทึก...'; btn.disabled = true;
+  const syncOn    = document.getElementById('thWalletSync')?.checked !== false;
+  const walletArg = syncOn ? { useWallet: 'sell_thb' } : { syncWallet: false };
   apiCall('addThaiTrade', {
     side:   selectedThaiSide,
     date:   document.getElementById('thDate').value,
     ticker, shares, price,
     group:  document.getElementById('thGroup').value.trim(),
-    note:   document.getElementById('thNote').value.trim()
+    note:   document.getElementById('thNote').value.trim(),
+    ...walletArg
   }, res => {
     btn.textContent = 'บันทึก'; btn.disabled = false;
     if (res.ok) {
