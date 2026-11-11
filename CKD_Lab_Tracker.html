@@ -315,7 +315,7 @@ var VKEYS=['sys','dia','pulse','wt','fluid','urine'];
 var SLOTS=[{k:'morning',th:'เช้า',en:'Morning'},{k:'noon',th:'กลางวัน',en:'Noon'},
 {k:'evening',th:'เย็น',en:'Evening'},{k:'n20',th:'20:00 น.',en:'20:00'},{k:'bed',th:'ก่อนนอน',en:'Bedtime'}];
 
-var SCENARIO_DATA=[];
+var SCENARIO_DATA=[],SHEET_SCENARIO_DATA=[];
 
 /* ========== 2. คำแนะนำ ========== */
 var ADV={
@@ -532,7 +532,7 @@ var GOOGLE_SHEET_ID='1SVhucgKI1arsTaalmwzm7YbonxCVMhiFK9aDCE3vJnc';
 var SHEET_LAB='LAB',SHEET_EGFR='eGFR_Tracker';
 var sheetReady=false;
 var APP_DATA_READY=false;
-function sheetStatus(text){var e=E('sheetStatus');if(e)e.textContent=(LANG==='th'?'Sheet: ':'Sheet: ')+text;}
+function sheetStatus(text,isWarning){var e=E('sheetStatus');if(!e)return;e.textContent=(LANG==='th'?'Sheet: ':'Sheet: ')+text;e.style.borderColor=isWarning?'var(--mag)':'var(--line)';e.style.color=isWarning?'var(--mag)':'var(--dim)';}
 function updateSheetUI(){
  var b=E('sheetSyncBtn');if(b)b.textContent=LANG==='th'?'ซิงก์ Sheet':'Sync Sheet';
 }
@@ -545,23 +545,31 @@ function setPrintReady(ready){
  b.style.cursor=ready?'pointer':'not-allowed';
  b.title=ready?'':(LANG==='th'?'กำลังเตรียมข้อมูลและกราฟ กรุณารอสักครู่':'Preparing data and charts, please wait');
 }
-function sheetUrl(name){return 'https://docs.google.com/spreadsheets/d/'+GOOGLE_SHEET_ID+'/gviz/tq?sheet='+encodeURIComponent(name)+'&tqx=out:json';}
+function sheetUrl(name,range,handler){var tqx='out:json'+(handler?';responseHandler:'+handler:'');return 'https://docs.google.com/spreadsheets/d/'+GOOGLE_SHEET_ID+'/gviz/tq?sheet='+encodeURIComponent(name)+(range?'&range='+encodeURIComponent(range):'')+'&tqx='+encodeURIComponent(tqx);}
 function cleanHeader(v){return String(v||'').toLowerCase().replace(/[\s_\-()\/\.]/g,'');}
 function cellValue(c){if(!c)return null;return c.f!==undefined&&c.f!==null?c.f:c.v;}
-function gvizRows(text){var p=text.indexOf('{'),q=text.lastIndexOf('}');if(p<0||q<p)throw new Error('Invalid Google Sheet response');var t=JSON.parse(text.slice(p,q+1)),cols=t.table&&t.table.cols||[],rows=t.table&&t.table.rows||[],head=[],out=[],i,j;
+function gvizTable(data){var t=data,p,q,cols,rows,head=[],out=[],i,j;if(typeof data==='string'){p=data.indexOf('{');q=data.lastIndexOf('}');if(p<0||q<p)throw new Error('Invalid Google Sheet response');t=JSON.parse(data.slice(p,q+1));}if(!t||t.status==='error'||!t.table)throw new Error((t&&t.errors&&t.errors[0]&&t.errors[0].detailed_message)||'Google Sheet returned no table');cols=t.table.cols||[];rows=t.table.rows||[];
  for(i=0;i<cols.length;i++)head.push(cols[i].label||cols[i].id||('column_'+i));
- for(i=0;i<rows.length;i++){var o={};for(j=0;j<head.length;j++)o[head[j]]=cellValue(rows[i].c&&rows[i].c[j]);out.push(o);}return out;}
-function dateValue(v){var s=String(v||''),m=s.match(/Date\((\d+),(\d+),(\d+)/);if(m)return m[1]+'-'+('0'+(Number(m[2])+1)).slice(-2)+'-'+('0'+m[3]).slice(-2);m=s.match(/(\d{4})[-\/]?(\d{1,2})[-\/]?(\d{1,2})/);return m?m[1]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[3]).slice(-2):'';}
+ for(i=0;i<rows.length;i++){var a=[];for(j=0;j<head.length;j++)a.push(cellValue(rows[i].c&&rows[i].c[j]));out.push(a);}return {headers:head,rows:out};}
+function gvizJsonp(name,range){return new Promise(function(resolve,reject){var cb='__ckdSheet_'+Date.now()+'_'+Math.floor(Math.random()*1000000),script=document.createElement('script'),done=false,timer;
+ function clean(){if(timer)clearTimeout(timer);try{delete window[cb];}catch(e){window[cb]=undefined;}if(script.parentNode)script.parentNode.removeChild(script);}
+ window[cb]=function(data){if(done)return;done=true;clean();resolve(data);};
+ script.async=true;script.onerror=function(){if(done)return;done=true;clean();reject(new Error(name+' script load failed'));};
+ script.src=sheetUrl(name,range,cb);document.head.appendChild(script);
+ timer=setTimeout(function(){if(done)return;done=true;clean();reject(new Error(name+' response timed out'));},15000);
+ });}
+function dateValue(v){var s=String(v||''),m=s.match(/Date\((\d+),(\d+),(\d+)/);if(m)return m[1]+'-'+('0'+(Number(m[2])+1)).slice(-2)+'-'+('0'+m[3]).slice(-2);m=s.match(/(\d{4})[-\/]?(\d{1,2})[-\/]?(\d{1,2})/);if(m)return m[1]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[3]).slice(-2);m=s.match(/(\d{1,2})[-\/]?(\d{1,2})[-\/]?(\d{4})/);if(m){var y=Number(m[3]);if(y>2400)y-=543;return y+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2);}return '';}
 function labKey(header){var h=cleanHeader(header),i,j,l;for(i=0;i<LABS.length;i++){l=LABS[i];if(cleanHeader(l.k)===h||cleanHeader(l.th)===h||cleanHeader(l.en)===h)return l.k;for(j=0;j<(l.alias||[]).length;j++)if(cleanHeader(l.alias[j])===h)return l.k;}return null;}
+function labKeyFromItem(item){var exact=labKey(item),h=cleanHeader(item),i,j,l,a;if(exact)return exact;for(i=0;i<LABS.length;i++){l=LABS[i];if(cleanHeader(l.th)&&h.indexOf(cleanHeader(l.th))>=0)return l.k;if(cleanHeader(l.en)&&h.indexOf(cleanHeader(l.en))>=0)return l.k;for(j=0;j<(l.alias||[]).length;j++){a=cleanHeader(l.alias[j]);if(a.length>2&&h.indexOf(a)>=0)return l.k;}}return null;}
 function num(v){if(typeof v==='number')return v;var n=parseFloat(String(v===null?'':v).replace(/,/g,''));return isNaN(n)?null:n;}
-function readLabRows(rows){var records=[],i,row,keys,ki,date,items,k,v;
- for(i=0;i<rows.length;i++){row=rows[i];keys=Object.keys(row);date='';items={};for(ki=0;ki<keys.length;ki++){k=keys[ki];if(/date|วันที่|วันตรวจ|วันที่ตรวจ/i.test(k)){date=dateValue(row[k]);continue;}var lk=labKey(k);v=num(row[k]);if(lk&&v!==null)items[lk]=v;}
-  if(date&&Object.keys(items).length)records.push({id:'sheet_lab_'+date+'_'+i,date:date,dept:'med',note:'Google Sheet: '+SHEET_LAB,items:items});
- }return records;}
-function readScenarioRows(rows){var out=[],i,row,keys,ki,k,date,x;for(i=0;i<rows.length;i++){row=rows[i];keys=Object.keys(row);date='';x={};for(ki=0;ki<keys.length;ki++){k=keys[ki];if(/date|วันที่|month|เดือน/i.test(k))date=dateValue(row[k])||String(row[k]||'');else if(/actual|จริง/i.test(k))x.actual=num(row[k]);else if(/stable|best|ดี/i.test(k))x.stable=num(row[k]);else if(/trend|current|แนวโน้ม/i.test(k))x.trend=num(row[k]);else if(/worst|low|แย่/i.test(k))x.low=num(row[k]);else if(/high|upper/i.test(k))x.high=num(row[k]);}if(date&&(x.actual!==undefined||x.stable!==undefined||x.trend!==undefined||x.low!==undefined))out.push({date:date,actual:x.actual,stable:x.stable,trend:x.trend,low:x.low,high:x.high});}return out;}
+function readLabRows(table){var records=[],byDate={},activeDate='',i,row,date,key,value,order;
+ for(i=0;i<table.rows.length;i++){row=table.rows[i];date=dateValue(row[0]);order=Number(row[1]);if(date)activeDate=date;if(!activeDate||(!order&&row[2]===null))continue;key=labKeyFromItem(row[2]);value=num(row[4]);if(!key)continue;if(!byDate[activeDate])byDate[activeDate]={id:'sheet_lab_'+activeDate,date:activeDate,dept:'med',note:'Google Sheet: '+SHEET_LAB,items:{}};if(value!==null)byDate[activeDate].items[key]=value;}
+ Object.keys(byDate).sort().forEach(function(d){if(Object.keys(byDate[d].items).length)records.push(byDate[d]);});return records;}
+function readScenarioRows(table){var out=[],i,row,date,actual,best,worst;
+ for(i=0;i<table.rows.length;i++){row=table.rows[i];date=dateValue(row[0])||String(row[0]||'').trim();actual=num(row[1]);best=num(row[2]);worst=num(row[3]);if(date&&(actual!==null||best!==null||worst!==null))out.push({date:date,actual:actual,stable:best,low:worst});}return out;}
 function startSheetSync(){
  sheetStatus(LANG==='th'?'กำลังอ่านข้อมูล':'loading');
- Promise.all([fetch(sheetUrl(SHEET_LAB)).then(function(r){if(!r.ok)throw new Error('LAB unavailable');return r.text();}),fetch(sheetUrl(SHEET_EGFR)).then(function(r){if(!r.ok)throw new Error('eGFR_Tracker unavailable');return r.text();})]).then(function(result){var records=readLabRows(gvizRows(result[0])),scenarios=readScenarioRows(gvizRows(result[1]));if(records.length)DB.records=records;if(scenarios.length)SCENARIO_DATA=scenarios;try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}sheetReady=true;renderAll();sheetStatus(LANG==='th'?'อ่านข้อมูลจาก Google Sheet แล้ว':'Google Sheet loaded');setPrintReady(true);})['catch'](function(){sheetStatus(LANG==='th'?'อ่าน Sheet ไม่สำเร็จ · กำลังใช้ข้อมูลสำรองในเครื่อง':'Sheet unavailable · using local fallback');sheetReady=true;renderAll();setPrintReady(true);});
+ Promise.all([gvizJsonp(SHEET_LAB,'A1:I1000'),gvizJsonp(SHEET_EGFR,'G2:J1000')]).then(function(result){var records=readLabRows(gvizTable(result[0])),scenarios=readScenarioRows(gvizTable(result[1]));if(!records.length)throw new Error('LAB has no valid dated records');DB.records=records;if(scenarios.length)SHEET_SCENARIO_DATA=scenarios;try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}sheetReady=true;renderAll();sheetStatus((LANG==='th'?'ข้อมูล Google Sheet ล่าสุด: ':'Google Sheet latest: ')+dTxt(records[records.length-1].date),false);setPrintReady(true);})['catch'](function(){var fallback=last('med');sheetStatus((LANG==='th'?'เชื่อมต่อไม่สำเร็จ · ข้อมูลสำรอง ณ ':'Connection failed · cached data dated ')+(fallback&&fallback.date?dTxt(fallback.date):(LANG==='th'?'ไม่พบข้อมูล':'not available')),true);sheetReady=true;renderAll();setPrintReady(true);});
 }
 function syncSheetNow(){startSheetSync();}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}}
@@ -573,7 +581,7 @@ function days(){return DB.daily.slice().sort(byDate);}
 function last(dp){var r=recs(dp);return r.length?r[r.length-1]:null;}
 function prevR(dp){var r=recs(dp);return r.length>1?r[r.length-2]:null;}
 function lastDay(){var d=days();return d.length?d[d.length-1]:null;}
-function latestCareDate(){var rows=(DB.encounters||[]).concat(DB.events||[]),date='';for(var i=0;i<rows.length;i++)if(rows[i].date&&rows[i].date>date)date=rows[i].date;return date;}
+function latestCareDate(){var rows=(DB.records||[]).concat(DB.encounters||[]).concat(DB.events||[]),date='';for(var i=0;i<rows.length;i++)if(rows[i].date&&rows[i].date>date)date=rows[i].date;return date;}
 function medsOf(dp){var o=[],j;for(j=0;j<DB.meds.length;j++){if(dp==='any'||(dp?DB.meds[j].dept===dp:inDept(DB.meds[j])))o.push(DB.meds[j]);}return o;}
 
 /* ========== 5. ยูทิลิตี ========== */
@@ -920,16 +928,15 @@ function renderDash(){
  show('cOverviewNote',isAll);
 
  if(!isEye){
-  SCENARIO_DATA=buildScenarioData();
+  SCENARIO_DATA=SHEET_SCENARIO_DATA.length?SHEET_SCENARIO_DATA:buildScenarioData();
   var scLabels=SCENARIO_DATA.map(function(it){return it.date.indexOf('Projection')===0?it.date:dShort(it.date);});
   drawChart(E('cScenario'),{
    labels:scLabels,
    bands:[{from:0,to:15,color:'rgba(255,77,210,.12)',label:'G5'},{from:15,to:30,color:'rgba(255,215,94,.07)',label:'G4'}],
    range:{low:SCENARIO_DATA.map(function(it){return it.low===undefined?null:it.low;}),high:SCENARIO_DATA.map(function(it){return it.high===undefined?null:it.high;}),color:'rgba(255,77,210,.07)'},
    series:[{name:'Actual (ค่าจริง)',color:'#4DE8FF',dec:2,radius:5,data:SCENARIO_DATA.map(function(it){return it.actual;})},
-    {name:'ทรงตัว / Stable',color:'#B6FF3C',dec:2,width:2,dash:[2,5],data:SCENARIO_DATA.map(function(it){return it.stable===undefined?null:it.stable;})},
-    {name:'แนวโน้มปัจจุบัน',color:'#4DE8FF',dec:2,width:2,dash:[7,5],data:SCENARIO_DATA.map(function(it){return it.trend===undefined?null:it.trend;})},
-    {name:'ช่วงประมาณการ',color:'#FF4DD2',dec:2,width:2,dash:[3,5],data:SCENARIO_DATA.map(function(it){return it.low===undefined?null:it.low;})}]});
+    {name:'Best Case',color:'#B6FF3C',dec:2,width:2,dash:[2,5],data:SCENARIO_DATA.map(function(it){return it.stable===undefined?null:it.stable;})},
+    {name:'Worst Case',color:'#FF4DD2',dec:2,width:2,dash:[3,5],data:SCENARIO_DATA.map(function(it){return it.low===undefined?null:it.low;})}]});
   }
  renderAppointment();renderKidneyRisk();renderEventSummary();
 
