@@ -101,8 +101,8 @@
 
   <!-- WALLET CARDS — 2 merged cards (USD / ฿) -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-    <!-- กระเป๋า USD -->
-    <div class="cd rounded-2xl p-4 border-l-4 border-l-blue-500">
+    <!-- กระเป๋า USD (double-click เพื่อปรับยอด manual) -->
+    <div class="cd rounded-2xl p-4 border-l-4 border-l-blue-500 cursor-pointer select-none" title="ดับเบิลคลิกเพื่อปรับยอด Manual" ondblclick="openWalletAdjust('usd')">
       <div class="flex items-center justify-between mb-2">
         <div class="text-xs font-bold text-blue-400 uppercase tracking-wider">กระเป๋า USD</div>
         <span class="text-[10px] text-gray-500 fn" id="wUSDRate">FX: --.--</span>
@@ -120,8 +120,8 @@
         </div>
       </div>
     </div>
-    <!-- กระเป๋า ฿ -->
-    <div class="cd rounded-2xl p-4 border-l-4 border-l-teal-500">
+    <!-- กระเป๋า ฿ (double-click เพื่อปรับยอด manual) -->
+    <div class="cd rounded-2xl p-4 border-l-4 border-l-teal-500 cursor-pointer select-none" title="ดับเบิลคลิกเพื่อปรับยอด Manual" ondblclick="openWalletAdjust('thb')">
       <div class="flex items-center justify-between mb-2">
         <div class="text-xs font-bold text-teal-400 uppercase tracking-wider">กระเป๋า ฿</div>
         <span class="text-[10px] text-gray-500 fn">THB</span>
@@ -253,6 +253,44 @@
 </div>
 
 
+<!-- ── MODAL: ปรับยอดกระเป๋า Manual ─────────────────────────── -->
+<div id="modalWalletAdjust" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="cd rounded-2xl w-full max-w-xs border border-[#30363d] overflow-hidden">
+    <div class="p-4 border-b border-[#30363d] flex items-center justify-between">
+      <h3 class="text-sm font-bold text-white fb">ปรับยอด Manual — <span id="adjWalletLabel">กระเป๋า USD</span></h3>
+      <button onclick="closeModal('modalWalletAdjust')" class="text-gray-400 hover:text-white text-lg">&times;</button>
+    </div>
+    <div class="p-5 space-y-4 text-xs">
+      <div class="px-3 py-2 rounded-xl bg-amber-900/20 border border-amber-500/30 text-amber-300 text-[11px]">
+        สร้าง record ปรับยอดใน CASHFLOW Sheet — ใช้สำหรับ Reset / แก้ไขปัญหาข้อมูล
+      </div>
+      <div>
+        <label class="block text-gray-400 mb-1">วันที่</label>
+        <input type="date" id="adjDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-amber-500 focus:outline-none">
+      </div>
+      <div>
+        <label class="block text-gray-400 mb-1">ทิศทาง</label>
+        <div class="flex gap-2">
+          <button onclick="setAdjType('in')"  id="btnAdjIn"  class="flex-1 py-2 rounded-xl font-bold border border-emerald-500 bg-emerald-600/30 text-emerald-300 text-xs">รับเข้า (+)</button>
+          <button onclick="setAdjType('out')" id="btnAdjOut" class="flex-1 py-2 rounded-xl font-bold border border-[#30363d] bg-[#21262d] text-gray-400 text-xs">จ่ายออก (-)</button>
+        </div>
+      </div>
+      <div>
+        <label class="block text-gray-400 mb-1" id="adjAmtLabel">จำนวน ($)</label>
+        <input type="number" step="any" id="adjAmount" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn font-bold focus:border-amber-500 focus:outline-none">
+      </div>
+      <div>
+        <label class="block text-gray-400 mb-1">หมายเหตุ</label>
+        <input type="text" id="adjNote" placeholder="เหตุผลในการปรับยอด" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-amber-500 focus:outline-none">
+      </div>
+    </div>
+    <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
+      <button onclick="closeModal('modalWalletAdjust')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
+      <button onclick="submitWalletAdjust()" id="btnSaveAdj" class="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold">บันทึก</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── MODAL: แลกเปลี่ยนสกุลเงิน ─────────────────────────── -->
 <div id="modalTransfer" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
   <div class="cd rounded-2xl w-full max-w-sm border border-[#30363d] overflow-hidden">
@@ -289,8 +327,11 @@
           </div>
         </div>
       </div>
-      <!-- Arrow -->
-      <div class="text-center text-indigo-400 text-lg">↓</div>
+      <!-- Direction + Swap -->
+      <div class="flex items-center justify-center gap-3">
+        <div class="text-xs fn font-bold text-indigo-300" id="trDirectionLabel">฿ → $</div>
+        <button onclick="swapTransferWallets()" class="px-3 py-1 rounded-lg bg-indigo-700/40 border border-indigo-500/50 text-indigo-300 hover:bg-indigo-600 text-xs font-bold transition">⇄ สลับทิศทาง</button>
+      </div>
       <!-- To -->
       <div class="p-3 rounded-xl bg-[#0d1117] border border-emerald-500/30">
         <label class="block text-gray-400 mb-2 font-semibold text-emerald-400">รับเข้าที่</label>
@@ -510,6 +551,58 @@ function onWalletOrCategoryChange() {
 }
 
 
+
+/* ── Wallet Manual Adjust ─────────────────────────────────────── */
+let _adjWallet = 'usd', _adjType = 'in';
+
+function openWalletAdjust(walletUI) {
+  _adjWallet = walletUI;
+  _adjType   = 'in';
+  document.getElementById('adjDate').value   = new Date().toISOString().slice(0,10);
+  document.getElementById('adjAmount').value = '';
+  document.getElementById('adjNote').value   = '';
+  document.getElementById('adjWalletLabel').textContent = walletUI === 'usd' ? 'กระเป๋า USD' : 'กระเป๋า ฿';
+  document.getElementById('adjAmtLabel').textContent    = walletUI === 'usd' ? 'จำนวน ($)' : 'จำนวน (฿)';
+  setAdjType('in');
+  openModal('modalWalletAdjust');
+}
+
+function setAdjType(t) {
+  _adjType = t;
+  document.getElementById('btnAdjIn').className  = t === 'in'
+    ? 'flex-1 py-2 rounded-xl font-bold border border-emerald-500 bg-emerald-600/30 text-emerald-300 text-xs'
+    : 'flex-1 py-2 rounded-xl font-bold border border-[#30363d] bg-[#21262d] text-gray-400 text-xs';
+  document.getElementById('btnAdjOut').className = t === 'out'
+    ? 'flex-1 py-2 rounded-xl font-bold border border-rose-500 bg-rose-600/30 text-rose-300 text-xs'
+    : 'flex-1 py-2 rounded-xl font-bold border border-[#30363d] bg-[#21262d] text-gray-400 text-xs';
+}
+
+function submitWalletAdjust() {
+  const date   = document.getElementById('adjDate').value;
+  const amount = Number(document.getElementById('adjAmount').value) || 0;
+  const note   = document.getElementById('adjNote').value.trim() || 'ปรับยอด Manual';
+  if (!date || amount <= 0) return alert('กรุณาระบุวันที่และจำนวนเงิน');
+
+  const btn = document.getElementById('btnSaveAdj');
+  btn.textContent = 'กำลังบันทึก...'; btn.disabled = true;
+
+  const payload = {
+    date, type: _adjType,
+    wallet:     _adjWallet === 'usd' ? 'sell_usd' : 'sell_thb',
+    category:   'ปรับยอด Manual',
+    amountUSD:  _adjWallet === 'usd' ? amount : 0,
+    amountTHB:  _adjWallet === 'thb' ? amount : 0,
+    amount_usd: _adjWallet === 'usd' ? amount : 0,
+    amount_thb: _adjWallet === 'thb' ? amount : 0,
+    note
+  };
+  apiCall('addCashflow', payload, res => {
+    btn.textContent = 'บันทึก'; btn.disabled = false;
+    if (res.ok) { closeModal('modalWalletAdjust'); invalidateCache(); loadBootstrap(); }
+    else alert('ผิดพลาด: ' + res.error);
+  });
+}
+
 /* ── Transfer Modal ───────────────────────────────────────────── */
 function openTransferModal() {
   const fx = rtData?.fxRate || appData?.summary?.fxRate || 33.14;
@@ -525,10 +618,26 @@ function openTransferModal() {
 }
 
 function updateTransferLabels() {
-  const from  = document.getElementById('trFromWallet').value;
-  const to    = document.getElementById('trToWallet').value;
+  const from = document.getElementById('trFromWallet').value;
+  const to   = document.getElementById('trToWallet').value;
   document.getElementById('trFromLabel').textContent = from === 'usd' ? 'จำนวน ($)' : 'จำนวน (฿)';
   document.getElementById('trToLabel').textContent   = to   === 'usd' ? 'จำนวน ($)' : 'จำนวน (฿)';
+  const dirEl = document.getElementById('trDirectionLabel');
+  if (dirEl) dirEl.textContent = `${from==='usd'?'$':'฿'} → ${to==='usd'?'$':'฿'}`;
+}
+
+function swapTransferWallets() {
+  const fromSel = document.getElementById('trFromWallet');
+  const toSel   = document.getElementById('trToWallet');
+  const tmp = fromSel.value;
+  fromSel.value = toSel.value;
+  toSel.value   = tmp;
+  updateTransferLabels();
+  // Recalculate amounts
+  const fromAmt = Number(document.getElementById('trFromAmt').value) || 0;
+  const toAmt   = Number(document.getElementById('trToAmt').value)   || 0;
+  if (fromAmt > 0) onTransferAmtInput('from');
+  else if (toAmt > 0) onTransferAmtInput('to');
 }
 
 function onTransferChange(which) {
@@ -586,28 +695,29 @@ function submitTransfer() {
   const btn = document.getElementById('btnSaveTransfer');
   btn.textContent = 'กำลังโอน...'; btn.disabled = true;
 
+  const dirTxt = `${fromW==='usd'?'$':'฿'} → ${toW==='usd'?'$':'฿'} (FX ${fmtN(fx,2)})`;
   // Record 1: จ่ายออกจาก source wallet
   const rec1 = {
     date, type: 'out',
-    wallet:    fromW === 'usd' ? 'sell_usd' : 'sell_thb',
+    wallet:     fromW === 'usd' ? 'sell_usd' : 'sell_thb',
     category:  'แลกเปลี่ยนสกุลเงิน',
-    amountUSD: fromW === 'usd' ? fromAmt : 0,
-    amountTHB: fromW === 'thb' ? fromAmt : Math.round(fromAmt * fx * 100) / 100,
+    amountUSD:  fromW === 'usd' ? fromAmt : 0,
+    amountTHB:  fromW === 'thb' ? fromAmt : 0,
     amount_usd: fromW === 'usd' ? fromAmt : 0,
-    amount_thb: fromW === 'thb' ? fromAmt : Math.round(fromAmt * fx * 100) / 100,
-    note: note || `แลกเงิน → ${toW.toUpperCase()} (FX ${fmtN(fx,2)})`
+    amount_thb: fromW === 'thb' ? fromAmt : 0,
+    note: note || `จ่ายออก ${dirTxt}`
   };
 
   // Record 2: รับเข้าที่ destination wallet
   const rec2 = {
     date, type: 'in',
-    wallet:    toW === 'usd' ? 'sell_usd' : 'sell_thb',
+    wallet:     toW === 'usd' ? 'sell_usd' : 'sell_thb',
     category:  'แลกเปลี่ยนสกุลเงิน',
-    amountUSD: toW === 'usd' ? toAmt : 0,
-    amountTHB: toW === 'thb' ? toAmt : Math.round(toAmt * fx * 100) / 100,
+    amountUSD:  toW === 'usd' ? toAmt : 0,
+    amountTHB:  toW === 'thb' ? toAmt : 0,
     amount_usd: toW === 'usd' ? toAmt : 0,
-    amount_thb: toW === 'thb' ? toAmt : Math.round(toAmt * fx * 100) / 100,
-    note: note || `รับเงิน จาก ${fromW.toUpperCase()} (FX ${fmtN(fx,2)})`
+    amount_thb: toW === 'thb' ? toAmt : 0,
+    note: note || `รับเข้า ${dirTxt}`
   };
 
   // 2 sequential calls

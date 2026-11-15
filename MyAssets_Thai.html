@@ -197,7 +197,7 @@
         <div><label class="block text-gray-400 mb-1">วันที่</label>
           <input type="date" id="thDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-teal-500 focus:outline-none"></div>
         <div><label class="block text-gray-400 mb-1">Ticker (เช่น BKK:AOT)</label>
-          <input type="text" id="thTicker" placeholder="BKK:AOT" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn uppercase focus:border-teal-500 focus:outline-none"></div>
+          <input type="text" id="thTicker" placeholder="BKK:AOT" oninput="onThTickerInput(this.value)" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn uppercase focus:border-teal-500 focus:outline-none"></div>
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div><label class="block text-gray-400 mb-1">จำนวนหุ้น</label>
@@ -205,26 +205,22 @@
         <div><label class="block text-gray-400 mb-1">ราคา (฿/หุ้น)</label>
           <input type="number" step="any" id="thPrice" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-teal-500 focus:outline-none"></div>
       </div>
-      <div><label class="block text-gray-400 mb-1">กลุ่มหุ้น</label>
+      <div>
+        <label class="block text-gray-400 mb-1">กลุ่มหุ้น</label>
         <select id="thGroup" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-teal-500 focus:outline-none">
           <option value="Satellite (หุ้นผันผวน)">Satellite — หุ้นผันผวน</option>
           <option value="Dividend (หุ้นปันผล)">Dividend — หุ้นปันผล</option>
           <option value="Core (หุ้นเสถียร)">Core — หุ้นเสถียร</option>
-        </select></div>
+        </select>
+        <div id="thGroupReadOnly" class="hidden w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-gray-400 fn text-xs italic">กรอก Ticker เพื่อดึงกลุ่มหุ้น</div>
+      </div>
       <div><label class="block text-gray-400 mb-1">หมายเหตุ</label>
         <input type="text" id="thNote" placeholder="รายละเอียดเพิ่มเติม" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-teal-500 focus:outline-none"></div>
-      <!-- Wallet sync toggle -->
-      <label id="thWalletSyncRow" class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-[#0d1117] border border-teal-500/30 cursor-pointer select-none">
-        <div>
-          <div class="text-xs font-bold text-teal-300" id="thWalletSyncLabel">หักจากกระเป๋า ฿ (sell_thb)</div>
-          <div class="text-[10px] text-gray-500 fn" id="thWalletSyncSub">BUY → หักออก &nbsp;|&nbsp; SELL → เพิ่มเข้า</div>
-        </div>
-        <div class="relative">
-          <input type="checkbox" id="thWalletSync" class="sr-only" checked>
-          <div id="thWalletSyncTrack" class="w-10 h-5 rounded-full bg-teal-600 transition-colors"></div>
-          <div id="thWalletSyncThumb" class="absolute top-0.5 left-5 w-4 h-4 rounded-full bg-white shadow transition-transform"></div>
-        </div>
-      </label>
+      <!-- Wallet auto-sync info (always ON) -->
+      <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#0d1117] border border-teal-500/20 text-[11px] fn text-teal-400">
+        <span class="w-1.5 h-1.5 rounded-full bg-teal-400 flex-shrink-0"></span>
+        <span id="thWalletSyncInfo">BUY → หักจากกระเป๋า ฿ (sell_thb)</span>
+      </div>
     </div>
     <div class="p-4 border-t border-[#30363d] flex justify-end gap-2 bg-[#161b22]">
       <button onclick="closeModal('modalThaiTrade')" class="px-4 py-2 rounded-xl text-gray-400 hover:text-white">ยกเลิก</button>
@@ -514,7 +510,21 @@ function closeModal(id) { document.getElementById(id)?.classList.add('hidden'); 
 
 function setThaiSide(side) {
   selectedThaiSide = side;
-  updateThWalletSyncUI(side);
+  // Switch group field: BUY = select, SELL = read-only
+  const sel = document.getElementById('thGroup');
+  const ro  = document.getElementById('thGroupReadOnly');
+  if (side === 'BUY') {
+    sel?.classList.remove('hidden'); ro?.classList.add('hidden');
+  } else {
+    sel?.classList.add('hidden'); ro?.classList.remove('hidden');
+    onThTickerInput(document.getElementById('thTicker')?.value || '');
+  }
+  // Badge update
+  const badge = document.getElementById('thWalletSyncInfo');
+  if (badge) badge.textContent = side === 'BUY'
+    ? 'BUY → หักจากกระเป๋า ฿ (sell_thb)'
+    : 'SELL → นำเงินเข้ากระเป๋า ฿ (sell_thb)';
+  // Side buttons
   document.getElementById('btnThaiBUY').className  = side === 'BUY'
     ? 'flex-1 py-2 rounded-xl font-bold border border-teal-500 bg-teal-600/30 text-teal-300'
     : 'flex-1 py-2 rounded-xl font-bold border border-[#30363d] bg-[#21262d] text-gray-400';
@@ -532,25 +542,27 @@ function openThaiTradeModal() {
   document.getElementById('thPrice').value  = '';
   document.getElementById('thGroup').selectedIndex = 0;
   document.getElementById('thNote').value   = '';
-  const cb = document.getElementById('thWalletSync');
-  if (cb) { cb.checked = true; updateThWalletSyncUI('BUY'); }
+  // reset group field to BUY mode
+  document.getElementById('thGroup')?.classList.remove('hidden');
+  document.getElementById('thGroupReadOnly')?.classList.add('hidden');
+  const badge = document.getElementById('thWalletSyncInfo');
+  if (badge) badge.textContent = 'BUY → หักจากกระเป๋า ฿ (sell_thb)';
   openModal('modalThaiTrade');
 }
 
-function updateThWalletSyncUI(side) {
-  const lbl  = document.getElementById('thWalletSyncLabel');
-  const sub  = document.getElementById('thWalletSyncSub');
-  const track= document.getElementById('thWalletSyncTrack');
-  const thumb= document.getElementById('thWalletSyncThumb');
-  const cb   = document.getElementById('thWalletSync');
-  if (!lbl) return;
-  const on    = cb ? cb.checked : true;
-  const isBuy = side === 'BUY';
-  lbl.textContent  = on ? (isBuy ? 'หักจากกระเป๋า ฿ (sell_thb)' : 'โอนเข้ากระเป๋า ฿ (sell_thb)') : 'ไม่ sync กระเป๋ากลาง';
-  lbl.className    = 'text-xs font-bold ' + (on ? 'text-teal-300' : 'text-gray-500');
-  sub.textContent  = on ? (isBuy ? 'เงิน BUY จะถูกหักออกจากกระเป๋า ฿' : 'เงิน SELL จะถูกเพิ่มเข้ากระเป๋า ฿') : 'ไม่มีผลต่อกระเป๋ากลาง';
-  if (track) track.className = 'w-10 h-5 rounded-full transition-colors ' + (on ? 'bg-teal-600' : 'bg-gray-600');
-  if (thumb) thumb.className = 'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ' + (on ? 'left-5' : 'left-0.5');
+function onThTickerInput(val) {
+  if (selectedThaiSide !== 'SELL') return;
+  const ticker = (val || '').trim().toUpperCase();
+  const ro     = document.getElementById('thGroupReadOnly');
+  if (!ro) return;
+  const pos = (appData?.summary?.thaiPositions || []).find(p => p.ticker === ticker);
+  if (pos?.group) {
+    ro.textContent = pos.group;
+    ro.className   = 'w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-teal-300 fn text-xs font-semibold';
+  } else {
+    ro.textContent = ticker ? ticker + ' — ไม่พบในพอร์ต' : 'กรอก Ticker เพื่อดึงกลุ่มหุ้น';
+    ro.className   = 'w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-gray-400 fn text-xs italic';
+  }
 }
 
 function submitThaiTrade() {
@@ -562,15 +574,21 @@ function submitThaiTrade() {
   }
   const btn = document.getElementById('btnSaveThai');
   btn.textContent = 'กำลังบันทึก...'; btn.disabled = true;
-  const syncOn    = document.getElementById('thWalletSync')?.checked !== false;
-  const walletArg = syncOn ? { useWallet: 'sell_thb' } : { syncWallet: false };
+  // Group: BUY = user-selected, SELL = from thaiPositions (read-only)
+  let group;
+  if (selectedThaiSide === 'SELL') {
+    const pos = (appData?.summary?.thaiPositions || []).find(p => p.ticker === ticker);
+    group = pos?.group || '';
+  } else {
+    group = document.getElementById('thGroup').value.trim();
+  }
   apiCall('addThaiTrade', {
     side:   selectedThaiSide,
     date:   document.getElementById('thDate').value,
     ticker, shares, price,
-    group:  document.getElementById('thGroup').value.trim(),
+    group,
     note:   document.getElementById('thNote').value.trim(),
-    ...walletArg
+    useWallet: 'sell_thb'   // always sync กระเป๋ากลาง ฿
   }, res => {
     btn.textContent = 'บันทึก'; btn.disabled = false;
     if (res.ok) {
