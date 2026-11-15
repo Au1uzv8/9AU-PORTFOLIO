@@ -156,6 +156,7 @@
       <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
         <div class="text-[11px] text-gray-400">ต้นทุนรวมสุทธิ</div>
         <div class="text-lg font-bold text-white fn mt-1" id="valNwCost">0.00 ฿</div>
+        <div class="text-xs text-gray-400 fn">≈ $ <span id="valNwCostUSD">0.00</span> USD</div>
       </div>
       <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
         <div class="text-[11px] text-gray-400">มูลค่าปัจจุบัน</div>
@@ -165,6 +166,7 @@
       <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
         <div class="text-[11px] text-gray-400 mb-1 flex justify-between">กำไร/ขาดทุนสุทธิ <span id="nwPnlPct" class="fn text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-300">0.00%</span></div>
         <div class="text-lg font-bold fn mt-1" id="valNwPnl">0.00 ฿</div>
+        <div class="text-xs fn" id="valNwPnlUSD">≈ $ 0.00 USD</div>
       </div>
     </div>
   </div>
@@ -599,12 +601,15 @@ function renderDashboard() {
 
   setText('valNetWorthTHB', fmtN(nw)+' ฿');
   setText('valNetWorthUSD', fmtN(nw/fx));
-  setText('valNwCost', fmtN(totalCostNw)+' ฿');
+  setText('valNwCost',    fmtN(totalCostNw)+' ฿');
+  setText('valNwCostUSD', fmtN(totalCostNw/fx));
 
   const pnlNwEl = document.getElementById('valNwPnl');
   const pctNwEl = document.getElementById('nwPnlPct');
   if (pnlNwEl) { pnlNwEl.textContent=(nwPnl>=0?'+':'')+fmtN(nwPnl)+' ฿'; pnlNwEl.className='text-lg font-bold fn mt-1 '+(nwPnl>=0?'text-emerald-400':'text-rose-400'); }
   if (pctNwEl) { pctNwEl.textContent=(nwPct>=0?'+':'')+fmtN(nwPct,2)+'%'; pctNwEl.className='fn text-[10px] px-1.5 py-0.5 rounded '+(nwPct>=0?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'); }
+  const pnlUsdEl = document.getElementById('valNwPnlUSD');
+  if (pnlUsdEl) { pnlUsdEl.textContent='≈ $'+(nwPnl>=0?'+':'')+fmtN(nwPnl/fx)+' USD'; pnlUsdEl.className='text-xs fn '+(nwPnl>=0?'text-emerald-400':'text-rose-400'); }
 
   renderAllocPie(sum, usMarketTHB, fxEqUSD*fx, fx);
   renderForexChart(terms);
@@ -615,10 +620,31 @@ function renderDashboard() {
   renderRiskMonitor(sum);
 }
 
+function isMarketOpen() {
+  // Bangkok time = UTC+7
+  const bkk  = new Date(Date.now() + 7 * 3600 * 1000);
+  const day  = bkk.getUTCDay();   // 0=Sun, 6=Sat
+  const h    = bkk.getUTCHours();
+  const m    = bkk.getUTCMinutes();
+  const mins = h * 60 + m;
+  if (day === 0 || day === 6) return false;                        // Weekend
+  const thaiOpen  = isTrue(10 * 60 <= mins && mins <= 16 * 60 + 30);    // 10:00–16:30
+  const usOpen    = isTrue(mins >= 20 * 60 + 30 || mins <= 4 * 60);     // 20:30–04:00
+  return thaiOpen || usOpen;
+  function isTrue(v) { return v; }
+}
+
 function renderRiskMonitor(sum) {
   const panel = document.getElementById('riskMonitor');
   const body  = document.getElementById('riskMonitorBody');
   if (!panel || !body) return;
+
+  // Pause mode: weekend or outside trading hours
+  if (!isMarketOpen()) {
+    panel.classList.remove('hidden');
+    body.innerHTML = '<span class="text-xs text-gray-500 fn">ตลาดปิด — Risk Monitor หยุดทำงานชั่วคราว (เปิดทำการ: หุ้นไทย 10:00–16:30 / หุ้นสหรัฐ 20:30–04:00 น. วันจันทร์–ศุกร์)</span>';
+    return;
+  }
 
   const items = [];
   (sum.positions || []).forEach(function(p) {

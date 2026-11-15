@@ -407,18 +407,25 @@ function renderUSLogs(){
   if(q)list=list.filter(t=>(t.ticker||'').toUpperCase().includes(q));
   const tbody=document.getElementById('usLogsBody');
   if(!list.length){tbody.innerHTML=`<tr><td colspan="9" class="py-6 text-center text-gray-500">ไม่พบรายการ</td></tr>`;return;}
-  tbody.innerHTML=list.map(t=>`
-    <tr class="hover:bg-[#1c2128]">
-      <td class="py-3 px-4 text-gray-300">${t.date}</td>
-      <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] border border-blue-500/30 text-blue-300">${t.side}</span></td>
+  tbody.innerHTML=list.map(t=>{
+    const isBuy = t.side === 'BUY';
+    const rowBg  = isBuy ? 'bg-blue-950/20 hover:bg-blue-950/30' : 'bg-rose-950/15 hover:bg-rose-950/25';
+    const badgeCls = isBuy
+      ? 'px-2 py-0.5 rounded text-[10px] font-bold border border-blue-500/40 bg-blue-900/30 text-blue-300'
+      : 'px-2 py-0.5 rounded text-[10px] font-bold border border-rose-500/40 bg-rose-900/30 text-rose-300';
+    return `
+    <tr class="${rowBg} transition">
+      <td class="py-3 px-4 text-gray-300 fn text-[11px]">${String(t.date||'').slice(0,10)}</td>
+      <td class="py-3 px-3"><span class="${badgeCls}">${t.side}</span></td>
       <td class="py-3 px-3 font-bold text-white">${t.ticker}</td>
-      <td class="py-3 px-3 text-right text-gray-200">${fmtN(t.shares,4)}</td>
-      <td class="py-3 px-3 text-right text-gray-300">$${fmtN(t.price)}</td>
-      <td class="py-3 px-3 text-right text-gray-400">$${fmtN(t.totalFee)}</td>
-      <td class="py-3 px-3 text-right text-gray-300">${fmtN(t.fxRate,2)}</td>
-      <td class="py-3 px-3 text-right font-semibold text-white">$${fmtN(t.netUSD)}</td>
-      <td class="no-print py-3 px-4 text-center flex gap-2 justify-center">-</td>
-    </tr>`).join('');
+      <td class="py-3 px-3 text-right text-gray-200 fn">${fmtN(t.shares,4)}</td>
+      <td class="py-3 px-3 text-right text-gray-300 fn">$${fmtN(t.price)}</td>
+      <td class="py-3 px-3 text-right text-gray-400 fn">$${fmtN(t.totalFee)}</td>
+      <td class="py-3 px-3 text-right text-gray-300 fn">${fmtN(t.fxRate,2)}</td>
+      <td class="py-3 px-3 text-right font-semibold text-white fn">$${fmtN(t.netUSD)}</td>
+      <td class="no-print py-3 px-4 text-center">-</td>
+    </tr>`;
+  }).join('');
 }
 
 function renderUSPies(pos){
