@@ -930,58 +930,219 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
-/* Fundamental placeholder */
-.fund-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  gap: 24px;
-  text-align: center;
-  padding: 80px 24px;
+/* ===================== FUNDAMENTAL TAB ===================== */
+.fund-topbar {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 14px;
+  padding: 22px 0 16px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
 }
-.fund-icon-wrap {
-  width: 80px;
-  height: 80px;
-  border-radius: 24px;
-  background: rgba(0,255,157,0.07);
-  border: 1px solid rgba(0,255,157,0.18);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  color: var(--accent);
-  opacity: .75;
-}
-.fund-placeholder h2 {
+.fund-topbar h2 {
   font-family: 'Space Grotesk','Prompt',sans-serif;
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--text-strong);
+  font-size: 20px; font-weight: 700; color: var(--text-strong);
+  margin: 0;
 }
-.fund-placeholder p {
-  font-size: 15px;
-  color: var(--muted-2);
-  max-width: 520px;
-  line-height: 1.7;
+.fund-topbar .fund-meta {
+  font-size: 12px; color: var(--dim);
+  margin-left: auto;
 }
-.fund-tags {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
+.fund-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 18px; border-radius: 8px;
+  background: rgba(0,255,157,0.08); border: 1px solid rgba(0,255,157,0.3);
+  color: var(--accent); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background .2s;
+}
+.fund-btn:hover { background: rgba(0,255,157,0.16); }
+.fund-btn:disabled { opacity: .45; cursor: default; }
+
+/* Two-column layout */
+.fund-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .fund-layout { grid-template-columns: 1fr; }
+}
+
+/* Left: stock list */
+.fund-list {
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 70vh; overflow-y: auto;
+  padding-right: 4px;
+}
+.fund-item {
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  position: relative;
+}
+.fund-item:hover { border-color: rgba(255,255,255,0.18); }
+.fund-item.selected {
+  border-color: var(--accent);
+  background: rgba(0,255,157,0.04);
+}
+.fund-item.p1 { border-left: 3px solid #00ff9d; }
+.fund-item.p2 { border-left: 3px solid #60a5fa; }
+
+.fi-row1 {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 7px;
+}
+.fi-ticker {
+  font-family: 'JetBrains Mono',monospace;
+  font-size: 14px; font-weight: 700; color: var(--text-strong);
+}
+.fi-market {
+  font-size: 10px; font-weight: 700;
+  padding: 1px 6px; border-radius: 4px;
+  background: rgba(255,255,255,0.07); color: var(--muted);
+}
+.fi-group { font-size: 11px; color: var(--dim); margin-left: auto; }
+.fi-pbadge {
+  font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 9999px;
+}
+.fi-pbadge.P1 { background: rgba(0,255,157,0.12); color: #00ff9d; border: 1px solid rgba(0,255,157,.3); }
+.fi-pbadge.P2 { background: rgba(96,165,250,0.12); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
+.fi-pbadge.Normal { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--line); }
+
+.fi-row2 { display: flex; align-items: center; gap: 8px; }
+.fi-moat-label { font-size: 10px; color: var(--dim); }
+.fi-moat-dots { display: flex; gap: 3px; }
+.fi-dot {
+  width: 10px; height: 10px; border-radius: 2px;
+}
+.fi-dot.on  { background: var(--accent); }
+.fi-dot.off { background: rgba(255,255,255,0.1); }
+.fi-moat-num {
+  font-family: 'JetBrains Mono',monospace;
+  font-size: 11px; color: var(--muted); min-width: 24px;
+}
+.fi-verdict {
+  font-size: 10px; padding: 2px 8px; border-radius: 9999px;
+  margin-left: auto;
+  background: rgba(255,255,255,0.05);
+  color: var(--muted);
+}
+.fi-verdict.strong-buy  { background: rgba(0,255,157,.1); color:#00ff9d; }
+.fi-verdict.spec-buy    { background: rgba(250,204,21,.1); color:#fbbf24; }
+.fi-verdict.hp-watch    { background: rgba(96,165,250,.1); color:#60a5fa; }
+.fi-verdict.monitor     { background: rgba(167,139,250,.1); color:#a78bfa; }
+
+/* Right: detail panel */
+.fund-detail {
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+  min-height: 420px;
+}
+.fund-empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 300px; gap: 12px;
+  color: var(--dim); font-size: 14px;
+}
+.fund-empty i { font-size: 36px; opacity: .3; }
+
+.fd-header { margin-bottom: 20px; }
+.fd-ticker {
+  font-family: 'Space Grotesk','Prompt',sans-serif;
+  font-size: 24px; font-weight: 800; color: var(--text-strong);
+  margin-bottom: 8px;
+}
+.fd-badges { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 4px; }
+.fd-updated { font-size: 11px; color: var(--dim); margin-top: 6px; }
+
+.fd-verdict-badge {
+  display: inline-block; padding: 5px 14px;
+  border-radius: 9999px; font-size: 13px; font-weight: 700;
+}
+.fd-verdict-badge.strong-buy { background:rgba(0,255,157,.12); color:#00ff9d; border:1px solid rgba(0,255,157,.35); }
+.fd-verdict-badge.spec-buy   { background:rgba(250,204,21,.12); color:#fbbf24; border:1px solid rgba(251,191,36,.35); }
+.fd-verdict-badge.hp-watch   { background:rgba(96,165,250,.12); color:#60a5fa; border:1px solid rgba(96,165,250,.35); }
+.fd-verdict-badge.monitor    { background:rgba(167,139,250,.12); color:#a78bfa; border:1px solid rgba(167,139,250,.35); }
+.fd-verdict-badge.fund-only  { background:rgba(255,255,255,.06); color:var(--muted); border:1px solid var(--line); }
+.fd-verdict-badge.default    { background:rgba(255,255,255,.04); color:var(--muted); border:1px solid var(--line); }
+
+/* MOAT block */
+.fd-moat-block {
+  background: rgba(0,0,0,0.25); border: 1px solid var(--line);
+  border-radius: 10px; padding: 14px 16px; margin-bottom: 16px;
+}
+.fd-moat-top {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+}
+.fd-moat-score-big {
+  font-family: 'JetBrains Mono',monospace;
+  font-size: 28px; font-weight: 800;
+}
+.fd-moat-score-big.w5 { color:#00ff9d; }
+.fd-moat-score-big.w4 { color:#34d399; }
+.fd-moat-score-big.w3 { color:#fbbf24; }
+.fd-moat-score-big.w2 { color:#f87171; }
+.fd-moat-score-big.w1 { color:#f87171; }
+.fd-moat-score-big.w0 { color:var(--dim); }
+.fd-moat-level { font-size: 14px; font-weight: 700; color: var(--muted); }
+.fd-moat-dots-big { display: flex; gap: 5px; margin-left: auto; }
+.fd-dot-big {
+  width: 18px; height: 18px; border-radius: 4px;
+}
+.fd-dot-big.on  { background: var(--accent); box-shadow: 0 0 6px rgba(0,255,157,.4); }
+.fd-dot-big.off { background: rgba(255,255,255,0.08); }
+.fd-moat-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.fd-moat-tag {
+  font-size: 11px; padding: 2px 10px; border-radius: 9999px;
+}
+.fd-moat-tag.pass { background:rgba(0,255,157,.1); color:#00ff9d; border:1px solid rgba(0,255,157,.25); }
+.fd-moat-tag.miss { background:rgba(248,113,113,.08); color:#f87171; border:1px solid rgba(248,113,113,.2); }
+
+/* Metric sections */
+.fd-section { margin-bottom: 14px; }
+.fd-section-title {
+  font-size: 11px; font-weight: 700; color: var(--dim);
+  letter-spacing: .8px; text-transform: uppercase;
+  margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,.05); padding-bottom: 4px;
+}
+.fd-metrics {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px;
+}
+.fd-metric {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px; padding: 8px 10px;
+}
+.fd-metric-label { font-size: 10px; color: var(--dim); margin-bottom: 3px; }
+.fd-metric-value {
+  font-family: 'JetBrains Mono',monospace;
+  font-size: 15px; font-weight: 700; color: var(--text-strong);
+}
+.fd-metric-value.pos { color: #34d399; }
+.fd-metric-value.neg { color: #f87171; }
+.fd-metric-value.na  { color: var(--dim); font-size: 12px; }
+
+/* Technical signal in fund detail */
+.fd-tech-row {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(0,0,0,0.25); border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 14px;
   margin-top: 4px;
 }
-.fund-tag {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--line);
-  border-radius: 9999px;
-  padding: 6px 16px;
-  font-size: 12.5px;
-  color: var(--muted-2);
+.fd-tech-label { font-size: 11px; color: var(--dim); }
+
+/* Loading state */
+.fund-loading {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 60px 20px; gap: 16px; color: var(--muted);
 }
-.fund-tag i { color: var(--accent); margin-right: 6px; }
+.fund-loading .spin {
+  width: 32px; height: 32px; border: 3px solid rgba(0,255,157,.2);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 </style>
 </head>
@@ -1265,20 +1426,34 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
 
 <!-- ===================== TAB: หุ้นพื้นฐาน ===================== -->
 <div id="tab-fundamental" class="tab-panel">
-  <div class="container">
-    <div class="fund-placeholder">
-      <div class="fund-icon-wrap"><i class="fa-solid fa-landmark"></i></div>
-      <h2>หุ้นพื้นฐาน (Fundamental Analysis)</h2>
-      <p>ระบบวิเคราะห์อัตราส่วนทางการเงิน โมเดลธุรกิจ และความได้เปรียบทางการแข่งขัน (MOAT) กำลังอยู่ระหว่างการพัฒนา</p>
-      <div class="fund-tags">
-        <span class="fund-tag"><i class="fa-solid fa-chart-pie"></i>ROE / ROA</span>
-        <span class="fund-tag"><i class="fa-solid fa-scale-balanced"></i>P/E / P/B</span>
-        <span class="fund-tag"><i class="fa-solid fa-shield-halved"></i>D/E Ratio</span>
-        <span class="fund-tag"><i class="fa-solid fa-trending-up"></i>Profit Margin</span>
-        <span class="fund-tag"><i class="fa-solid fa-trophy"></i>MOAT Analysis</span>
-        <span class="fund-tag"><i class="fa-solid fa-code-compare"></i>Peer Comparison</span>
+  <div class="container" style="padding-top:0">
+
+    <div class="fund-topbar">
+      <h2><i class="fa-solid fa-landmark" style="color:var(--accent);margin-right:10px;font-size:18px"></i>หุ้นพื้นฐาน</h2>
+      <button class="fund-btn" id="fund-scan-btn" onclick="loadFundamentals()">
+        <i class="fa-solid fa-rotate"></i> สแกนข้อมูลพื้นฐาน
+      </button>
+      <span class="fund-meta" id="fund-meta">— ยังไม่ได้ดึงข้อมูล</span>
+    </div>
+
+    <div class="fund-layout">
+      <!-- LEFT: stock list -->
+      <div id="fund-list">
+        <div class="fund-loading">
+          <div class="spin"></div>
+          <span>กด "สแกนข้อมูลพื้นฐาน" เพื่อโหลด</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: detail panel -->
+      <div class="fund-detail" id="fund-detail">
+        <div class="fund-empty">
+          <i class="fa-solid fa-hand-pointer"></i>
+          <span>เลือกหุ้นทางซ้ายเพื่อดูรายละเอียด</span>
+        </div>
       </div>
     </div>
+
   </div>
 </div><!-- /tab-fundamental -->
 
@@ -2472,6 +2647,187 @@ function closeSyncModal() {
   document.getElementById("sync-modal").classList.remove("active");
 }
 
+
+
+/* ===================== FUNDAMENTAL TAB JS ===================== */
+
+var fundData = [];
+var selectedFundTicker = null;
+
+function loadFundamentals() {
+  var btn = document.getElementById('fund-scan-btn');
+  var list = document.getElementById('fund-list');
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...';
+  list.innerHTML = '<div class="fund-loading"><div class="spin"></div><span>กำลังดึงข้อมูลจาก Yahoo Finance...</span></div>';
+  document.getElementById('fund-detail').innerHTML = '<div class="fund-empty"><i class="fa-solid fa-hand-pointer"></i><span>เลือกหุ้นทางซ้ายเพื่อดูรายละเอียด</span></div>';
+
+  fetchJsonp(WEB_APP_URL + '?action=fundamentals').then(function(d) {
+    fundData = (d && d.items) ? d.items : [];
+    renderFundList(fundData);
+    var meta = document.getElementById('fund-meta');
+    if (d && d.updatedAt) meta.textContent = 'อัปเดต: ' + d.updatedAt + '  (' + (d.count||0) + ' รายการ)';
+    else meta.textContent = fundData.length + ' รายการ';
+  }).catch(function(err) {
+    list.innerHTML = '<div class="fund-loading" style="color:#f87171"><i class="fa-solid fa-triangle-exclamation" style="font-size:28px"></i><span>โหลดข้อมูลไม่สำเร็จ: ' + (err.message || err) + '</span></div>';
+  }).finally(function() {
+    btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-rotate"></i> สแกนข้อมูลพื้นฐาน';
+  });
+}
+
+/* verdict css class */
+function verdictClass(v) {
+  if (!v) return 'default';
+  var m = { 'Strong Buy':'strong-buy','Speculative Buy':'spec-buy',
+            'High Priority Watch':'hp-watch','Monitor':'monitor',
+            'Fundamental Only':'fund-only' };
+  return m[v] || 'default';
+}
+
+/* render dot bar (5 dots) */
+function moatDots(score, big) {
+  var cls = big ? 'fd-dot-big' : 'fi-dot';
+  var html = '';
+  for (var i = 1; i <= 5; i++) {
+    html += '<span class="' + cls + (i <= score ? ' on' : ' off') + '"></span>';
+  }
+  return html;
+}
+
+function fmt(v, suffix, dec) {
+  if (v === null || v === undefined) return '<span class="na">N/A</span>';
+  var n = Number(v).toFixed(dec || 2);
+  var cls = '';
+  if (suffix === '%' && v > 0) cls = ' class="pos"';
+  if (suffix === '%' && v < 0) cls = ' class="neg"';
+  return '<span' + cls + '>' + n + (suffix||'') + '</span>';
+}
+
+function renderFundList(items) {
+  var list = document.getElementById('fund-list');
+  if (!items || !items.length) {
+    list.innerHTML = '<div class="fund-empty"><i class="fa-solid fa-inbox"></i><span>ไม่พบข้อมูล กรุณาสแกนข้อมูลพื้นฐานจาก Google Sheet ก่อนครับ</span></div>';
+    return;
+  }
+  var html = '<div class="fund-list">';
+  items.forEach(function(item) {
+    var pri = item.priority || 'Normal';
+    var priCls = (pri === 'P1' || pri === 'P2') ? pri.toLowerCase() : '';
+    var vc = verdictClass(item.verdict);
+    var shortVerdict = (item.verdict || 'Hold').replace('High Priority ', 'HP ').replace('Speculative ', 'Spec. ');
+    html += '<div class="fund-item ' + priCls + '" id="fi-' + item.ticker.replace(/[:]/g,'_') + '" onclick="selectFundItem(this,\'' + item.ticker + '\')">';
+    html += '<div class="fi-row1">';
+    html += '<span class="fi-market">' + (item.market||'') + '</span>';
+    html += '<span class="fi-ticker">' + item.ticker + '</span>';
+    html += '<span class="fi-pbadge ' + pri + '">' + pri + '</span>';
+    html += '<span class="fi-group">' + (item.group||'') + '</span>';
+    html += '</div>';
+    html += '<div class="fi-row2">';
+    html += '<span class="fi-moat-label">MOAT</span>';
+    html += '<span class="fi-moat-dots">' + moatDots(item.moatScore||0, false) + '</span>';
+    html += '<span class="fi-moat-num">' + (item.moatScore !== null ? item.moatScore : '—') + '/5</span>';
+    html += '<span class="fi-verdict ' + vc + '">' + shortVerdict + '</span>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+  list.innerHTML = html;
+}
+
+function selectFundItem(el, ticker) {
+  document.querySelectorAll('.fund-item').forEach(function(x){ x.classList.remove('selected'); });
+  el.classList.add('selected');
+  selectedFundTicker = ticker;
+  var item = fundData.find(function(d){ return d.ticker === ticker; });
+  if (item) renderFundDetail(item);
+}
+
+function renderFundDetail(d) {
+  var box = document.getElementById('fund-detail');
+  var ms = d.moatScore;
+  var vc = verdictClass(d.verdict);
+  var mcls = 'w' + (ms !== null ? Math.round(ms) : 0);
+
+  var sigHtml = '';
+  if (d.signal) {
+    var sigColor = d.priority === 'P1' ? '#00ff9d' : (d.priority === 'P2' ? '#60a5fa' : 'var(--muted)');
+    sigHtml = '<div class="fd-tech-row">' +
+      '<span class="fd-tech-label">สัญญาณเทคนิค</span>' +
+      '<span style="font-size:13px;font-weight:700;color:' + sigColor + '">' + d.signal + '</span>' +
+      (d.priority ? '<span class="fi-pbadge ' + d.priority + '" style="margin-left:6px">' + d.priority + '</span>' : '') +
+      '</div>';
+  }
+
+  var passed  = (d.moatPassed  || []).map(function(t){ return '<span class="fd-moat-tag pass">' + t + '</span>'; }).join('');
+  var missing = (d.moatMissing || []).map(function(t){ return '<span class="fd-moat-tag miss">✗ ' + t + '</span>'; }).join('');
+
+  box.innerHTML =
+    '<div class="fd-header">' +
+      '<div class="fd-ticker">' + d.ticker + '<span style="font-size:14px;font-weight:400;color:var(--dim);margin-left:10px">' + (d.market||'') + ' · ' + (d.group||'') + '</span></div>' +
+      '<div class="fd-badges">' +
+        '<span class="fd-verdict-badge ' + vc + '">' + (d.verdict || 'Hold') + '</span>' +
+      '</div>' +
+      '<div class="fd-updated">อัปเดต: ' + (d.updatedAt || '—') + '</div>' +
+    '</div>' +
+
+    '<div class="fd-moat-block">' +
+      '<div class="fd-moat-top">' +
+        '<span class="fd-moat-score-big ' + mcls + '">' + (ms !== null ? ms : '—') + '</span>' +
+        '<div><div style="font-size:11px;color:var(--dim)">MOAT Score</div>' +
+            '<div class="fd-moat-level">' + (d.moatLevel || 'N/A') + '</div></div>' +
+        '<div class="fd-moat-dots-big">' + moatDots(ms||0, true) + '</div>' +
+      '</div>' +
+      '<div class="fd-moat-tags">' + passed + missing + '</div>' +
+    '</div>' +
+
+    '<div class="fd-section">' +
+      '<div class="fd-section-title">Valuation</div>' +
+      '<div class="fd-metrics">' +
+        '<div class="fd-metric"><div class="fd-metric-label">P/E</div><div class="fd-metric-value">' + fmt(d.pe,'x',1) + '</div></div>' +
+        '<div class="fd-metric"><div class="fd-metric-label">P/E Forward</div><div class="fd-metric-value">' + fmt(d.peForward,'x',1) + '</div></div>' +
+        '<div class="fd-metric"><div class="fd-metric-label">P/B</div><div class="fd-metric-value">' + fmt(d.pb,'x',1) + '</div></div>' +
+        '<div class="fd-metric"><div class="fd-metric-label">EV/EBITDA</div><div class="fd-metric-value">' + fmt(d.evEbitda,'x',1) + '</div></div>' +
+        '<div class="fd-metric"><div class="fd-metric-label">Beta</div><div class="fd-metric-value">' + fmt(d.beta,'',2) + '</div></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="fd-section">' +
+      '<div class="fd-section-title">Profitability</div>' +
+      '<div class="fd-metrics">' +
+        '<div class="fd-metric"><div class="fd-metric-label">ROE</div><div class="fd-metric-value">' + fmt(d.roe,'%',1) + '</div></div>' +
+        '<div class="fd-metric"><div class="fd-metric-label">ROA</div><div class="fd-metric-value">' + fmt(d.roa,'%',1) + '</div></div>' +
+        '<div class="fd-metric"><div class="fd-metric-label">Gross Margin</div><div class="fd-metric-value">' + fmt(d.grossMargin,'%',1) + '</div></div>' +
+        '<div class="fd-metric"><div class="fd-metric-label">Op. Margin</div><div class="fd-metric-value">' + fmt(d.opMargin,'%',1) + '</div></div>' +
+        '<div class="fd-metric"><div class="fd-metric-label">Net Margin</div><div class="fd-metric-value">' + fmt(d.netMargin,'%',1) + '</div></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="fd-section">' +
+      '<div class="fd-section-title">Risk</div>' +
+      '<div class="fd-metrics">' +
+        '<div class="fd-metric"><div class="fd-metric-label">D/E Ratio</div><div class="fd-metric-value">' + fmt(d.deRatio,'x',2) + '</div></div>' +
+        '<div class="fd-metric"><div class="fd-metric-label">Current Ratio</div><div class="fd-metric-value">' + fmt(d.currentRatio,'x',2) + '</div></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="fd-section">' +
+      '<div class="fd-section-title">Growth (YoY)</div>' +
+      '<div class="fd-metrics">' +
+        '<div class="fd-metric"><div class="fd-metric-label">Revenue</div><div class="fd-metric-value">' + fmt(d.revGrowth,'%',1) + '</div></div>' +
+        '<div class="fd-metric"><div class="fd-metric-label">EPS Growth</div><div class="fd-metric-value">' + fmt(d.epsGrowth,'%',1) + '</div></div>' +
+      '</div>' +
+    '</div>' +
+
+    (d.divYield !== null ?
+    '<div class="fd-section">' +
+      '<div class="fd-section-title">Dividend</div>' +
+      '<div class="fd-metrics">' +
+        '<div class="fd-metric"><div class="fd-metric-label">Yield</div><div class="fd-metric-value">' + fmt(d.divYield,'%',2) + '</div></div>' +
+        '<div class="fd-metric"><div class="fd-metric-label">Payout</div><div class="fd-metric-value">' + fmt(d.payoutRatio,'%',1) + '</div></div>' +
+      '</div>' +
+    '</div>' : '') +
+
+    (sigHtml ?
+    '<div class="fd-section"><div class="fd-section-title">Technical Signal</div>' + sigHtml + '</div>' : '');
+}
 
 /* ===================== PAGE TAB SWITCHER ===================== */
 function switchPageTab(tabId, btn) {
