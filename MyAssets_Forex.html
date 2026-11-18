@@ -35,6 +35,53 @@
       .no-print { display: none !important; }
       .cd { break-inside: avoid; page-break-inside: avoid; }
     }
+  
+  /* ── Inner tab bar ───────────────────────────────────────── */
+  .ftab-bar{
+    display:flex;
+    gap:4px;
+    align-items:center;
+    padding:10px 16px 0;
+    border-bottom:1px solid #30363d;
+    background:#0d1117;
+    position:sticky;
+    top:57px;
+    z-index:30;
+  }
+  .ftab{
+    padding:8px 18px 9px;
+    font-size:12.5px;
+    font-weight:600;
+    border-radius:8px 8px 0 0;
+    border:1px solid transparent;
+    border-bottom:none;
+    cursor:pointer;
+    background:transparent;
+    color:#64748b;
+    transition:.15s;
+    position:relative;
+    bottom:-1px;
+    white-space:nowrap;
+  }
+  .ftab:hover{color:#fff;}
+  .ftab.active{
+    background:#161b22;
+    color:#fff;
+    border-color:#30363d;
+    border-bottom-color:#0d1117;
+  }
+  .ftab.active.ea-tab{color:#00ff9d;border-top-color:#00ff9d33;}
+  /* iframe ประสิทธิภาพ EA */
+  .ea-frame{
+    width:100%;
+    height:calc(100vh - 115px);
+    min-height:640px;
+    border:none;
+    display:block;
+    background:#0B0E14;
+  }
+  #ftab-panel-ea{display:none;}
+
   </style>
 </head>
 <body class="min-h-screen antialiased pb-16">
@@ -380,5 +427,29 @@ document.addEventListener('DOMContentLoaded',()=>loadBootstrap());
 <script>
 window.onLangChange = function(){ if (typeof appData !== 'undefined' && appData) { renderForexView(); } };
 </script>
+
+</div><!-- /ftab-panel-forex -->
+
+<!-- ══ Tab Panel: ประสิทธิภาพ EA ══════════════════════════════ -->
+<div id="ftab-panel-ea">
+  <iframe id="ea-frame" class="ea-frame"
+    title="9AU FOREX EA — Portfolio Dashboard"></iframe>
+</div><!-- /ftab-panel-ea -->
+
+<script>
+function switchForexTab(id, btn) {
+  ['forex','ea'].forEach(function(t) {
+    var panel = document.getElementById('ftab-panel-' + t);
+    var tab   = document.getElementById('ftab-' + t);
+    if (panel) panel.style.display = (t === id) ? 'block' : 'none';
+    if (tab)   tab.classList.toggle('active', t === id);
+  });
+  if (id === 'ea') {
+    var fr = document.getElementById('ea-frame');
+    if (fr && !fr.src) fr.src = 'MyAssets_EA.html';
+  }
+}
+</script>
+
 </body>
 </html>
