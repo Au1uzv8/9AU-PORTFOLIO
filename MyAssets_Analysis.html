@@ -1144,6 +1144,16 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ===================== IPO IFRAME ===================== */
+.ipo-frame {
+  width: 100%;
+  height: calc(100vh - 130px);
+  min-height: 640px;
+  border: none;
+  display: block;
+  background: #0d1117;
+}
+
 </style>
 </head>
 <body>
@@ -1152,7 +1162,7 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
 <nav>
   <div class="container">
     <div class="nav-content">
-      <div class="logo">9AU<span style="color:var(--accent)"> Signals</span><span style="color:var(--muted-2);font-size:14px;font-weight:500;letter-spacing:0;margin-left:10px;padding-left:10px;border-left:1px solid rgba(255,255,255,0.12);">วิเคราะห์หุ้น</span></div>
+      <a href="MyAssets.html" style="text-decoration:none"><div class="logo">9AU<span style="color:var(--accent)"> Signals</span><span style="color:var(--muted-2);font-size:14px;font-weight:500;letter-spacing:0;margin-left:10px;padding-left:10px;border-left:1px solid rgba(255,255,255,0.12);">วิเคราะห์หุ้น</span></div></a>
       <div class="nav-right">
         <div class="pill"><i class="fa-solid fa-bolt" style="color:var(--accent);margin-right:5px;"></i>SIGNALS V2.0</div>
         <a class="btn btn-ghost nav-btn" href="https://docs.google.com/spreadsheets/d/1Mt8YLa-O2L1yXjm7CK2HvJ8DA9dpFudrsoc7yo25sX8/edit?gid=1491991104#gid=1491991104" target="_blank" rel="noopener">
@@ -1173,6 +1183,9 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
     <button class="page-tab" id="tab-btn-fundamental" onclick="switchPageTab('fundamental',this)">
       <i class="fa-solid fa-landmark"></i> หุ้นพื้นฐาน
       <span class="tab-badge soon">Coming Soon</span>
+    </button>
+    <button class="page-tab" id="tab-btn-ipo" onclick="switchPageTab('ipo',this)">
+      <i class="fa-solid fa-rocket"></i> หุ้น IPO
     </button>
   </div>
 </div>
@@ -1456,6 +1469,12 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
 
   </div>
 </div><!-- /tab-fundamental -->
+
+<!-- ===================== TAB: หุ้น IPO ===================== -->
+<div id="tab-ipo" class="tab-panel">
+  <iframe id="ipo-frame" class="ipo-frame" title="หุ้น IPO Base-Building Watchlist"
+    allow="notifications"></iframe>
+</div><!-- /tab-ipo -->
 
 <!-- Sync / Notification Modal (Replaces alert() for sandbox & browser compatibility) -->
 <div class="modal-overlay" id="sync-modal">
@@ -2723,8 +2742,8 @@ function renderFundList(items) {
     html += '</div>';
     html += '<div class="fi-row2">';
     html += '<span class="fi-moat-label">MOAT</span>';
-    html += '<span class="fi-moat-dots">' + moatDots(item.moatScore||0, false) + '</span>';
-    html += '<span class="fi-moat-num">' + (item.moatScore !== null ? item.moatScore : '—') + '/5</span>';
+    html += '<span class="fi-moat-dots">' + moatDots(item.moatScore != null ? item.moatScore : 0, false) + '</span>';
+    html += '<span class="fi-moat-num">' + (item.moatScore != null ? item.moatScore : '—') + '/5</span>';
     html += '<span class="fi-verdict ' + vc + '">' + shortVerdict + '</span>';
     html += '</div></div>';
   });
@@ -2742,9 +2761,9 @@ function selectFundItem(el, ticker) {
 
 function renderFundDetail(d) {
   var box = document.getElementById('fund-detail');
-  var ms = d.moatScore;
+  var ms = d.moatScore != null ? d.moatScore : undefined;
   var vc = verdictClass(d.verdict);
-  var mcls = 'w' + (ms !== null ? Math.round(ms) : 0);
+  var mcls = 'w' + (ms != null ? Math.round(ms) : 0);
 
   var sigHtml = '';
   if (d.signal) {
@@ -2770,10 +2789,10 @@ function renderFundDetail(d) {
 
     '<div class="fd-moat-block">' +
       '<div class="fd-moat-top">' +
-        '<span class="fd-moat-score-big ' + mcls + '">' + (ms !== null ? ms : '—') + '</span>' +
+        '<span class="fd-moat-score-big ' + mcls + '">' + (ms != null ? ms : '—') + '</span>' +
         '<div><div style="font-size:11px;color:var(--dim)">MOAT Score</div>' +
             '<div class="fd-moat-level">' + (d.moatLevel || 'N/A') + '</div></div>' +
-        '<div class="fd-moat-dots-big">' + moatDots(ms||0, true) + '</div>' +
+        '<div class="fd-moat-dots-big">' + moatDots(ms != null ? ms : 0, true) + '</div>' +
       '</div>' +
       '<div class="fd-moat-tags">' + passed + missing + '</div>' +
     '</div>' +
@@ -2835,6 +2854,11 @@ function switchPageTab(tabId, btn) {
   document.querySelectorAll('.page-tab').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + tabId).classList.add('active');
   btn.classList.add('active');
+  // Lazy-load IPO iframe เมื่อคลิก Tab ครั้งแรก
+  if (tabId === 'ipo') {
+    var fr = document.getElementById('ipo-frame');
+    if (fr && !fr.src) fr.src = 'MyAssets_IPO.html';
+  }
 }
 
 /* ===================== INIT RUNTIME ===================== */

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyAssets_IPO - IPO Base-Building Alert</title>
+<style>
+:root{--bg:#0f1115;--panel:#171a21;--line:#2a2f3a;--txt:#d7dbe3;--mut:#8a93a6;--g:#22c55e;--y:#eab308;--o:#f97316;--r:#ef4444;--b:#3b82f6}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--txt)}
+header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+main{display:grid;grid-template-columns:350px 1fr;gap:16px;padding:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px}
+label{display:block;font-size:12px;color:var(--mut);margin-top:8px}
+input,select,textarea{width:100%;background:#0b0d11;color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+textarea{height:110px;font-family:monospace;font-size:11px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+button{background:var(--b);color:#fff;border:0;border-radius:6px;padding:8px 12px;cursor:pointer;margin-top:10px}
+button.alt{background:#374151}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top}
+.ok{color:var(--g);font-weight:700}.no{color:var(--r)}
+canvas{width:100%;height:320px;background:#0b0d11;border-radius:8px}
+#notifyArea{position:fixed;top:12px;right:12px;width:370px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px;border-radius:8px;border-left:6px solid;background:#1f2430;box-shadow:0 6px 18px #0009;animation:in .3s}
+.toast.WATCH{border-color:var(--y)}.toast.ZONE{border-color:var(--o)}.toast.SETUP{border-color:var(--b)}
+.toast.TRIGGER{border-color:var(--g)}.toast.INVALID{border-color:var(--r)}
+.toast b{display:block;margin-bottom:4px}.toast small{color:var(--mut)}
+@keyframes in{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+#log{max-height:260px;overflow:auto;font-size:12px}
+#log div{padding:4px 0;border-bottom:1px dashed var(--line)}
+.badge{padding:4px 12px;border-radius:20px;font-weight:700;background:#374151}
+
+  /* ── 9AU Signals nav bar (ใช้เมื่อเปิดหน้าตรง) ─────────────── */
+  .ipo-topbar {
+    background: rgba(10,15,14,.98);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+  }
+  .ipo-nav-left { display:flex; align-items:center; gap:14px; }
+  .ipo-logo {
+    font-family: 'Chakra Petch', 'Prompt', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .ipo-logo span { color: #00ff9d; }
+  .ipo-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #8b949e;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    text-decoration: none;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .ipo-nav-link:hover { color: #fff; border-color: rgba(255,255,255,.2); }
+  .ipo-nav-link.accent {
+    color: #00ff9d;
+    border-color: rgba(0,255,157,.3);
+    background: rgba(0,255,157,.06);
+  }
+  .ipo-nav-link.accent:hover { background: rgba(0,255,157,.12); }
+  /* ซ่อน topbar เมื่ออยู่ใน iframe */
+  @media (max-width: 0px) { .ipo-topbar { display: none; } }
+</style>
+</head>
+<body>
+<!-- 9AU Signals Top Nav (ซ่อนอัตโนมัติเมื่ออยู่ใน iframe) -->
+<div class="ipo-topbar" id="ipoTopbar">
+  <div class="ipo-nav-left">
+    <a href="MyAssets.html" class="ipo-logo">9AU<span> Portfolio</span></a>
+    <a href="MyAssets_Analysis.html" class="ipo-nav-link">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+      วิเคราะห์หุ้น
+    </a>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span style="font-size:12px;color:#8b949e;font-weight:600;letter-spacing:.5px">IPO Base-Building</span>
+    <div id="stateBadge" class="badge">IDLE</div>
+  </div>
+</div>
+
+<script>
+// ซ่อน nav bar เมื่ออยู่ใน iframe (ไม่ต้องแสดง nav ซ้อน)
+if (window.self !== window.top) {
+  document.addEventListener('DOMContentLoaded', function() {
+    var tb = document.getElementById('ipoTopbar');
+    if (tb) tb.style.display = 'none';
+  });
+}
+</script>
+
+<div id="notifyArea"></div>
+
+<main>
+<section>
+  <div class="card">
+    <b>1) พารามิเตอร์</b>
+    <div class="row">
+      <div><label>Symbol</label><input id="sym" value="SPCX"></div>
+      <div><label>IPO_Price</label><input id="ipo" type="number" step="0.01" value="150"></div>
+    </div>
+    <div class="row">
+      <div><label>Peak Window (แท่งแรกหลัง IPO)</label><input id="peakWin" type="number" value="40"></div>
+      <div><label>RSI Period</label><select id="rsiP"><option>7</option><option selected>9</option><option>14</option></select></div>
+    </div>
+    <div class="row">
+      <div><label>Fib Min (%)</label><input id="fibMin" type="number" value="50"></div>
+      <div><label>Fib Deep (%)</label><input id="fibDeep" type="number" value="61.8"></div>
+    </div>
+    <div class="row">
+      <div><label>RSI Oversold</label><input id="rsiOS" type="number" value="30"></div>
+      <div><label>RSI Confirm</label><input id="rsiCF" type="number" value="35"></div>
+    </div>
+    <div class="row">
+      <div><label>RSI Lookback (แท่ง)</label><input id="rsiLB" type="number" value="10"></div>
+      <div><label>Pivot ซ้าย/ขวา (แท่ง)</label><input id="piv" type="number" value="3"></div>
+    </div>
+    <label>MACD (fast, slow, signal)</label>
+    <div class="row"><input id="mf" type="number" value="12"><input id="ms" type="number" value="26"><input id="mg" type="number" value="9"></div>
+    <label>Divergence Source</label>
+    <select id="divSrc"><option value="macd" selected>MACD Line</option><option value="hist">MACD Histogram</option></select>
+  </div>
+
+  <div class="card">
+    <b>2) ข้อมูลราคา (CSV)</b>
+    <label>คอลัมน์: time,open,high,low,close (Export จาก TradingView ได้)</label>
+    <input type="file" id="file" accept=".csv">
+    <textarea id="csv" placeholder="time,open,high,low,close"></textarea>
+    <button onclick="run()">วิเคราะห์แท่งล่าสุด</button>
+    <button class="alt" onclick="demo()">โหลด Demo</button>
+    <button class="alt" onclick="replay()">Replay ทีละแท่ง</button>
+    <button class="alt" onclick="askPerm()">เปิด Desktop Notification</button>
+  </div>
+
+  <div class="card">
+    <b>3) Auto-Check (ไม่บังคับ)</b>
+    <label>URL ที่ส่งกลับเป็น CSV (ต้องเปิด CORS)</label>
+    <input id="liveUrl" placeholder="https://your-server/spcx_4h.csv">
+    <div class="row">
+      <div><label>ทุกกี่นาที</label><input id="liveMin" type="number" value="15"></div>
+      <div><button onclick="startLive()">Start</button> <button class="alt" onclick="stopLive()">Stop</button></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="card"><b>สถานะเงื่อนไข</b><table id="tbl"></table></div>
+  <div class="card"><canvas id="cv" width="1000" height="320"></canvas></div>
+  <div class="card">
+    <b>Notification Log</b>
+    <button class="alt" style="float:right;margin:0" onclick="clearLog()">ล้าง Log + Reset</button>
+    <div id="log"></div>
+  </div>
+</section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const LS = 'MyAssets_IPO_sent';
+const RANK = {NONE:0, WATCH:1, ZONE:2, SETUP:3, TRIGGER:4};
+const TITLE = {
+  WATCH:'WATCH · ราคาหลุด IPO',
+  ZONE:'ZONE · เข้าโซน Fibonacci',
+  SETUP:'SETUP · สัญญาณกลับตัวเริ่มก่อตัว',
+  TRIGGER:'TRIGGER · จุดที่น่าสนใจ (ครบเงื่อนไข)',
+  INVALID:'INVALID · ฐานล้มเหลว'
+};
+let state = {prevRank:0};
+let timer = null, liveTimer = null;
+
+/* ---------- Parameters ---------- */
+const P = () => ({
+  sym:$('sym').value.trim(), ipo:+$('ipo').value, peakWin:+$('peakWin').value,
+  rsiP:+$('rsiP').value, fibMin:+$('fibMin').value/100, fibDeep:+$('fibDeep').value/100,
+  rsiOS:+$('rsiOS').value, rsiCF:+$('rsiCF').value, rsiLB:+$('rsiLB').value,
+  piv:+$('piv').value, mf:+$('mf').value, ms:+$('ms').value, mg:+$('mg').value,
+  divSrc:$('divSrc').value
+});
+
+/* ---------- CSV ---------- */
+function parseCSV(text){
+  const lines = text.trim().split(/\r?\n/);
+  const h = lines.shift().toLowerCase().split(',').map(s => s.trim());
+  const ix = k => h.indexOf(k);
+  const iT=ix('time'), iO=ix('open'), iH=ix('high'), iL=ix('low'), iC=ix('close');
+  if ([iO,iH,iL,iC].some(i => i < 0)) throw Error('CSV ต้องมีคอลัมน์ open, high, low, close');
+  return lines.map(l => l.split(',')).filter(c => c.length >= 4)
+    .map((c,i) => ({t:iT>=0?c[iT].trim():String(i), o:+c[iO], h:+c[iH], l:+c[iL], c:+c[iC]}))
+    .filter(b => !isNaN(b.c));
+}
+function getBars(){
+  try { return parseCSV($('csv').value); }
+  catch(e){ notify('INVALID','อ่านข้อมูลไม่ได้', e.message); return null; }
+}
+const fmtT = t => { const n=+t; return (n>1e9 && n<1e11) ? new Date(n*1000).toLocaleString('th-TH') : t; };
+
+/* ---------- Indicators ---------- */
+function ema(a,n){ const k=2/(n+1), o=[]; let p; a.forEach((v,i)=>{ p = i===0 ? v : v*k + p*(1-k); o.push(p); }); return o; }
+
+function rsi(c,n){ // Wilder's RSI
+  const o = Array(c.length).fill(null); let g=0, l=0;
+  for (let i=1;i<c.length;i++){
+    const d=c[i]-c[i-1], up=Math.max(d,0), dn=Math.max(-d,0);
+    if (i<=n){ g+=up; l+=dn; if(i===n){ g/=n; l/=n; o[i]= l===0?100:100-100/(1+g/l); } }
+    else { g=(g*(n-1)+up)/n; l=(l*(n-1)+dn)/n; o[i]= l===0?100:100-100/(1+g/l); }
+  }
+  return o;
+}
+
+function macd(c,f,s,g){
+  const ef=ema(c,f), es=ema(c,s), m=c.map((_,i)=>ef[i]-es[i]), sg=ema(m,g);
+  return {m, sg, h:m.map((v,i)=>v-sg[i])};
+}
+
+function pivotLows(b,k){ // ต้องมี k แท่งทางขวายืนยัน จึงช้ากว่าจริง k แท่ง
+  const r=[];
+  for (let i=k;i<b.length-k;i++){
+    let ok=true;
+    for (let j=1;j<=k;j++){ if (b[i-j].l < b[i].l || b[i+j].l <= b[i].l){ ok=false; break; } }
+    if (ok) r.push(i);
+  }
+  return r;
+}
+
+/* ---------- Core Logic ---------- */
+function evaluate(bars,p){
+  const C=bars.map(b=>b.c), N=bars.length, last=N-1, price=C[last];
+
+  // Initial_Max = High สูงสุดในช่วง Peak Window หลัง IPO
+  const winN=Math.min(p.peakWin,N); let pk=0;
+  for (let i=1;i<winN;i++) if (bars[i].h > bars[pk].h) pk=i;
+  const initMax=bars[pk].h;
+
+  // C1: หลุดราคา IPO
+  const c1 = price < p.ipo;
+
+  // C2: Drawdown จาก Initial_Max (Relative Target)
+  const dd=(initMax-price)/initMax;
+  const fib50=initMax*(1-p.fibMin), fib618=initMax*(1-p.fibDeep);
+  const c2 = dd >= p.fibMin;
+
+  // C3: RSI เคย Oversold แล้วม้วนหัวกลับ
+  const R=rsi(C,p.rsiP), rNow=R[last], rPrev=R[last-1];
+  const recentOS = R.slice(Math.max(0,N-p.rsiLB)).some(v => v!==null && v<p.rsiOS);
+  const c3 = recentOS && rNow!==null && rNow>p.rsiCF && rNow>rPrev;
+
+  // C4: MACD Bullish Divergence
+  const M=macd(C,p.mf,p.ms,p.mg), src = p.divSrc==='hist' ? M.h : M.m;
+  const pl=pivotLows(bars,p.piv).filter(i => i>pk);
+  let c4=false, divInfo='ยังไม่พบ Pivot Low ครบ 2 จุด';
+  if (pl.length>=2){
+    const a=pl[pl.length-2], b=pl[pl.length-1];
+    const lowerLow = bars[b].l < bars[a].l, higherMom = src[b] > src[a];
+    const fresh = last-b <= p.piv+5;
+    c4 = lowerLow && higherMom && fresh;
+    divInfo = `Low ${bars[a].l.toFixed(2)} → ${bars[b].l.toFixed(2)} | ${p.divSrc} ${src[a].toFixed(3)} → ${src[b].toFixed(3)}${fresh?'':' (สัญญาณเก่าเกินไป)'}`;
+  }
+  const lastPivotLow = pl.length ? bars[pl[pl.length-1]].l : null;
+
+  // C5: Price Stabilization
+  const recentLow=Math.min(...bars.slice(-3).map(b=>b.l));
+  const priorLow=Math.min(...bars.slice(Math.max(0,N-13),N-3).map(b=>b.l));
+  const c5 = recentLow >= priorLow && price > C[last-1];
+
+  let level='NONE';
+  if (c1) level='WATCH';
+  if (c1&&c2) level='ZONE';
+  if (c1&&c2&&(c3||c4)) level='SETUP';
+  if (c1&&c2&&c3&&c4&&c5) level='TRIGGER';
+
+  return {level,price,initMax,pk,dd,fib50,fib618,c1,c2,c3,c4,c5,rNow,rPrev,recentOS,divInfo,pivots:pl,lastPivotLow};
+}
+
+/* ---------- Notification Area ---------- */
+function sentMap(){ return JSON.parse(localStorage.getItem(LS)||'{}'); }
+
+function notify(level,title,msg,key){
+  if (key){ const s=sentMap(); if (s[key]) return; s[key]=Date.now(); localStorage.setItem(LS,JSON.stringify(s)); }
+  const d=document.createElement('div');
+  d.className='toast '+level;
+  d.innerHTML=`<b>${title}</b>${msg}<br><small>${new Date().toLocaleString('th-TH')}</small>`;
+  $('notifyArea').prepend(d);
+  setTimeout(()=>d.remove(), level==='TRIGGER'?30000:8000);
+  $('log').insertAdjacentHTML('afterbegin',`<div>[${new Date().toLocaleTimeString('th-TH')}] <b>${level}</b> ${title} – ${msg}</div>`);
+  if (level==='TRIGGER') beep();
+  if ('Notification' in window && Notification.permission==='granted')
+    new Notification(title,{body:msg.replace(/<[^>]+>/g,'')});
+}
+
+function beep(){
+  try{
+    const ac=new (window.AudioContext||window.webkitAudioContext)(), o=ac.createOscillator();
+    o.frequency.value=880; o.connect(ac.destination); o.start(); o.stop(ac.currentTime+0.35);
+  }catch(e){}
+}
+function askPerm(){
+  if (!('Notification' in window)) return notify('INVALID','ไม่รองรับ','เบราว์เซอร์นี้ไม่รองรับ Desktop Notification');
+  Notification.requestPermission().then(r=>notify('WATCH','Desktop Notification','สถานะ: '+r));
+}
+function clearLog(){ $('log').innerHTML=''; localStorage.removeItem(LS); state.prevRank=0; }
+
+/* ---------- Analyze + State Transition ---------- */
+function analyze(bars){
+  const p=P(), need=p.ms+p.mg+5;
+  if (bars.length<need) return notify('INVALID','ข้อมูลน้อยเกินไป',`ต้องมีอย่างน้อย ${need} แท่ง`);
+  const r=evaluate(bars,p); render(bars,r,p);
+  const t=bars[bars.length-1].t, f=v=>(+v).toFixed(2);
+
+  // INVALID: เคยถึง SETUP/TRIGGER แล้ว แต่หลุด Pivot Low ล่าสุด
+  if (state.prevRank>=3 && r.lastPivotLow!==null && r.price<r.lastPivotLow){
+    notify('INVALID',TITLE.INVALID,`${p.sym} ปิด ${f(r.price)} หลุด Pivot Low ${f(r.lastPivotLow)} → รอฐานใหม่`,`${p.sym}|INVALID|${t}`);
+    state.prevRank=0; return;
+  }
+
+  const rk=RANK[r.level];
+  if (rk>state.prevRank){
+    const msg = {
+      WATCH:`${p.sym} ปิด ${f(r.price)} ต่ำกว่า IPO ${f(p.ipo)} (${((r.price/p.ipo-1)*100).toFixed(1)}%)`,
+      ZONE:`ย่อจาก Initial_Max ${f(r.initMax)} แล้ว ${(r.dd*100).toFixed(1)}% · โซน ${f(r.fib50)} / ${f(r.fib618)}`,
+      SETUP:`${r.c3?'RSI ม้วนหัว ':''}${r.c4?'MACD Divergence ':''}· รอเงื่อนไขที่เหลือ`,
+      TRIGGER:`${p.sym} Entry ~${f(r.price)} · Stop < ${f(r.lastPivotLow)} (ความเสี่ยง ${((1-r.lastPivotLow/r.price)*100).toFixed(1)}%)`
+    }[r.level];
+    notify(r.level,TITLE[r.level],msg,`${p.sym}|${r.level}|${t}`);
+    state.prevRank=rk;
+  } else if (rk===0) state.prevRank=0; // กลับขึ้นเหนือ IPO ให้ reset
+}
+
+function run(){ const b=getBars(); if (b){ state.prevRank=0; analyze(b); } }
+
+function replay(){
+  clearInterval(timer); const all=getBars(); if (!all) return;
+  clearLog(); let n=P().ms+P().mg+5;
+  timer=setInterval(()=>{ if (n>all.length) return clearInterval(timer); analyze(all.slice(0,n)); n++; },120);
+}
+
+/* ---------- Live Polling ---------- */
+function startLive(){
+  stopLive(); const url=$('liveUrl').value.trim(); if (!url) return;
+  const tick=()=>fetch(url,{cache:'no-store'}).then(r=>r.text())
+    .then(t=>{ $('csv').value=t; analyze(parseCSV(t)); })
+    .catch(e=>notify('INVALID','ดึงข้อมูลไม่สำเร็จ',e.message));
+  tick(); liveTimer=setInterval(tick, Math.max(1,+$('liveMin').value)*60000);
+  notify('WATCH','Auto-Check เริ่มทำงาน',`ตรวจทุก ${$('liveMin').value} นาที`);
+}
+function stopLive(){ clearInterval(liveTimer); }
+
+/* ---------- Render ---------- */
+function render(bars,r,p){
+  const f=v=>v==null?'-':(+v).toFixed(2);
+  const row=(n,ok,d)=>`<tr><td>${n}</td><td class="${ok?'ok':'no'}">${ok?'ผ่าน':'ยังไม่ผ่าน'}</td><td>${d}</td></tr>`;
+  $('tbl').innerHTML =
+    row('C1 ราคา < IPO_Price',r.c1,`${f(r.price)} vs ${f(p.ipo)}`)+
+    row('C2 Drawdown ≥ Fib Min',r.c2,`Max ${f(r.initMax)} · ย่อ ${(r.dd*100).toFixed(1)}% · โซน ${f(r.fib50)} / ${f(r.fib618)}`)+
+    row(`C3 RSI(${p.rsiP}) ม้วนหัว`,r.c3,`RSI ${f(r.rNow)} (ก่อนหน้า ${f(r.rPrev)}) · เคย < ${p.rsiOS}: ${r.recentOS?'ใช่':'ไม่'}`)+
+    row('C4 Bullish Divergence',r.c4,r.divInfo)+
+    row('C5 Price Stabilization',r.c5,'ไม่ทำ Low ใหม่ใน 3 แท่ง + ปิดสูงกว่าแท่งก่อน')+
+    `<tr><td>แท่งล่าสุด</td><td colspan="2">${fmtT(bars[bars.length-1].t)}</td></tr>`;
+  const col={NONE:'#374151',WATCH:'#a16207',ZONE:'#c2410c',SETUP:'#1d4ed8',TRIGGER:'#15803d'};
+  $('stateBadge').textContent=`${p.sym} · ${r.level}`;
+  $('stateBadge').style.background=col[r.level];
+  draw(bars,r,p);
+}
+
+function draw(bars,r,p){
+  const cv=$('cv'), x=cv.getContext('2d'), W=cv.width, H=cv.height;
+  x.clearRect(0,0,W,H); x.font='12px sans-serif';
+  const hi=Math.max(...bars.map(b=>b.h),p.ipo), lo=Math.min(...bars.map(b=>b.l),r.fib618);
+  const X=i=>40+i*(W-60)/Math.max(1,bars.length-1), Y=v=>H-20-(v-lo)/(hi-lo)*(H-40);
+  const hline=(v,c,t)=>{ x.strokeStyle=c; x.setLineDash([5,4]); x.beginPath(); x.moveTo(40,Y(v)); x.lineTo(W-20,Y(v)); x.stroke(); x.setLineDash([]); x.fillStyle=c; x.fillText(`${t} ${v.toFixed(2)}`,44,Y(v)-4); };
+  hline(p.ipo,'#3b82f6','IPO');
+  hline(r.initMax,'#a855f7','Initial_Max');
+  hline(r.fib50,'#eab308',`Fib ${(p.fibMin*100).toFixed(1)}%`);
+  hline(r.fib618,'#f97316',`Fib ${(p.fibDeep*100).toFixed(1)}%`);
+  x.strokeStyle='#d7dbe3'; x.beginPath();
+  bars.forEach((b,i)=> i ? x.lineTo(X(i),Y(b.c)) : x.moveTo(X(i),Y(b.c))); x.stroke();
+  r.pivots.slice(-2).forEach(i=>{ x.fillStyle=r.c4?'#22c55e':'#ef4444'; x.beginPath(); x.arc(X(i),Y(bars[i].l),5,0,7); x.fill(); });
+}
+
+/* ---------- File + Demo ---------- */
+$('file').onchange=e=>{ const fr=new FileReader(); fr.onload=()=>{ $('csv').value=fr.result; run(); }; fr.readAsText(e.target.files[0]); };
+
+function demo(){ // จำลอง: พุ่งทำยอด → ดิ่งหลุด IPO → ฐานแรกล้ม → Lower Low + Divergence → กลับตัว
+  let c=150, t=Math.floor(Date.UTC(2026,5,12)/1000), seed=7;
+  const rnd=()=>{ seed=(seed*9301+49297)%233280; return seed/233280-0.5; };
+  const rows=['time,open,high,low,close'], path=[];
+  for (let i=1;i<=12;i++) path.push(150+85*i/12+rnd()*3);
+  for (let i=1;i<=50;i++) path.push(235-100*i/50+rnd()*1.2);
+  for (let i=1;i<=6;i++)  path.push(135-23*i/6);
+  for (let i=1;i<=8;i++)  path.push(112+13*i/8);
+  for (let i=1;i<=8;i++)  path.push(125-19*i/8);
+  for (let i=1;i<=3;i++)  path.push(106+2.5*i);
+  path.forEach(v=>{
+    const o=c; c=+v.toFixed(2); const up=c>=o;
+    const h=Math.max(o,c)+0.4, l=up?o-0.2:c-0.5;
+    rows.push([t,o.toFixed(2),h.toFixed(2),l.toFixed(2),c.toFixed(2)].join(',')); t+=14400;
+  });
+  $('csv').value=rows.join('\n'); $('ipo').value=150; $('sym').value='SPCX';
+}
+</script>
+</body>
+</html>
