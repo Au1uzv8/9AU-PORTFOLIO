@@ -57,6 +57,7 @@
         </div>
       </div>
     </div>
+    <div id="tickerTop" class="hidden md:flex items-center gap-2 fn text-[11px]"></div>
     <div class="flex items-center gap-1.5">
       <button onclick="printPDF()" id="btnPrintPDF" class="no-print px-2.5 py-1 text-xs rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white font-semibold transition cursor-pointer" title="Print PDF">Print PDF</button>
       <button onclick="toggleLang()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
@@ -68,12 +69,14 @@
       </button>
     </div>
   </div>
+  <div id="tickerStrip" class="md:hidden max-w-7xl mx-auto px-4 pb-2 flex gap-2 overflow-x-auto fn text-[11px]"></div>
   <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
     <a href="MyAssets.html"          class="nav-tab">Dashboard</a>
     <a href="MyAssets_Thai.html"     class="nav-tab">หุ้นไทย</a>
     <a href="MyAssets_US.html"       class="nav-tab active">หุ้นสหรัฐ</a>
     <a href="MyAssets_Forex.html"    class="nav-tab">ตลาดค่าเงิน</a>
     <a href="MyAssets_Cashflow.html" class="nav-tab">สภาพคล่อง</a>
+    <a href="MyAssets_Analysis.html" class="nav-tab" style="color:#00ff9d;border-color:#00ff9d33">วิเคราะห์</a>
     <a href="MyAssets_README.html"   class="nav-tab" style="color:#d97706">คู่มือใช้งาน</a>
   </div>
 </header>
@@ -435,8 +438,9 @@ function renderUSPies(pos){
   buildPie('chartUSStock',pos.map(p=>p.ticker),pos.map(p=>p.marketUSD),c=>chartUS2=c,chartUS2,'legendUSStock');
 }
 function buildPie(id,labels,data,setter,old,legId){
-  labels=labels.map(l=>t(l));
+  labels=labels.map(l=>typeof window.t==='function'?t(l):l);
   const ctx=document.getElementById(id);if(!ctx)return;
+  if(typeof Chart==='undefined')return;
   if(old)old.destroy();
   const chart=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:PIE_COLORS.slice(0,data.length),borderColor:'#161b22',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,animation:false,cutout:'60%',plugins:{legend:{display:!legId}}}});
   setter(chart);
@@ -518,10 +522,10 @@ function setUSSide(side) {
   // Side buttons
   document.getElementById('btnUSBUY').className  = side === 'BUY'
     ? 'flex-1 py-2 rounded-xl font-bold border border-blue-500 bg-blue-600/30 text-blue-300'
-    : 'flex-1 py-2 rounded-xl font-bold border border-[#30363d] bg-[#21262d] text-gray-400';
+    : 'flex-1 py-2 rounded-xl font-bold border border-[#303d3d] bg-[#21262d] text-gray-400';
   document.getElementById('btnUSSELL').className = side === 'SELL'
     ? 'flex-1 py-2 rounded-xl font-bold border border-rose-500 bg-rose-600/30 text-rose-300'
-    : 'flex-1 py-2 rounded-xl font-bold border border-[#30363d] bg-[#21262d] text-gray-400';
+    : 'flex-1 py-2 rounded-xl font-bold border border-[#303d3d] bg-[#21262d] text-gray-400';
 }
 
 function openUSTradeModal() {
@@ -640,6 +644,14 @@ function exportUSCSV() {
 
 function fmtN(n,d=2){return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
 document.addEventListener('DOMContentLoaded',loadBootstrap);
+</script>
+<script>
+(function(){let btc=0,gold=0,thai=0;
+function fmt(n){return (Number(n)||0).toLocaleString('en-US',{maximumFractionDigits:0});}
+function render(){const html=`<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0d1117] border border-[#30363d] whitespace-nowrap"><span class="text-gray-400">BTC/USD</span><span class="text-white font-bold">${btc?'$'+fmt(btc):'--'}</span></span><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0d1117] border border-[#30363d] whitespace-nowrap"><span class="text-gray-400">Gold Spot</span><span class="text-white font-bold">${gold?'$'+fmt(gold):'--'}</span></span><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0d1117] border border-[#30363d] whitespace-nowrap"><span class="text-gray-400">Thai Gold</span><span class="text-white font-bold">${thai?'฿'+fmt(thai):'--'}</span></span>`;['tickerTop','tickerStrip'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});}
+fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',{cache:'no-store'}).then(r=>r.ok?r.json():{}).then(j=>{btc=Number(j?.bitcoin?.usd)||0;render();}).catch(()=>{});
+if(window.firebase){firebase.database().ref('realtime').on('value',s=>{const r=s.val();if(!r)return;gold=Number(r.goldWorld)||0;thai=Number(r.goldTH)||0;render();});}
+render();})();
 </script>
 </body>
 </html>

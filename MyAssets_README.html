@@ -22,6 +22,7 @@
     .nav-tab:not(.active){background:#161b22;color:#64748b;}
     .nav-tab:not(.active):hover{color:#fff;border-color:#475569;}
     .no-scrollbar::-webkit-scrollbar{display:none;}
+    .ticker-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border:1px solid #30363d;border-radius:9999px;background:#0d1117;white-space:nowrap;}
   </style>
 </head>
 <body class="min-h-screen antialiased pb-16">
@@ -37,6 +38,7 @@
         <div class="text-[11px] text-gray-400">v8.3.0 | อัปเดต 2026-10-03</div>
       </div>
     </div>
+    <div id="tickerTop" class="hidden md:flex items-center gap-2 fn text-[11px]"></div>
     <div class="flex items-center gap-1.5">
       <button onclick="toggleLang()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
       <button onclick="exportPDF()" class="px-3 py-1.5 text-xs rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white font-semibold transition">Export PDF</button>
@@ -45,13 +47,15 @@
       </a>
     </div>
   </div>
+  <div id="tickerStrip" class="md:hidden max-w-7xl mx-auto px-4 pb-2 flex gap-2 overflow-x-auto fn text-[11px]"></div>
   <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
     <a href="MyAssets.html"          class="nav-tab">Dashboard</a>
     <a href="MyAssets_Thai.html"     class="nav-tab">หุ้นไทย</a>
-    <a href="MyAssets_US.html"       class="nav-tab">US ETF</a>
-    <a href="MyAssets_Forex.html"    class="nav-tab">FOREX MT5</a>
-    <a href="MyAssets_Cashflow.html" class="nav-tab">Cashflow</a>
-    <a href="MyAssets_README.html"   class="nav-tab active">README</a>
+    <a href="MyAssets_US.html"       class="nav-tab">หุ้นสหรัฐ</a>
+    <a href="MyAssets_Forex.html"    class="nav-tab">ตลาดค่าเงิน</a>
+    <a href="MyAssets_Cashflow.html" class="nav-tab">สภาพคล่อง</a>
+    <a href="MyAssets_Analysis.html" class="nav-tab" style="color:#00ff9d;border-color:#00ff9d33">วิเคราะห์</a>
+    <a href="MyAssets_README.html"   class="nav-tab active">คู่มือใช้งาน</a>
   </div>
 </header>
 
@@ -268,6 +272,8 @@
   </div>
 </main>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
 'use strict';
 const currentToken=localStorage.getItem('portfolio_token')||'';
@@ -283,6 +289,21 @@ function exportPDF(){
     jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
   }).from(el).save();
 }
+
+const FB_CFG={apiKey:'***************************************',authDomain:'au-portfolio-7d687.firebaseapp.com',databaseURL:'https://au-portfolio-7d687-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'au-portfolio-7d687',storageBucket:'au-portfolio-7d687.firebasestorage.app',messagingSenderId:'806351101494',appId:'1:806351101494:web:c832da2ef2baff90d18297'};
+let btcReadme=0, goldReadme=0, thaiGoldReadme=0;
+function fmtTicker(n){return (Number(n)||0).toLocaleString('en-US',{maximumFractionDigits:0});}
+function renderReadmeTicker(){
+  const chip=(label,val,unit)=>`<span class="ticker-chip"><span class="text-gray-400">${label}</span><span class="text-white font-bold">${val>0?unit+fmtTicker(val):'--'}</span></span>`;
+  const html=chip('BTC/USD',btcReadme,'$')+chip('Gold Spot',goldReadme,'$')+chip('Thai Gold',thaiGoldReadme,'฿');
+  ['tickerTop','tickerStrip'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});
+}
+async function loadReadmeLive(){
+  try{const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',{cache:'no-store'});if(r.ok){const j=await r.json();btcReadme=Number(j?.bitcoin?.usd)||0;}}catch(e){}
+  renderReadmeTicker();
+}
+if(window.firebase){firebase.initializeApp(FB_CFG);firebase.database().ref('realtime').on('value',snap=>{const rt=snap.val();if(!rt)return;goldReadme=Number(rt.goldWorld)||0;thaiGoldReadme=Number(rt.goldTH)||0;renderReadmeTicker();});}
+renderReadmeTicker();loadReadmeLive();setInterval(loadReadmeLive,60000);
 </script>
 </body>
 </html>

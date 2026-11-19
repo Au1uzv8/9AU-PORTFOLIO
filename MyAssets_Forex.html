@@ -37,6 +37,15 @@
     }
   
   /* ── Inner tab bar ───────────────────────────────────────── */
+<<<<<<< HEAD
+  /* PAGE TAB BAR */
+  .page-tab-bar{background:rgba(22,27,34,.98);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.06);position:sticky;top:64px;z-index:89;}
+  .page-tab-nav{display:flex;align-items:center;max-width:80rem;margin:0 auto;padding:0 24px;}
+  .page-tab{display:inline-flex;align-items:center;gap:7px;padding:13px 22px;font-size:13px;font-weight:700;color:#64748b;border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
+  .page-tab:hover{color:#c9d1d9;}.page-tab.active{color:#818cf8;border-bottom-color:#818cf8;}
+  .tab-panel{display:none;}.tab-panel.active{display:block;}
+  .ea-frame{width:100%;height:calc(100vh - 125px);min-height:640px;border:none;display:block;background:#0B0E14;}
+=======
   .ftab-bar{
     display:flex;
     gap:4px;
@@ -82,6 +91,7 @@
   }
   #ftab-panel-ea{display:none;}
 
+>>>>>>> 4c2cde3d649cde7f886db57a0fe98ed1c185bd14
   </style>
 </head>
 <body class="min-h-screen antialiased pb-16">
@@ -103,6 +113,7 @@
         </div>
       </div>
     </div>
+    <div id="tickerTop" class="hidden md:flex items-center gap-2 fn text-[11px]"></div>
     <div class="flex items-center gap-1.5">
       <button onclick="printPDF()" id="btnPrintPDF" class="no-print px-2.5 py-1 text-xs rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white font-semibold transition cursor-pointer" title="Print PDF">Print PDF</button>
       <button onclick="toggleLang()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
@@ -120,10 +131,18 @@
     <a href="MyAssets_US.html"       class="nav-tab">หุ้นสหรัฐ</a>
     <a href="MyAssets_Forex.html"    class="nav-tab active">ตลาดค่าเงิน</a>
     <a href="MyAssets_Cashflow.html" class="nav-tab">สภาพคล่อง</a>
+    <a href="MyAssets_Analysis.html" class="nav-tab" style="color:#00ff9d;border-color:#00ff9d33">วิเคราะห์</a>
     <a href="MyAssets_README.html"   class="nav-tab" style="color:#d97706">คู่มือใช้งาน</a>
   </div>
 </header>
 
+<!-- Page Tab Bar -->
+<div class="page-tab-bar"><div class="page-tab-nav">
+  <button class="page-tab active" id="ptab-forex" onclick="switchForexTab('forex',this)">💱 ตลาดค่าเงิน</button>
+  <button class="page-tab" id="ptab-ea" onclick="switchForexTab('ea',this)">🖥️ ประสิทธิภาพ EA</button>
+</div></div>
+
+<div id="tab-forex" class="tab-panel active">
 <main id="printArea" class="max-w-7xl mx-auto px-4 pt-5 space-y-5">
 
   <!-- SUMMARY CARDS -->
@@ -227,6 +246,11 @@
   </div>
 
 </main>
+
+</div><!-- /tab-forex -->
+<div id="tab-ea" class="tab-panel">
+  <iframe id="ea-frame" class="ea-frame" title="MyAssets EA"></iframe>
+</div><!-- /tab-ea -->
 
 <script>
 'use strict';
@@ -428,6 +452,24 @@ document.addEventListener('DOMContentLoaded',()=>loadBootstrap());
 window.onLangChange = function(){ if (typeof appData !== 'undefined' && appData) { renderForexView(); } };
 </script>
 
+<<<<<<< HEAD
+<script>
+function switchForexTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(function(panel) {
+    panel.classList.remove('active');
+  });
+  document.querySelectorAll('.page-tab').forEach(function(tab) {
+    tab.classList.remove('active');
+  });
+
+  var panel = document.getElementById('tab-' + id);
+  if (panel) panel.classList.add('active');
+  if (btn) btn.classList.add('active');
+
+  if (id === 'ea') {
+    var frame = document.getElementById('ea-frame');
+    if (frame && !frame.src) frame.src = 'MyAssets_EA.html';
+=======
 </div><!-- /ftab-panel-forex -->
 
 <!-- ══ Tab Panel: ประสิทธิภาพ EA ══════════════════════════════ -->
@@ -447,9 +489,22 @@ function switchForexTab(id, btn) {
   if (id === 'ea') {
     var fr = document.getElementById('ea-frame');
     if (fr && !fr.src) fr.src = 'MyAssets_EA.html';
+>>>>>>> 4c2cde3d649cde7f886db57a0fe98ed1c185bd14
   }
 }
 </script>
 
+<<<<<<< HEAD
+<script>
+(function(){let btc=0,gold=0,thai=0;
+function fmt(n){return (Number(n)||0).toLocaleString('en-US',{maximumFractionDigits:0});}
+function render(){const html=`<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0d1117] border border-[#30363d] whitespace-nowrap"><span class="text-gray-400">BTC/USD</span><span class="text-white font-bold">${btc?'$'+fmt(btc):'--'}</span></span><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0d1117] border border-[#30363d] whitespace-nowrap"><span class="text-gray-400">Gold Spot</span><span class="text-white font-bold">${gold?'$'+fmt(gold):'--'}</span></span><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0d1117] border border-[#30363d] whitespace-nowrap"><span class="text-gray-400">Thai Gold</span><span class="text-white font-bold">${thai?'฿'+fmt(thai):'--'}</span></span>`;['tickerTop','tickerStrip'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});}
+fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',{cache:'no-store'}).then(r=>r.ok?r.json():{}).then(j=>{btc=Number(j?.bitcoin?.usd)||0;render();}).catch(()=>{});
+if(window.firebase){firebase.database().ref('realtime').on('value',s=>{const r=s.val();if(!r)return;gold=Number(r.goldWorld)||0;thai=Number(r.goldTH)||0;render();});}
+render();})();
+</script>
+
+=======
+>>>>>>> 4c2cde3d649cde7f886db57a0fe98ed1c185bd14
 </body>
 </html>
