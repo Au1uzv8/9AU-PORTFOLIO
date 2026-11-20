@@ -251,6 +251,7 @@
         <div class="text-xl font-bold fn" id="valThaiPnl">0.00 ฿</div>
       </div>
     </div>
+    <div class="text-[10px] fn mt-1.5" id="priceSrcThaiLabel">กำลังโหลดราคา...</div>
   </div>
 
   <!-- GROUP 2 US -->
@@ -270,6 +271,7 @@
         <div class="text-xs text-gray-400 fn">$ <span id="valUSPnlUSD">0.00</span></div>
       </div>
     </div>
+    <div class="text-[10px] fn mt-1.5" id="priceSrcUSLabel">กำลังโหลดราคา...</div>
   </div>
 
   <!-- GROUP 3 FOREX -->
@@ -360,29 +362,23 @@ function startFirebaseListen() {
   fetchBtcLive();
   setInterval(fetchBtcLive, 60000);
 
-  function fetchRt() {
-    const statusEl = document.getElementById('fbStatus');
-    db.ref('realtime').once('value')
-      .then(snap => {
-        rtData = snap.val();
-        if (!rtData) return;
-        if (statusEl) {
-          statusEl.textContent = 'FB live';
-          statusEl.className   = 'fb-badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-        }
-        const hFx = document.getElementById('hFx');
-        if (hFx) hFx.textContent = fmtN(rtData.fxRate || 33.14, 2);
-        renderDashboard();
-      })
-      .catch(() => {
-        if (statusEl) {
-          statusEl.textContent = 'FB offline';
-          statusEl.className   = 'fb-badge bg-rose-500/10 text-rose-400 border border-rose-500/20';
-        }
-      });
-  }
-  fetchRt();
-  setInterval(fetchRt, 5 * 60 * 1000);
+  const statusEl = document.getElementById('fbStatus');
+  db.ref('realtime').on('value', function(snap) {
+    rtData = snap.val();
+    if (!rtData) return;
+    if (statusEl) {
+      statusEl.textContent = 'FB live';
+      statusEl.className   = 'fb-badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+    }
+    const hFx = document.getElementById('hFx');
+    if (hFx) hFx.textContent = fmtN(rtData.fxRate || 33.14, 2);
+    renderDashboard();
+  }, function() {
+    if (statusEl) {
+      statusEl.textContent = 'FB offline';
+      statusEl.className   = 'fb-badge bg-rose-500/10 text-rose-400 border border-rose-500/20';
+    }
+  });
 }
 
 function apiCall(action, payload, cb) {
@@ -543,26 +539,45 @@ function loadBootstrap(cb, _retry) {
 }
 
 function renderDashboard() {
-  const fx    = rtData?.fxRate || appData?.summary?.fxRate || 33.14;
-  const sum   = appData?.summary || {};
-  const terms = rtData?.terminals || sum.terminals || {};
+  if (!appData) return;
+  const fx       = rtData?.fxRate || appData?.summary?.fxRate || 33.14;
+  const sum      = appData?.summary || {};
+  const terms    = rtData?.terminals || sum.terminals || {};
+  const priceMap = rtData?.priceMap || {};
+  const hasLive  = Object.keys(priceMap).length > 0;
+
+  // apply live prices (no mutation on appData)
+  const thaiPos = applyLivePrices(sum.thaiPositions || [], priceMap, true);
+  const usPos   = applyLivePrices(sum.positions     || [], priceMap, false);
+
+  // Thai totals from live prices (fallback to server summary)
+  const thaiMarket = thaiPos.length > 0
+    ? thaiPos.reduce((a, p) => a + (p.marketTHB || 0), 0)
+    : (sum.thaiMarketTHB || 0);
+  const thaiCost   = thaiPos.reduce((a, p) => a + (p.costTHB || 0), 0) || (sum.thaiCostTHB || 0);
+  const thaiPnl    = thaiMarket - thaiCost;
+  const thaiPct    = thaiCost > 0 ? thaiPnl / thaiCost * 100 : (sum.thaiPnlPct || 0);
+
+  // US totals from live prices (fallback to server summary)
+  const usMarketUSD = usPos.length > 0
+    ? usPos.reduce((a, p) => a + (p.marketUSD || 0), 0)
+    : (Number(sum.usInvestUSD) || 0);
+  const usCostUSD   = usPos.reduce((a, p) => a + (p.costUSD || 0), 0) || (Number(sum.usCostUSD) || 0);
+  const usPnlUSD    = usMarketUSD - usCostUSD;
+  const usCostTHB   = usCostUSD * fx;
+  const usMarketTHB = usMarketUSD * fx;
+  const usPnlTHB    = usPnlUSD * fx;
+  const usPnlPct    = usCostUSD > 0 ? usPnlUSD / usCostUSD * 100 : 0;
 
   setText('valG1Total',    fmtN(sum.totalGroup1THB) + ' ฿');
   setText('valCash',       fmtN(sum.cashTHB) + ' ฿');
   setText('valBank',       fmtN(sum.bankTHB) + ' ฿');
   setText('valEmergency',  fmtN(sum.emergencyTHB) + ' ฿');
 
-  setText('valThaiCost',   fmtN(sum.thaiCostTHB) + ' ฿');
-  setText('valThaiMarket', fmtN(sum.thaiMarketTHB) + ' ฿');
-  setPnl('valThaiPnl', 'thaiPnlPct', sum.thaiPnlTHB, sum.thaiPnlPct, '฿');
-
-  const usCostUSD   = Number(sum.usCostUSD) || 0;
-  const usMarketUSD = Number(sum.usInvestUSD) || 0;
-  const usPnlUSD    = usMarketUSD - usCostUSD;
-  const usCostTHB   = usCostUSD * fx;
-  const usMarketTHB = usMarketUSD * fx;
-  const usPnlTHB    = usPnlUSD * fx;
-  const usPnlPct    = usCostUSD > 0 ? (usPnlUSD / usCostUSD * 100) : 0;
+  setText('valThaiCost',   fmtN(thaiCost)   + ' ฿');
+  setText('valThaiMarket', fmtN(thaiMarket) + ' ฿');
+  setPnl('valThaiPnl', 'thaiPnlPct', thaiPnl, thaiPct, '฿');
+  updateDashPriceLabel(hasLive);
 
   setText('valUSCostTHB',   fmtN(usCostTHB) + ' ฿');
   setText('valUSCostUSD',   fmtN(usCostUSD));
@@ -595,8 +610,8 @@ function renderDashboard() {
   setPnl('valFxPnlTHB','fxPnlPct', fxPnlUSD*fx, fxPct, '฿');
   setText('valFxPnlUSD', (fxPnlUSD>=0?'+':'')+fmtN(fxPnlUSD));
 
-  const nw          = (sum.totalGroup1THB||0)+(sum.thaiMarketTHB||0)+usMarketTHB+fxEqUSD*fx;
-  const totalCostNw = (sum.totalGroup1THB||0)+(sum.thaiCostTHB||0)+usCostTHB+(fxBalUSD*fx);
+  const nw          = (sum.totalGroup1THB||0) + thaiMarket + usMarketTHB + fxEqUSD*fx;
+  const totalCostNw = (sum.totalGroup1THB||0) + thaiCost   + usCostTHB  + (fxBalUSD*fx);
   const nwPnl = nw - totalCostNw;
   const nwPct = totalCostNw > 0 ? (nwPnl / totalCostNw * 100) : 0;
 
@@ -612,12 +627,12 @@ function renderDashboard() {
   const pnlUsdEl = document.getElementById('valNwPnlUSD');
   if (pnlUsdEl) { pnlUsdEl.textContent='≈ $'+(nwPnl>=0?'+':'')+fmtN(nwPnl/fx)+' USD'; pnlUsdEl.className='text-xs fn '+(nwPnl>=0?'text-emerald-400':'text-rose-400'); }
 
-  renderAllocPie(sum, usMarketTHB, fxEqUSD*fx, fx);
+  renderAllocPie(sum, usMarketTHB, fxEqUSD*fx, fx, thaiMarket);
   renderForexChart(terms);
   renderTrendChart(appData?.snapshot||[]);
   lastCalc = { fx, nw, terms, fxBalUSD, fxEqUSD, fxPnlUSD, fxPct };
   renderTicker();
-  renderD6(sum, usPnlTHB, usPnlPct, fxEqUSD*fx, fxPnlUSD, fxPct);
+  renderD6(sum, usPnlTHB, usPnlPct, fxEqUSD*fx, fxPnlUSD, fxPct, thaiPos, usPos, thaiPnl, thaiPct, fx);
   renderRiskMonitor(sum);
 }
 
@@ -717,8 +732,8 @@ function renderRiskMonitor(sum) {
   body.innerHTML = posHtml + wlHtml;
 }
 
-function renderD6(sum, usPnlTHB, usPnlPct, fxEqTHB, fxPnlUSD, fxPct) {
-  const fx = rtData?.fxRate || sum.fxRate || 33.14;
+function renderD6(sum, usPnlTHB, usPnlPct, fxEqTHB, fxPnlUSD, fxPct, liveThaiPos, liveUsPos, thaiPnlLive, thaiPctLive, fxParam) {
+  const fx = fxParam || rtData?.fxRate || sum.fxRate || 33.14;
   function setBar(idPnl, idPct, pnl, pct, unit) {
     const el = document.getElementById(idPnl);
     const ep = document.getElementById(idPct);
@@ -729,7 +744,9 @@ function renderD6(sum, usPnlTHB, usPnlPct, fxEqTHB, fxPnlUSD, fxPct) {
     ep.textContent = sign + fmtN(pct, 2) + '%';
     ep.className   = 'fn text-[10px] ' + (pnl >= 0 ? 'text-emerald-400' : 'text-rose-400');
   }
-  setBar('d6ThaiPnl','d6ThaiPct', sum.thaiPnlTHB||0, sum.thaiPnlPct||0, '฿');
+  setBar('d6ThaiPnl','d6ThaiPct',
+    thaiPnlLive != null ? thaiPnlLive : (sum.thaiPnlTHB||0),
+    thaiPctLive != null ? thaiPctLive : (sum.thaiPnlPct||0), '฿');
   setBar('d6USPnl',  'd6USPct',   usPnlTHB||0,       usPnlPct||0,       '฿');
   setBar('d6FxPnl',  'd6FxPct',   fxPnlUSD*fx,       fxPct||0,          '฿');
 
@@ -743,10 +760,10 @@ function renderD6(sum, usPnlTHB, usPnlPct, fxEqTHB, fxPnlUSD, fxPct) {
   }
 
   const positions = [];
-  (sum.positions||[]).forEach(p => {
+  (liveUsPos && liveUsPos.length ? liveUsPos : (sum.positions||[])).forEach(p => {
     if ((p.shares||0) > 0) positions.push({ ticker:p.ticker, diffTHB:(p.diffUSD||0)*fx, diffPct:p.diffPct||0, group:'US' });
   });
-  (sum.thaiPositions||[]).forEach(p => {
+  (liveThaiPos && liveThaiPos.length ? liveThaiPos : (sum.thaiPositions||[])).forEach(p => {
     if ((p.shares||0) > 0) positions.push({ ticker:p.ticker, diffTHB:p.diffTHB||0, diffPct:p.diffPct||0, group:'TH' });
   });
   positions.sort((a,b) => b.diffPct - a.diffPct);
@@ -876,8 +893,8 @@ function exportMonthlyCSV() {
 
 const PIE_COLORS = ['#3b82f6','#10b981','#f59e0b','#a855f7'];
 
-function renderAllocPie(sum, usMarketTHB, fxEqTHB, fx) {
-  const data   = [sum.thaiMarketTHB||0, usMarketTHB||0, fxEqTHB, sum.totalGroup1THB||0];
+function renderAllocPie(sum, usMarketTHB, fxEqTHB, fx, thaiMarketLive) {
+  const data   = [(thaiMarketLive != null ? thaiMarketLive : (sum.thaiMarketTHB||0)), usMarketTHB||0, fxEqTHB, sum.totalGroup1THB||0];
   const rawLbl = ['หุ้นไทย','หุ้นสหรัฐ','ตลาดค่าเงิน','สภาพคล่อง'];
   const labels = rawLbl.map(l => typeof window.t === 'function' ? window.t(l) : l);
   const total  = data.reduce((a,b)=>a+b,0)||1;
@@ -977,6 +994,40 @@ function printPDF() {
   }).catch((err) => {
     if (btn) { btn.textContent = 'Print PDF'; btn.disabled = false; }
     alert('ไม่สามารถสร้างไฟล์ PDF ได้: ' + err);
+  });
+}
+
+/* ── Shared: apply live prices (no mutation) ─────────────── */
+function applyLivePrices(positions, priceMap, isTHB) {
+  return positions.map(function(p) {
+    var copy  = Object.assign({}, p);
+    var fbKey = p.ticker.replace(/[.]/g, '_');  // BRK.B → BRK_B
+    var lp    = priceMap[p.ticker] !== undefined ? priceMap[p.ticker] : priceMap[fbKey];
+    if (typeof lp === 'number' && lp > 0) {
+      copy.currentPrice = lp;
+      if (isTHB) {
+        copy.marketTHB = copy.shares * lp;
+        copy.diffTHB   = copy.marketTHB - (copy.costTHB || 0);
+        copy.diffPct   = copy.costTHB > 0 ? copy.diffTHB / copy.costTHB * 100 : 0;
+      } else {
+        copy.marketUSD = copy.shares * lp;
+        copy.diffUSD   = copy.marketUSD - (copy.costUSD || 0);
+        copy.diffPct   = copy.costUSD > 0 ? copy.diffUSD / copy.costUSD * 100 : 0;
+      }
+    }
+    return copy;
+  });
+}
+
+function updateDashPriceLabel(hasLive) {
+  var ids = ['priceSrcThaiLabel', 'priceSrcUSLabel'];
+  var now = hasLive
+    ? '\u0e23\u0e32\u0e04\u0e32\u0e2a\u0e14 Firebase \u2022 \u0e2d\u0e31\u0e1b\u0e40\u0e14\u0e15 ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    : '\u0e23\u0e32\u0e04\u0e32\u0e08\u0e32\u0e01 Server (Snapshot)';
+  var cls = hasLive ? 'text-[10px] text-emerald-500/70 fn mt-1.5' : 'text-[10px] text-amber-500/70 fn mt-1.5';
+  ids.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.textContent = now; el.className = cls; }
   });
 }
 
