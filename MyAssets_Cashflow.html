@@ -271,17 +271,45 @@
         <label class="block text-gray-400 mb-1">วันที่</label>
         <input type="date" id="adjDate" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn focus:border-amber-500 focus:outline-none">
       </div>
-      <div>
-        <label class="block text-gray-400 mb-1">ทิศทาง</label>
-        <div class="flex gap-2">
-          <button onclick="setAdjType('in')"  id="btnAdjIn"  class="flex-1 py-2 rounded-xl font-bold border border-emerald-500 bg-emerald-600/30 text-emerald-300 text-xs">รับเข้า (+)</button>
-          <button onclick="setAdjType('out')" id="btnAdjOut" class="flex-1 py-2 rounded-xl font-bold border border-[#30363d] bg-[#21262d] text-gray-400 text-xs">จ่ายออก (-)</button>
+
+      <!-- Mode toggle -->
+      <div class="flex gap-1 p-0.5 bg-[#0d1117] rounded-xl border border-[#30363d]">
+        <button onclick="setAdjMode('delta')" id="btnModeDelta" class="flex-1 py-1.5 rounded-lg text-[11px] font-bold bg-amber-600/30 text-amber-300 border border-amber-500 transition">ปรับ Delta (+/-)</button>
+        <button onclick="setAdjMode('set')"   id="btnModeSet"   class="flex-1 py-1.5 rounded-lg text-[11px] font-bold bg-[#21262d] text-gray-400 transition">ตั้งยอดตรง (Set)</button>
+      </div>
+
+      <!-- Delta mode: direction + amount -->
+      <div id="adjDeltaSection" class="space-y-3">
+        <div>
+          <label class="block text-gray-400 mb-1">ทิศทาง</label>
+          <div class="flex gap-2">
+            <button onclick="setAdjType('in')"  id="btnAdjIn"  class="flex-1 py-2 rounded-xl font-bold border border-emerald-500 bg-emerald-600/30 text-emerald-300 text-xs">รับเข้า (+)</button>
+            <button onclick="setAdjType('out')" id="btnAdjOut" class="flex-1 py-2 rounded-xl font-bold border border-[#30363d] bg-[#21262d] text-gray-400 text-xs">จ่ายออก (-)</button>
+          </div>
+        </div>
+        <div>
+          <label class="block text-gray-400 mb-1" id="adjAmtLabel">จำนวน ($)</label>
+          <input type="number" step="any" id="adjAmount" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn font-bold focus:border-amber-500 focus:outline-none">
         </div>
       </div>
-      <div>
-        <label class="block text-gray-400 mb-1" id="adjAmtLabel">จำนวน ($)</label>
-        <input type="number" step="any" id="adjAmount" placeholder="0.00" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white fn font-bold focus:border-amber-500 focus:outline-none">
+
+      <!-- Set Balance mode: target → auto-calculate -->
+      <div id="adjSetSection" class="hidden space-y-3">
+        <div class="flex justify-between items-center px-3 py-2 rounded-xl bg-[#0d1117] border border-[#30363d]">
+          <span class="text-gray-400 text-[11px]">ยอดปัจจุบัน</span>
+          <span id="adjCurrentVal" class="text-white font-bold fn text-xs">0.00</span>
+        </div>
+        <div>
+          <label class="block text-gray-400 mb-1" id="adjTargetLabel">ยอดเป้าหมาย ($)</label>
+          <input type="number" step="any" id="adjTarget" placeholder="0.00" oninput="onAdjTargetChange()"
+            class="w-full bg-[#0d1117] border border-indigo-500/60 rounded-xl px-3 py-2 text-white fn font-bold focus:border-indigo-400 focus:outline-none">
+        </div>
+        <div id="adjCalcRow" class="hidden flex justify-between items-center px-3 py-2 rounded-xl bg-[#0d1117] border border-[#30363d]">
+          <span class="text-gray-400 text-[11px]">จะปรับ</span>
+          <span id="adjCalcPreview" class="font-bold fn text-xs text-emerald-300">-</span>
+        </div>
       </div>
+
       <div>
         <label class="block text-gray-400 mb-1">หมายเหตุ</label>
         <input type="text" id="adjNote" placeholder="เหตุผลในการปรับยอด" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-amber-500 focus:outline-none">
@@ -468,6 +496,8 @@ function renderCashflowView() {
 
   const usdTotal = divUSD + sellUSD;
   const thbTotal = divTHB + sellTHB;
+  _walletUSD = usdTotal;  // expose for Set-Balance modal
+  _walletTHB = thbTotal;
 
   // Breakdown cards
   setText('wDivUSD',  '$' + fmtN(divUSD));
@@ -556,7 +586,8 @@ function onWalletOrCategoryChange() {
 
 
 /* ── Wallet Manual Adjust ─────────────────────────────────────── */
-let _adjWallet = 'usd', _adjType = 'in';
+let _adjWallet = 'usd', _adjType = 'in', _adjMode = 'delta';
+let _walletUSD = 0, _walletTHB = 0;  // live balances updated by renderCashflowView
 
 function openWalletAdjust(walletUI) {
   _adjWallet = walletUI;
@@ -564,10 +595,50 @@ function openWalletAdjust(walletUI) {
   document.getElementById('adjDate').value   = new Date().toISOString().slice(0,10);
   document.getElementById('adjAmount').value = '';
   document.getElementById('adjNote').value   = '';
-  document.getElementById('adjWalletLabel').textContent = walletUI === 'usd' ? 'กระเป๋า USD' : 'กระเป๋า ฿';
-  document.getElementById('adjAmtLabel').textContent    = walletUI === 'usd' ? 'จำนวน ($)' : 'จำนวน (฿)';
+  document.getElementById('adjTarget').value = '';
+  document.getElementById('adjWalletLabel').textContent  = walletUI === 'usd' ? 'กระเป๋า USD' : 'กระเป๋า ฿';
+  document.getElementById('adjAmtLabel').textContent     = walletUI === 'usd' ? 'จำนวน ($)' : 'จำนวน (฿)';
+  document.getElementById('adjTargetLabel').textContent  = walletUI === 'usd' ? 'ยอดเป้าหมาย ($)' : 'ยอดเป้าหมาย (฿)';
+  const cur = walletUI === 'usd' ? _walletUSD : _walletTHB;
+  const unit = walletUI === 'usd' ? '$' : '';
+  const suffix = walletUI === 'usd' ? '' : ' ฿';
+  document.getElementById('adjCurrentVal').textContent = unit + fmtN(cur) + suffix;
+  document.getElementById('adjCalcRow').classList.add('hidden');
+  setAdjMode('delta');
   setAdjType('in');
   openModal('modalWalletAdjust');
+}
+
+function setAdjMode(mode) {
+  _adjMode = mode;
+  const isDelta = mode === 'delta';
+  document.getElementById('btnModeDelta').className = isDelta
+    ? 'flex-1 py-1.5 rounded-lg text-[11px] font-bold bg-amber-600/30 text-amber-300 border border-amber-500 transition'
+    : 'flex-1 py-1.5 rounded-lg text-[11px] font-bold bg-[#21262d] text-gray-400 transition';
+  document.getElementById('btnModeSet').className = !isDelta
+    ? 'flex-1 py-1.5 rounded-lg text-[11px] font-bold bg-indigo-600/30 text-indigo-300 border border-indigo-500 transition'
+    : 'flex-1 py-1.5 rounded-lg text-[11px] font-bold bg-[#21262d] text-gray-400 transition';
+  document.getElementById('adjDeltaSection').classList.toggle('hidden', !isDelta);
+  document.getElementById('adjSetSection').classList.toggle('hidden',   isDelta);
+  if (!isDelta) { document.getElementById('adjCalcRow').classList.add('hidden'); }
+}
+
+function onAdjTargetChange() {
+  const target = parseFloat(document.getElementById('adjTarget').value);
+  if (isNaN(target)) { document.getElementById('adjCalcRow').classList.add('hidden'); return; }
+  const cur     = _adjWallet === 'usd' ? _walletUSD : _walletTHB;
+  const delta   = target - cur;
+  const abs     = Math.abs(delta);
+  const dir     = delta >= 0 ? 'in' : 'out';
+  const unit    = _adjWallet === 'usd' ? '$' : '฿';
+  const dirTxt  = delta >= 0 ? 'รับเข้า (+) ' : 'จ่ายออก (-) ';
+  document.getElementById('adjCalcPreview').textContent = dirTxt + unit + fmtN(abs);
+  document.getElementById('adjCalcPreview').className   =
+    'font-bold fn text-xs ' + (delta >= 0 ? 'text-emerald-300' : 'text-rose-300');
+  document.getElementById('adjCalcRow').classList.remove('hidden');
+  // Pre-fill delta inputs so submitWalletAdjust works unchanged
+  setAdjType(dir);
+  document.getElementById('adjAmount').value = abs.toFixed(6);
 }
 
 function setAdjType(t) {
