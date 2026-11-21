@@ -115,17 +115,19 @@
 
     <!-- Chapter 2 Architecture -->
     <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d] mb-5">
-      <h2 class="text-base font-bold text-blue-400 fb mb-3">2. สถาปัตยกรรมระบบ v8.2 (Hybrid Firebase)</h2>
+      <h2 class="text-base font-bold text-blue-400 fb mb-3">2. สถาปัตยกรรมระบบ v8.4 / BE v9.3 (Hybrid Firebase + priceMap Sync)</h2>
       <div class="p-3 bg-[#161b22] rounded-lg border border-[#30363d] fn text-[11px] text-gray-300 mb-4 overflow-x-auto">
         REALTIME DATA (Firebase &lt; 300ms)<br>
-        ├── FOREX Terminals (Equity/Balance/P&L)<br>
-        ├── ราคาหุ้น US + Thai (priceMap)<br>
+        ├── FOREX Terminals (Equity/Balance/P&amp;L)<br>
+        ├── priceMap (US: BRK_B format | Thai: BKK: prefix)<br>
         └── FX Rate (USD/THB)<br><br>
         HISTORICAL DATA (Apps Script JSONP)<br>
-        ├── TRADES / THAI_TRADES<br>
-        ├── CASHFLOW / ACCOUNTS<br>
-        └── SNAPSHOT<br><br>
-        Apps Script Trigger → Firebase RTDB ทุก 5 นาที
+        ├── TRADES / THAI_TRADES / CASHFLOW<br>
+        ├── ACCOUNTS / ALERTS / SNAPSHOT<br>
+        └── REALTIME sheet (ราคาต้นทาง → pushToFirebase_)<br><br>
+        Apps Script Triggers (ทุก 5 นาที สลับกัน):<br>
+        ├── pushToFirebase_()  → push fxRate + priceMap + terminals<br>
+        └── checkPriceAlertsCron() → Telegram alert (market hours only)
       </div>
       <div class="text-xs text-gray-300">
         <strong>สูตร Net Worth:</strong>
@@ -168,9 +170,93 @@
           <tr><td class="py-2 px-3 font-semibold text-white">7</td><td class="py-2 px-3">Watchlist + Telegram</td><td class="py-2 px-3 text-gray-400">52W Range, Alert, Telegram Bot</td></tr>
           <tr><td class="py-2 px-3 font-semibold text-white">8.1</td><td class="py-2 px-3">Thai Stocks + REALTIME Sheet</td><td class="py-2 px-3 text-gray-400">Group-4, calcThaiFee_, updateThaiTrade_</td></tr>
           <tr><td class="py-2 px-3 font-semibold text-white">8.2</td><td class="py-2 px-3">Firebase Hybrid + Multi-Page</td><td class="py-2 px-3 text-gray-400">Firebase RTDB Live, 6 ไฟล์แยก, Timeout หมดปัญหา</td></tr>
-          <tr><td class="py-2 px-3 font-semibold text-emerald-400">8.3</td><td class="py-2 px-3">Semi-Auto Telegram Alert Engine</td><td class="py-2 px-3 text-gray-400">SL-15%/SL-20%/TP Zone/52W Proximity, Risk Monitor Panel</td></tr>
+          <tr><td class="py-2 px-3 font-semibold text-white">8.3</td><td class="py-2 px-3">Semi-Auto Telegram Alert Engine</td><td class="py-2 px-3 text-gray-400">SL-15%/SL-20%/TP Zone/52W Proximity, Risk Monitor Panel</td></tr>
+          <tr><td class="py-2 px-3 font-semibold text-white">8.4 / BE 9.2</td><td class="py-2 px-3">Central Wallet System + Cashflow UI Rebuild</td><td class="py-2 px-3 text-gray-400">5 wallets, auto-sync trade→cashflow, แลกเปลี่ยนสกุลเงิน, Manual Adjust</td></tr>
+          <tr><td class="py-2 px-3 font-semibold text-emerald-400">8.4.3 / BE 9.3</td><td class="py-2 px-3">Price Sync + Market Hours Guard + Set Balance</td><td class="py-2 px-3 text-gray-400">applyLivePrices, pushToFirebase_ priceMap, isMarketOpen_, Set Balance mode</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Chapter 5: Price Sync Architecture -->
+    <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d] mb-5">
+      <h2 class="text-base font-bold text-purple-400 fb mb-3">5. Price Sync Architecture (v8.4.3)</h2>
+      <p class="text-xs text-gray-400 mb-3">ราคาหุ้นในระบบมี 2 แหล่ง → แก้ไขให้ตรงกันทุกหน้าด้วย <span class="fn text-purple-300">applyLivePrices()</span></p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+        <div class="p-3 bg-[#161b22] rounded-lg border border-[#30363d]">
+          <div class="text-xs font-bold text-white mb-2">ก่อน v8.4.3 (ปัญหา)</div>
+          <div class="fn text-[11px] text-rose-300 space-y-1">
+            <div>Dashboard → appData.summary (Sheet prices)</div>
+            <div>Thai/US page → Firebase priceMap (stale)</div>
+            <div class="text-gray-500">→ ตัวเลขไม่ตรงกันระหว่างหน้า</div>
+          </div>
+        </div>
+        <div class="p-3 bg-[#161b22] rounded-lg border border-[#30363d]">
+          <div class="text-xs font-bold text-white mb-2">หลัง v8.4.3 (แก้แล้ว)</div>
+          <div class="fn text-[11px] text-emerald-300 space-y-1">
+            <div>pushToFirebase_() → push REALTIME sheet → Firebase priceMap</div>
+            <div>ทุกหน้า → applyLivePrices() ใช้ Firebase priceMap ชุดเดียวกัน</div>
+            <div class="text-gray-500">→ ตัวเลขตรงกันทุกหน้า ทุก 5 นาที</div>
+          </div>
+        </div>
+      </div>
+      <div class="p-3 bg-[#161b22] rounded-lg border border-[#30363d] fn text-[11px] text-gray-300">
+        <span class="text-purple-300 font-bold">applyLivePrices</span>(positions, priceMap, isTHB)<br>
+        ├── copy-based: ไม่ mutate appData.summary ตรงๆ<br>
+        ├── US ticker: priceMap["TSLA"] หรือ fallback priceMap["BRK_B"] (dot → underscore)<br>
+        ├── Thai ticker: priceMap["BKK:BDMS"] (colon allowed in Firebase key)<br>
+        └── Dashboard .once() → .on() (live listener แทน 5-min poll)
+      </div>
+    </div>
+
+    <!-- Chapter 6: Alert Engine & Market Hours -->
+    <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d] mb-5">
+      <h2 class="text-base font-bold text-rose-400 fb mb-3">6. Alert Engine & Market Hours Guard (BE v9.3)</h2>
+      <p class="text-xs text-gray-400 mb-3">Telegram Bot จะส่ง alert เฉพาะช่วงเวลาซื้อ-ขายของแต่ละตลาด (<span class="fn text-rose-300">isMarketOpen_</span>)</p>
+      <table class="w-full text-xs mb-4">
+        <thead class="bg-[#21262d] text-gray-400 border-b border-[#30363d]">
+          <tr><th class="py-2 px-3">ตลาด</th><th class="py-2 px-3">เวลา BKK ที่ alert ทำงาน</th><th class="py-2 px-3">Guard ที่</th></tr>
+        </thead>
+        <tbody class="divide-y divide-[#30363d]">
+          <tr><td class="py-2 px-3 font-bold text-white">US (NYSE/NASDAQ)</td><td class="py-2 px-3 fn text-emerald-300">จ-ศ 20:00–04:00 BKK (ครอบ EST + EDT)</td><td class="py-2 px-3 text-gray-400">processPos(), cron loop, proximity</td></tr>
+          <tr><td class="py-2 px-3 font-bold text-white">Thai (SET)</td><td class="py-2 px-3 fn text-teal-300">จ-ศ 10:00–17:30 BKK</td><td class="py-2 px-3 text-gray-400">processPos(), cron loop, proximity</td></tr>
+        </tbody>
+      </table>
+      <div class="p-3 bg-[#161b22] rounded-lg border border-[#30363d] fn text-[11px] text-gray-300">
+        Alert Types ที่ระบบรองรับ:<br>
+        ├── SL-20% URGENT  → แจ้งทุก 15 นาที (ขณะตลาดเปิด)<br>
+        ├── SL-15% WARNING → แจ้งทุก 60 นาที<br>
+        ├── TP Zone PROFIT → แจ้งเมื่อเข้าโซน Target Price<br>
+        └── 52W Proximity  → แจ้งเมื่อราคาใกล้ 52W High/Low ±3%
+      </div>
+    </div>
+
+    <!-- Chapter 7: Central Wallet System -->
+    <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d] mb-5">
+      <h2 class="text-base font-bold text-amber-400 fb mb-3">7. Central Wallet System & Cashflow</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+        <div>
+          <p class="text-xs font-bold text-gray-300 mb-2">Wallet Keys (CASHFLOW Sheet)</p>
+          <div class="fn text-[11px] text-gray-300 space-y-1 p-3 bg-[#161b22] rounded-lg border border-[#30363d]">
+            <div><span class="text-blue-300">sell_usd</span>  → ซื้อ/ขายหุ้น US</div>
+            <div><span class="text-blue-300">div_usd</span>   → ปันผล USD</div>
+            <div><span class="text-teal-300">sell_thb</span>  → ซื้อ/ขายหุ้นไทย</div>
+            <div><span class="text-teal-300">div_thb</span>   → ปันผล ฿</div>
+            <div><span class="text-gray-300">general</span>   → ทั่วไป / Group-1</div>
+          </div>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-gray-300 mb-2">Auto-Sync เมื่อ Trade</p>
+          <div class="fn text-[11px] text-gray-300 space-y-1 p-3 bg-[#161b22] rounded-lg border border-[#30363d]">
+            <div>BUY US  → out จาก sell_usd</div>
+            <div>SELL US → in เข้า sell_usd</div>
+            <div>BUY Thai → out จาก sell_thb</div>
+            <div>SELL Thai → in เข้า sell_thb</div>
+          </div>
+        </div>
+      </div>
+      <div class="p-3 bg-[#161b22] rounded-lg border border-[#30363d] text-xs text-gray-300">
+        <span class="font-bold text-amber-300">Set Balance Mode (v8.4.3):</span> Double-click กระเป๋า → เลือก "ตั้งยอดตรง" → กรอกยอดเป้าหมาย → ระบบ auto-calculate direction + amount ให้เองโดยอัตโนมัติ
+      </div>
     </div>
 
   </div>
@@ -427,7 +513,7 @@ function parseGvizData(json) {
           if (parts[0]>feVerArr[0] || (parts[0]===feVerArr[0]&&parts[1]>feVerArr[1]) || (parts[0]===feVerArr[0]&&parts[1]===feVerArr[1]&&parts[2]>feVerArr[2])) {
             feVerArr = parts;
             maxFeVer = version;
-            if (cleanDate) maxBeDate = cleanDate;
+            if (cleanDate) maxFeDate = cleanDate;  // FE version date
           }
         }
       }
