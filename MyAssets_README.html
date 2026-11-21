@@ -50,14 +50,17 @@
         <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
       </div>
       <div>
-        <div class="text-sm font-bold text-amber-300 fb">README — คู่มือระบบ & รายการแก้ไข</div>
-        <div class="text-[11px] text-gray-400">v8.3.0 | อัปเดต 2026-10-03</div>
+        <div class="text-sm font-bold text-amber-300 fb flex items-center gap-2">
+          README — คู่มือระบบ & รายการแก้ไข
+          <span id="readmeVersionBadge" class="px-2 py-0.5 rounded text-[10px] font-normal text-gray-400 bg-black/20 border border-[#30363d] fn">กำลังโหลด...</span>
+        </div>
+        <div id="readmeUpdateDate" class="text-[11px] text-gray-400">อัปเดตล่าสุด: กำลังซิงค์...</div>
       </div>
     </div>
     <div id="tickerTop" class="hidden md:flex items-center gap-2 fn text-[11px]"></div>
     <div class="flex items-center gap-1.5">
       <button onclick="toggleLang()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
-      <button onclick="exportPDF()" class="no-print px-3 py-1.5 text-xs rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white font-semibold transition">Export PDF</button>
+      <button onclick="exportCurrentTabPDF()" class="no-print px-3 py-1.5 text-xs rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white font-semibold transition">Export PDF</button>
       <a href="MyAssets.html" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="กลับหน้า Dashboard">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
       </a>
@@ -90,8 +93,8 @@
     <div class="flex flex-col md:flex-row items-start justify-between gap-4 border-b border-[#30363d] pb-5 mb-6">
       <div>
         <div class="flex items-center gap-2 mb-2">
-          <span class="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 text-xs font-bold fn">VERSION 8.3.0</span>
-          <span class="text-xs text-gray-400">อัปเดตล่าสุด: 2026-10-03</span>
+          <span id="contentVersionBadge" class="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 text-xs font-bold fn">VERSION --</span>
+          <span id="contentUpdateDate" class="text-xs text-gray-400">อัปเดตล่าสุด: --</span>
         </div>
         <h1 class="text-xl font-bold text-white fb">คู่มือการใช้งาน & Context Summary</h1>
         <p class="text-xs text-gray-400 mt-1">พิมพ์เขียวสถาปัตยกรรม | การแก้ไข | Hybrid Firebase Migration | Semi-Auto Alert Engine</p>
@@ -176,7 +179,7 @@
 
 <!-- TAB 2: TASKS TRACKER CONTENT -->
 <div id="tab-tasks" class="tab-panel">
-<main class="max-w-7xl mx-auto px-4 pt-6 pb-10 space-y-6">
+<main id="tasksContent" class="max-w-7xl mx-auto px-4 pt-6 pb-10 space-y-6">
 
   <!-- FILTER & SEARCH PANEL -->
   <div class="cd rounded-2xl p-4 border border-[#30363d]">
@@ -229,13 +232,14 @@
             <th class="py-3 px-3">Priority</th>
             <th class="py-3 px-3">Description</th>
             <th class="py-3 px-3">Effected File</th>
+            <th class="py-3 px-3">Version</th>
             <th class="py-3 px-3">A.I. Editor</th>
             <th class="py-3 px-3">Finish Date</th>
             <th class="py-3 px-3 text-center">Status</th>
           </tr>
         </thead>
         <tbody id="taskTableBody" class="divide-y divide-[#30363d]">
-          <tr><td colspan="7" class="py-6 text-center text-gray-500">กำลังโหลดข้อมูลจาก Google Sheet...</td></tr>
+          <tr><td colspan="8" class="py-6 text-center text-gray-500">กำลังโหลดข้อมูลจาก Google Sheet...</td></tr>
         </tbody>
       </table>
     </div>
@@ -260,17 +264,59 @@ function switchReadmeTab(id, btn) {
 
   const panel = document.getElementById('tab-' + id);
   if (panel) panel.classList.add('active');
-  if (btn) btn.classList.add('active');
+  if (btn) {
+    btn.classList.add('active');
+  } else {
+    const targetBtn = document.getElementById('ptab-' + id);
+    if (targetBtn) targetBtn.classList.add('active');
+  }
 
-  // ถ้ากดเปิดแท็บ Task ครั้งแรก ให้โหลดข้อมูล Google Sheet ทันที
   if (id === 'tasks' && allTaskRows.length === 0) {
     fetchSheetData();
   }
 }
 
+// ตรวจสอบ URL Hash เมื่อโหลดหน้าเว็บ (เปิดมาจาก Dashboard #tasks)
+window.addEventListener('DOMContentLoaded', () => {
+  if (window.location.hash === '#tasks') {
+    switchReadmeTab('tasks', document.getElementById('ptab-tasks'));
+  }
+  fetchSheetData(); // โหลดข้อมูลเสมอเพื่อให้ Header มี Version และวันที่แสดงผลครบถ้วน
+});
+
+// แยกฟังก์ชัน Export PDF ตาม Tab ปัจจุบัน (Tab คู่มือพิมพ์แนวตั้ง / Tab รายการแก้ไขพิมพ์แนวนอน)
+function exportCurrentTabPDF() {
+  const isTasksActive = document.getElementById('tab-tasks').classList.contains('active');
+  
+  if (isTasksActive) {
+    // พิมพ์หน้าตารางรายการแก้ไข (Task Tracker) ในรูปแบบแนวนอน (Landscape) เพื่อให้ตารางไม่ตกขอบ
+    const el = document.getElementById('tasksContent');
+    html2pdf().set({
+      margin: [10, 10, 10, 10],
+      filename: `Portfolio_Task_Tracker_${new Date().toISOString().slice(0,10)}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0d1117' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    }).from(el).save();
+  } else {
+    // พิมพ์หน้าคู่มือระบบ (README) ในรูปแบบแนวตั้ง (Portrait)
+    const el = document.getElementById('readmeContent');
+    html2pdf().set({
+      margin: [10, 10, 10, 10],
+      filename: `Portfolio_README_${new Date().toISOString().slice(0,10)}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0d1117' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(el).save();
+  }
+}
+
 // ดึงข้อมูลจาก Google Sheet ผ่าน Google Visualization API JSONP
 function fetchSheetData() {
-  document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="7" class="py-6 text-center text-gray-400">กำลังโหลดข้อมูลจาก Google Sheet...</td></tr>`;
+  const isTabActive = document.getElementById('tab-tasks').classList.contains('active');
+  if (isTabActive) {
+    document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="8" class="py-6 text-center text-gray-400">กำลังโหลดข้อมูลจาก Google Sheet...</td></tr>`;
+  }
 
   const sheetId = '1R4UnNH7iz4fhRXghF61kk3W8HHkU6Hn6Lxhqz4uxa1A';
   const gid = '362341294';
@@ -282,7 +328,9 @@ function fetchSheetData() {
       parseGvizData(json);
     } catch (e) {
       console.error('Parse error:', e);
-      document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="7" class="py-6 text-center text-rose-400">เกิดข้อผิดพลาดในการประมวลผลข้อมูล</td></tr>`;
+      if (isTabActive) {
+        document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="8" class="py-6 text-center text-rose-400">เกิดข้อผิดพลาดในการประมวลผลข้อมูล</td></tr>`;
+      }
     }
   };
 
@@ -290,14 +338,18 @@ function fetchSheetData() {
   script.src = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:${callbackName}&gid=${gid}`;
   script.onerror = function() {
     cleanup();
-    document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="7" class="py-6 text-center text-rose-400">ไม่สามารถเชื่อมต่อกับ Google Sheet ได้</td></tr>`;
+    if (isTabActive) {
+      document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="8" class="py-6 text-center text-rose-400">ไม่สามารถเชื่อมต่อกับ Google Sheet ได้</td></tr>`;
+    }
   };
 
   document.body.appendChild(script);
 
   const timer = setTimeout(() => {
     cleanup();
-    document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="7" class="py-6 text-center text-rose-400">หมดเวลาการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง</td></tr>`;
+    if (isTabActive) {
+      document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="8" class="py-6 text-center text-rose-400">หมดเวลาการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง</td></tr>`;
+    }
   }, 12000);
 
   function cleanup() {
@@ -310,33 +362,108 @@ function fetchSheetData() {
 function parseGvizData(json) {
   allTaskRows = [];
   const rows = json.table.rows;
-  
+  if (!rows || rows.length === 0) return;
+
+  const headerCells = rows[0].c;
+  let colIdx = {
+    addDate: 0, priority: 1, description: 2, effected: 3, version: 4, aiEditor: 5, finishDate: 6, status: 7
+  };
+
+  headerCells.forEach((cell, idx) => {
+    const val = cell && cell.v ? String(cell.v).trim().toUpperCase() : '';
+    if (val.includes('ADD DATE')) colIdx.addDate = idx;
+    else if (val.includes('PRIORITY')) colIdx.priority = idx;
+    else if (val.includes('DESCRIPTION')) colIdx.description = idx;
+    else if (val.includes('EFFECTED')) colIdx.effected = idx;
+    else if (val.includes('VERSION')) colIdx.version = idx;
+    else if (val.includes('A.I. EDITOR') || val.includes('AI EDITOR')) colIdx.aiEditor = idx;
+    else if (val.includes('FINISH DATE')) colIdx.finishDate = idx;
+    else if (val.includes('STATUS')) colIdx.status = idx;
+  });
+
+  let maxFeVer = '8.4.0', maxFeDate = '';
+  let maxBeVer = '9.2.0', maxBeDate = '';
+  let globalLatestDate = '';
+  let feVerArr = [8,4,0], beVerArr = [9,2,0];
+
   for (let i = 1; i < rows.length; i++) {
     const cols = rows[i].c;
     if (!cols) continue;
 
     const getVal = (idx) => cols[idx] && cols[idx].v !== null && cols[idx].v !== undefined ? String(cols[idx].v).trim() : '';
 
-    const addDate = getVal(0);
-    const priority = getVal(1);
-    const description = getVal(2);
-    const effected = getVal(3);
-    const aiEditor = getVal(4);
-    const finishDate = getVal(5);
-    const status = getVal(6);
+    const addDate = getVal(colIdx.addDate);
+    const priority = getVal(colIdx.priority);
+    const description = getVal(colIdx.description);
+    const effected = getVal(colIdx.effected);
+    const version = getVal(colIdx.version);
+    const aiEditor = getVal(colIdx.aiEditor);
+    const finishDate = getVal(colIdx.finishDate);
+    const status = getVal(colIdx.status);
 
     if (!addDate && !description && !priority) continue;
 
+    const fmtAddDate = formatDateStr(addDate);
+    const fmtFinishDate = formatDateStr(finishDate);
+    const cleanDate = fmtFinishDate || fmtAddDate;
+
+    if (status.toUpperCase() === 'DONE' && cleanDate) {
+      if (!globalLatestDate || cleanDate > globalLatestDate) {
+        globalLatestDate = cleanDate;
+      }
+    }
+
+    if (status.toUpperCase() === 'DONE' && version) {
+      const isGs = effected.toLowerCase().endsWith('.gs');
+      const parts = version.split('.').map(Number);
+      if (parts.length >= 3) {
+        if (isGs) {
+          if (parts[0]>beVerArr[0] || (parts[0]===beVerArr[0]&&parts[1]>beVerArr[1]) || (parts[0]===beVerArr[0]&&parts[1]===beVerArr[1]&&parts[2]>beVerArr[2])) {
+            beVerArr = parts;
+            maxBeVer = version;
+            if (cleanDate) maxBeDate = cleanDate;
+          }
+        } else {
+          if (parts[0]>feVerArr[0] || (parts[0]===feVerArr[0]&&parts[1]>feVerArr[1]) || (parts[0]===feVerArr[0]&&parts[1]===feVerArr[1]&&parts[2]>feVerArr[2])) {
+            feVerArr = parts;
+            maxFeVer = version;
+            if (cleanDate) maxBeDate = cleanDate;
+          }
+        }
+      }
+    }
+
     allTaskRows.push({
-      addDate: formatDateStr(addDate),
+      addDate: fmtAddDate,
       priority: priority,
       description: description,
       effected: effected,
+      version: version,
       aiEditor: aiEditor,
-      finishDate: formatDateStr(finishDate),
+      finishDate: fmtFinishDate,
       status: status
     });
   }
+
+  if (!maxFeDate) maxFeDate = globalLatestDate || new Date().toISOString().slice(0,10);
+  if (!maxBeDate) maxBeDate = globalLatestDate || new Date().toISOString().slice(0,10);
+
+  // Format วันที่เป็น DD/MM/YYYY (เช่น 21/11/2026)
+  const fmtD = d => {
+    if (!d || d.length < 10) return d;
+    const p = d.split('-');
+    return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : d;
+  };
+
+  const badgeEl = document.getElementById('readmeVersionBadge');
+  const contentBadgeEl = document.getElementById('contentVersionBadge');
+  const updateDateEl = document.getElementById('readmeUpdateDate');
+  const contentDateEl = document.getElementById('contentUpdateDate');
+
+  if (badgeEl) badgeEl.textContent = `FE v${maxFeVer} · ${fmtD(maxFeDate)} | BE v${maxBeVer} · ${fmtD(maxBeDate)}`;
+  if (contentBadgeEl) contentBadgeEl.textContent = `FE v${maxFeVer} | BE v${maxBeVer}`;
+  if (updateDateEl) updateDateEl.textContent = `อัปเดตล่าสุด: ${fmtD(maxFeDate)}`;
+  if (contentDateEl) contentDateEl.textContent = `อัปเดตล่าสุด: ${fmtD(maxFeDate)}`;
 
   renderTable(allTaskRows);
 }
@@ -357,8 +484,9 @@ function formatDateStr(val) {
 
 function renderTable(rows) {
   const tbody = document.getElementById('taskTableBody');
+  if (!tbody) return;
   if (rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-gray-500">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-gray-500">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
     return;
   }
 
@@ -378,6 +506,7 @@ function renderTable(rows) {
       <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] ${pClass}">${r.priority}</span></td>
       <td class="py-2.5 px-3 text-white">${r.description}</td>
       <td class="py-2.5 px-3 fn text-blue-400 text-[11px]">${r.effected}</td>
+      <td class="py-2.5 px-3 fn text-amber-300 font-semibold text-[11px]">${r.version}</td>
       <td class="py-2.5 px-3 text-gray-300 text-[11px]">${r.aiEditor}</td>
       <td class="py-2.5 px-3 fn text-gray-400">${r.finishDate}</td>
       <td class="py-2.5 px-3 text-center"><span class="px-2.5 py-0.5 rounded text-[10px] ${sClass}">${r.status}</span></td>
@@ -400,17 +529,6 @@ function filterTable() {
   });
 
   renderTable(filtered);
-}
-
-function exportPDF(){
-  const el=document.getElementById('readmeContent');
-  html2pdf().set({
-    margin:[10,10,10,10],
-    filename:`Portfolio_README_v8.3_${new Date().toISOString().slice(0,10)}.pdf`,
-    image:{type:'jpeg',quality:0.98},
-    html2canvas:{scale:2,useCORS:true,backgroundColor:'#0d1117'},
-    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
-  }).from(el).save();
 }
 
 const FB_CFG={apiKey:'***************************************',authDomain:'au-portfolio-7d687.firebaseapp.com',databaseURL:'https://au-portfolio-7d687-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'au-portfolio-7d687',storageBucket:'au-portfolio-7d687.firebasestorage.app',messagingSenderId:'806351101494',appId:'1:806351101494:web:c832da2ef2baff90d18297'};

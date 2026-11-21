@@ -87,7 +87,7 @@
       <div>
         <div class="text-sm font-bold text-white fb flex items-center gap-2">
           PORTFOLIO
-          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 fn">v8.2</span>
+          <a href="MyAssets_README.html#tasks" title="คลิกเพื่อดูรายการแก้ไข" class="px-2 py-0.5 rounded text-[10px] font-normal text-gray-500 hover:text-amber-400 bg-black/20 border border-[#30363d] hover:border-amber-500/40 fn transition cursor-pointer" id="versionBadge">กำลังโหลด Version...</a>
         </div>
         <div class="flex items-center gap-1.5 text-[11px] text-gray-400">
           <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
@@ -98,7 +98,6 @@
     </div>
     <div id="tickerTop" class="hidden md:flex items-center gap-2 fn text-[11px]"></div>
     <div class="flex items-center gap-1.5">
-      <!-- CHANGE 1: ผู้ดูแลจัดการบัญชี Group-1 ย้ายไปที่ MyAssets_Cashflow.html แล้ว -->
       <button onclick="printPDF()" id="btnPrintPDF" class="no-print px-2.5 py-1 text-xs rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white font-semibold transition cursor-pointer" title="Print PDF">Print PDF</button>
       <button onclick="exportMonthlyCSV()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-amber-400 hover:bg-[#30363d] font-semibold transition" title="Export Monthly Report (CSV)">CSV</button>
       <button onclick="toggleLang()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
@@ -217,7 +216,7 @@
     </div>
   </div>
 
-  <!-- GROUP 1 — read-only, link to Cashflow -->
+  <!-- GROUP 1 -->
   <div>
     <div class="flex items-center justify-between mb-2">
       <h2 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -307,8 +306,6 @@
 
 </main>
 
-<!-- CHANGE 2: modalAccount ย้ายไปที่ MyAssets_Cashflow.html แล้ว -->
-
 <!-- ── RENEW BANNER ──────────────────────────────────────────────────── -->
 <div id="renewBanner" class="hidden fixed top-16 inset-x-0 z-40 flex justify-center pointer-events-none">
   <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-900/80 border border-amber-500/40 text-amber-300 text-xs backdrop-blur shadow-lg">
@@ -357,6 +354,114 @@ let chartTrend   = null;
 
 firebase.initializeApp(FB_CFG);
 const db = firebase.database();
+
+// ดึง Version และ วันที่ ล่าสุดจาก Sheet TASK แบบ JSONP พร้อมระบบ Fallback และ Format วันที่เป็น DD/MM/YYYY
+function loadDynamicVersion() {
+  const sheetId = '1R4UnNH7iz4fhRXghF61kk3W8HHkU6Hn6Lxhqz4uxa1A';
+  const gid = '362341294';
+  const cbName = 'ver_cb_' + Math.round(1e6 * Math.random());
+  
+  window[cbName] = function(json) {
+    cleanup();
+    try {
+      let maxFeVer = '8.4.0', maxFeDate = '';
+      let maxBeVer = '9.2.0', maxBeDate = '';
+      let globalLatestDate = '';
+      let feVerArr = [8,4,0], beVerArr = [9,2,0];
+
+      const rows = json.table.rows;
+      if (!rows || rows.length === 0) return;
+
+      const cols = rows[0].c;
+      let idxVer = 4, idxEff = 3, idxFin = 6, idxSta = 7;
+      cols.forEach((cell, i) => {
+        const val = cell && cell.v ? String(cell.v).trim().toUpperCase() : '';
+        if (val.includes('VERSION')) idxVer = i;
+        if (val.includes('EFFECTED')) idxEff = i;
+        if (val.includes('FINISH')) idxFin = i;
+        if (val.includes('STATUS')) idxSta = i;
+      });
+
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i].c;
+        if (!r) continue;
+        const getV = idx => r[idx] && r[idx].v !== null && r[idx].v !== undefined ? String(r[idx].v).trim() : '';
+        
+        const ver = getV(idxVer);
+        const eff = getV(idxEff).toLowerCase();
+        const fin = getV(idxFin);
+        const sta = getV(idxSta).toUpperCase();
+
+        const cleanDate = fin.startsWith('Date(') ? formatDateStr(fin) : fin.slice(0,10);
+        if (sta === 'DONE' && cleanDate) {
+          if (!globalLatestDate || cleanDate > globalLatestDate) {
+            globalLatestDate = cleanDate;
+          }
+        }
+
+        if (sta === 'DONE' && ver) {
+          const isGs = eff.endsWith('.gs');
+          const parts = ver.split('.').map(Number);
+          if (parts.length >= 3) {
+            if (isGs) {
+              if (parts[0]>beVerArr[0] || (parts[0]===beVerArr[0]&&parts[1]>beVerArr[1]) || (parts[0]===beVerArr[0]&&parts[1]===beVerArr[1]&&parts[2]>beVerArr[2])) {
+                beVerArr = parts;
+                maxBeVer = ver;
+                if (cleanDate) maxBeDate = cleanDate;
+              }
+            } else {
+              if (parts[0]>feVerArr[0] || (parts[0]===feVerArr[0]&&parts[1]>feVerArr[1]) || (parts[0]===feVerArr[0]&&parts[1]===feVerArr[1]&&parts[2]>feVerArr[2])) {
+                feVerArr = parts;
+                maxFeVer = ver;
+                if (cleanDate) maxFeDate = cleanDate;
+              }
+            }
+          }
+        }
+      }
+
+      if (!maxFeDate) maxFeDate = globalLatestDate || new Date().toISOString().slice(0,10);
+      if (!maxBeDate) maxBeDate = globalLatestDate || new Date().toISOString().slice(0,10);
+
+      // Format วันที่เป็น DD/MM/YYYY
+      const fmtD = d => {
+        if (!d || d.length < 10) return d;
+        const p = d.split('-');
+        return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : d;
+      };
+
+      const badge = document.getElementById('versionBadge');
+      if (badge) {
+        badge.textContent = `FE v${maxFeVer} · ${fmtD(maxFeDate)} | BE v${maxBeVer} · ${fmtD(maxBeDate)}`;
+        badge.title = 'คลิกเพื่อดูรายละเอียดรายการแก้ไขในหน้าคู่มือ';
+      }
+    } catch(e) {
+      const badge = document.getElementById('versionBadge');
+      if (badge) badge.textContent = 'FE v8.4.1 | BE v9.2.0';
+    }
+  };
+
+  const script = document.createElement('script');
+  script.src = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:${cbName}&gid=${gid}`;
+  script.onerror = () => { cleanup(); };
+  document.body.appendChild(script);
+
+  function cleanup() {
+    delete window[cbName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+  }
+}
+
+function formatDateStr(val) {
+  if (!val) return '';
+  if (val.startsWith('Date(')) {
+    const parts = val.replace(/Date\(|\)/g, '').split(',');
+    if (parts.length >= 3) {
+      return `${parts[0]}-${String(Number(parts[1])+1).padStart(2,'0')}-${String(parts[2]).padStart(2,'0')}`;
+    }
+  }
+  return val;
+}
 
 function startFirebaseListen() {
   fetchBtcLive();
@@ -441,6 +546,7 @@ function unlockApp() {
   }
   startFirebaseListen();
   bootstrapOnce();
+  loadDynamicVersion();
 }
 
 function bootstrapOnce(forceRefresh) {
@@ -450,7 +556,6 @@ function bootstrapOnce(forceRefresh) {
       const cache = raw ? JSON.parse(raw) : null;
       if (cache?.data && (Date.now() - cache.ts) < CACHE_TTL_MS) {
         appData = cache.data;
-        // CHANGE 3: populateAccounts() removed — modal ย้ายไป Cashflow แล้ว
         renderDashboard();
         return;
       }
@@ -532,7 +637,6 @@ function loadBootstrap(cb, _retry) {
     }
     appData = res.data;
     try { sessionStorage.setItem(SS_CACHE, JSON.stringify({ data: appData, ts: Date.now() })); } catch(e) {}
-    // CHANGE 4: populateAccounts() removed — modal ย้ายไป Cashflow แล้ว
     renderDashboard();
     if (cb) cb();
   });
@@ -546,11 +650,9 @@ function renderDashboard() {
   const priceMap = rtData?.priceMap || {};
   const hasLive  = Object.keys(priceMap).length > 0;
 
-  // apply live prices (no mutation on appData)
   const thaiPos = applyLivePrices(sum.thaiPositions || [], priceMap, true);
   const usPos   = applyLivePrices(sum.positions     || [], priceMap, false);
 
-  // Thai totals from live prices (fallback to server summary)
   const thaiMarket = thaiPos.length > 0
     ? thaiPos.reduce((a, p) => a + (p.marketTHB || 0), 0)
     : (sum.thaiMarketTHB || 0);
@@ -558,7 +660,6 @@ function renderDashboard() {
   const thaiPnl    = thaiMarket - thaiCost;
   const thaiPct    = thaiCost > 0 ? thaiPnl / thaiCost * 100 : (sum.thaiPnlPct || 0);
 
-  // US totals from live prices (fallback to server summary)
   const usMarketUSD = usPos.length > 0
     ? usPos.reduce((a, p) => a + (p.marketUSD || 0), 0)
     : (Number(sum.usInvestUSD) || 0);
@@ -637,15 +738,14 @@ function renderDashboard() {
 }
 
 function isMarketOpen() {
-  // Bangkok time = UTC+7
   const bkk  = new Date(Date.now() + 7 * 3600 * 1000);
-  const day  = bkk.getUTCDay();   // 0=Sun, 6=Sat
+  const day  = bkk.getUTCDay();
   const h    = bkk.getUTCHours();
   const m    = bkk.getUTCMinutes();
   const mins = h * 60 + m;
-  if (day === 0 || day === 6) return false;                        // Weekend
-  const thaiOpen  = isTrue(10 * 60 <= mins && mins <= 16 * 60 + 30);    // 10:00–16:30
-  const usOpen    = isTrue(mins >= 20 * 60 + 30 || mins <= 4 * 60);     // 20:30–04:00
+  if (day === 0 || day === 6) return false;
+  const thaiOpen  = isTrue(10 * 60 <= mins && mins <= 16 * 60 + 30);
+  const usOpen    = isTrue(mins >= 20 * 60 + 30 || mins <= 4 * 60);
   return thaiOpen || usOpen;
   function isTrue(v) { return v; }
 }
@@ -655,7 +755,6 @@ function renderRiskMonitor(sum) {
   const body  = document.getElementById('riskMonitorBody');
   if (!panel || !body) return;
 
-  // Pause mode: weekend or outside trading hours
   if (!isMarketOpen()) {
     panel.classList.remove('hidden');
     body.innerHTML = '<span class="text-xs text-gray-500 fn">ตลาดปิด — Risk Monitor หยุดทำงานชั่วคราว (เปิดทำการ: หุ้นไทย 10:00–16:30 / หุ้นสหรัฐ 20:30–04:00 น. วันจันทร์–ศุกร์)</span>';
@@ -971,8 +1070,6 @@ function renderTrendChart(snaps) {
   });
 }
 
-// CHANGE 5: populateAccounts, onAccChange, openAccountModal, submitUpdateAccount ลบออกแล้ว
-
 function triggerSnapshot() {
   if (!confirm('บันทึก Snapshot วันนี้?')) return;
   apiCall('saveSnapshot',{},res=>{ if(res.ok){alert('บันทึกสำเร็จ');invalidateCache();loadBootstrap();} });
@@ -997,11 +1094,10 @@ function printPDF() {
   });
 }
 
-/* ── Shared: apply live prices (no mutation) ─────────────── */
 function applyLivePrices(positions, priceMap, isTHB) {
   return positions.map(function(p) {
     var copy  = Object.assign({}, p);
-    var fbKey = p.ticker.replace(/[.]/g, '_');  // BRK.B → BRK_B
+    var fbKey = p.ticker.replace(/[.]/g, '_');
     var lp    = priceMap[p.ticker] !== undefined ? priceMap[p.ticker] : priceMap[fbKey];
     if (typeof lp === 'number' && lp > 0) {
       copy.currentPrice = lp;
@@ -1022,8 +1118,8 @@ function applyLivePrices(positions, priceMap, isTHB) {
 function updateDashPriceLabel(hasLive) {
   var ids = ['priceSrcThaiLabel', 'priceSrcUSLabel'];
   var now = hasLive
-    ? '\u0e23\u0e32\u0e04\u0e32\u0e2a\u0e14 Firebase \u2022 \u0e2d\u0e31\u0e1b\u0e40\u0e14\u0e15 ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-    : '\u0e23\u0e32\u0e04\u0e32\u0e08\u0e32\u0e01 Server (Snapshot)';
+    ? 'ราคาซิงค์ Firebase • อัปเดต ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    : 'ราคาจาก Server (Snapshot)';
   var cls = hasLive ? 'text-[10px] text-emerald-500/70 fn mt-1.5' : 'text-[10px] text-amber-500/70 fn mt-1.5';
   ids.forEach(function(id) {
     var el = document.getElementById(id);
