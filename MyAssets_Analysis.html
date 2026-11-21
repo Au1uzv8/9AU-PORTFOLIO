@@ -13,6 +13,17 @@
 <!-- Font Awesome Icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
+<!-- Tailwind (standard header) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Standard fonts: Chakra Petch (FB), Sarabun -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Sarabun:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- i18n -->
+<script src="i18n.js"></script>
+<!-- Firebase (header ticker) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <style>
 /* ===================== FONTS ===================== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
@@ -40,6 +51,10 @@
   --green: var(--accent);
   --red: var(--magenta);
 }
+
+/* Standard header font aliases */
+.fb { font-family: 'Chakra Petch', 'Prompt', sans-serif; }
+.fn { font-family: 'JetBrains Mono', monospace; }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -883,7 +898,7 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(255,255,255,0.055);
   position: sticky;
-  top: 71px;
+  top: 108px;  /* 64px standard header + 44px nav row */
   z-index: 90;
 }
 .page-tab-nav {
@@ -1158,20 +1173,102 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
 </head>
 <body>
 
-<!-- ===================== NAVBAR ===================== -->
-<nav>
-  <div class="container">
-    <div class="nav-content">
-      <a href="MyAssets.html" style="text-decoration:none"><div class="logo">9AU<span style="color:var(--accent)"> Signals</span><span style="color:var(--muted-2);font-size:14px;font-weight:500;letter-spacing:0;margin-left:10px;padding-left:10px;border-left:1px solid rgba(255,255,255,0.12);">วิเคราะห์หุ้น</span></div></a>
-      <div class="nav-right">
-        <div class="pill"><i class="fa-solid fa-bolt" style="color:var(--accent);margin-right:5px;"></i>SIGNALS V2.0</div>
-        <a class="btn btn-ghost nav-btn" href="https://docs.google.com/spreadsheets/d/1Mt8YLa-O2L1yXjm7CK2HvJ8DA9dpFudrsoc7yo25sX8/edit?gid=1491991104#gid=1491991104" target="_blank" rel="noopener">
-          <i class="fa-solid fa-table"></i> SIGNALS Sheet
-        </a>
-        <div class="profile-badge" title="9AUPortfolio Signals">9AU</div>
+<!-- ===================== STANDARD HEADER ===================== -->
+<header class="border-b border-[#30363d] bg-[#161b22]/95 backdrop-blur sticky top-0 z-40 no-print" style="font-family:'Sarabun','Prompt',sans-serif;">
+  <div class="max-w-screen-xl mx-auto px-4 h-16 flex items-center gap-3">
+
+    <!-- Left: logo + FX rate -->
+    <a href="MyAssets.html" class="flex items-center gap-2 shrink-0 no-underline">
+      <img src="profile.png" alt="9AU" class="w-8 h-8 rounded-full object-cover border border-[#30363d]"
+           onerror="this.style.display='none'">
+      <div class="leading-tight">
+        <div class="text-xs font-bold text-white fb">วิเคราะห์หุ้น</div>
+        <div class="text-[10px] text-gray-400 fn">USD/THB: <span id="hFx">—</span></div>
       </div>
+    </a>
+
+    <!-- Firebase Live badge -->
+    <span id="fbStatus"
+      class="hidden md:inline-flex text-[9px] fn px-2 py-0.5 rounded-full border
+             bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shrink-0">
+      FB live
+    </span>
+
+    <!-- Center: live ticker -->
+    <div class="flex items-center gap-3 mx-auto text-[11px] fn overflow-x-auto no-scrollbar whitespace-nowrap">
+      <span class="text-gray-400">BTC/USD <span id="hBtc" class="text-white font-bold">—</span></span>
+      <span class="text-gray-600">·</span>
+      <span class="text-gray-400">Gold Spot <span id="hGold" class="text-white font-bold">—</span></span>
+      <span class="text-gray-600">·</span>
+      <span class="text-gray-400">Thai Gold <span id="hThGold" class="text-white font-bold">—</span></span>
+    </div>
+
+    <!-- Right: action buttons -->
+    <div class="flex items-center gap-1.5 shrink-0">
+      <!-- Print PDF -->
+      <button onclick="window.print()"
+        class="no-print hidden md:flex items-center gap-1.5 text-[11px] fn
+               px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20
+               text-rose-400 hover:bg-rose-500/20 transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2
+               m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2z
+               m8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+        </svg>
+        Print PDF
+      </button>
+      <!-- Language toggle (placeholder) -->
+      <button class="no-print text-[11px] fn px-3 py-1.5 rounded-lg
+                     bg-[#21262d] border border-[#30363d] text-gray-300
+                     hover:bg-[#30363d] transition">EN</button>
+      <!-- Refresh -->
+      <button onclick="location.reload()"
+        class="no-print p-1.5 rounded-lg bg-[#21262d] border border-[#30363d]
+               text-gray-400 hover:text-white hover:bg-[#30363d] transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9
+               m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+      </button>
+      <!-- Logout -->
+      <button onclick="location.href='MyAssets.html'"
+        class="no-print p-1.5 rounded-lg bg-[#21262d] border border-[#30363d]
+               text-gray-400 hover:text-white hover:bg-[#30363d] transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7
+               a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+      </button>
     </div>
   </div>
+
+  <!-- Nav tabs row -->
+  <div class="max-w-screen-xl mx-auto px-4 pb-2.5 flex gap-0.5 overflow-x-auto no-scrollbar">
+    <a href="MyAssets.html"
+       class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
+              text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">Dashboard</a>
+    <a href="MyAssets_Thai.html"
+       class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
+              text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">หุ้นไทย</a>
+    <a href="MyAssets_US.html"
+       class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
+              text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">หุ้นสหรัฐ</a>
+    <a href="MyAssets_Forex.html"
+       class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
+              text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">ตลาดค่าเงิน</a>
+    <a href="MyAssets_Cashflow.html"
+       class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
+              text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">สภาพคล่อง</a>
+    <span class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
+                 bg-emerald-900/30 text-emerald-400 border border-emerald-500/20 fb">วิเคราะห์</span>
+    <a href="MyAssets_README.html"
+       class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
+              text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">คู่มือใช้งาน</a>
+  </div>
+</header>
 
 <!-- ===================== PAGE TAB BAR ===================== -->
 <div class="page-tab-bar">
@@ -2866,6 +2963,46 @@ initMotionEngine();
 initControls();
 toggleMotion(MOTION);
 loadData();
+</script>
+
+<!-- ===================== FIREBASE HEADER TICKER ===================== -->
+<!-- คัดลอก firebaseConfig จากหน้าอื่น เช่น MyAssets.html -->
+<script>
+(function() {
+  var fmtN = function(n, d) {
+    return (Number(n)||0).toLocaleString('en-US', {
+      minimumFractionDigits: d, maximumFractionDigits: d
+    });
+  };
+  var el = function(id) { return document.getElementById(id); };
+
+  // ── Firebase Config ── คัดลอกจากหน้าอื่น (MyAssets.html / MyAssets_Forex.html)
+  var firebaseConfig = window._FB_CONFIG || null;
+  if (!firebaseConfig) {
+    console.warn('[Analysis] Firebase config not found — header ticker ใช้ค่า default');
+    return;
+  }
+
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    firebase.database().ref('realtime').on('value', function(snap) {
+      var rt = snap.val() || {};
+      if (el('hFx'))     el('hFx').textContent     = fmtN(rt.fxRate    || 0, 2);
+      if (el('hBtc'))    el('hBtc').textContent     = '$' + fmtN(rt.btcUSD   || 0, 0);
+      if (el('hGold'))   el('hGold').textContent    = '$' + fmtN(rt.goldWorld || 0, 0);
+      if (el('hThGold')) el('hThGold').textContent  = '฿' + fmtN(rt.goldTH   || 0, 0);
+      var badge = el('fbStatus');
+      if (badge) {
+        badge.textContent = 'Firebase Live';
+        badge.style.display = 'inline-flex';
+      }
+    }, function(err) {
+      console.warn('[Analysis] Firebase read error:', err.message);
+    });
+  } catch(e) {
+    console.warn('[Analysis] Firebase init error:', e.message);
+  }
+})();
 </script>
 </body>
 </html>
