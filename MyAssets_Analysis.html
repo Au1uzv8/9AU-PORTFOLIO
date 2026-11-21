@@ -2976,15 +2976,19 @@ loadData();
   };
   var el = function(id) { return document.getElementById(id); };
 
-  // ── Firebase Config ── คัดลอกจากหน้าอื่น (MyAssets.html / MyAssets_Forex.html)
-  var firebaseConfig = window._FB_CONFIG || null;
-  if (!firebaseConfig) {
-    console.warn('[Analysis] Firebase config not found — header ticker ใช้ค่า default');
-    return;
-  }
+  // ── Firebase Config (copied from MyAssets.html) ───────────
+  const FB_CFG  = {
+  apiKey:            "***************************************",
+  authDomain:        "au-portfolio-7d687.firebaseapp.com",
+  databaseURL:       "https://au-portfolio-7d687-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "au-portfolio-7d687",
+  storageBucket:     "au-portfolio-7d687.firebasestorage.app",
+  messagingSenderId: "806351101494",
+  appId:             "1:806351101494:web:c832da2ef2baff90d18297"
+}
 
   try {
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(FB_CFG);
     firebase.database().ref('realtime').on('value', function(snap) {
       var rt = snap.val() || {};
       if (el('hFx'))     el('hFx').textContent     = fmtN(rt.fxRate    || 0, 2);
