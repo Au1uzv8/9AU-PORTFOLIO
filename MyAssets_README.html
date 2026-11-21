@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>9AU Portfolio — README</title>
+  <title>9AU Portfolio — คู่มือระบบ & รายการแก้ไข</title>
   <link rel="apple-touch-icon" href="profile.png">
   <link rel="icon" type="image/png" href="profile.png">
   <link rel="manifest" href="manifest.json">
@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body{font-family:'Sarabun',sans-serif;background:#0d1117;color:#c9d1d9;}
-    .fn{font-family:'JetBrains Mono',monospace;}
+    .fn{font-family:'JetBrains Mono',monospace;font-feature-settings:"tnum";}
     .fb{font-family:'Chakra Petch',sans-serif;}
     .cd{background:#161b22;border:1px solid #30363d;}
     .nav-tab{padding:8px 16px;border-radius:10px;font-size:12px;font-weight:600;transition:.15s;white-space:nowrap;border:1px solid #30363d;text-decoration:none;display:inline-block;}
@@ -23,6 +23,22 @@
     .nav-tab:not(.active):hover{color:#fff;border-color:#475569;}
     .no-scrollbar::-webkit-scrollbar{display:none;}
     .ticker-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border:1px solid #30363d;border-radius:9999px;background:#0d1117;white-space:nowrap;}
+    
+    /* Inner Tab Bar Style */
+    .page-tab-bar{background:rgba(22,27,34,.98);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.06);position:sticky;top:64px;z-index:39;}
+    .page-tab-nav{display:flex;align-items:center;max-width:80rem;margin:0 auto;padding:0 16px;gap:8px;}
+    .page-tab{display:inline-flex;align-items:center;gap:7px;padding:12px 20px;font-size:13px;font-weight:700;color:#64748b;border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
+    .page-tab:hover{color:#c9d1d9;}
+    .page-tab.active{color:#f59e0b;border-bottom-color:#f59e0b;}
+    .tab-panel{display:none;}.tab-panel.active{display:block;}
+
+    .no-print { display: inline-block; }
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body { background: #0d1117 !important; color: #c9d1d9 !important; }
+      .no-print { display: none !important; }
+      .cd { break-inside: avoid; page-break-inside: avoid; }
+    }
   </style>
 </head>
 <body class="min-h-screen antialiased pb-16">
@@ -34,15 +50,15 @@
         <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
       </div>
       <div>
-        <div class="text-sm font-bold text-amber-300 fb">README — คู่มือระบบ</div>
+        <div class="text-sm font-bold text-amber-300 fb">README — คู่มือระบบ & รายการแก้ไข</div>
         <div class="text-[11px] text-gray-400">v8.3.0 | อัปเดต 2026-10-03</div>
       </div>
     </div>
     <div id="tickerTop" class="hidden md:flex items-center gap-2 fn text-[11px]"></div>
     <div class="flex items-center gap-1.5">
-      <button onclick="toggleLang()" class="px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
-      <button onclick="exportPDF()" class="px-3 py-1.5 text-xs rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white font-semibold transition">Export PDF</button>
-      <a href="MyAssets.html" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition">
+      <button onclick="toggleLang()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
+      <button onclick="exportPDF()" class="no-print px-3 py-1.5 text-xs rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white font-semibold transition">Export PDF</button>
+      <a href="MyAssets.html" class="p-2 text-gray-400 hover:text-white rounded-lg border border-[#30363d] bg-[#21262d] transition" title="กลับหน้า Dashboard">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
       </a>
     </div>
@@ -59,11 +75,18 @@
   </div>
 </header>
 
+<!-- Inner Tab Bar -->
+<div class="page-tab-bar">
+  <div class="page-tab-nav">
+    <button class="page-tab active" id="ptab-readme" onclick="switchReadmeTab('readme',this)">📖 คู่มือใช้งาน</button>
+    <button class="page-tab" id="ptab-tasks" onclick="switchReadmeTab('tasks',this)">📋 รายการแก้ไข (Task Tracker)</button>
+  </div>
+</div>
+
+<!-- TAB 1: README CONTENT -->
+<div id="tab-readme" class="tab-panel active">
 <main id="readmeContent" class="max-w-4xl mx-auto px-4 pt-6 pb-10 space-y-6 text-sm text-gray-300 leading-relaxed">
-
   <div class="cd rounded-2xl p-6 border border-amber-500/30">
-
-    <!-- Header -->
     <div class="flex flex-col md:flex-row items-start justify-between gap-4 border-b border-[#30363d] pb-5 mb-6">
       <div>
         <div class="flex items-center gap-2 mb-2">
@@ -122,7 +145,7 @@
           <tr><td class="py-2 px-3 fn text-white">MyAssets_US.html</td><td class="py-2 px-3">US ETF + Trade Log + Watchlist + Alert</td><td class="py-2 px-3 text-gray-400">~570</td></tr>
           <tr><td class="py-2 px-3 fn text-white">MyAssets_Forex.html</td><td class="py-2 px-3">FOREX MT5 Live (Firebase only)</td><td class="py-2 px-3 text-gray-400">~350</td></tr>
           <tr><td class="py-2 px-3 fn text-white">MyAssets_Cashflow.html</td><td class="py-2 px-3">Cashflow บันทึก/ลบ/กรอง</td><td class="py-2 px-3 text-gray-400">~270</td></tr>
-          <tr><td class="py-2 px-3 fn text-white">MyAssets_README.html</td><td class="py-2 px-3">คู่มือนี้</td><td class="py-2 px-3 text-gray-400">~250</td></tr>
+          <tr><td class="py-2 px-3 fn text-white">MyAssets_README.html</td><td class="py-2 px-3">คู่มือนี้ + รายการแก้ไข</td><td class="py-2 px-3 text-gray-400">~350</td></tr>
         </tbody>
       </table>
     </div>
@@ -142,135 +165,84 @@
           <tr><td class="py-2 px-3 font-semibold text-white">7</td><td class="py-2 px-3">Watchlist + Telegram</td><td class="py-2 px-3 text-gray-400">52W Range, Alert, Telegram Bot</td></tr>
           <tr><td class="py-2 px-3 font-semibold text-white">8.1</td><td class="py-2 px-3">Thai Stocks + REALTIME Sheet</td><td class="py-2 px-3 text-gray-400">Group-4, calcThaiFee_, updateThaiTrade_</td></tr>
           <tr><td class="py-2 px-3 font-semibold text-white">8.2</td><td class="py-2 px-3">Firebase Hybrid + Multi-Page</td><td class="py-2 px-3 text-gray-400">Firebase RTDB Live, 6 ไฟล์แยก, Timeout หมดปัญหา</td></tr>
-          <tr><td class="py-2 px-3 font-semibold text-emerald-400">8.3</td><td class="py-2 px-3">Semi-Auto Telegram Alert Engine</td><td class="py-2 px-3 text-gray-400">SL-15%/SL-20%/TP Zone/52W Proximity, Risk Monitor Panel, REALTIME Thai price fix</td></tr>
+          <tr><td class="py-2 px-3 font-semibold text-emerald-400">8.3</td><td class="py-2 px-3">Semi-Auto Telegram Alert Engine</td><td class="py-2 px-3 text-gray-400">SL-15%/SL-20%/TP Zone/52W Proximity, Risk Monitor Panel</td></tr>
         </tbody>
       </table>
-    </div>
-
-    <!-- Chapter 5 Troubleshooting -->
-    <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d] mb-5">
-      <h2 class="text-base font-bold text-rose-400 fb mb-3">5. ปัญหาที่พบและแนวทางแก้ไข</h2>
-      <ul class="space-y-3 text-xs">
-        <li><strong class="text-white">Apps Script Timeout (popup ใช้เวลานาน):</strong>
-          <p class="text-gray-400 mt-1">แก้ด้วย Firebase Hybrid — ข้อมูล realtime ดึงจาก Firebase (&lt;300ms) ไม่ต้องรอ Apps Script แล้ว</p></li>
-        <li><strong class="text-white">ไฟล์ HTML เดียว 2800+ บรรทัด รวนเมื่อแก้ไข:</strong>
-          <p class="text-gray-400 mt-1">แก้ด้วย Multi-Page — แต่ละ Tab เป็น HTML แยก ~300-660 บรรทัด แก้ไขระบุไฟล์ชัดเจน</p></li>
-        <li><strong class="text-white">ราคาหุ้น Google Finance เพี้ยน (SPCX=$0.01):</strong>
-          <p class="text-gray-400 mt-1">ใช้ REALTIME Sheet เป็น source of truth → push ไป Firebase ทุก 5 นาที มี Guard &gt;1.0</p></li>
-        <li><strong class="text-white">Token หมดอายุ ต้อง Login ซ้ำทุกหน้า:</strong>
-          <p class="text-gray-400 mt-1">ใช้ localStorage เก็บ token ร่วมกันทุกหน้า Login ครั้งเดียวใช้ได้ทุก Tab (12 ชั่วโมง)</p></li>
-      </ul>
-    </div>
-
-    <!-- Chapter 6 Firebase -->
-    <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d] mb-5">
-      <h2 class="text-base font-bold text-indigo-400 fb mb-3">6. Firebase Configuration</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-        <div>
-          <div class="text-gray-400 mb-2">Project</div>
-          <div class="p-3 bg-[#161b22] rounded-lg border border-[#30363d] fn text-gray-300 text-[11px] space-y-1">
-            <div>Project: <span class="text-indigo-300">9AU-PORTFOLIO</span></div>
-            <div>ID: <span class="text-indigo-300">au-portfolio-7d687</span></div>
-            <div>Region: <span class="text-indigo-300">asia-southeast1 (Singapore)</span></div>
-            <div>Node: <span class="text-indigo-300">/realtime</span></div>
-          </div>
-        </div>
-        <div>
-          <div class="text-gray-400 mb-2">Apps Script</div>
-          <div class="p-3 bg-[#161b22] rounded-lg border border-[#30363d] fn text-gray-300 text-[11px] space-y-1">
-            <div>Function: <span class="text-indigo-300">pushToFirebase_()</span></div>
-            <div>Trigger: <span class="text-indigo-300">ทุก 5 นาที (Time-based)</span></div>
-            <div>Property: <span class="text-indigo-300">FIREBASE_DB_URL</span></div>
-            <div>Payload: <span class="text-indigo-300">fxRate, terminals, priceMap, stats52</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Chapter 7 Alert Engine -->
-    <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d] mb-5">
-      <h2 class="text-base font-bold text-violet-400 fb mb-3">7. Semi-Auto Telegram Alert Engine (v8.3)</h2>
-      <p class="text-xs text-gray-400 mb-4">ระบบแจ้งเตือนแบบ Semi-Auto แบ่งเป็น 2 โหมดที่ทำงานแยกกันอย่างชัดเจน:</p>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-        <div class="p-3 bg-[#161b22] rounded-lg border border-violet-500/30">
-          <div class="text-xs font-bold text-violet-300 mb-2">Watchlist (Semi-Auto / Manual Entry)</div>
-          <ul class="text-xs text-gray-400 space-y-1">
-            <li>— ตั้งราคา targetBuyPrice / targetSellPrice ด้วยมือ</li>
-            <li>— หุ้นใดก็ได้ (มีหรือไม่มีในพอร์ต)</li>
-            <li>— เป้าหมาย: หาจุด Entry</li>
-            <li>— Cooldown: 24 ชั่วโมง</li>
-          </ul>
-        </div>
-        <div class="p-3 bg-[#161b22] rounded-lg border border-rose-500/30">
-          <div class="text-xs font-bold text-rose-300 mb-2">Auto SL/TP (เฉพาะ Position ที่ถือครอง)</div>
-          <ul class="text-xs text-gray-400 space-y-1">
-            <li>— Auto สร้าง ALERTS row ทุก ticker ที่ shares &gt; 0</li>
-            <li>— อ้างอิงราคาจาก REALTIME sheet (US col L/M, Thai col R/S)</li>
-            <li>— ทำงานทุก 5 นาที ผ่าน checkPriceAlertsCron Trigger</li>
-            <li>— pause ได้ด้วย pauseAutoAlert = TRUE ใน ALERTS sheet</li>
-          </ul>
-        </div>
-      </div>
-
-      <table class="w-full text-left text-xs mb-4">
-        <thead class="bg-[#21262d] text-gray-400 border-b border-[#30363d]">
-          <tr><th class="py-2 px-3">Alert Type</th><th class="py-2 px-3">เงื่อนไข</th><th class="py-2 px-3">Cooldown</th><th class="py-2 px-3">หยุดเมื่อ</th></tr>
-        </thead>
-        <tbody class="divide-y divide-[#30363d]">
-          <tr><td class="py-2 px-3 text-orange-400 font-semibold">SL -15%</td><td class="py-2 px-3 text-gray-300">curP &le; avgCost × 0.85</td><td class="py-2 px-3 text-gray-400">ส่งครั้งเดียว (flag)</td><td class="py-2 px-3 text-gray-400">ราคาฟื้น &gt; -12%</td></tr>
-          <tr><td class="py-2 px-3 text-rose-400 font-semibold">SL -20%</td><td class="py-2 px-3 text-gray-300">curP &le; avgCost × 0.80</td><td class="py-2 px-3 text-gray-400">15 นาที</td><td class="py-2 px-3 text-gray-400">ราคาฟื้น &gt; -18%</td></tr>
-          <tr><td class="py-2 px-3 text-yellow-400 font-semibold">52W Proximity ≤5%</td><td class="py-2 px-3 text-gray-300">curP &ge; high52 × 0.95 และ gain &lt; 40%</td><td class="py-2 px-3 text-gray-400">1 ชั่วโมง</td><td class="py-2 px-3 text-gray-400">ออกจาก zone</td></tr>
-          <tr><td class="py-2 px-3 text-red-400 font-semibold">52W Proximity ≤2%</td><td class="py-2 px-3 text-gray-300">curP &ge; high52 × 0.98 และ gain &lt; 40%</td><td class="py-2 px-3 text-gray-400">1 ชั่วโมง</td><td class="py-2 px-3 text-gray-400">ออกจาก zone</td></tr>
-          <tr><td class="py-2 px-3 text-emerald-400 font-semibold">TP +40-50%</td><td class="py-2 px-3 text-gray-300">diffPct &ge; 40%</td><td class="py-2 px-3 text-gray-400">1 ชั่วโมง</td><td class="py-2 px-3 text-gray-400">diffPct &lt; 35%</td></tr>
-          <tr><td class="py-2 px-3 text-emerald-300 font-semibold">TP +50-60% / +60%+</td><td class="py-2 px-3 text-gray-300">diffPct &ge; 50% / &ge; 60%</td><td class="py-2 px-3 text-gray-400">1 ชั่วโมง</td><td class="py-2 px-3 text-gray-400">diffPct &lt; 35%</td></tr>
-        </tbody>
-      </table>
-
-      <div class="text-xs text-gray-400 mb-3"><strong class="text-gray-200">ALERTS Sheet — Column ใหม่ที่เพิ่มใน v8.3:</strong></div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <div class="p-2 bg-[#161b22] rounded-lg border border-[#30363d] text-center">
-          <div class="fn text-violet-300 text-[11px] mb-1">sl15Notified</div>
-          <div class="text-[10px] text-gray-400">flag ส่งครั้งเดียว</div>
-        </div>
-        <div class="p-2 bg-[#161b22] rounded-lg border border-[#30363d] text-center">
-          <div class="fn text-violet-300 text-[11px] mb-1">lastSl20AlertAt</div>
-          <div class="text-[10px] text-gray-400">timestamp SL-20%</div>
-        </div>
-        <div class="p-2 bg-[#161b22] rounded-lg border border-[#30363d] text-center">
-          <div class="fn text-violet-300 text-[11px] mb-1">lastTpAlertAt</div>
-          <div class="text-[10px] text-gray-400">timestamp TP/52W</div>
-        </div>
-        <div class="p-2 bg-[#161b22] rounded-lg border border-[#30363d] text-center">
-          <div class="fn text-violet-300 text-[11px] mb-1">pauseAutoAlert</div>
-          <div class="text-[10px] text-gray-400">toggle หยุดเตือน</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Chapter 8 Summary (เดิม Chapter 7) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d]">
-        <h3 class="text-sm font-bold text-indigo-400 fb mb-2">8. ข้อดีของระบบ</h3>
-        <ul class="list-disc list-inside space-y-1 text-xs text-gray-400">
-          <li><strong class="text-gray-200">Zero Server Cost:</strong> Google Sheets + Firebase Free Tier + GitHub Pages</li>
-          <li><strong class="text-gray-200">Realtime:</strong> Firebase push &lt;300ms แทน JSONP poll</li>
-          <li><strong class="text-gray-200">True Reconciliation:</strong> ตรงกับ Dime App และ MT5</li>
-          <li><strong class="text-gray-200">Multi-Page:</strong> แก้ไขง่าย ระบุไฟล์ชัดเจน ไม่รวน</li>
-          <li><strong class="text-gray-200">Semi-Auto Alert Engine:</strong> SL-15%/20%, TP Zone, 52W Proximity แจ้งเตือนอัตโนมัติทุก 5 นาที</li>
-          <li><strong class="text-gray-200">Risk Monitor Panel:</strong> badge สถานะ SL/TP แสดงบน Dashboard ทุก session</li>
-        </ul>
-      </div>
-      <div class="bg-[#0d1117] p-5 rounded-xl border border-[#30363d]">
-        <h3 class="text-sm font-bold text-emerald-400 fb mb-2">9. บทสรุป</h3>
-        <p class="text-xs text-gray-400 leading-relaxed">
-          ระบบ v8.2 Hybrid Firebase แก้ปัญหา Timeout ด้วยการแยก 1 Tab = 1 HTML ไฟล์ และดึงข้อมูล Realtime จาก Firebase RTDB แทน Apps Script โดยตรง v8.3 เพิ่ม Semi-Auto Alert Engine ครอบคลุม SL-15%/20%, TP Zone +40-60%, 52W High Proximity ≤5%/2% พร้อม Risk Monitor Panel บน Dashboard ทำให้ระบบบริหารความเสี่ยงทำงานแบบ Proactive โดยไม่ต้องตรวจสอบด้วยมือ
-        </p>
-      </div>
     </div>
 
   </div>
 </main>
+</div><!-- /tab-readme -->
+
+<!-- TAB 2: TASKS TRACKER CONTENT -->
+<div id="tab-tasks" class="tab-panel">
+<main class="max-w-7xl mx-auto px-4 pt-6 pb-10 space-y-6">
+
+  <!-- FILTER & SEARCH PANEL -->
+  <div class="cd rounded-2xl p-4 border border-[#30363d]">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="w-full grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div>
+          <label class="block text-[11px] text-gray-400 mb-1">กรองตาม Priority</label>
+          <select id="filterPriority" onchange="filterTable()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500">
+            <option value="">ทั้งหมด (Priority)</option>
+            <option value="HIGH">HIGH</option>
+            <option value="MID">MID</option>
+            <option value="LOW">LOW</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] text-gray-400 mb-1">กรองตาม Status</label>
+          <select id="filterStatus" onchange="filterTable()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500">
+            <option value="">ทั้งหมด (Status)</option>
+            <option value="DONE">DONE</option>
+            <option value="POSTPONE">POSTPONE</option>
+            <option value="PENDING">PENDING</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] text-gray-400 mb-1">กรองตามวันที่ (Add Date)</label>
+          <input type="date" id="filterDate" onchange="filterTable()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-[11px] text-gray-400 mb-1">ค้นหา Description</label>
+          <input type="text" id="searchDesc" oninput="filterTable()" placeholder="พิมพ์ค้นหา..." class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASK TABLE -->
+  <div class="cd rounded-2xl overflow-hidden">
+    <div class="p-4 border-b border-[#30363d] flex items-center justify-between">
+      <div>
+        <h2 class="text-sm font-bold text-white fb">ตารางรายการพัฒนาและแก้ไขระบบ (PORTFOLIO_DB)</h2>
+        <p class="text-xs text-gray-400 mt-0.5">ดึงข้อมูลจาก Google Sheet แบบอัตโนมัติ</p>
+      </div>
+      <button onclick="fetchSheetData()" class="no-print px-3 py-1.5 rounded-xl bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-white text-xs font-semibold">รีเฟรชข้อมูล</button>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d]">
+          <tr>
+            <th class="py-3 px-3">Add Date</th>
+            <th class="py-3 px-3">Priority</th>
+            <th class="py-3 px-3">Description</th>
+            <th class="py-3 px-3">Effected File</th>
+            <th class="py-3 px-3">A.I. Editor</th>
+            <th class="py-3 px-3">Finish Date</th>
+            <th class="py-3 px-3 text-center">Status</th>
+          </tr>
+        </thead>
+        <tbody id="taskTableBody" class="divide-y divide-[#30363d]">
+          <tr><td colspan="7" class="py-6 text-center text-gray-500">กำลังโหลดข้อมูลจาก Google Sheet...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+</div><!-- /tab-tasks -->
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -278,6 +250,157 @@
 'use strict';
 const currentToken=localStorage.getItem('portfolio_token')||'';
 if(!currentToken){location.replace('MyAssets.html');}
+
+let allTaskRows = [];
+
+// สลับ Inner Tab
+function switchReadmeTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+
+  const panel = document.getElementById('tab-' + id);
+  if (panel) panel.classList.add('active');
+  if (btn) btn.classList.add('active');
+
+  // ถ้ากดเปิดแท็บ Task ครั้งแรก ให้โหลดข้อมูล Google Sheet ทันที
+  if (id === 'tasks' && allTaskRows.length === 0) {
+    fetchSheetData();
+  }
+}
+
+// ดึงข้อมูลจาก Google Sheet ผ่าน Google Visualization API JSONP
+function fetchSheetData() {
+  document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="7" class="py-6 text-center text-gray-400">กำลังโหลดข้อมูลจาก Google Sheet...</td></tr>`;
+
+  const sheetId = '1R4UnNH7iz4fhRXghF61kk3W8HHkU6Hn6Lxhqz4uxa1A';
+  const gid = '362341294';
+  const callbackName = 'gviz_callback_' + Math.round(1e6 * Math.random());
+
+  window[callbackName] = function(json) {
+    cleanup();
+    try {
+      parseGvizData(json);
+    } catch (e) {
+      console.error('Parse error:', e);
+      document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="7" class="py-6 text-center text-rose-400">เกิดข้อผิดพลาดในการประมวลผลข้อมูล</td></tr>`;
+    }
+  };
+
+  const script = document.createElement('script');
+  script.src = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:${callbackName}&gid=${gid}`;
+  script.onerror = function() {
+    cleanup();
+    document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="7" class="py-6 text-center text-rose-400">ไม่สามารถเชื่อมต่อกับ Google Sheet ได้</td></tr>`;
+  };
+
+  document.body.appendChild(script);
+
+  const timer = setTimeout(() => {
+    cleanup();
+    document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="7" class="py-6 text-center text-rose-400">หมดเวลาการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง</td></tr>`;
+  }, 12000);
+
+  function cleanup() {
+    clearTimeout(timer);
+    delete window[callbackName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+  }
+}
+
+function parseGvizData(json) {
+  allTaskRows = [];
+  const rows = json.table.rows;
+  
+  for (let i = 1; i < rows.length; i++) {
+    const cols = rows[i].c;
+    if (!cols) continue;
+
+    const getVal = (idx) => cols[idx] && cols[idx].v !== null && cols[idx].v !== undefined ? String(cols[idx].v).trim() : '';
+
+    const addDate = getVal(0);
+    const priority = getVal(1);
+    const description = getVal(2);
+    const effected = getVal(3);
+    const aiEditor = getVal(4);
+    const finishDate = getVal(5);
+    const status = getVal(6);
+
+    if (!addDate && !description && !priority) continue;
+
+    allTaskRows.push({
+      addDate: formatDateStr(addDate),
+      priority: priority,
+      description: description,
+      effected: effected,
+      aiEditor: aiEditor,
+      finishDate: formatDateStr(finishDate),
+      status: status
+    });
+  }
+
+  renderTable(allTaskRows);
+}
+
+function formatDateStr(val) {
+  if (!val) return '';
+  if (val.startsWith('Date(')) {
+    const parts = val.replace(/Date\(|\)/g, '').split(',');
+    if (parts.length >= 3) {
+      const y = parts[0];
+      const m = String(Number(parts[1]) + 1).padStart(2, '0');
+      const d = String(parts[2]).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+  }
+  return val;
+}
+
+function renderTable(rows) {
+  const tbody = document.getElementById('taskTableBody');
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-gray-500">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => {
+    let pClass = 'bg-gray-500/20 text-gray-300';
+    if (r.priority.toUpperCase() === 'HIGH') pClass = 'bg-rose-500/20 text-rose-300 font-bold';
+    else if (r.priority.toUpperCase() === 'MID') pClass = 'bg-amber-500/20 text-amber-300 font-semibold';
+    else if (r.priority.toUpperCase() === 'LOW') pClass = 'bg-emerald-500/20 text-emerald-300';
+
+    let sClass = 'bg-gray-500/20 text-gray-300';
+    if (r.status.toUpperCase() === 'DONE') sClass = 'bg-emerald-500/20 text-emerald-400 font-bold';
+    else if (r.status.toUpperCase() === 'POSTPONE') sClass = 'bg-blue-500/20 text-blue-300';
+    else if (r.status.toUpperCase() === 'PENDING') sClass = 'bg-amber-500/20 text-amber-300';
+
+    return `<tr class="hover:bg-[#1c2128]">
+      <td class="py-2.5 px-3 fn text-gray-300">${r.addDate}</td>
+      <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] ${pClass}">${r.priority}</span></td>
+      <td class="py-2.5 px-3 text-white">${r.description}</td>
+      <td class="py-2.5 px-3 fn text-blue-400 text-[11px]">${r.effected}</td>
+      <td class="py-2.5 px-3 text-gray-300 text-[11px]">${r.aiEditor}</td>
+      <td class="py-2.5 px-3 fn text-gray-400">${r.finishDate}</td>
+      <td class="py-2.5 px-3 text-center"><span class="px-2.5 py-0.5 rounded text-[10px] ${sClass}">${r.status}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTable() {
+  const pVal = document.getElementById('filterPriority').value.toUpperCase();
+  const sVal = document.getElementById('filterStatus').value.toUpperCase();
+  const dVal = document.getElementById('filterDate').value;
+  const searchVal = document.getElementById('searchDesc').value.toLowerCase();
+
+  const filtered = allTaskRows.filter(r => {
+    const matchP = !pVal || r.priority.toUpperCase() === pVal;
+    const matchS = !sVal || r.status.toUpperCase() === sVal;
+    const matchD = !dVal || r.addDate === dVal;
+    const matchSearch = !searchVal || r.description.toLowerCase().includes(searchVal);
+    return matchP && matchS && matchD && matchSearch;
+  });
+
+  renderTable(filtered);
+}
 
 function exportPDF(){
   const el=document.getElementById('readmeContent');
