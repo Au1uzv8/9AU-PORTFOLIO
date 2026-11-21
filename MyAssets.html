@@ -79,44 +79,25 @@
 
 <!-- ── HEADER ─────────────────────────────────────────────────── -->
 <header class="border-b border-[#30363d] bg-[#161b22]/90 backdrop-blur sticky top-0 z-40">
-  <div class="max-w-7xl mx-auto px-4 py-2.5 md:h-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-3">
-    
-    <!-- Left: Profile & Title + Version -->
-    <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-full overflow-hidden border-2 border-blue-500 flex-shrink-0">
-          <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
-        </div>
-        <div>
-          <div class="text-sm font-bold text-white fb flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <span>PORTFOLIO</span>
-            <a href="MyAssets_README.html#tasks" title="คลิกเพื่อดูรายการแก้ไข" class="px-2 py-0.5 rounded text-[10px] md:text-[11px] font-normal text-gray-400 hover:text-amber-400 bg-black/30 border border-[#30363d] hover:border-amber-500/40 fn transition cursor-pointer" id="versionBadge">กำลังโหลด Version...</a>
-          </div>
-          <div class="flex items-center gap-1.5 text-[11px] text-gray-400 mt-0.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
-            <span>USD/THB: <strong id="hFx" class="fn text-gray-200">--.--</strong></span>
-            <span id="fbStatus" class="fb-badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">FB live</span>
-          </div>
-        </div>
+  <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="w-9 h-9 rounded-full overflow-hidden border-2 border-blue-500 flex-shrink-0">
+        <img src="profile.png" onerror="this.src='https://via.placeholder.com/150'" class="w-full h-full object-cover">
       </div>
-      
-      <!-- Mobile Action Buttons (Right side on mobile top row) -->
-      <div class="flex md:hidden items-center gap-1.5 flex-shrink-0">
-        <button onclick="printPDF()" id="btnPrintPDFMob" class="no-print px-2 py-1 text-[11px] rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 font-semibold transition" title="Print PDF">PDF</button>
-        <button onclick="exportMonthlyCSV()" class="no-print px-2 py-1 text-[11px] rounded-lg border border-[#30363d] bg-[#21262d] text-amber-400 font-semibold" title="CSV">CSV</button>
-        <button onclick="toggleLang()" class="no-print px-2 py-1 text-[11px] rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 font-semibold"><span class="lang-btn-label">EN</span></button>
-        <button onclick="triggerSnapshot()" class="no-print px-2 py-1 text-[11px] rounded-lg border border-[#30363d] bg-[#21262d] text-emerald-400 font-semibold">Snap</button>
-        <button onclick="logout()" class="no-print p-1.5 text-rose-400 rounded-lg border border-[#30363d] bg-[#21262d]" title="ออกจากระบบ">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-        </button>
+      <div>
+        <div class="text-sm font-bold text-white fb flex items-center gap-2">
+          PORTFOLIO
+          <a href="MyAssets_README.html#tasks" title="คลิกเพื่อดูรายการแก้ไข" class="px-2 py-0.5 rounded text-[10px] font-normal text-gray-500 hover:text-amber-400 bg-black/20 border border-[#30363d] hover:border-amber-500/40 fn transition cursor-pointer" id="versionBadge">กำลังโหลด Version...</a>
+        </div>
+        <div class="flex items-center gap-1.5 text-[11px] text-gray-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+          <span>USD/THB: <strong id="hFx" class="fn text-gray-200">--.--</strong></span>
+          <span id="fbStatus" class="fb-badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">FB live</span>
+        </div>
       </div>
     </div>
-
-    <!-- Ticker Top (Desktop) -->
     <div id="tickerTop" class="hidden md:flex items-center gap-2 fn text-[11px]"></div>
-
-    <!-- Desktop Action Buttons -->
-    <div class="hidden md:flex items-center gap-1.5 flex-shrink-0">
+    <div class="flex items-center gap-1.5">
       <button onclick="printPDF()" id="btnPrintPDF" class="no-print px-2.5 py-1 text-xs rounded-lg border border-rose-500/50 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white font-semibold transition cursor-pointer" title="Print PDF">Print PDF</button>
       <button onclick="exportMonthlyCSV()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-amber-400 hover:bg-[#30363d] font-semibold transition" title="Export Monthly Report (CSV)">CSV</button>
       <button onclick="toggleLang()" class="no-print px-2 py-1 text-xs rounded-lg border border-[#30363d] bg-[#21262d] text-gray-300 hover:text-white hover:bg-[#30363d] font-semibold transition" title="TH / EN"><span class="lang-btn-label">EN</span></button>
@@ -128,11 +109,8 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
       </button>
     </div>
-
   </div>
-
   <div id="tickerStrip" class="md:hidden max-w-7xl mx-auto px-4 pb-2 flex gap-2 overflow-x-auto fn text-[11px]"></div>
-  
   <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
     <a href="MyAssets.html"          class="nav-tab active">Dashboard</a>
     <a href="MyAssets_Thai.html"     class="nav-tab">หุ้นไทย</a>
@@ -328,7 +306,7 @@
 
 </main>
 
-<!-- ── RENEW BANNER ────────────────────────────────────────────────---- -->
+<!-- ── RENEW BANNER ──────────────────────────────────────────────────── -->
 <div id="renewBanner" class="hidden fixed top-16 inset-x-0 z-40 flex justify-center pointer-events-none">
   <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-900/80 border border-amber-500/40 text-amber-300 text-xs backdrop-blur shadow-lg">
     <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -1099,9 +1077,7 @@ function triggerSnapshot() {
 
 function printPDF() {
   const btn = document.getElementById('btnPrintPDF');
-  const btnMob = document.getElementById('btnPrintPDFMob');
-  [btn, btnMob].forEach(b => { if(b) { b.textContent = 'สร้าง...'; b.disabled = true; } });
-  
+  if (btn) { btn.textContent = 'กำลังสร้าง PDF...'; btn.disabled = true; }
   const element = document.getElementById('printArea');
   const opt = {
     margin: 5,
@@ -1112,10 +1088,8 @@ function printPDF() {
   };
   html2pdf().set(opt).from(element).save().then(() => {
     if (btn) { btn.textContent = 'Print PDF'; btn.disabled = false; }
-    if (btnMob) { btnMob.textContent = 'PDF'; btnMob.disabled = false; }
   }).catch((err) => {
     if (btn) { btn.textContent = 'Print PDF'; btn.disabled = false; }
-    if (btnMob) { btnMob.textContent = 'PDF'; btnMob.disabled = false; }
     alert('ไม่สามารถสร้างไฟล์ PDF ได้: ' + err);
   });
 }
