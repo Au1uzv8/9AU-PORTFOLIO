@@ -10,8 +10,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 
-<!-- Font Awesome Icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<!-- Font Awesome Icons (Fix CDN URL) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 
 <!-- Tailwind (standard header) -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -582,6 +582,9 @@ tbody tr:last-child td { border-bottom: none; }
   border: 1px solid var(--line);
   cursor: pointer;
   transition: all .25s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .go:hover {
   background: var(--accent);
@@ -1210,12 +1213,7 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
         class="no-print hidden md:flex items-center gap-1.5 text-[11px] fn
                px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20
                text-rose-400 hover:bg-rose-500/20 transition">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2
-               m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2z
-               m8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-        </svg>
+        <i class="fa-solid fa-print"></i>
         Print PDF
       </button>
       <!-- Language toggle (placeholder) -->
@@ -1226,21 +1224,13 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
       <button onclick="location.reload()"
         class="no-print p-1.5 rounded-lg bg-[#21262d] border border-[#30363d]
                text-gray-400 hover:text-white hover:bg-[#30363d] transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9
-               m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-        </svg>
+        <i class="fa-solid fa-rotate-right"></i>
       </button>
       <!-- Logout -->
       <button onclick="location.href='MyAssets.html'"
         class="no-print p-1.5 rounded-lg bg-[#21262d] border border-[#30363d]
                text-gray-400 hover:text-white hover:bg-[#30363d] transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7
-               a3 3 0 013-3h4a3 3 0 013 3v1"/>
-        </svg>
+        <i class="fa-solid fa-right-from-bracket"></i>
       </button>
     </div>
   </div>
@@ -1360,7 +1350,7 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
     </div>
     <div class="btns">
       <button class="btn btn-ghost on" id="motion" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> แอนิเมชัน: เปิด</button>
-      <button class="btn btn-ghost" id="btn-sync" type="button"><i class="fa-solid fa-rotate"></i> ดึงข้อมูล API</button>
+      <button class="btn btn-ghost" id="btn-sync" type="button"><i class="fa-solid fa-rotate-right"></i> ดึงข้อมูล API</button>
       <a class="btn btn-ghost" href="https://docs.google.com/spreadsheets/d/1Mt8YLa-O2L1yXjm7CK2HvJ8DA9dpFudrsoc7yo25sX8/edit?gid=1491991104#gid=1491991104" target="_blank" rel="noopener">
         <i class="fa-solid fa-arrow-up-right-from-square"></i> เปิด Google Sheet
       </a>
@@ -1416,7 +1406,7 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
     <!-- Left Column: Multi-Indicator Signals Table -->
     <div class="group">
       <div class="ghead">
-        <div class="gicon fx-t"><i class="fa-solid fa-radar fa-chart-Simple fa-wave-square"></i></div>
+        <div class="gicon"><i class="fa-solid fa-wave-square"></i></div>
         <div class="gname">ตารางสัญญาณเทคนิคครบชุด (EMA • RSI • MACD • BB • ATR • Vol)</div>
         <div class="gcount" id="table-total-count">0 รายการ</div>
       </div>
@@ -1541,7 +1531,7 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
     <div class="fund-topbar">
       <h2><i class="fa-solid fa-landmark" style="color:var(--accent);margin-right:10px;font-size:18px"></i>หุ้นพื้นฐาน</h2>
       <button class="fund-btn" id="fund-scan-btn" onclick="loadFundamentals()">
-        <i class="fa-solid fa-rotate"></i> สแกนข้อมูลพื้นฐาน
+        <i class="fa-solid fa-rotate-right"></i> สแกนข้อมูลพื้นฐาน
       </button>
       <span class="fund-meta" id="fund-meta">— ยังไม่ได้ดึงข้อมูล</span>
     </div>
@@ -2221,7 +2211,7 @@ function applyFiltersAndRender() {
       </td>
       <td class="c-act">
         <button class="go" type="button" title="ดูกราฟ ${escapeHtml(item.ticker)}">
-          <i class="fa-solid fa-chart-candlestick fa-chart-line"></i>
+          <i class="fa-solid fa-chart-line"></i>
         </button>
       </td>
     `;
@@ -2676,7 +2666,7 @@ function initControls() {
     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังซิงค์...`;
     btn.disabled = true;
     await loadData();
-    btn.innerHTML = `<i class="fa-solid fa-rotate"></i> ดึงข้อมูล API`;
+    btn.innerHTML = `<i class="fa-solid fa-rotate-right"></i> ดึงข้อมูล API`;
     btn.disabled = false;
   };
 
@@ -2786,7 +2776,7 @@ function loadFundamentals() {
   }).catch(function(err) {
     list.innerHTML = '<div class="fund-loading" style="color:#f87171"><i class="fa-solid fa-triangle-exclamation" style="font-size:28px"></i><span>โหลดข้อมูลไม่สำเร็จ: ' + (err.message || err) + '</span></div>';
   }).finally(function() {
-    btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-rotate"></i> สแกนข้อมูลพื้นฐาน';
+    btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> สแกนข้อมูลพื้นฐาน';
   });
 }
 
@@ -2966,7 +2956,6 @@ loadData();
 </script>
 
 <!-- ===================== FIREBASE HEADER TICKER ===================== -->
-<!-- คัดลอก firebaseConfig จากหน้าอื่น เช่น MyAssets.html -->
 <script>
 (function() {
   var fmtN = function(n, d) {
@@ -2976,16 +2965,15 @@ loadData();
   };
   var el = function(id) { return document.getElementById(id); };
 
-  // ── Firebase Config (copied from MyAssets.html) ───────────
   const FB_CFG  = {
-  apiKey:            "***************************************",
-  authDomain:        "au-portfolio-7d687.firebaseapp.com",
-  databaseURL:       "https://au-portfolio-7d687-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:         "au-portfolio-7d687",
-  storageBucket:     "au-portfolio-7d687.firebasestorage.app",
-  messagingSenderId: "806351101494",
-  appId:             "1:806351101494:web:c832da2ef2baff90d18297"
-}
+    apiKey:            "***************************************",
+    authDomain:        "au-portfolio-7d687.firebaseapp.com",
+    databaseURL:       "https://au-portfolio-7d687-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:         "au-portfolio-7d687",
+    storageBucket:     "au-portfolio-7d687.firebasestorage.app",
+    messagingSenderId: "806351101494",
+    appId:             "1:806351101494:web:c832da2ef2baff90d18297"
+  };
 
   try {
     if (!firebase.apps.length) firebase.initializeApp(FB_CFG);
