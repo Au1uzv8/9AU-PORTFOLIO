@@ -323,6 +323,7 @@
             <th class="py-3 px-3">Add Date</th>
             <th class="py-3 px-3">Priority</th>
             <th class="py-3 px-3">Description</th>
+            <th class="py-3 px-3">HARD LEVEL</th>
             <th class="py-3 px-3">Effected File</th>
             <th class="py-3 px-3">Version</th>
             <th class="py-3 px-3">A.I. Editor</th>
@@ -331,7 +332,7 @@
           </tr>
         </thead>
         <tbody id="taskTableBody" class="divide-y divide-[#30363d]">
-          <tr><td colspan="8" class="py-6 text-center text-gray-500">กำลังโหลดข้อมูลจาก Google Sheet...</td></tr>
+          <tr><td colspan="9" class="py-6 text-center text-gray-500">กำลังโหลดข้อมูลจาก Google Sheet...</td></tr>
         </tbody>
       </table>
     </div>
@@ -432,7 +433,7 @@ function exportCurrentTabPDF() {
 function fetchSheetData() {
   const isTabActive = document.getElementById('tab-tasks').classList.contains('active');
   if (isTabActive) {
-    document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="8" class="py-6 text-center text-gray-400">กำลังโหลดข้อมูลจาก Google Sheet...</td></tr>`;
+    document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="9" class="py-6 text-center text-gray-400">กำลังโหลดข้อมูลจาก Google Sheet...</td></tr>`;
   }
 
   const sheetId = '1R4UnNH7iz4fhRXghF61kk3W8HHkU6Hn6Lxhqz4uxa1A';
@@ -446,7 +447,7 @@ function fetchSheetData() {
     } catch (e) {
       console.error('Parse error:', e);
       if (isTabActive) {
-        document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="8" class="py-6 text-center text-rose-400">เกิดข้อผิดพลาดในการประมวลผลข้อมูล</td></tr>`;
+        document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="9" class="py-6 text-center text-rose-400">เกิดข้อผิดพลาดในการประมวลผลข้อมูล</td></tr>`;
       }
     }
   };
@@ -456,7 +457,7 @@ function fetchSheetData() {
   script.onerror = function() {
     cleanup();
     if (isTabActive) {
-      document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="8" class="py-6 text-center text-rose-400">ไม่สามารถเชื่อมต่อกับ Google Sheet ได้</td></tr>`;
+      document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="9" class="py-6 text-center text-rose-400">ไม่สามารถเชื่อมต่อกับ Google Sheet ได้</td></tr>`;
     }
   };
 
@@ -465,7 +466,7 @@ function fetchSheetData() {
   const timer = setTimeout(() => {
     cleanup();
     if (isTabActive) {
-      document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="8" class="py-6 text-center text-rose-400">หมดเวลาการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง</td></tr>`;
+      document.getElementById('taskTableBody').innerHTML = `<tr><td colspan="9" class="py-6 text-center text-rose-400">หมดเวลาการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง</td></tr>`;
     }
   }, 12000);
 
@@ -483,7 +484,7 @@ function parseGvizData(json) {
 
   const headerCells = rows[0].c;
   let colIdx = {
-    addDate: 0, priority: 1, description: 2, effected: 3, version: 4, aiEditor: 5, finishDate: 6, status: 7
+    addDate: 0, priority: 1, description: 2, hardLevel: 3, effected: 4, version: 5, aiEditor: 6, finishDate: 7, status: 8
   };
 
   headerCells.forEach((cell, idx) => {
@@ -492,6 +493,7 @@ function parseGvizData(json) {
     if (val.includes('ADD DATE')) colIdx.addDate = idx;
     else if (val.includes('PRIORITY')) colIdx.priority = idx;
     else if (val.includes('DESCRIPTION')) colIdx.description = idx;
+    else if (val.includes('HARD')) colIdx.hardLevel = idx;
     else if (val.includes('EFFECTED')) colIdx.effected = idx;
     else if (val.includes('VERSION')) colIdx.version = idx;
     else if (val.includes('A.I. EDITOR') || val.includes('AI EDITOR')) colIdx.aiEditor = idx;
@@ -562,6 +564,7 @@ function parseGvizData(json) {
     const addDate = getVal(colIdx.addDate);
     const priority = getVal(colIdx.priority);
     const description = getVal(colIdx.description);
+    const hardLevel = getVal(colIdx.hardLevel);
     const effected = getVal(colIdx.effected);
     const version = getVal(colIdx.version);
     const aiEditor = getVal(colIdx.aiEditor);
@@ -615,6 +618,7 @@ function parseGvizData(json) {
       addDate: fmtAddDate,
       priority: priority,
       description: description,
+      hardLevel: hardLevel,
       effected: effected,
       fileType: fileType,
       version: version,
@@ -732,9 +736,39 @@ function renderTable(rows) {
   const tbody = document.getElementById('taskTableBody');
   if (!tbody) return;
   if (rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-gray-500">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="py-6 text-center text-gray-500">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
     return;
   }
+
+function renderHardLevelBar(rawVal) {
+  const s = String(rawVal || '').trim();
+  if (!s) return '<span class="text-gray-500">-</span>';
+  const match = s.match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/) || s.match(/^(\d+(?:\.\d+)?)$/);
+  if (!match) {
+    return `<span class="text-gray-500">-</span>`;
+  }
+  const score = parseFloat(match[1]);
+  const maxScale = match[2] ? parseFloat(match[2]) : 10;
+  const safeMax = maxScale > 0 ? maxScale : 10;
+  const pct = Math.max(0, Math.min(100, (score / safeMax) * 100));
+  const norm10 = (score / safeMax) * 10;
+
+  let barColor = 'bg-emerald-400';
+  if (norm10 >= 9) {
+    barColor = 'bg-rose-500';
+  } else if (norm10 >= 7) {
+    barColor = 'bg-amber-400';
+  } else if (norm10 >= 5) {
+    barColor = 'bg-sky-400';
+  }
+
+  const tooltip = match[2] ? `${match[1]}/${match[2]}` : `${match[1]}/10`;
+  return `<div class="flex items-center" title="${tooltip}">
+    <div class="w-16 h-2 rounded-full bg-[#0d1117] border border-[#30363d] overflow-hidden flex-shrink-0">
+      <div class="h-full ${barColor} rounded-full" style="width:${pct}%"></div>
+    </div>
+  </div>`;
+}
 
   tbody.innerHTML = rows.map(r => {
     let pClass = 'bg-gray-500/20 text-gray-300';
@@ -761,6 +795,7 @@ function renderTable(rows) {
       <td class="py-2.5 px-3 fn text-gray-300">${r.addDate}</td>
       <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] ${pClass}">${r.priority}</span></td>
       <td class="py-2.5 px-3 ${descColorClass}">${r.description}</td>
+      <td class="py-2.5 px-3">${renderHardLevelBar(r.hardLevel)}</td>
       <td class="py-2.5 px-3 fn text-blue-400 text-[11px]">${r.effected}</td>
       <td class="py-2.5 px-3 fn text-amber-300 font-semibold text-[11px]">${r.version}</td>
       <td class="py-2.5 px-3 ${getAiGroupColorClass(r.aiEditor)} text-[11px]">${r.aiEditor}</td>
