@@ -296,8 +296,10 @@
           </select>
         </div>
         <div>
-          <label class="block text-[11px] text-gray-400 mb-1">กรองตามวันที่ (Add Date)</label>
-          <input type="date" id="filterDate" onchange="filterTable()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500">
+          <label class="block text-[11px] text-gray-400 mb-1">กรองตาม Effected File</label>
+          <select id="filterEffected" onchange="filterTable()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500">
+            <option value="">ทั้งหมด (Effected File)</option>
+          </select>
         </div>
         <div>
           <label class="block text-[11px] text-gray-400 mb-1">ค้นหา Description</label>
@@ -676,6 +678,7 @@ function parseGvizData(json) {
     return String(a.description || '').localeCompare(String(b.description || ''), 'th');
   });
 
+  populateEffectedFilter(allTaskRows);
   renderTable(allTaskRows);
 }
 
@@ -826,6 +829,27 @@ function populateAiEditorFilter(list) {
   }
 }
 
+function populateEffectedFilter(rows) {
+  const selectEl = document.getElementById('filterEffected');
+  if (!selectEl) return;
+  const currentVal = selectEl.value;
+  const seen = new Set();
+  const options = ['<option value="">ทั้งหมด (Effected File)</option>'];
+  rows.forEach(r => {
+    const key = (r.effected || '').trim();
+    if (!key) return;
+    const norm = key.toLowerCase();
+    if (seen.has(norm)) return;
+    seen.add(norm);
+    const escaped = key.replace(/"/g, '&quot;');
+    options.push(`<option value="${escaped}">${key}</option>`);
+  });
+  selectEl.innerHTML = options.join('');
+  if (currentVal && seen.has(currentVal.toLowerCase())) {
+    selectEl.value = currentVal;
+  }
+}
+
 function renderAiEditorTable(list) {
   const tbody = document.getElementById('aiEditorTableBody');
   if (!tbody) return;
@@ -851,16 +875,17 @@ function filterTable() {
   const sVal = document.getElementById('filterStatus').value.toUpperCase();
   const aiEl = document.getElementById('filterAiEditor');
   const aiVal = aiEl ? aiEl.value.trim().toLowerCase() : '';
-  const dVal = document.getElementById('filterDate').value;
+  const effEl = document.getElementById('filterEffected');
+  const effVal = effEl ? effEl.value.trim().toLowerCase() : '';
   const searchVal = document.getElementById('searchDesc').value.toLowerCase();
 
   const filtered = allTaskRows.filter(r => {
     const matchP = !pVal || r.priority.toUpperCase() === pVal;
     const matchS = !sVal || r.status.toUpperCase() === sVal;
     const matchAi = !aiVal || String(r.aiEditor || '').trim().toLowerCase() === aiVal;
-    const matchD = !dVal || r.addDate === dVal;
+    const matchEff = !effVal || String(r.effected || '').trim().toLowerCase() === effVal;
     const matchSearch = !searchVal || r.description.toLowerCase().includes(searchVal);
-    return matchP && matchS && matchAi && matchD && matchSearch;
+    return matchP && matchS && matchAi && matchEff && matchSearch;
   });
 
   renderTable(filtered);
