@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lightweight-charts/4.1.3/lightweight-charts.standalone.production.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.min.js"></script>
 
 <style>
 /* ================================================================
@@ -66,6 +66,13 @@ nav {
 }
 .nav-link:hover { color:var(--text); border-color:rgba(255,255,255,0.14); }
 .nav-link.active { color:var(--accent); border-color:rgba(0,255,157,0.3); background:rgba(0,255,157,0.07); }
+.nav-link.disabled { pointer-events:none; opacity:.45; cursor:default; }
+.cs-badge {
+  font-size:9px; font-weight:700; letter-spacing:.5px;
+  padding:1px 6px; border-radius:9999px;
+  background:rgba(100,116,139,0.25); color:#94a3b8;
+  text-transform:uppercase; vertical-align:middle;
+}
 .nav-right { display:flex; align-items:center; gap:10px; }
 
 /* scan status pill */
@@ -266,6 +273,10 @@ nav {
       <a href="MyAssets_Technical.html" class="nav-link">
         <i class="fa-solid fa-chart-line fa-xs"></i> หุ้นเทคนิค
       </a>
+      <a href="#" class="nav-link disabled">
+        <i class="fa-solid fa-landmark fa-xs"></i> หุ้นพื้นฐาน
+        <span class="cs-badge">Coming Soon</span>
+      </a>
       <a href="MyAssets_IPO.html" class="nav-link active">
         <i class="fa-solid fa-rocket fa-xs"></i> หุ้น IPO
       </a>
@@ -389,7 +400,7 @@ nav {
 ---------------------------------------------------------------- */
 
 // ── CONFIG ───────────────────────────────────────────────────────
-const WEB_APP_URL = 'YOUR_WEB_APP_URL_HERE'; // ← แทนด้วย URL จาก Apps Script > Deploy
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw_P74pybIzkQ0SSa0RuO8lFgjbgDh5KSerIoL9NcNR1IVAOJ0Jyz3Vb4-khVlsEfNN/exec'; // ← แทนด้วย URL จาก Apps Script > Deploy
 
 const P = {
   peakWin    : 40,    // แท่งแรกหลัง IPO สำหรับหา Initial Max
@@ -526,11 +537,14 @@ function evaluate(bars, ipoPrice) {
   // C1: ราคาหลุด IPO Price
   const c1 = ipoPrice > 0 && price < ipoPrice;
 
-  // C2: Drawdown จาก InitialMax ≥ Fib Min
-  const dd     = initMax > 0 ? (initMax - price) / initMax : 0;
-  const fib50  = initMax * (1 - P.fibMin);
-  const fib618 = initMax * (1 - P.fibDeep);
-  const c2 = dd >= P.fibMin;
+  // C2: Fibonacci retracement จาก IPO_Price → InitialMax (institutional standard)
+  // Edge case: price ≤ IPO_Price = complete round-trip → C2 PASS อัตโนมัติ
+  const dd         = initMax > 0 ? (initMax - price) / initMax : 0;
+  const fibRange   = (ipoPrice > 0 && initMax > ipoPrice) ? initMax - ipoPrice : initMax;
+  const fib50      = initMax - fibRange * P.fibMin;
+  const fib618     = initMax - fibRange * P.fibDeep;
+  const c2EdgeCase = ipoPrice > 0 && price <= ipoPrice;
+  const c2         = ipoPrice > 0 && (c2EdgeCase || price <= fib50);
 
   // C3: RSI เคย Oversold แล้วม้วนหัวกลับ
   const rsiArr  = rsi(closes, P.rsiP);
@@ -598,7 +612,7 @@ function evaluate(bars, ipoPrice) {
 
   return {
     level, price, ipoPrice, initMax, pkIdx, dd, fib50, fib618,
-    c1, c2, c3, c4, c5, c6,
+    c1, c2, c2EdgeCase, c3, c4, c5, c6,
     rNow, rPrev, recentOS, divInfo, volInfo, pivs, lastPivotLow,
     rsiArr, macdObj: md
   };
@@ -833,7 +847,9 @@ function renderConditions(r) {
     `<tr><td class="c-name">${name}</td><td class="${pass ? 'c-pass' : 'c-fail'}">${pass ? 'ผ่าน' : 'ยังไม่ผ่าน'}</td><td class="c-detail">${detail}</td></tr>`;
   document.getElementById('cond-tbl').innerHTML =
     row('C1  ราคา < IPO_Price',              r.c1, `${f(r.price)} vs ${f(r.ipoPrice)}`) +
-    row('C2  Drawdown ≥ Fib Min',            r.c2, `Max ${f(r.initMax)} · ย่อ ${(r.dd*100).toFixed(1)}% · โซน ${f(r.fib50)} / ${f(r.fib618)}`) +
+    row('C2  Drawdown ≥ Fib Min',            r.c2, r.c2EdgeCase
+      ? `Complete round-trip · ต่ำกว่า IPO ${f(r.ipoPrice)} แล้ว`
+      : `Max ${f(r.initMax)} · ย่อ ${(r.dd*100).toFixed(1)}% · โซน Fib (IPO→Max) ${f(r.fib50)} / ${f(r.fib618)}`) +
     row(`C3  RSI(${P.rsiP}) ม้วนหัวกลับ`,  r.c3, `RSI ${f(r.rNow)} (ก่อนหน้า ${f(r.rPrev)}) · เคย < ${P.rsiOS}: ${r.recentOS ? 'ใช่' : 'ไม่'}`) +
     row('C4  MACD Bullish Divergence',        r.c4, r.divInfo) +
     row('C5  Price Stabilization',            r.c5, 'ไม่ทำ Low ใหม่ใน 3 แท่ง + ปิดสูงกว่าแท่งก่อน') +
@@ -925,7 +941,9 @@ async function scanTicker(ticker) {
   if (curRank > prevRank) {
     const msgs = {
       WATCH  : `ปิด ${f(result.price)} ต่ำกว่า IPO ${f(item.ipoPrice)} (${((result.price / item.ipoPrice - 1) * 100).toFixed(1)}%)`,
-      ZONE   : `ย่อ ${(result.dd * 100).toFixed(1)}% จาก Max ${f(result.initMax)} · โซน Fib ${f(result.fib50)} – ${f(result.fib618)}`,
+      ZONE   : result.c2EdgeCase
+        ? `Complete round-trip · ราคาต่ำกว่า IPO ${f(result.ipoPrice)} · โซน Fib (IPO→Max) ${f(result.fib50)} – ${f(result.fib618)}`
+        : `ย่อ ${(result.dd * 100).toFixed(1)}% จาก Max · โซน Fib (IPO→Max) ${f(result.fib50)} – ${f(result.fib618)}`,
       SETUP  : `${result.c3 ? 'RSI ม้วนหัว ' : ''}${result.c4 ? 'MACD Divergence' : ''} · รอเงื่อนไขที่เหลือ`,
       TRIGGER: `Entry ~${f(result.price)} · Stop < ${result.lastPivotLow ? f(result.lastPivotLow) : '—'} · ความเสี่ยง ${result.lastPivotLow ? ((1 - result.lastPivotLow / result.price) * 100).toFixed(1) : '?'}%`
     };
