@@ -467,6 +467,24 @@ function parseGvizData(json) {
     else if (val.includes('STATUS')) colIdx.status = idx;
   });
 
+  let fileTypeMap = {};
+  let nameColIdx = 10, typeColIdx = 11;
+  headerCells.forEach((cell, idx) => {
+    const val = cell && cell.v ? String(cell.v).trim().toUpperCase() : '';
+    if (val === 'NAME') nameColIdx = idx;
+    else if (val === 'TYPE') typeColIdx = idx;
+  });
+
+  for (let i = 1; i < rows.length; i++) {
+    const cols = rows[i].c;
+    if (!cols) continue;
+    const fName = cols[nameColIdx] && cols[nameColIdx].v !== null && cols[nameColIdx].v !== undefined ? String(cols[nameColIdx].v).trim() : '';
+    const fType = cols[typeColIdx] && cols[typeColIdx].v !== null && cols[typeColIdx].v !== undefined ? String(cols[typeColIdx].v).trim().toUpperCase() : '';
+    if (fName && fType) {
+      fileTypeMap[fName.toLowerCase()] = fType;
+    }
+  }
+
   let maxFeVer = '8.4.0', maxFeDate = '';
   let maxBeVer = '9.2.0', maxBeDate = '';
   let globalLatestDate = '';
@@ -519,11 +537,23 @@ function parseGvizData(json) {
       }
     }
 
+    const effKey = effected.toLowerCase();
+    let fileType = fileTypeMap[effKey] || '';
+    if (!fileType) {
+      if (effKey.endsWith('.gs')) fileType = 'GS';
+      else if (effKey.endsWith('.html')) fileType = 'HTML';
+      else if (effKey.endsWith('.js')) fileType = 'JS';
+      else if (effKey.endsWith('.json')) fileType = 'JSON';
+      else if (effKey.endsWith('.png') || effKey.endsWith('.jpg') || effKey.endsWith('.svg')) fileType = 'PNG';
+      else if (effKey.includes('sheet')) fileType = 'SHEET';
+    }
+
     allTaskRows.push({
       addDate: fmtAddDate,
       priority: priority,
       description: description,
       effected: effected,
+      fileType: fileType,
       version: version,
       aiEditor: aiEditor,
       finishDate: fmtFinishDate,
@@ -615,10 +645,20 @@ function renderTable(rows) {
     else if (r.status.toUpperCase() === 'POSTPONE') sClass = 'bg-blue-500/20 text-blue-300';
     else if (r.status.toUpperCase() === 'PENDING') sClass = 'bg-amber-500/20 text-amber-300';
 
+    const typeColorMap = {
+      'HTML': 'text-sky-300',
+      'GS': 'text-amber-300',
+      'SHEET': 'text-emerald-300',
+      'JS': 'text-yellow-200',
+      'JSON': 'text-purple-300',
+      'PNG': 'text-pink-300'
+    };
+    const descColorClass = typeColorMap[(r.fileType || '').toUpperCase()] || 'text-gray-200';
+
     return `<tr class="hover:bg-[#1c2128]">
       <td class="py-2.5 px-3 fn text-gray-300">${r.addDate}</td>
       <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] ${pClass}">${r.priority}</span></td>
-      <td class="py-2.5 px-3 text-white">${r.description}</td>
+      <td class="py-2.5 px-3 ${descColorClass}">${r.description}</td>
       <td class="py-2.5 px-3 fn text-blue-400 text-[11px]">${r.effected}</td>
       <td class="py-2.5 px-3 fn text-amber-300 font-semibold text-[11px]">${r.version}</td>
       <td class="py-2.5 px-3 text-gray-300 text-[11px]">${r.aiEditor}</td>
