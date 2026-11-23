@@ -551,6 +551,34 @@ function parseGvizData(json) {
   if (updateDateEl) updateDateEl.textContent = `อัปเดตล่าสุด: ${fmtD(maxFeDate)}`;
   if (contentDateEl) contentDateEl.textContent = `อัปเดตล่าสุด: ${fmtD(maxFeDate)}`;
 
+  allTaskRows.sort((a, b) => {
+    const parseVer = (v) => {
+      const s = String(v || '').trim();
+      if (!s || s.toUpperCase() === 'N/A') return null;
+      const m = s.match(/\d+(?:\.\d+)*/);
+      return m ? m[0].split('.').map(Number) : null;
+    };
+    const va = parseVer(a.version);
+    const vb = parseVer(b.version);
+    if (va && vb) {
+      const len = Math.max(va.length, vb.length);
+      for (let i = 0; i < len; i++) {
+        const diff = (vb[i] || 0) - (va[i] || 0);
+        if (diff !== 0) return diff;
+      }
+    } else if (va) {
+      return -1;
+    } else if (vb) {
+      return 1;
+    }
+
+    const doneA = String(a.status || '').trim().toUpperCase() === 'DONE' ? 0 : 1;
+    const doneB = String(b.status || '').trim().toUpperCase() === 'DONE' ? 0 : 1;
+    if (doneA !== doneB) return doneA - doneB;
+
+    return String(a.description || '').localeCompare(String(b.description || ''), 'th');
+  });
+
   renderTable(allTaskRows);
 }
 
