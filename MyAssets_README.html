@@ -270,7 +270,7 @@
   <!-- FILTER & SEARCH PANEL -->
   <div class="cd rounded-2xl p-4 border border-[#30363d]">
     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-      <div class="w-full grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div class="w-full grid grid-cols-2 sm:grid-cols-5 gap-2">
         <div>
           <label class="block text-[11px] text-gray-400 mb-1">กรองตาม Priority</label>
           <select id="filterPriority" onchange="filterTable()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500">
@@ -287,6 +287,12 @@
             <option value="DONE">DONE</option>
             <option value="POSTPONE">POSTPONE</option>
             <option value="PENDING">PENDING</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] text-gray-400 mb-1">กรองตาม A.I. Editor</label>
+          <select id="filterAiEditor" onchange="filterTable()" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-blue-500">
+            <option value="">ทั้งหมด (A.I. Editor)</option>
           </select>
         </div>
         <div>
@@ -326,6 +332,31 @@
         </thead>
         <tbody id="taskTableBody" class="divide-y divide-[#30363d]">
           <tr><td colspan="8" class="py-6 text-center text-gray-500">กำลังโหลดข้อมูลจาก Google Sheet...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- A.I. EDITOR LIST TABLE (N2:Q...) -->
+  <div class="cd rounded-2xl overflow-hidden">
+    <div class="p-4 border-b border-[#30363d] flex items-center justify-between">
+      <div>
+        <h2 class="text-sm font-bold text-white fb">รายการ A.I. Editor (PORTFOLIO_DB — N2:Q...)</h2>
+        <p class="text-xs text-gray-400 mt-0.5">ดึงรายชื่อและรายละเอียดจากตาราง A.I. Editor ใน Google Sheet อัตโนมัติ</p>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-[#21262d] text-gray-400 font-semibold border-b border-[#30363d]">
+          <tr>
+            <th class="py-3 px-3">ID</th>
+            <th class="py-3 px-3">SOURCE</th>
+            <th class="py-3 px-3">A.I. VERSION</th>
+            <th class="py-3 px-3">CREDIT</th>
+          </tr>
+        </thead>
+        <tbody id="aiEditorTableBody" class="divide-y divide-[#30363d]">
+          <tr><td colspan="4" class="py-6 text-center text-gray-500">กำลังโหลดข้อมูลรายการ A.I. Editor...</td></tr>
         </tbody>
       </table>
     </div>
@@ -456,6 +487,7 @@ function parseGvizData(json) {
   };
 
   headerCells.forEach((cell, idx) => {
+    if (idx > 9) return;
     const val = cell && cell.v ? String(cell.v).trim().toUpperCase() : '';
     if (val.includes('ADD DATE')) colIdx.addDate = idx;
     else if (val.includes('PRIORITY')) colIdx.priority = idx;
@@ -466,6 +498,37 @@ function parseGvizData(json) {
     else if (val.includes('FINISH DATE')) colIdx.finishDate = idx;
     else if (val.includes('STATUS')) colIdx.status = idx;
   });
+
+  let aiColIdx = { id: 13, source: 14, version: 15, credit: 16 };
+  headerCells.forEach((cell, idx) => {
+    if (idx < 12) return;
+    const val = cell && cell.v ? String(cell.v).trim().toUpperCase() : '';
+    if (val === 'ID') aiColIdx.id = idx;
+    else if (val === 'SOURCE') aiColIdx.source = idx;
+    else if (val === 'A.I. VERSION' || val === 'AI VERSION' || val === 'VERSION') aiColIdx.version = idx;
+    else if (val === 'CREDIT') aiColIdx.credit = idx;
+  });
+
+  const aiEditorList = [];
+  for (let i = 1; i < rows.length; i++) {
+    const cols = rows[i].c;
+    if (!cols) continue;
+    const getCol = (idx) => cols[idx] && cols[idx].v !== null && cols[idx].v !== undefined ? String(cols[idx].v).trim() : '';
+    const aiId = getCol(aiColIdx.id);
+    const aiSource = getCol(aiColIdx.source);
+    const aiVersion = getCol(aiColIdx.version);
+    const aiCredit = getCol(aiColIdx.credit);
+    if (aiId || aiSource || aiVersion || aiCredit) {
+      aiEditorList.push({
+        id: aiId,
+        source: aiSource,
+        version: aiVersion,
+        credit: aiCredit
+      });
+    }
+  }
+  renderAiEditorTable(aiEditorList);
+  populateAiEditorFilter(aiEditorList);
 
   let fileTypeMap = {};
   let nameColIdx = 10, typeColIdx = 11;
@@ -626,6 +689,45 @@ function formatDateStr(val) {
   return val;
 }
 
+function getAiGroupColorClass(val) {
+  const s = String(val || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  if (!s) return 'text-gray-300';
+
+  const exactAiColorMap = {
+    'claude desktop / sonnet 4.6': 'text-amber-300',
+    'chatgpt desktop / gpt-6.2 astra': 'text-emerald-300',
+    'gemini desktop / 4 hydrogen': 'text-sky-300',
+    'gemini desktop / 3.6 flash': 'text-cyan-300',
+    'vs code / copilot ver 0.74.0': 'text-purple-300',
+    'ai passport / claude opus 5.5': 'text-rose-300',
+    'ai passport / claude sonnet 5.5': 'text-pink-300',
+    'ai passport / claude sonnet 4.6': 'text-orange-300',
+    'ai passport / gemini 3.5 flash lite': 'text-teal-300',
+    'okmd ai playground / claude sonnet 5.5': 'text-yellow-300',
+    'okmd ai playground / claude sonnet 4.6': 'text-lime-300',
+    'okmd ai playground / gemini 4.0 argon': 'text-fuchsia-300',
+    'okmd ai playground / gemini 3.5 flash lite': 'text-indigo-300'
+  };
+
+  if (exactAiColorMap[s]) return exactAiColorMap[s];
+
+  if (s.includes('claude desktop')) return 'text-amber-300';
+  if (s.includes('chatgpt') || s.includes('gpt-')) return 'text-emerald-300';
+  if (s.includes('gemini desktop') && s.includes('3.6 flash')) return 'text-cyan-300';
+  if (s.includes('gemini desktop')) return 'text-sky-300';
+  if (s.includes('vs code') || s.includes('copilot')) return 'text-purple-300';
+  if (s.includes('ai passport') && s.includes('opus 5.5')) return 'text-rose-300';
+  if (s.includes('ai passport') && s.includes('sonnet 5.5')) return 'text-pink-300';
+  if (s.includes('ai passport') && s.includes('sonnet 4.6')) return 'text-orange-300';
+  if (s.includes('ai passport') && s.includes('gemini')) return 'text-teal-300';
+  if (s.includes('okmd') && s.includes('sonnet 5.5')) return 'text-yellow-300';
+  if (s.includes('okmd') && s.includes('sonnet 4.6')) return 'text-lime-300';
+  if (s.includes('okmd') && s.includes('gemini 4.0')) return 'text-fuchsia-300';
+  if (s.includes('okmd') && s.includes('gemini')) return 'text-indigo-300';
+
+  return 'text-gray-300';
+}
+
 function renderTable(rows) {
   const tbody = document.getElementById('taskTableBody');
   if (!tbody) return;
@@ -661,9 +763,50 @@ function renderTable(rows) {
       <td class="py-2.5 px-3 ${descColorClass}">${r.description}</td>
       <td class="py-2.5 px-3 fn text-blue-400 text-[11px]">${r.effected}</td>
       <td class="py-2.5 px-3 fn text-amber-300 font-semibold text-[11px]">${r.version}</td>
-      <td class="py-2.5 px-3 text-gray-300 text-[11px]">${r.aiEditor}</td>
+      <td class="py-2.5 px-3 ${getAiGroupColorClass(r.aiEditor)} text-[11px]">${r.aiEditor}</td>
       <td class="py-2.5 px-3 fn text-gray-400">${r.finishDate}</td>
       <td class="py-2.5 px-3 text-center"><span class="px-2.5 py-0.5 rounded text-[10px] ${sClass}">${r.status}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function populateAiEditorFilter(list) {
+  const selectEl = document.getElementById('filterAiEditor');
+  if (!selectEl) return;
+  const currentVal = selectEl.value;
+  const seen = new Set();
+  const options = ['<option value="">ทั้งหมด (A.I. Editor)</option>'];
+  list.forEach(item => {
+    const key = (item.id || '').trim();
+    if (!key) return;
+    const norm = key.toLowerCase();
+    if (seen.has(norm)) return;
+    seen.add(norm);
+    const escaped = key.replace(/"/g, '&quot;');
+    options.push(`<option value="${escaped}">${key}</option>`);
+  });
+  selectEl.innerHTML = options.join('');
+  if (currentVal && seen.has(currentVal.toLowerCase())) {
+    selectEl.value = currentVal;
+  }
+}
+
+function renderAiEditorTable(list) {
+  const tbody = document.getElementById('aiEditorTableBody');
+  if (!tbody) return;
+  if (!list || list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-gray-500">ไม่พบข้อมูลรายการ A.I. Editor</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(item => {
+    const aiNameColor = getAiGroupColorClass(item.id || item.source);
+    const aiSourceColor = getAiGroupColorClass(item.source || item.id);
+    return `
+    <tr class="hover:bg-[#1c2128]">
+      <td class="py-2.5 px-3 ${aiNameColor} font-semibold">${item.id}</td>
+      <td class="py-2.5 px-3 ${aiSourceColor}">${item.source}</td>
+      <td class="py-2.5 px-3 fn text-gray-200 text-[11px]">${item.version}</td>
+      <td class="py-2.5 px-3 text-gray-400 text-[11px]">${item.credit}</td>
     </tr>`;
   }).join('');
 }
@@ -671,15 +814,18 @@ function renderTable(rows) {
 function filterTable() {
   const pVal = document.getElementById('filterPriority').value.toUpperCase();
   const sVal = document.getElementById('filterStatus').value.toUpperCase();
+  const aiEl = document.getElementById('filterAiEditor');
+  const aiVal = aiEl ? aiEl.value.trim().toLowerCase() : '';
   const dVal = document.getElementById('filterDate').value;
   const searchVal = document.getElementById('searchDesc').value.toLowerCase();
 
   const filtered = allTaskRows.filter(r => {
     const matchP = !pVal || r.priority.toUpperCase() === pVal;
     const matchS = !sVal || r.status.toUpperCase() === sVal;
+    const matchAi = !aiVal || String(r.aiEditor || '').trim().toLowerCase() === aiVal;
     const matchD = !dVal || r.addDate === dVal;
     const matchSearch = !searchVal || r.description.toLowerCase().includes(searchVal);
-    return matchP && matchS && matchD && matchSearch;
+    return matchP && matchS && matchAi && matchD && matchSearch;
   });
 
   renderTable(filtered);
