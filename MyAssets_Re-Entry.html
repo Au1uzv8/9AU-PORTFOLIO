@@ -1,0 +1,1250 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>9AUPortfolio — Lower-Price Re-entry & Loss Harvesting</title>
+
+<link rel="apple-touch-icon" href="profile.png">
+<link rel="icon" type="image/png" href="profile.png">
+<meta name="theme-color" content="#00ff9d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Sarabun:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<style>
+:root {
+  --bg: #0a0f0e;
+  --card: #0f1412;
+  --card-2: #131a17;
+  --pill: #1a2521;
+  --accent: #00ff9d;
+  --accent-hover: #00cc7a;
+  --magenta: #ff00aa;
+  --amber: #fbbf24;
+  --cyan: #38bdf8;
+  --purple: #c084fc;
+  --mint: #a3f0d1;
+  --line: rgba(255,255,255,0.07);
+  --line-soft: rgba(255,255,255,0.045);
+  --text: #e2e8f0;
+  --text-strong: #f8fafc;
+  --muted: #64748b;
+  --muted-2: #94a3b8;
+  --dim: #475569;
+}
+
+.fb { font-family: 'Chakra Petch', 'Prompt', sans-serif; }
+.fn { font-family: 'JetBrains Mono', monospace; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', 'Prompt', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.container { max-width: 1380px; margin: 0 auto; padding: 0 24px; }
+
+/* HERO */
+.hero { padding: 40px 0 30px; text-align: center; }
+.hero h1 {
+  font-family: 'Space Grotesk', 'Prompt', sans-serif;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 12px;
+  background: linear-gradient(90deg, #ffffff, var(--mint), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero p { font-size: 16px; color: var(--muted-2); max-width: 820px; margin: 0 auto; }
+.hero-formula { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; }
+.formula-tag {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  padding: 5px 14px;
+  font-size: 12px;
+  color: var(--muted-2);
+}
+.formula-tag strong { color: var(--accent); font-weight: 600; }
+
+/* BLINKING ALERT BANNER */
+.signal-banner {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: linear-gradient(90deg, rgba(0,255,157,0.16), rgba(255,0,170,0.12), rgba(15,20,18,0.96));
+  border: 1.5px solid var(--accent);
+  border-radius: 16px;
+  padding: 14px 20px;
+  margin-bottom: 24px;
+  animation: screenFlash 1.2s ease-in-out infinite;
+}
+.signal-banner.active { display: flex; }
+@keyframes screenFlash {
+  0%, 100% { box-shadow: 0 0 8px rgba(0,255,157,0.2); border-color: rgba(0,255,157,0.45); background-color: rgba(0,255,157,0.06); }
+  50% { box-shadow: 0 0 32px rgba(0,255,157,0.55); border-color: #00ff9d; background-color: rgba(0,255,157,0.18); }
+}
+.blink-beacon {
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 14px var(--accent);
+  animation: blinkFast 0.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes blinkFast { 0%, 100% { opacity: 1; transform: scale(1.1); } 50% { opacity: 0.2; transform: scale(0.75); } }
+
+.banner-tickers { display: flex; flex-wrap: wrap; gap: 8px; }
+.banner-ticker-btn {
+  background: rgba(0,255,157,0.16);
+  color: var(--accent);
+  border: 1px solid rgba(0,255,157,0.5);
+  border-radius: 9999px;
+  padding: 5px 14px;
+  font-family: 'Space Grotesk', 'Prompt', sans-serif;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.banner-ticker-btn:hover { background: var(--accent); color: var(--bg); }
+
+/* SECTION TITLE & BUTTONS */
+.section-title {
+  font-size: 12.5px; font-weight: 600; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--dim);
+  margin-bottom: 14px; padding-left: 4px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.btn {
+  background: var(--accent); color: var(--bg); border: 1px solid var(--accent);
+  padding: 9px 18px; border-radius: 9999px; font-family: inherit;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: all .25s ease; display: inline-flex; align-items: center; gap: 8px;
+  text-decoration: none; white-space: nowrap;
+}
+.btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); transform: translateY(-1px); }
+.btn:disabled { opacity: .55; cursor: wait; transform: none; }
+.btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--line); font-weight: 600; }
+.btn-ghost:hover { background: rgba(0,255,157,0.07); color: var(--accent); border-color: rgba(0,255,157,0.45); }
+.btn-danger { background: rgba(255,0,170,0.14); color: var(--magenta); border: 1px solid rgba(255,0,170,0.45); font-weight: 700; }
+.btn-danger:hover { background: var(--magenta); color: #fff; }
+
+/* KPI CARDS */
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 28px; }
+.kpi-card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 18px; padding: 20px 22px; transition: all .3s ease;
+}
+.kpi-card:hover { transform: translateY(-4px); border-color: rgba(0,255,157,0.4); }
+.icon-wrapper {
+  width: 42px; height: 42px; background: rgba(0,255,157,0.08);
+  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px; font-size: 18px; color: var(--accent);
+}
+.icon-wrapper.magenta { background: rgba(255,0,170,0.09); color: var(--magenta); }
+.icon-wrapper.amber { background: rgba(251,191,36,0.1); color: var(--amber); }
+.icon-wrapper.cyan { background: rgba(56,189,248,0.1); color: var(--cyan); }
+.kpi-label { font-size: 12.5px; color: var(--muted-2); }
+.kpi-value {
+  font-family: 'Space Grotesk', sans-serif; font-size: 34px; font-weight: 700;
+  line-height: 1.1; color: var(--text-strong); margin: 6px 0 8px;
+}
+.kpi-footer { font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+
+/* TOOLBAR & FILTERS */
+.tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.search { position: relative; flex: 1; min-width: 240px; }
+.search i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13.5px; }
+.search input {
+  width: 100%; background: var(--card); color: var(--text); border: 1px solid var(--line);
+  border-radius: 9999px; padding: 11px 18px 11px 42px; font-size: 13.5px; outline: none;
+}
+.search input:focus { border-color: var(--accent); }
+.btns { display: flex; flex-wrap: wrap; gap: 9px; }
+
+.status { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-right: 7px; }
+.dot.ok { background: var(--accent); box-shadow: 0 0 10px rgba(0,255,157,0.6); }
+.dot.local { background: var(--amber); }
+
+.filter-bar {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 12px 16px; margin-bottom: 26px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+}
+.filter-group-title { font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--dim); margin-right: 4px; }
+.filter-pill {
+  background: var(--pill); color: var(--muted-2); border: 1px solid transparent;
+  border-radius: 9999px; padding: 5px 12px; font-size: 12px; cursor: pointer; transition: all .2s;
+}
+.filter-pill:hover { color: var(--text); border-color: var(--line); }
+.filter-pill.active { background: rgba(0,255,157,0.12); color: var(--accent); border-color: rgba(0,255,157,0.42); font-weight: 600; }
+.divider { width: 1px; height: 20px; background: var(--line); margin: 0 4px; }
+
+/* MAIN GRID */
+.main-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(360px, 1fr); gap: 22px; align-items: start; padding-bottom: 80px; }
+.group { background: var(--card); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+.ghead { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.gicon { width: 38px; height: 38px; border-radius: 11px; background: rgba(0,255,157,0.08); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 15px; }
+.gname { flex: 1; font-size: 15px; font-weight: 600; color: var(--text-strong); }
+.gcount { background: var(--pill); padding: 4px 12px; border-radius: 9999px; font-size: 12px; color: var(--muted-2); }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  padding: 12px 10px; text-align: left; white-space: nowrap; font-size: 10.5px;
+  font-weight: 600; letter-spacing: 0.9px; text-transform: uppercase;
+  color: var(--dim); background: rgba(255,255,255,0.015); border-bottom: 1px solid var(--line);
+}
+tbody td { padding: 12px 10px; border-bottom: 1px solid var(--line-soft); vertical-align: middle; }
+tbody tr { cursor: pointer; transition: background .2s ease; }
+tbody tr:hover { background: rgba(255,255,255,0.03); }
+tbody tr.selected { background: rgba(0,255,157,0.07); }
+tbody tr.selected td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+
+/* MOAT 5/5 FLASHING ROW */
+tbody tr.row-moat5-alert {
+  background: rgba(0,255,157,0.08);
+  animation: rowFlashMoat5 1.3s ease-in-out infinite;
+}
+tbody tr.row-moat5-alert td:first-child { box-shadow: inset 4px 0 0 var(--accent); }
+@keyframes rowFlashMoat5 {
+  0%, 100% { background-color: rgba(0,255,157,0.05); }
+  50% { background-color: rgba(0,255,157,0.18); }
+}
+
+.chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px;
+  border-radius: 9999px; font-size: 11px; font-weight: 600; white-space: nowrap;
+  border: 1px solid transparent;
+}
+.chip.th { background: rgba(163,240,209,0.08); color: var(--mint); border-color: rgba(163,240,209,0.22); }
+.chip.us { background: rgba(56,189,248,0.09); color: var(--cyan); border-color: rgba(56,189,248,0.24); }
+.chip.moat5 { background: rgba(0,255,157,0.18); color: var(--accent); border-color: rgba(0,255,157,0.6); box-shadow: 0 0 10px rgba(0,255,157,0.25); }
+.chip.moat-mid { background: rgba(251,191,36,0.12); color: var(--amber); border-color: rgba(251,191,36,0.35); }
+.chip.moat-low { background: var(--pill); color: var(--muted-2); }
+.chip.p1 { background: rgba(0,255,157,0.15); color: var(--accent); border-color: rgba(0,255,157,0.5); }
+.chip.p2 { background: rgba(56,189,248,0.14); color: var(--cyan); border-color: rgba(56,189,248,0.45); }
+.chip.p3 { background: rgba(255,0,170,0.14); color: var(--magenta); border-color: rgba(255,0,170,0.45); }
+.chip.none { background: var(--pill); color: var(--muted-2); }
+
+/* RIGHT PANEL */
+.chart-panel { position: sticky; top: 82px; }
+.chart-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px; }
+.chart-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+.chart-title { font-family: 'Space Grotesk', 'Prompt', sans-serif; font-size: 21px; font-weight: 700; color: var(--text-strong); display: flex; align-items: center; gap: 8px; }
+.chart-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.chart-info-price { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; text-align: right; }
+
+.risk-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.risk-box { background: var(--card-2); border: 1px solid var(--line); border-radius: 11px; padding: 9px 11px; }
+.risk-box.sl { border-color: rgba(255,0,170,0.3); }
+.risk-box.tp { border-color: rgba(0,255,157,0.3); }
+.risk-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted-2); }
+.risk-val { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; margin-top: 2px; }
+.risk-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+.ind-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; margin-bottom: 12px; }
+.ind-item {
+  background: rgba(255,255,255,0.02); border: 1px solid var(--line-soft);
+  border-radius: 9px; padding: 7px 10px; display: flex; justify-content: space-between; font-size: 11.5px;
+}
+.ind-name { color: var(--muted-2); }
+.ind-val { font-weight: 600; color: var(--text-strong); }
+
+.chart-container { border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
+.pane-caption { font-size: 10px; font-weight: 600; color: var(--muted); padding: 4px 10px 2px; display: flex; justify-content: space-between; }
+
+/* DECISION DIALOG BOX (2 TABS: THB & USD) */
+.dialog-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(4, 7, 6, 0.84);
+  backdrop-filter: blur(10px);
+  display: none; align-items: center; justify-content: center; padding: 16px;
+}
+.dialog-overlay.active { display: flex; }
+.dialog-box {
+  background: var(--card);
+  border: 1.5px solid rgba(0,255,157,0.45);
+  border-radius: 22px;
+  width: 100%; max-width: 780px;
+  max-height: 92vh; overflow-y: auto;
+  box-shadow: 0 0 50px rgba(0,255,157,0.18);
+  animation: popIn .28s cubic-bezier(.23,1,.32,1);
+}
+@keyframes popIn { from { opacity: 0; transform: translateY(18px) scale(0.97); } to { opacity: 1; transform: none; } }
+
+.dialog-header {
+  padding: 18px 24px; border-bottom: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+}
+.dialog-title { font-family: 'Space Grotesk', 'Prompt', sans-serif; font-size: 18px; font-weight: 700; color: var(--text-strong); display: flex; align-items: center; gap: 10px; }
+.dialog-close { background: none; border: none; color: var(--muted); font-size: 26px; cursor: pointer; line-height: 1; }
+.dialog-close:hover { color: var(--text-strong); }
+
+.dialog-tabs {
+  display: flex; background: var(--card-2); border-bottom: 1px solid var(--line); padding: 0 24px; gap: 8px;
+}
+.d-tab {
+  padding: 12px 18px; font-size: 13.5px; font-weight: 700; color: var(--muted-2);
+  background: transparent; border: none; border-bottom: 2.5px solid transparent;
+  cursor: pointer; transition: all .2s; display: inline-flex; align-items: center; gap: 8px;
+}
+.d-tab:hover { color: var(--text-strong); }
+.d-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.dialog-body { padding: 20px 24px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 18px; }
+.field-group { display: flex; flex-direction: column; gap: 5px; }
+.field-group label { font-size: 11.5px; font-weight: 600; color: var(--muted-2); }
+.field-group input, .field-group select {
+  background: var(--card-2); color: var(--text-strong); border: 1px solid var(--line);
+  border-radius: 10px; padding: 10px 13px; font-size: 14px; font-family: 'JetBrains Mono', 'Prompt', sans-serif;
+  outline: none; transition: border-color .2s;
+}
+.field-group input:focus, .field-group select:focus { border-color: var(--accent); }
+.field-group input.highlight-input { border-color: rgba(0,255,157,0.45); background: rgba(0,255,157,0.04); }
+
+.sim-summary-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  background: var(--card-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 16px;
+}
+.sim-metric { display: flex; flex-direction: column; gap: 2px; }
+.sim-lbl { font-size: 11px; color: var(--muted-2); }
+.sim-val { font-family: 'Space Grotesk', monospace; font-size: 17px; font-weight: 700; color: var(--text-strong); }
+.sim-sub { font-size: 10.5px; color: var(--muted); }
+
+.logic-verdict-box {
+  border-radius: 12px; padding: 12px 16px; font-size: 13px; margin-bottom: 16px;
+  border: 1px solid rgba(0,255,157,0.35); background: rgba(0,255,157,0.06); color: var(--text);
+}
+.logic-verdict-box.warn { border-color: rgba(255,0,170,0.45); background: rgba(255,0,170,0.08); }
+
+.dialog-footer {
+  padding: 16px 24px; border-top: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+}
+
+.spin { width: 26px; height: 26px; margin: 0 auto 10px; border: 3px solid rgba(255,255,255,0.08); border-top-color: var(--accent); border-radius: 50%; animation: spin .9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 1120px) { .main-grid { grid-template-columns: 1fr; } .chart-panel { position: static; } }
+@media (max-width: 820px) { .kpis { grid-template-columns: repeat(2, 1fr); } .form-grid, .sim-summary-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- STANDARD HEADER -->
+<header class="border-b border-[#30363d] bg-[#161b22]/95 backdrop-blur sticky top-0 z-40" style="font-family:'Sarabun','Prompt',sans-serif;">
+  <div class="max-w-screen-xl mx-auto px-4 h-16 flex items-center gap-3">
+    <a href="MyAssets.html" class="flex items-center gap-2 shrink-0 no-underline">
+      <img src="profile.png" alt="9AU" class="w-8 h-8 rounded-full object-cover border border-[#30363d]" onerror="this.style.display='none'">
+      <div class="leading-tight">
+        <div class="text-xs font-bold text-white fb">Lower-Price Re-entry</div>
+        <div class="text-[10px] text-gray-400 fn">USD/THB: <span id="hFx">—</span></div>
+      </div>
+    </a>
+    <span id="fbStatus" class="hidden md:inline-flex text-[9px] fn px-2 py-0.5 rounded-full border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shrink-0">FB live</span>
+    <div class="flex items-center gap-3 mx-auto text-[11px] fn overflow-x-auto whitespace-nowrap">
+      <span class="text-gray-400">BTC/USD <span id="hBtc" class="text-white font-bold">—</span></span>
+      <span class="text-gray-600">·</span>
+      <span class="text-gray-400">Gold Spot <span id="hGold" class="text-white font-bold">—</span></span>
+      <span class="text-gray-600">·</span>
+      <span class="text-gray-400">Thai Gold <span id="hThGold" class="text-white font-bold">—</span></span>
+    </div>
+    <div class="flex items-center gap-1.5 shrink-0">
+      <button onclick="openDecisionDialog(SELECTED_TICKER)" class="text-[11px] fn px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25 transition">
+        <i class="fa-solid fa-calculator"></i> จำลองแผน Re-entry
+      </button>
+      <button onclick="location.reload()" class="p-1.5 rounded-lg bg-[#21262d] border border-[#30363d] text-gray-400 hover:text-white transition">
+        <i class="fa-solid fa-rotate-right"></i>
+      </button>
+    </div>
+  </div>
+  <div class="max-w-screen-xl mx-auto px-4 pb-2.5 flex gap-1 overflow-x-auto">
+    <a href="MyAssets.html" class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">Dashboard</a>
+    <a href="MyAssets_Thai.html" class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">หุ้นไทย</a>
+    <a href="MyAssets_US.html" class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">หุ้นสหรัฐ</a>
+    <a href="MyAssets_Analysis.html" class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">วิเคราะห์</a>
+    <span class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold bg-emerald-900/30 text-emerald-400 border border-emerald-500/20 fb">Re-entry &amp; Loss Harvesting</span>
+  </div>
+</header>
+
+<div class="container">
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Lower-Price Re-entry &amp;<br>Loss Harvesting Scanner</h1>
+    <p>วิเคราะห์ความคุ้มค่าการขายลดความเสี่ยงเมื่อราคาดิ่งต่ำกว่าทุน เพื่อรอช้อนคืนในราคาที่ต่ำกว่าจริง คัดกรองด้วย MOAT 5/5 และสัญญาณเทคนิค P1–P3</p>
+    <div class="hero-formula">
+      <span class="formula-tag"><strong>Trend:</strong> EMA 20 / 50 / 200</span>
+      <span class="formula-tag"><strong>Setup A (Re-entry):</strong> ราคา &lt; EMA50 + RSI ≤ 35 (3 แท่ง) + MACD ตัดลง</span>
+      <span class="formula-tag"><strong>Volatility:</strong> BB (20,2) + ATR (14)</span>
+      <span class="formula-tag"><strong>Risk:</strong> SL -1.5×ATR | TP +2R</span>
+    </div>
+  </div>
+
+  <!-- FLASHING ALERT BANNER -->
+  <div class="signal-banner" id="alert-banner">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="blink-beacon"></span>
+      <div>
+        <strong style="color:var(--accent);font-size:14.5px;">แจ้งเตือนเข้าเงื่อนไข Re-entry &amp; Loss Harvesting!</strong>
+        <span id="banner-desc" style="color:var(--muted-2);font-size:13px;margin-left:6px;">เรียงลำดับ MOAT 5/5 บนสุด ตามด้วย P1 → P3 (คลิกเพื่อเปิด Dialog Box จำลองการตัดสินใจ)</span>
+      </div>
+    </div>
+    <div class="banner-tickers" id="banner-tickers"></div>
+  </div>
+
+  <!-- KPI SUMMARY -->
+  <div class="kpis">
+    <div class="kpi-card">
+      <div class="icon-wrapper"><i class="fa-solid fa-layer-group"></i></div>
+      <div class="kpi-label">พอร์ตคงเหลือสุทธิ (TH + US)</div>
+      <div class="kpi-value" id="kpi-total">-</div>
+      <div class="kpi-footer" id="kpi-total-sub">กำลังโหลดรายการ...</div>
+    </div>
+    <div class="kpi-card">
+      <div class="icon-wrapper"><i class="fa-solid fa-shield-halved"></i></div>
+      <div class="kpi-label">MOAT 5/5 เข้าเกณฑ์ช้อนคืน</div>
+      <div class="kpi-value" id="kpi-moat5" style="color:var(--accent);">-</div>
+      <div class="kpi-footer">พื้นฐานแกร่ง 5/5 + คุ้มค่าซื้อคืน</div>
+    </div>
+    <div class="kpi-card">
+      <div class="icon-wrapper cyan"><i class="fa-solid fa-bolt"></i></div>
+      <div class="kpi-label">สัญญาณ P1 / P2 (BUY &amp; WATCH)</div>
+      <div class="kpi-value" id="kpi-p1p2" style="color:var(--cyan);">-</div>
+      <div class="kpi-footer">Setup A / Oversold / Reversal</div>
+    </div>
+    <div class="kpi-card">
+      <div class="icon-wrapper magenta"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <div class="kpi-label">สัญญาณ P3 (RISK / SELL)</div>
+      <div class="kpi-value" id="kpi-p3" style="color:var(--magenta);">-</div>
+      <div class="kpi-footer">พิจารณาขายลดความเสี่ยงก่อน</div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="tools">
+    <div class="search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input id="q" type="text" placeholder="ค้นหา Ticker / ตลาด (TH, US) / สัญญาณ P1-P3 / MOAT 5/5...">
+    </div>
+    <div class="btns">
+      <button class="btn btn-ghost" id="btn-sync" type="button"><i class="fa-solid fa-rotate-right"></i> ดึงข้อมูล &amp; สแกน</button>
+      <button class="btn btn-ghost" id="btn-telegram-all" type="button"><i class="fa-brands fa-telegram"></i> ส่งสรุป P1–P3 เข้า Telegram</button>
+      <a class="btn btn-ghost" href="https://docs.google.com/spreadsheets/d/1dPyGG5GSqfoMQFTEWQsjpJvNlXMtgyfMb79UN2zzT14/edit#gid=2059593743" target="_blank" rel="noopener">
+        <i class="fa-solid fa-table"></i> เปิดชีต Calculator
+      </a>
+      <button class="btn" type="button" onclick="openDecisionDialog(SELECTED_TICKER)"><i class="fa-solid fa-sliders"></i> เปิด Dialog Box จำลอง</button>
+    </div>
+  </div>
+
+  <div class="status">
+    <span id="count">อัปเดตล่าสุด: -</span>
+    <span><span class="dot" id="dot"></span><span id="srcText">กำลังเชื่อมต่อ Web App Backend...</span></span>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filter-bar">
+    <div class="filter-group-title">ลำดับสัญญาณ</div>
+    <button class="filter-pill active" data-filter-type="priority" data-filter-value="all">ทั้งหมด (เรียง MOAT 5/5 บนสุด)</button>
+    <button class="filter-pill" data-filter-type="priority" data-filter-value="moat5">⭐ เฉพาะ MOAT 5/5</button>
+    <button class="filter-pill" data-filter-type="priority" data-filter-value="P1">🟢 P1 (BUY)</button>
+    <button class="filter-pill" data-filter-type="priority" data-filter-value="P2">🔵 P2 (WATCH)</button>
+    <button class="filter-pill" data-filter-type="priority" data-filter-value="P3">🔴 P3 (RISK / SELL)</button>
+    <div class="divider"></div>
+    <div class="filter-group-title">ตลาด</div>
+    <button class="filter-pill active" data-filter-type="market" data-filter-value="all">ทุกตลาด</button>
+    <button class="filter-pill" data-filter-type="market" data-filter-value="TH">TH (บาท)</button>
+    <button class="filter-pill" data-filter-type="market" data-filter-value="US">US (USD)</button>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+    <!-- TABLE -->
+    <div class="group">
+      <div class="ghead">
+        <div class="gicon"><i class="fa-solid fa-scale-balanced"></i></div>
+        <div class="gname">ตารางวิเคราะห์ Re-entry &amp; Loss Harvesting (เรียง MOAT 5/5 → P1 → P2 → P3)</div>
+        <div class="gcount" id="table-total-count">0 รายการ</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Ticker / ตลาด</th>
+              <th style="text-align:center;">MOAT</th>
+              <th style="text-align:right;">ต้นทุน / ปัจจุบัน</th>
+              <th style="text-align:center;">สัญญาณ (SIGNAL_META)</th>
+              <th style="text-align:right;">RSI / EMA200</th>
+              <th style="text-align:right;">เป้าซื้อคืน / คุ้มทุนใหม่</th>
+              <th style="text-align:center;">จำลอง</th>
+            </tr>
+          </thead>
+          <tbody id="holdings-tbody">
+            <tr><td colspan="8" style="padding:40px;text-align:center;color:var(--muted);"><div class="spin"></div>กำลังดึงข้อมูลพอร์ต TH &amp; US...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: CHART & METRICS -->
+    <div class="chart-panel">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">
+              <span id="chart-symbol">-</span>
+              <span class="chip moat5" id="chart-moat-badge">MOAT -/5</span>
+            </div>
+            <div class="chart-subtitle" id="chart-subtitle">เลือกรายการหุ้นเพื่อดูกราฟและจำลองแผน Re-entry</div>
+          </div>
+          <div>
+            <div class="chart-info-price" id="chart-current-price">-</div>
+            <div id="chart-current-signal" style="text-align:right;margin-top:4px;"></div>
+          </div>
+        </div>
+
+        <div class="risk-strip">
+          <div class="risk-box">
+            <div class="risk-label">ต้นทุนเฉลี่ยเดิม</div>
+            <div class="risk-val" id="tactical-cost">-</div>
+            <div class="risk-sub" id="tactical-shares">คงเหลือ: -</div>
+          </div>
+          <div class="risk-box sl">
+            <div class="risk-label">Stop Loss (-1.5×ATR)</div>
+            <div class="risk-val" id="tactical-sl" style="color:var(--magenta);">-</div>
+            <div class="risk-sub" id="tactical-atr">ATR(14): -</div>
+          </div>
+          <div class="risk-box tp">
+            <div class="risk-label">Target (+2R)</div>
+            <div class="risk-val" id="tactical-tp" style="color:var(--accent);">-</div>
+            <div class="risk-sub" id="tactical-breakeven">คุ้มทุนใหม่: -</div>
+          </div>
+        </div>
+
+        <div class="ind-grid">
+          <div class="ind-item"><span class="ind-name">EMA 20 / 50 / 200</span><span class="ind-val" id="ind-emas">-</span></div>
+          <div class="ind-item"><span class="ind-name">Drawdown จากทุน</span><span class="ind-val" id="ind-dd">-</span></div>
+          <div class="ind-item"><span class="ind-name">RSI (14)</span><span class="ind-val" id="ind-rsi">-</span></div>
+          <div class="ind-item"><span class="ind-name">MACD / Sig / Hist</span><span class="ind-val" id="ind-macd">-</span></div>
+          <div class="ind-item"><span class="ind-name">Bollinger (20, 2)</span><span class="ind-val" id="ind-bb">-</span></div>
+          <div class="ind-item"><span class="ind-name">Setup A (Re-entry)</span><span class="ind-val" id="ind-setup">-</span></div>
+        </div>
+
+        <div class="chart-container">
+          <div id="chart-div" style="min-height:360px;"></div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+          <button class="btn" type="button" style="width:100%;justify-content:center;" onclick="openDecisionDialog(SELECTED_TICKER)">
+            <i class="fa-solid fa-sliders"></i> เปิด Dialog Box คำนวณ % และบันทึกแผน
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DECISION DIALOG BOX (2 TABS: THB & USD) -->
+<div class="dialog-overlay" id="decision-dialog">
+  <div class="dialog-box">
+    <div class="dialog-header">
+      <div class="dialog-title">
+        <i class="fa-solid fa-scale-balanced" style="color:var(--accent);"></i>
+        <span>จำลองการตัดสินใจ Lower-Price Re-entry &amp; Loss Harvesting</span>
+      </div>
+      <button class="dialog-close" type="button" onclick="closeDecisionDialog()">&times;</button>
+    </div>
+
+    <!-- 2 TABS: จำนวนเงินบาท (TH) / จำนวนเงิน USD (US) -->
+    <div class="dialog-tabs">
+      <button class="d-tab active" id="dtab-TH" type="button" onclick="switchDialogTab('TH')">
+        <i class="fa-solid fa-baht-sign"></i> จำนวนเงินบาท (หุ้นไทย TH)
+      </button>
+      <button class="d-tab" id="dtab-US" type="button" onclick="switchDialogTab('US')">
+        <i class="fa-solid fa-dollar-sign"></i> จำนวนเงิน USD (หุ้นสหรัฐ US)
+      </button>
+    </div>
+
+    <div class="dialog-body">
+      <!-- Auto-triggered Queue Bar -->
+      <div id="dialog-queue-bar" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:12px;background:rgba(0,255,157,0.08);border:1px solid rgba(0,255,157,0.3);justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <span style="font-size:12px;color:var(--accent);font-weight:600;">
+          <i class="fa-solid fa-bell"></i> ส่งเข้าอัตโนมัติตามเงื่อนไข (<span id="queue-pos">1/1</span>):
+        </span>
+        <div id="queue-pills" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field-group">
+          <label>เลือก Ticker ในพอร์ต (<span id="dlg-market-label">THB</span>)</label>
+          <select id="dlg-ticker" onchange="onDialogTickerChange()"></select>
+        </div>
+        <div class="field-group">
+          <label>คะแนน MOAT (0–5) &amp; สัญญาณ</label>
+          <div style="display:flex;gap:8px;">
+            <input type="number" id="dlg-moat" min="0" max="5" step="1" style="width:85px;" oninput="recalcDialog()">
+            <input type="text" id="dlg-signal" readonly style="flex:1;color:var(--accent);font-size:12.5px;">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>จำนวนหุ้นเดิมคงเหลือ</label>
+          <input type="number" id="dlg-shares" step="any" oninput="recalcDialog()">
+        </div>
+        <div class="field-group">
+          <label>ต้นทุนเฉลี่ยเดิม/หุ้น (<span class="dlg-ccy">THB</span>)</label>
+          <input type="number" id="dlg-cost" step="any" oninput="recalcDialog()">
+        </div>
+
+        <div class="field-group">
+          <label style="color:var(--magenta);">% จุดตัดขาดทุนเพื่อพิจารณาขาย (เช่น -10%)</label>
+          <input type="number" id="dlg-cut-pct" class="highlight-input" value="-10" step="0.5" oninput="onPctInputChange()">
+        </div>
+        <div class="field-group">
+          <label>ราคาขายออก (<span class="dlg-ccy">THB</span>) [ราคาตลาด: <span id="dlg-mkt-price">-</span>]</label>
+          <input type="number" id="dlg-sell-price" step="any" oninput="recalcDialog()">
+        </div>
+
+        <div class="field-group">
+          <label style="color:var(--accent);">% เป้าราคาซื้อคืนต่ำกว่าราคาขาย (เช่น 10%)</label>
+          <input type="number" id="dlg-reentry-pct" class="highlight-input" value="10" step="0.5" oninput="onPctInputChange()">
+        </div>
+        <div class="field-group">
+          <label>ราคาซื้อคืนเป้าหมาย (<span class="dlg-ccy">THB</span>) [ค่าคอมฯ+VAT %]</label>
+          <div style="display:flex;gap:8px;">
+            <input type="number" id="dlg-buyback-price" step="any" style="flex:1;" oninput="recalcDialog()">
+            <input type="number" id="dlg-fee-pct" step="0.0001" style="width:105px;" oninput="recalcDialog()">
+          </div>
+        </div>
+      </div>
+
+      <!-- REAL-TIME SIMULATION OUTPUTS -->
+      <div class="sim-summary-grid">
+        <div class="sim-metric">
+          <span class="sim-lbl">เงินสดสุทธิหลังขาย (หักค่าคอมฯ)</span>
+          <span class="sim-val" id="sim-net-cash">-</span>
+          <span class="sim-sub" id="sim-realized-pl">Realized P/L: -</span>
+        </div>
+        <div class="sim-metric">
+          <span class="sim-lbl">จำนวนหุ้นใหม่ที่ซื้อคืน / หุ้นงอกเพิ่ม</span>
+          <span class="sim-val" id="sim-new-shares" style="color:var(--accent);">-</span>
+          <span class="sim-sub" id="sim-extra-shares">งอกเพิ่ม: -</span>
+        </div>
+        <div class="sim-metric">
+          <span class="sim-lbl">จุดคุ้มทุนใหม่สุทธิ vs ถือเดิม</span>
+          <span class="sim-val" id="sim-breakeven" style="color:var(--cyan);">-</span>
+          <span class="sim-sub" id="sim-max-buyback">ซื้อคืนสูงสุดที่คุ้มค่าคอมฯ: -</span>
+        </div>
+      </div>
+
+      <div class="logic-verdict-box" id="dlg-verdict-box">
+        กำลังประมวลผลความคุ้มค่า...
+      </div>
+    </div>
+
+    <div class="dialog-footer">
+      <div style="font-size:11.5px;color:var(--muted);">
+        * กด <strong>Save</strong> เพื่อแทรกรายการแผนใหม่ลงแท็บ <code>Calculator</code> และส่งแจ้งเตือน Telegram ทันที
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="button" class="btn btn-danger" onclick="closeDecisionDialog()">
+          <i class="fa-solid fa-xmark"></i> Cancel (หยุดเพียงเท่านี้)
+        </button>
+        <button type="button" class="btn" id="btn-dialog-save" onclick="savePlanAndNotify()">
+          <i class="fa-solid fa-floppy-disk"></i> Save (แทรกแผนใหม่ &amp; ส่ง Telegram)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== WEB APP URL (ผูกกับชีต Lower-Price Re-entry & Loss Harvesting Calculator) ===================== */
+const WEB_APP_URL = "YOUR_NEW_WEB_APP_URL_HERE"; // <-- วาง URL จากการ Deploy Web App ตัวใหม่ของชีตนี้
+
+const SIGNAL_META = {
+  BUY_CONFIRMED:      { label: 'BUY: Confirmed (5/5)',          priority: 'P1', emoji: '🟢', side: 'BUY'   },
+  BUY_PENDING:        { label: 'BUY: Pending (4/5)',            priority: 'P1', emoji: '🟡', side: 'BUY'   },
+  SETUP_A_V2:         { label: 'WATCH: Setup A (RSI Rebound)',  priority: 'P2', emoji: '🔵', side: 'WATCH' },
+  OVERSOLD_WATCH:     { label: 'WATCH: Oversold (>EMA200)',     priority: 'P2', emoji: '🔵', side: 'WATCH' },
+  REVERSAL_WATCH:     { label: 'WATCH: Reversal',               priority: 'P2', emoji: '🟣', side: 'WATCH' },
+  OVERBOUGHT_TRAIL:   { label: 'RISK: Overbought (>=70)',       priority: 'P3', emoji: '🟠', side: 'RISK'  },
+  MOMENTUM_FADING:    { label: 'RISK: Momentum Fading',         priority: 'P3', emoji: '⚪', side: 'RISK'  },
+  OVERSOLD_DOWNTREND: { label: 'RISK: Oversold in Downtrend',   priority: 'P3', emoji: '🔴', side: 'RISK'  },
+  SELL_SIGNAL:        { label: 'SELL: Death Cross',             priority: 'P3', emoji: '🔴', side: 'SELL'  },
+  NORMAL:             { label: 'Normal (Hold)',                 priority: '',   emoji: '',   side: 'NONE'  },
+  NO_DATA:            { label: 'N/A (ไม่มีข้อมูล)',             priority: '',   emoji: '',   side: 'NONE'  }
+};
+
+let PORTFOLIO = [];
+let SELECTED_TICKER = "";
+let ACTIVE_FILTERS = { priority: 'all', market: 'all' };
+let DIALOG_MARKET = "TH";
+let AUTO_QUEUE = [];
+let CHART_MAIN = null, CHART_RSI = null;
+
+/* ===================== PORTFOLIO SNAPSHOT FALLBACK (คำนวณสุทธิ BUY - SELL จาก TH & US) ===================== */
+function getFallbackPortfolio() {
+  return [
+    { market: "TH", ticker: "BKK:RCL",   group: "Core",      shares: 100,   avgCost: 47.34, price: 40.00, moat: 5, rsi: 33.47, ema20: 41.20, ema50: 43.50, ema200: 38.80, macd: -0.85, macdSignal: -0.60, macdHist: -0.25, atr: 1.45, bbState: "Lower Band", closes: [46.5,42.5,40.5,38.5,39.25,39.0,40.0] },
+    { market: "TH", ticker: "BKK:BDMS",  group: "Core",      shares: 800,   avgCost: 19.18, price: 19.90, moat: 5, rsi: 54.34, ema20: 19.85, ema50: 19.60, ema200: 19.20, macd: 0.12, macdSignal: 0.08, macdHist: 0.04, atr: 0.35, bbState: "Upper Half", closes: [20.1,19.9,20.1,20.0,20.1,19.8,19.9] },
+    { market: "TH", ticker: "BKK:TISCO", group: "Dividend",  shares: 100,   avgCost: 125.00,price: 125.50,moat: 5, rsi: 52.86, ema20: 125.1, ema50: 124.2, ema200: 120.5, macd: 0.45, macdSignal: 0.30, macdHist: 0.15, atr: 1.80, bbState: "In Band", closes: [125.5,123.5,125,125,125,125,125.5] },
+    { market: "TH", ticker: "BKK:IVL",   group: "Satellite", shares: 100,   avgCost: 22.00, price: 22.70, moat: 3, rsi: 30.16, ema20: 23.10, ema50: 24.40, ema200: 25.10, macd: -0.55, macdSignal: -0.40, macdHist: -0.15, atr: 0.72, bbState: "Lower Band", closes: [23.3,22.6,22.3,22.5,22.7,22.4,22.7] },
+    { market: "TH", ticker: "BKK:DELTA", group: "Satellite", shares: 21,    avgCost: 194.00,price: 190.00,moat: 4, rsi: 31.78, ema20: 192.5, ema50: 205.0, ema200: 218.0, macd: -4.20, macdSignal: -3.10, macdHist: -1.10, atr: 7.50, bbState: "Lower Band", closes: [187,177,182,193,194.5,190,190] },
+    { market: "TH", ticker: "BKK:SVT",   group: "Satellite", shares: 1000,  avgCost: 1.45,  price: 1.48,  moat: 3, rsi: 48.20, ema20: 1.47,  ema50: 1.50,  ema200: 1.56,  macd: -0.01, macdSignal: -0.01, macdHist: 0.00, atr: 0.05, bbState: "In Band", closes: [1.55,1.52,1.49,1.46,1.45,1.47,1.48] },
+    { market: "US", ticker: "SPGP",      group: "Core",      shares: 5.583, avgCost: 125.22,price: 126.35,moat: 5, rsi: 57.19, ema20: 126.1, ema50: 124.8, ema200: 120.2, macd: 0.65, macdSignal: 0.50, macdHist: 0.15, atr: 1.40, bbState: "In Band", closes: [128.32,125.65,125.11,127.36,127.26,127.86,126.35] },
+    { market: "US", ticker: "SCHD",      group: "Core",      shares: 17.475,avgCost: 34.52, price: 35.93, moat: 5, rsi: 62.27, ema20: 35.60, ema50: 34.90, ema200: 33.10, macd: 0.32, macdSignal: 0.25, macdHist: 0.07, atr: 0.42, bbState: "Upper Half", closes: [36.21,35.42,35.17,35.65,35.83,36.02,35.93] },
+    { market: "US", ticker: "BRK.B",     group: "Core",      shares: 0.921, avgCost: 537.02,price: 589.83,moat: 5, rsi: 79.98, ema20: 580.2, ema50: 562.4, ema200: 525.0, macd: 6.40, macdSignal: 5.10, macdHist: 1.30, atr: 6.80, bbState: "Break Upper", closes: [579.09,572.33,570.89,575.25,583.34,588.24,589.83] },
+    { market: "US", ticker: "QQQI",      group: "Dividend",  shares: 13.680,avgCost: 53.71, price: 51.64, moat: 4, rsi: 44.54, ema20: 51.80, ema50: 52.60, ema200: 53.10, macd: -0.38, macdSignal: -0.25, macdHist: -0.13, atr: 0.65, bbState: "Lower Half", closes: [51.82,48.88,49.48,51.02,50.78,51.77,51.64] },
+    { market: "US", ticker: "JEPI",      group: "Dividend",  shares: 13.144,avgCost: 56.97, price: 58.04, moat: 4, rsi: 57.64, ema20: 57.70, ema50: 57.10, ema200: 56.20, macd: 0.28, macdSignal: 0.21, macdHist: 0.07, atr: 0.48, bbState: "In Band", closes: [58.29,56.39,56.43,57.59,57.66,58.21,58.04] },
+    { market: "US", ticker: "TSLA",      group: "Satellite", shares: 1.787, avgCost: 363.67,price: 397.45,moat: 4, rsi: 56.52, ema20: 385.0, ema50: 372.0, ema200: 345.0, macd: 5.20, macdSignal: 4.10, macdHist: 1.10, atr: 12.5, bbState: "In Band", closes: [385.19,343.69,358.22,378.05,379.78,390.84,397.45] },
+    { market: "US", ticker: "SPCX",      group: "Satellite", shares: 9.915, avgCost: 137.45,price: 127.79,moat: 5, rsi: 34.39, ema20: 134.5, ema50: 139.2, ema200: 142.0, macd: -1.85, macdSignal: -1.20, macdHist: -0.65, atr: 3.10, bbState: "Lower Band", closes: [135.92,123.62,134.27,142.07,143.09,139.75,127.79] },
+    { market: "US", ticker: "IREN",      group: "Satellite", shares: 5.109, avgCost: 17.50, price: 19.48, moat: 3, rsi: 34.56, ema20: 20.10, ema50: 21.50, ema200: 24.00, macd: -0.62, macdSignal: -0.45, macdHist: -0.17, atr: 1.15, bbState: "Lower Band", closes: [21.71,18.03,21.64,21.41,19.73,20.84,19.48] },
+    { market: "US", ticker: "RKLB",      group: "Satellite", shares: 3.978, avgCost: 64.50, price: 64.07, moat: 4, rsi: 56.29, ema20: 61.50, ema50: 58.20, ema200: 52.00, macd: 1.90, macdSignal: 1.40, macdHist: 0.50, atr: 3.40, bbState: "In Band", closes: [52.37,45.99,53.07,58.86,62.71,66.15,64.07] }
+  ];
+}
+
+/* ===================== SIGNAL & RE-ENTRY EVALUATION ENGINE ===================== */
+function evaluateItem(raw) {
+  const price = Number(raw.price || 0);
+  const avgCost = Number(raw.avgCost || 0);
+  const shares = Number(raw.shares || 0);
+  const moat = Number(raw.moat || 0);
+  const rsi = raw.rsi != null ? Number(raw.rsi) : null;
+  const ema20 = raw.ema20 != null ? Number(raw.ema20) : null;
+  const ema50 = raw.ema50 != null ? Number(raw.ema50) : null;
+  const ema200 = raw.ema200 != null ? Number(raw.ema200) : null;
+  const macd = raw.macd != null ? Number(raw.macd) : null;
+  const macdSignal = raw.macdSignal != null ? Number(raw.macdSignal) : null;
+  const macdHist = raw.macdHist != null ? Number(raw.macdHist) : null;
+  const atr = raw.atr != null ? Number(raw.atr) : (price * 0.025);
+
+  const ddPct = avgCost > 0 ? ((price - avgCost) / avgCost) * 100 : 0;
+
+  // Setup A (Re-entry Context): ราคา < EMA50 + RSI <= 35 (ใน 3 แท่ง) + MACD ตัดลง
+  const isBelowEma50 = ema50 != null && price < ema50;
+  const isRsiDip = rsi != null && rsi <= 35;
+  const isMacdBearish = macd != null && macdSignal != null && macd < macdSignal;
+  const setupAReentry = isBelowEma50 && isRsiDip && isMacdBearish;
+
+  // Determine Signal Key from SIGNAL_META
+  let sigKey = raw.signalKey || "NORMAL";
+  if (!raw.signalKey) {
+    if (price === 0) sigKey = "NO_DATA";
+    else if (moat === 5 && setupAReentry && ddPct <= -10) sigKey = "BUY_CONFIRMED";
+    else if (moat >= 4 && setupAReentry) sigKey = "BUY_PENDING";
+    else if (setupAReentry) sigKey = "SETUP_A_V2";
+    else if (rsi != null && rsi <= 35 && ema200 != null && price > ema200) sigKey = "OVERSOLD_WATCH";
+    else if (rsi != null && rsi <= 35 && ema200 != null && price <= ema200) sigKey = "OVERSOLD_DOWNTREND";
+    else if (rsi != null && rsi >= 70) sigKey = "OVERBOUGHT_TRAIL";
+    else if (ema50 != null && ema200 != null && ema50 < ema200 && price < ema50) sigKey = "SELL_SIGNAL";
+    else if (macdHist != null && macdHist < 0 && rsi != null && rsi < 45) sigKey = "MOMENTUM_FADING";
+  }
+
+  const meta = SIGNAL_META[sigKey] || SIGNAL_META.NORMAL;
+  const feeRate = raw.market === "TH" ? 0.001605 : 0.001605;
+
+  // Default Simulation: Cut at current price (if dipped) or -10% from cost, Buyback -10% below sell price
+  const simSellPrice = price > 0 ? price : avgCost * 0.90;
+  const simBuybackPrice = Number((simSellPrice * 0.90).toFixed(raw.market === "TH" ? 2 : 4));
+  const netCashAfterSell = shares * simSellPrice * (1 - feeRate);
+  const rawNewShares = simBuybackPrice > 0 ? netCashAfterSell / (simBuybackPrice * (1 + feeRate)) : 0;
+  const newShares = raw.market === "TH" ? Math.floor(rawNewShares) : Number(rawNewShares.toFixed(4));
+  const extraShares = newShares - shares;
+  const originalCostTotal = shares * avgCost;
+  const newBreakeven = newShares > 0 ? originalCostTotal / newShares : 0;
+
+  const stopLoss = Math.max(0.01, price - 1.5 * atr);
+  const target2R = price + 3.0 * atr;
+
+  // Priority Rank: MOAT 5/5 at top, then P1 -> P2 -> P3 -> NONE
+  const prioWeight = meta.priority === 'P1' ? 1 : (meta.priority === 'P2' ? 2 : (meta.priority === 'P3' ? 3 : 4));
+  const isMoat5 = moat === 5;
+  const isActionableP1P3 = ['P1', 'P2', 'P3'].includes(meta.priority);
+
+  return {
+    ...raw,
+    price, avgCost, shares, moat, rsi, ema20, ema50, ema200,
+    macd, macdSignal, macdHist, atr, ddPct,
+    setupAReentry, sigKey, meta, prioWeight, isMoat5, isActionableP1P3,
+    simSellPrice, simBuybackPrice, newShares, extraShares, newBreakeven,
+    stopLoss, target2R
+  };
+}
+
+/* ===================== JSONP / API LOADER ===================== */
+function fetchJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = "reentry_cb_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
+    const script = document.createElement("script");
+    const timer = setTimeout(() => { cleanup(); reject(new Error("Timeout")); }, 20000);
+    function cleanup() {
+      clearTimeout(timer);
+      try { delete window[cb]; } catch (e) {}
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cb] = data => { cleanup(); resolve(data); };
+    script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+    script.onerror = () => { cleanup(); reject(new Error("Script error")); };
+    document.body.appendChild(script);
+  });
+}
+
+async function loadData() {
+  const dot = document.getElementById("dot");
+  const srcText = document.getElementById("srcText");
+  dot.className = "dot";
+  srcText.textContent = "กำลังดึงข้อมูลพอร์ต TH, US และคะแนน MOAT...";
+
+  let rawItems = null;
+  if (WEB_APP_URL && !WEB_APP_URL.includes("YOUR_NEW_WEB_APP_URL")) {
+    try {
+      const res = await fetchJsonp(`${WEB_APP_URL}?action=summary`);
+      if (res && res.ok && Array.isArray(res.items) && res.items.length > 0) {
+        rawItems = res.items;
+        dot.className = "dot ok";
+        srcText.textContent = "เชื่อมต่อสดกับชีต Lower-Price Re-entry & Loss Harvesting Calculator";
+      }
+    } catch (e) {
+      console.warn("Web App fallback:", e);
+    }
+  }
+
+  if (!rawItems) {
+    rawItems = getFallbackPortfolio();
+    dot.className = "dot local";
+    srcText.textContent = "โหมดจำลองข้อมูลพอร์ต TH & US (รอวาง WEB_APP_URL หลัง Deploy)";
+  }
+
+  PORTFOLIO = rawItems.map(evaluateItem).sort((a, b) => {
+    // 1. MOAT 5/5 อยู่บนสุดเสมอ
+    if (a.isMoat5 !== b.isMoat5) return a.isMoat5 ? -1 : 1;
+    // 2. เรียงตาม P1 -> P2 -> P3 -> NONE
+    if (a.prioWeight !== b.prioWeight) return a.prioWeight - b.prioWeight;
+    // 3. เรียงตามความลึกของ Drawdown
+    return a.ddPct - b.ddPct;
+  });
+
+  document.getElementById("count").textContent = `อัปเดตล่าสุด: ${new Date().toLocaleString("th-TH")}`;
+  renderDashboard();
+}
+
+/* ===================== RENDER DASHBOARD & BANNER ===================== */
+function renderDashboard() {
+  const total = PORTFOLIO.length;
+  const thCount = PORTFOLIO.filter(x => x.market === "TH").length;
+  const usCount = PORTFOLIO.filter(x => x.market === "US").length;
+  const moat5Actionable = PORTFOLIO.filter(x => x.isMoat5 && x.isActionableP1P3);
+  const p1p2 = PORTFOLIO.filter(x => x.meta.priority === "P1" || x.meta.priority === "P2");
+  const p3 = PORTFOLIO.filter(x => x.meta.priority === "P3");
+
+  document.getElementById("kpi-total").textContent = total;
+  document.getElementById("kpi-total-sub").textContent = `หุ้นไทย ${thCount} ตัว • หุ้นสหรัฐ ${usCount} ตัว`;
+  document.getElementById("kpi-moat5").textContent = moat5Actionable.length;
+  document.getElementById("kpi-p1p2").textContent = p1p2.length;
+  document.getElementById("kpi-p3").textContent = p3.length;
+
+  // Queue all MOAT 5/5 + P1-P3 items for Auto Dialog & Blinking Alert
+  AUTO_QUEUE = PORTFOLIO.filter(x => x.isActionableP1P3);
+
+  const banner = document.getElementById("alert-banner");
+  const bannerTickers = document.getElementById("banner-tickers");
+  if (AUTO_QUEUE.length > 0) {
+    banner.classList.add("active");
+    bannerTickers.innerHTML = "";
+    AUTO_QUEUE.forEach(item => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "banner-ticker-btn";
+      btn.textContent = `${item.meta.emoji} ${item.ticker} [MOAT ${item.moat}/5 • ${item.meta.priority}]`;
+      btn.onclick = () => openDecisionDialog(item.ticker);
+      bannerTickers.appendChild(btn);
+    });
+  } else {
+    banner.classList.remove("active");
+  }
+
+  renderTable();
+
+  // Auto-open Dialog Box with top MOAT 5/5 or P1-P3 candidate on first load
+  if (AUTO_QUEUE.length > 0 && !window._autoDialogShown) {
+    window._autoDialogShown = true;
+    setTimeout(() => openDecisionDialog(AUTO_QUEUE[0].ticker), 450);
+  }
+}
+
+function fmtCcy(val, market) {
+  if (val == null || isNaN(val)) return "-";
+  return (market === "TH" ? "฿" : "$") + Number(val).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function renderTable() {
+  const tbody = document.getElementById("holdings-tbody");
+  const q = document.getElementById("q").value.toLowerCase().trim();
+
+  const filtered = PORTFOLIO.filter(item => {
+    const matchQ = !q ||
+      item.ticker.toLowerCase().includes(q) ||
+      item.market.toLowerCase().includes(q) ||
+      item.meta.label.toLowerCase().includes(q) ||
+      item.meta.priority.toLowerCase().includes(q) ||
+      (`moat ${item.moat}/5`).includes(q);
+
+    let matchPrio = true;
+    if (ACTIVE_FILTERS.priority === "moat5") matchPrio = item.isMoat5;
+    else if (ACTIVE_FILTERS.priority !== "all") matchPrio = item.meta.priority === ACTIVE_FILTERS.priority;
+
+    const matchMkt = ACTIVE_FILTERS.market === "all" || item.market === ACTIVE_FILTERS.market;
+    return matchQ && matchPrio && matchMkt;
+  });
+
+  document.getElementById("table-total-count").textContent = `${filtered.length} รายการ`;
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="padding:32px;text-align:center;color:var(--muted);">ไม่พบรายการที่ตรงกับเงื่อนไข</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = "";
+  filtered.forEach((item, idx) => {
+    const tr = document.createElement("tr");
+    if (SELECTED_TICKER === item.ticker) tr.classList.add("selected");
+    if (item.isMoat5 && item.isActionableP1P3) tr.classList.add("row-moat5-alert");
+
+    const moatCls = item.moat === 5 ? "moat5" : (item.moat >= 3 ? "moat-mid" : "moat-low");
+    const prioCls = item.meta.priority ? item.meta.priority.toLowerCase() : "none";
+    const ddColor = item.ddPct < 0 ? "var(--magenta)" : "var(--accent)";
+
+    tr.innerHTML = `
+      <td style="color:var(--dim);">${idx + 1}</td>
+      <td>
+        <div style="font-weight:700;color:var(--text-strong);display:flex;align-items:center;gap:6px;">
+          ${item.ticker}
+          <span class="chip ${item.market === 'TH' ? 'th' : 'us'}">${item.market}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);">ถือ ${item.shares.toLocaleString("en-US", { maximumFractionDigits: 4 })} หุ้น</div>
+      </td>
+      <td style="text-align:center;">
+        <span class="chip ${moatCls}">${item.moat}/5</span>
+      </td>
+      <td style="text-align:right;">
+        <div style="font-weight:600;color:var(--text-strong);">${fmtCcy(item.price, item.market)}</div>
+        <div style="font-size:11px;color:${ddColor};">ทุน ${fmtCcy(item.avgCost, item.market)} (${item.ddPct >= 0 ? '+' : ''}${item.ddPct.toFixed(1)}%)</div>
+      </td>
+      <td style="text-align:center;">
+        <span class="chip ${prioCls}">${item.meta.emoji} ${item.meta.priority ? '['+item.meta.priority+'] ' : ''}${item.meta.label}</span>
+      </td>
+      <td style="text-align:right;">
+        <div style="font-weight:700;color:${item.rsi <= 35 ? 'var(--accent)' : 'var(--text)'};">RSI: ${item.rsi != null ? item.rsi.toFixed(1) : '-'}</div>
+        <div style="font-size:11px;color:var(--muted-2);">EMA200: ${item.ema200 != null ? item.ema200.toFixed(2) : '-'}</div>
+      </td>
+      <td style="text-align:right;">
+        <div style="color:var(--cyan);font-weight:600;">ช้อน: ${fmtCcy(item.simBuybackPrice, item.market)}</div>
+        <div style="font-size:11px;color:var(--accent);">คุ้มทุน: ${fmtCcy(item.newBreakeven, item.market)} (+${item.extraShares.toFixed(item.market==='TH'?0:2)} หุ้น)</div>
+      </td>
+      <td style="text-align:center;">
+        <button type="button" class="btn btn-ghost" style="padding:5px 10px;font-size:11.5px;" onclick="event.stopPropagation();openDecisionDialog('${item.ticker}')">
+          <i class="fa-solid fa-sliders"></i> จำลอง
+        </button>
+      </td>
+    `;
+    tr.onclick = () => selectTicker(item.ticker);
+    tbody.appendChild(tr);
+  });
+
+  if (!SELECTED_TICKER && filtered.length > 0) {
+    selectTicker(filtered[0].ticker);
+  }
+}
+
+function selectTicker(ticker) {
+  SELECTED_TICKER = ticker;
+  const item = PORTFOLIO.find(x => x.ticker === ticker);
+  if (!item) return;
+
+  document.querySelectorAll("#holdings-tbody tr").forEach(r => r.classList.remove("selected"));
+  renderTable();
+
+  document.getElementById("chart-symbol").textContent = item.ticker;
+  const mb = document.getElementById("chart-moat-badge");
+  mb.textContent = `MOAT ${item.moat}/5`;
+  mb.className = `chip ${item.moat === 5 ? 'moat5' : 'moat-mid'}`;
+
+  document.getElementById("chart-subtitle").textContent = `ตลาด ${item.market} • กลุ่ม ${item.group} • ถือครอง ${item.shares} หุ้น`;
+  document.getElementById("chart-current-price").textContent = fmtCcy(item.price, item.market);
+  document.getElementById("chart-current-signal").innerHTML = `<span class="chip ${item.meta.priority ? item.meta.priority.toLowerCase() : 'none'}">${item.meta.emoji} ${item.meta.label}</span>`;
+
+  document.getElementById("tactical-cost").textContent = fmtCcy(item.avgCost, item.market);
+  document.getElementById("tactical-shares").textContent = `คงเหลือ: ${item.shares} หุ้น`;
+  document.getElementById("tactical-sl").textContent = fmtCcy(item.stopLoss, item.market);
+  document.getElementById("tactical-atr").textContent = `ATR(14): ${fmtCcy(item.atr, item.market)}`;
+  document.getElementById("tactical-tp").textContent = fmtCcy(item.target2R, item.market);
+  document.getElementById("tactical-breakeven").textContent = `คุ้มทุนใหม่: ${fmtCcy(item.newBreakeven, item.market)}`;
+
+  document.getElementById("ind-emas").textContent = `${item.ema20?.toFixed(2)||'-'} / ${item.ema50?.toFixed(2)||'-'} / ${item.ema200?.toFixed(2)||'-'}`;
+  document.getElementById("ind-dd").textContent = `${item.ddPct >= 0 ? '+' : ''}${item.ddPct.toFixed(2)}%`;
+  document.getElementById("ind-dd").style.color = item.ddPct < 0 ? "var(--magenta)" : "var(--accent)";
+  document.getElementById("ind-rsi").textContent = item.rsi != null ? item.rsi.toFixed(2) : "-";
+  document.getElementById("ind-macd").textContent = item.macd != null ? `${item.macd.toFixed(2)} / ${item.macdSignal.toFixed(2)}` : "-";
+  document.getElementById("ind-bb").textContent = item.bbState || "-";
+  document.getElementById("ind-setup").textContent = item.setupAReentry ? "เข้าเกณฑ์ Setup A" : "ยังไม่ครบเงื่อนไข";
+  document.getElementById("ind-setup").style.color = item.setupAReentry ? "var(--accent)" : "var(--muted-2)";
+
+  renderMiniChart(item);
+}
+
+function renderMiniChart(item) {
+  const container = document.getElementById("chart-div");
+  container.innerHTML = "";
+  if (CHART_MAIN) { try { CHART_MAIN.remove(); } catch (e) {} CHART_MAIN = null; }
+  if (typeof LightweightCharts === "undefined") return;
+
+  CHART_MAIN = LightweightCharts.createChart(container, {
+    height: 340,
+    layout: { background: { type: 'solid', color: '#0f1412' }, textColor: '#64748b' },
+    grid: { vertLines: { color: 'rgba(255,255,255,0.04)' }, horzLines: { color: 'rgba(255,255,255,0.04)' } },
+    rightPriceScale: { borderColor: 'rgba(255,255,255,0.08)' },
+    timeScale: { borderColor: 'rgba(255,255,255,0.08)' }
+  });
+
+  const line = CHART_MAIN.addLineSeries({ color: '#00ff9d', lineWidth: 2.2 });
+  const closes = item.closes && item.closes.length ? item.closes : [item.price];
+  const pts = closes.map((v, i) => {
+    const d = new Date(); d.setDate(d.getDate() - (closes.length - 1 - i));
+    return { time: d.toISOString().split("T")[0], value: v };
+  });
+  line.setData(pts);
+
+  line.createPriceLine({ price: item.avgCost, color: '#fbbf24', lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: 'ทุนเดิม' });
+  line.createPriceLine({ price: item.simBuybackPrice, color: '#38bdf8', lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: 'เป้าช้อนคืน' });
+  line.createPriceLine({ price: item.newBreakeven, color: '#00ff9d', lineWidth: 1, lineStyle: 1, axisLabelVisible: true, title: 'คุ้มทุนใหม่' });
+  CHART_MAIN.timeScale().fitContent();
+}
+
+/* ===================== DECISION DIALOG BOX (2 TABS: TH & US) ===================== */
+function openDecisionDialog(ticker) {
+  const target = PORTFOLIO.find(x => x.ticker === ticker) || AUTO_QUEUE[0] || PORTFOLIO[0];
+  if (target) {
+    DIALOG_MARKET = target.market;
+  }
+  renderQueuePills(target ? target.ticker : "");
+  switchDialogTab(DIALOG_MARKET, target ? target.ticker : null);
+  document.getElementById("decision-dialog").classList.add("active");
+}
+
+function closeDecisionDialog() {
+  document.getElementById("decision-dialog").classList.remove("active");
+}
+
+function renderQueuePills(activeTicker) {
+  const bar = document.getElementById("dialog-queue-bar");
+  const pills = document.getElementById("queue-pills");
+  if (!AUTO_QUEUE.length) {
+    bar.style.display = "none";
+    return;
+  }
+  bar.style.display = "flex";
+  const idx = AUTO_QUEUE.findIndex(x => x.ticker === activeTicker);
+  document.getElementById("queue-pos").textContent = `${idx >= 0 ? idx + 1 : 1}/${AUTO_QUEUE.length}`;
+  pills.innerHTML = "";
+  AUTO_QUEUE.forEach(item => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "filter-pill" + (item.ticker === activeTicker ? " active" : "");
+    b.style.padding = "3px 9px";
+    b.style.fontSize = "11px";
+    b.textContent = `${item.ticker} (${item.moat}/5)`;
+    b.onclick = () => {
+      switchDialogTab(item.market, item.ticker);
+      renderQueuePills(item.ticker);
+    };
+    pills.appendChild(b);
+  });
+}
+
+function switchDialogTab(market, presetTicker = null) {
+  DIALOG_MARKET = market;
+  document.getElementById("dtab-TH").classList.toggle("active", market === "TH");
+  document.getElementById("dtab-US").classList.toggle("active", market === "US");
+
+  const ccy = market === "TH" ? "THB (บาท)" : "USD ($)";
+  document.getElementById("dlg-market-label").textContent = ccy;
+  document.querySelectorAll(".dlg-ccy").forEach(el => el.textContent = market === "TH" ? "THB" : "USD");
+
+  const sel = document.getElementById("dlg-ticker");
+  const items = PORTFOLIO.filter(x => x.market === market);
+  sel.innerHTML = items.map(x => `<option value="${x.ticker}">${x.ticker} — MOAT ${x.moat}/5 (${x.meta.priority || 'Hold'})</option>`).join("");
+
+  if (presetTicker && items.some(x => x.ticker === presetTicker)) {
+    sel.value = presetTicker;
+  }
+  onDialogTickerChange();
+}
+
+function onDialogTickerChange() {
+  const ticker = document.getElementById("dlg-ticker").value;
+  const item = PORTFOLIO.find(x => x.ticker === ticker);
+  if (!item) return;
+
+  document.getElementById("dlg-moat").value = item.moat;
+  document.getElementById("dlg-signal").value = `${item.meta.emoji} ${item.meta.priority ? '['+item.meta.priority+'] ' : ''}${item.meta.label}`;
+  document.getElementById("dlg-shares").value = item.shares;
+  document.getElementById("dlg-cost").value = item.avgCost;
+  document.getElementById("dlg-mkt-price").textContent = fmtCcy(item.price, item.market);
+
+  const cutPct = Number(document.getElementById("dlg-cut-pct").value || -10);
+  const defaultSell = item.price > 0 ? item.price : Number((item.avgCost * (1 + cutPct / 100)).toFixed(2));
+  document.getElementById("dlg-sell-price").value = defaultSell;
+
+  const rePct = Number(document.getElementById("dlg-reentry-pct").value || 10);
+  document.getElementById("dlg-buyback-price").value = Number((defaultSell * (1 - rePct / 100)).toFixed(item.market === "TH" ? 2 : 4));
+  document.getElementById("dlg-fee-pct").value = 0.1605;
+
+  recalcDialog();
+}
+
+function onPctInputChange() {
+  const cost = Number(document.getElementById("dlg-cost").value || 0);
+  const cutPct = Number(document.getElementById("dlg-cut-pct").value || 0);
+  const rePct = Number(document.getElementById("dlg-reentry-pct").value || 0);
+  const dec = DIALOG_MARKET === "TH" ? 2 : 4;
+
+  if (cost > 0) {
+    const sellPrice = Number((cost * (1 + cutPct / 100)).toFixed(dec));
+    document.getElementById("dlg-sell-price").value = sellPrice;
+    const buybackPrice = Number((sellPrice * (1 - rePct / 100)).toFixed(dec));
+    document.getElementById("dlg-buyback-price").value = buybackPrice;
+  }
+  recalcDialog();
+}
+
+function recalcDialog() {
+  const shares = Number(document.getElementById("dlg-shares").value || 0);
+  const cost = Number(document.getElementById("dlg-cost").value || 0);
+  const sellPrice = Number(document.getElementById("dlg-sell-price").value || 0);
+  const buybackPrice = Number(document.getElementById("dlg-buyback-price").value || 0);
+  const feeRate = Number(document.getElementById("dlg-fee-pct").value || 0) / 100;
+  const moat = Number(document.getElementById("dlg-moat").value || 0);
+
+  const originalTotal = shares * cost;
+  const netCash = shares * sellPrice * (1 - feeRate);
+  const realizedPL = netCash - originalTotal;
+
+  const rawNewShares = buybackPrice > 0 ? netCash / (buybackPrice * (1 + feeRate)) : 0;
+  const newShares = DIALOG_MARKET === "TH" ? Math.floor(rawNewShares) : Number(rawNewShares.toFixed(4));
+  const extraShares = newShares - shares;
+  const newBreakeven = newShares > 0 ? originalTotal / newShares : 0;
+  const maxBuybackWorthFee = sellPrice * (1 - feeRate) / (1 + feeRate);
+
+  document.getElementById("sim-net-cash").textContent = fmtCcy(netCash, DIALOG_MARKET);
+  document.getElementById("sim-realized-pl").textContent = `ขาดทุนที่รับรู้เมื่อขาย: ${fmtCcy(realizedPL, DIALOG_MARKET)}`;
+  document.getElementById("sim-new-shares").textContent = `${newShares.toLocaleString("en-US", { maximumFractionDigits: DIALOG_MARKET === "TH" ? 0 : 4 })} หุ้น`;
+  document.getElementById("sim-extra-shares").textContent = `งอกเพิ่ม: ${extraShares >= 0 ? '+' : ''}${extraShares.toFixed(DIALOG_MARKET === "TH" ? 0 : 4)} หุ้น`;
+  document.getElementById("sim-breakeven").textContent = fmtCcy(newBreakeven, DIALOG_MARKET);
+  document.getElementById("sim-max-buyback").textContent = `ซื้อคืนสูงสุดที่คุ้มค่าคอมฯ: ${fmtCcy(maxBuybackWorthFee, DIALOG_MARKET)}`;
+
+  const vBox = document.getElementById("dlg-verdict-box");
+  if (extraShares > 0 && buybackPrice < maxBuybackWorthFee && moat === 5) {
+    vBox.className = "logic-verdict-box";
+    vBox.innerHTML = `<strong style="color:var(--accent);">✅ คุ้มค่าตามตรรกะ (MOAT 5/5):</strong> ขายลดความเสี่ยงที่ ${fmtCcy(sellPrice, DIALOG_MARKET)} แล้วรอช้อนคืนที่ ${fmtCcy(buybackPrice, DIALOG_MARKET)} จะได้หุ้นเพิ่ม <strong>+${extraShares.toFixed(DIALOG_MARKET === "TH" ? 0 : 2)} หุ้น</strong> และลดจุดคุ้มทุนจาก ${fmtCcy(cost, DIALOG_MARKET)} ลงเหลือ <strong>${fmtCcy(newBreakeven, DIALOG_MARKET)}</strong>`;
+  } else if (extraShares > 0 && buybackPrice < maxBuybackWorthFee) {
+    vBox.className = "logic-verdict-box";
+    vBox.innerHTML = `<strong style="color:var(--amber);">⚠️ คุ้มค่าคอมฯ แต่ MOAT ${moat}/5 (ต่ำกว่า 5/5):</strong> ได้หุ้นเพิ่ม +${extraShares.toFixed(DIALOG_MARKET === "TH" ? 0 : 2)} หุ้น จุดคุ้มทุนใหม่ ${fmtCcy(newBreakeven, DIALOG_MARKET)} — ควรทบทวนพื้นฐานก่อนตัดสินใจ`;
+  } else {
+    vBox.className = "logic-verdict-box warn";
+    vBox.innerHTML = `<strong style="color:var(--magenta);">❌ ไม่คุ้มค่าธรรมเนียม / เสี่ยงเสียเปรียบ:</strong> ราคาซื้อคืน ${fmtCcy(buybackPrice, DIALOG_MARKET)} สูงเกินจุดคุ้มค่าคอมฯ (${fmtCcy(maxBuybackWorthFee, DIALOG_MARKET)}) จำนวนหุ้นไม่งอกเพิ่ม แนะนำกด Cancel เพื่อถือรอดูสถานการณ์`;
+  }
+}
+
+/* ===================== SAVE PLAN TO SHEET & SEND TELEGRAM ===================== */
+async function savePlanAndNotify() {
+  const btn = document.getElementById("btn-dialog-save");
+  btn.disabled = true;
+  btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกและส่ง Telegram...`;
+
+  const payload = {
+    ticker: document.getElementById("dlg-ticker").value,
+    market: DIALOG_MARKET,
+    moat: Number(document.getElementById("dlg-moat").value || 0),
+    shares: Number(document.getElementById("dlg-shares").value || 0),
+    cost: Number(document.getElementById("dlg-cost").value || 0),
+    cutPct: Number(document.getElementById("dlg-cut-pct").value || 0),
+    sellPrice: Number(document.getElementById("dlg-sell-price").value || 0),
+    reentryPct: Number(document.getElementById("dlg-reentry-pct").value || 0),
+    buybackPrice: Number(document.getElementById("dlg-buyback-price").value || 0),
+    feePct: Number(document.getElementById("dlg-fee-pct").value || 0.1605),
+    signal: document.getElementById("dlg-signal").value
+  };
+
+  try {
+    if (WEB_APP_URL && !WEB_APP_URL.includes("https://script.google.com/macros/s/AKfycbxbbEVHatRVtmmRkmypNnqeyOdpD_bQON_9TEEQNAuXqWAMvuFwOFtd0HxeBetvlSg9/exec")) {
+      const res = await fetchJsonp(`${WEB_APP_URL}?action=savePlan&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+      if (res && res.ok) {
+        alert(`บันทึกแผน ${payload.ticker} ลงแท็บ Calculator และส่งแจ้งเตือน Telegram เรียบร้อยแล้วครับ`);
+        closeDecisionDialog();
+      } else {
+        throw new Error((res && res.error) || "บันทึกไม่สำเร็จ");
+      }
+    } else {
+      alert("กรุณานำ URL ของ Web App ตัวใหม่มาใส่ในตัวแปร WEB_APP_URL ก่อนครับ (โค้ดคำนวณพร้อมใช้งานแล้ว)");
+    }
+  } catch (err) {
+    alert("เกิดข้อผิดพลาด: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Save (แทรกแผนใหม่ &amp; ส่ง Telegram)`;
+  }
+}
+
+/* ===================== CONTROLS & INIT ===================== */
+document.querySelectorAll(".filter-pill").forEach(pill => {
+  pill.onclick = function() {
+    const type = this.getAttribute("data-filter-type");
+    const val = this.getAttribute("data-filter-value");
+    if (!type) return;
+    document.querySelectorAll(`.filter-pill[data-filter-type="${type}"]`).forEach(p => p.classList.remove("active"));
+    this.classList.add("active");
+    ACTIVE_FILTERS[type] = val;
+    renderTable();
+  };
+});
+
+document.getElementById("q").oninput = () => renderTable();
+document.getElementById("btn-sync").onclick = () => loadData();
+
+document.getElementById("btn-telegram-all").onclick = async function() {
+  if (!WEB_APP_URL || WEB_APP_URL.includes("YOUR_NEW_WEB_APP_URL")) {
+    alert("กรุณาใส่ WEB_APP_URL ตัวใหม่ก่อนส่ง Telegram ครับ");
+    return;
+  }
+  this.disabled = true;
+  try {
+    const res = await fetchJsonp(`${WEB_APP_URL}?action=sendSummaryTelegram`);
+    alert(res && res.ok ? "ส่งสรุปสัญญาณ MOAT 5/5 และ P1–P3 เข้า Telegram เรียบร้อยแล้วครับ" : "ส่งไม่สำเร็จ: " + (res?.error || ""));
+  } catch (e) {
+    alert("เกิดข้อผิดพลาด: " + e.message);
+  }
+  this.disabled = false;
+};
+
+loadData();
+</script>
+</body>
+</html>
