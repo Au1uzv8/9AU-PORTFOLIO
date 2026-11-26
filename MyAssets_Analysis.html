@@ -1165,6 +1165,41 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
   animation: spin 1s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+/* ── Paste area (Fund tab) ──────────────────────────────── */
+.fund-paste-strip {
+  display:flex; align-items:flex-start; flex-wrap:wrap; gap:8px;
+  background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+  border-radius:10px; padding:10px 14px; margin-bottom:14px;
+}
+.fpaste-badge { font-size:13px; font-weight:700; color:var(--accent);
+  background:rgba(0,255,157,0.08); border:1px solid rgba(0,255,157,0.25);
+  border-radius:6px; padding:2px 10px; white-space:nowrap; align-self:center; }
+.fund-paste-strip textarea {
+  flex:1; min-width:200px; min-height:60px; max-height:120px;
+  background:rgba(0,0,0,0.3); color:var(--text);
+  border:1px solid rgba(255,255,255,0.12); border-radius:6px;
+  padding:6px 10px; font-size:11px; resize:vertical; font-family:monospace;
+}
+.fund-paste-strip textarea::placeholder { color:var(--dim); }
+.fpbtn { padding:6px 14px; border-radius:6px; border:none; cursor:pointer;
+  font-size:12px; font-weight:600; white-space:nowrap; align-self:center; }
+.fpbtn.p { background:var(--accent); color:#000; }
+.fpbtn.s { background:rgba(255,255,255,0.08); color:var(--text); }
+.fpbtn:disabled { opacity:.4; cursor:default; }
+.fdiff-wrap { background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.08);
+  border-radius:8px; padding:10px 14px; margin:6px 0; font-size:12px; }
+.fdiff-row { display:flex; gap:8px; align-items:center; padding:3px 0;
+  border-bottom:1px solid rgba(255,255,255,0.05); }
+.fdiff-row:last-child { border-bottom:none; }
+.fdiff-label { width:120px; color:var(--dim); flex-shrink:0; font-size:11px; }
+.fdiff-old { color:#f87171; text-decoration:line-through; min-width:60px; }
+.fdiff-new { color:#4ade80; min-width:60px; }
+.fdiff-same { color:var(--muted); }
+.ffantong { display:inline-flex; align-items:center; gap:8px;
+  padding:8px 20px; border-radius:8px; border:2px solid;
+  font-size:13px; font-weight:700; cursor:pointer; margin-top:6px; }
+.ffantong.ok   { border-color:#00ff9d; color:#00ff9d; background:rgba(0,255,157,.08); }
+.ffantong.warn { border-color:#fbbf24; color:#fbbf24; background:rgba(251,191,36,.08); }
 
 /* ===================== IPO IFRAME ===================== */
 .ipo-frame {
@@ -1539,6 +1574,16 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
       </button>
       <span class="fund-meta" id="fund-meta">— ยังไม่ได้ดึงข้อมูล</span>
     </div>
+
+    <!-- Paste area v9.5 -->
+    <div class="fund-paste-strip" id="fpstrip">
+      <span class="fpaste-badge" id="fpbadge">— เลือก Ticker ก่อน</span>
+      <textarea id="fparea" placeholder="Paste ข้อมูลจาก Settrade (สถิติสำคัญ) หรือ Yahoo Finance (Statistics)..."></textarea>
+      <button class="fpbtn p" onclick="fpProcess()">ประมวลผล</button>
+      <button class="fpbtn s" id="fpsave" style="display:none" onclick="fpSave()">บันทึก</button>
+    </div>
+    <div id="fpdiff" style="display:none"></div>
+    <div id="fpfantong" style="display:none"></div>
 
     <div class="fund-layout">
       <!-- LEFT: stock list -->
@@ -2245,6 +2290,7 @@ function applyFiltersAndRender() {
 
 function selectTicker(ticker) {
   SELECTED_TICKER = ticker;
+  window._fpTicker = ticker;
   highlightSelectedRow();
   loadInteractiveChart(ticker);
 }
@@ -2773,6 +2819,7 @@ function loadFundamentals() {
 
   fetchJsonp(WEB_APP_URL + '?action=fundamentals').then(function(d) {
     fundData = (d && d.items) ? d.items : [];
+    window._fundData = fundData;
     renderFundList(fundData);
     var meta = document.getElementById('fund-meta');
     if (d && d.updatedAt) meta.textContent = 'อัปเดต: ' + d.updatedAt + '  (' + (d.count||0) + ' รายการ)';
@@ -2950,6 +2997,105 @@ function switchPageTab(tabId, btn) {
     var fr = document.getElementById('ipo-frame');
     if (fr && !fr.src) fr.src = 'MyAssets_IPO.html';
   }
+  if (tabId === 'fundamental') {
+    var t = window._fpTicker || SELECTED_TICKER || null;
+    if (t) setTimeout(function(){ fpOpen(t); }, 80);
+  }
+}
+
+
+/* ===================== FUNDAMENTAL PASTE ENGINE v9.5 ===================== */
+function fpOpen(ticker) {
+  if (!ticker) return;
+  var badge = document.getElementById('fpbadge');
+  if (badge) {
+    var item = DATA.find(function(d){ return d.ticker === ticker; });
+    badge.textContent = ticker + (item ? ' (' + (item.market||'') + ')' : '');
+  }
+  window._fpParsed = null;
+  var sb = document.getElementById('fpsave'); if (sb) sb.style.display = 'none';
+  var dd = document.getElementById('fpdiff'); if (dd) { dd.style.display='none'; dd.innerHTML=''; }
+  var ff = document.getElementById('fpfantong'); if (ff) { ff.style.display='none'; ff.innerHTML=''; }
+  var ta = document.getElementById('fparea'); if (ta) { ta.value=''; ta.focus(); }
+}
+
+function _numRaw(s) {
+  if (!s) return null; s = String(s).replace(/,/g,'').trim();
+  if (!s||s==='-'||s==='N/A') return null;
+  var m=s.match(/([\d.]+)\s*([TBMKtbmk]?)/); if (!m) return null;
+  var n=parseFloat(m[1]),u=m[2].toUpperCase();
+  if(u==='T')n*=1e12;else if(u==='B')n*=1e9;else if(u==='M')n*=1e6;
+  return isNaN(n)?null:n;
+}
+function _pct(s){if(!s)return null;var n=parseFloat(String(s).replace('%','').replace(',','').trim());return isNaN(n)?null:n;}
+function _after(text,label){var idx=text.indexOf(label);if(idx===-1)return null;var rest=text.slice(idx+label.length);var m=rest.match(/^\s*\n+([^\n]+)/);return m?m[1].trim():null;}
+function _thDate(str){if(!str)return null;var M={'ม.ค.':1,'ก.พ.':2,'มี.ค.':3,'เม.ย.':4,'พ.ค.':5,'มิ.ย.':6,'ก.ค.':7,'ส.ค.':8,'ก.ย.':9,'ต.ค.':10,'พ.ย.':11,'ธ.ค.':12};var m=str.match(/(\d{1,2})\s+([^\s]+)\s+(\d{4})/);if(!m)return null;var d=parseInt(m[1]),mon=M[m[2]],y=parseInt(m[3])-543;if(!mon)return null;return y+'-'+String(mon).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function parseUS(text){var dm=text.match(/As of\s+([\d/]+)/),d='';if(dm){var pts=dm[1].split('/');if(pts.length===3)d=pts[2]+'-'+String(pts[0]).padStart(2,'0')+'-'+String(pts[1]).padStart(2,'0');}return{market:'US',as_of_date:d,market_cap:_after(text,'Market Cap'),pe:_numRaw(_after(text,'Trailing P/E')),pe_forward:_numRaw(_after(text,'Forward P/E')),pb:_numRaw(_after(text,'Price/Book (mrq)')),net_margin:_pct(_after(text,'Profit Margin')),roa:_pct(_after(text,'Return on Assets (ttm)')),roe:_pct(_after(text,'Return on Equity (ttm)')),de_ratio:_pct(_after(text,'Total Debt/Equity (mrq)')),eps:_numRaw(_after(text,'Diluted EPS (ttm)')),gross_margin:null,div_yield:null};}
+function parseTH(text){var dateStr=(text.match(/ข้อมูล ณ วันที่[^\n]*/))||[''];var d=_thDate(dateStr[0]);var low52=null,high52=null;var rm=text.match(/ต่ำสุด\n([\d,.]+)\n([\d,.]+)\nสูงสุด/);if(rm){low52=_numRaw(rm[1]);high52=_numRaw(rm[2]);}return{market:'TH',as_of_date:d,market_cap:_after(text,'มูลค่าหลักทรัพย์ตามราคาตลาด (ล้านบาท)'),pe:_numRaw(_after(text,'P/E (เท่า)')),pe_forward:null,pb:_numRaw(_after(text,'P/BV (เท่า)')),net_margin:_pct(_after(text,'อัตรากำไรสุทธิ (%)')),gross_margin:_pct(_after(text,'อัตรากำไรขั้นต้น (%)')),roa:_pct(_after(text,'ROA (%)')),roe:_pct(_after(text,'ROE (%)')),de_ratio:_numRaw(_after(text,'อัตราส่วนหนี้สินต่อส่วนของผู้ถือหุ้น (เท่า)')),eps:_numRaw(_after(text,'กำไร (บาท / หุ้น)')),div_yield:_pct(_after(text,'อัตราตอบแทนเงินปันผล (% ต่อปี)')),low52:low52,high52:high52};}
+function fpParse(text){if(text.indexOf('Valuation Measures')>-1||text.indexOf('Market Cap')>-1)return parseUS(text);if(text.indexOf('สถิติสำคัญ')>-1||text.indexOf('มูลค่าหลักทรัพย์')>-1)return parseTH(text);return null;}
+function fpMoat(p,beta){var dy=p.div_yield,b=beta||0,ps=[],ms=[];function chk(c,l){(c?ps:ms).push(l);}chk(p.eps!=null&&p.eps>0,'EPS > 0');chk(p.pe!=null&&p.pe>0&&p.pe<=25,'P/E ≤ 25x');chk(b>0&&b<1.0,'Beta < 1.0');chk(p.pb!=null&&p.pb>0&&p.pb<=3,'P/B ≤ 3x');chk(dy!=null&&dy>=1,'Div Yield ≥ 1%');var s=ps.length;return{score:s,level:s>=4?'Wide':s>=3?'Narrow':s>=2?'Mixed':'Weak',passed:ps,missing:ms};}
+
+function fpProcess() {
+  var text=(document.getElementById('fparea').value||'').trim();
+  if(!text){alert('กรุณาวางข้อมูลก่อนครับ');return;}
+  var parsed=fpParse(text);
+  if(!parsed){alert('ไม่สามารถตรวจจับรูปแบบ Settrade / Yahoo Finance ได้');return;}
+  var badge=document.getElementById('fpbadge');
+  var ticker=(badge?badge.textContent.split(' ')[0]:'')||SELECTED_TICKER||'';
+  parsed.ticker=ticker;
+  var existing=(window._fundData||[]).find(function(x){return String(x.ticker||'').toUpperCase()===String(ticker).toUpperCase();})||{};
+  var moat=fpMoat(parsed,existing.beta||0);
+  parsed._moat=moat;
+  window._fpParsed=parsed;
+  fpShowDiff(existing,parsed,moat);
+  var sb=document.getElementById('fpsave');if(sb)sb.style.display='';
+}
+
+function fpShowDiff(existing,parsed,moat){
+  var LABELS={pe:'P/E',pe_forward:'P/E Fwd',pb:'P/B',roe:'ROE %',roa:'ROA %',net_margin:'Net Margin %',gross_margin:'Gross Margin %',de_ratio:'D/E',eps:'EPS',div_yield:'Div Yield %',as_of_date:'As of'};
+  var fv=function(v){return(v==null||v==='')?'—':v;};
+  var rows='';
+  Object.keys(LABELS).forEach(function(k){var ov=fv(existing[k]),nv=fv(parsed[k]),same=String(ov)===String(nv);rows+='<div class="fdiff-row"><span class="fdiff-label">'+LABELS[k]+'<\/span>'+(same?'<span class="fdiff-same">'+ov+'<\/span>':'<span class="fdiff-old">'+ov+'<\/span><span style="color:var(--dim);margin:0 4px">→<\/span><span class="fdiff-new">'+nv+'<\/span>')+'<\/div>';});
+  var bar='';for(var i=1;i<=5;i++)bar+=(i<=moat.score?'█':'░');
+  var area=document.getElementById('fpdiff');
+  area.innerHTML='<div class="fdiff-wrap"><div style="font-size:11px;color:var(--dim);margin-bottom:6px">ตรวจสอบ — '+parsed.market+' · '+parsed.ticker+' · As of '+(parsed.as_of_date||'?')+'<\/div>'+rows+'<div style="margin-top:8px;font-size:12px;color:var(--dim)">MOAT: <strong style="color:var(--accent)">'+moat.score+'/5<\/strong> '+bar+' '+moat.level+' — '+moat.passed.join(', ')+'<\/div><\/div>';
+  area.style.display='';
+}
+
+function fpSave() {
+  if(!window._fpParsed)return;
+  var sb=document.getElementById('fpsave');if(sb){sb.disabled=true;sb.textContent='กำลังบันทึก...';}
+  var payload=Object.assign({},window._fpParsed);delete payload._moat;
+  fetchJsonp(WEB_APP_URL+'?action=savefundamental&payload='+encodeURIComponent(JSON.stringify(payload)))
+    .then(function(res){
+      if(!res||!res.ok)throw new Error(res&&res.error?res.error:'save failed');
+      if(sb)sb.textContent='บันทึกแล้ว ✓';
+      if(window._fundData){var idx=window._fundData.findIndex(function(x){return String(x.ticker||'').toUpperCase()===String(payload.ticker||'').toUpperCase();});var ni=Object.assign({},window._fundData[idx]||{},{moatScore:window._fpParsed._moat.score,moatLevel:window._fpParsed._moat.level,moatPassed:window._fpParsed._moat.passed,moatMissing:window._fpParsed._moat.missing,pe:payload.pe,pb:payload.pb,roe:payload.roe,roa:payload.roa,netMargin:payload.net_margin,deRatio:payload.de_ratio,eps:payload.eps,divYield:payload.div_yield});if(idx>-1)window._fundData[idx]=ni;else window._fundData.push(ni);}
+      fpFanTong(window._fpParsed._moat,payload.ticker);
+    })
+    .catch(function(err){if(sb){sb.disabled=false;sb.textContent='บันทึก';}alert('บันทึกไม่สำเร็จ: '+(err.message||err));});
+}
+
+function fpFanTong(moat,ticker){
+  var fa=document.getElementById('fpfantong');if(!fa)return;
+  var ti=DATA.find(function(d){return String(d.ticker||'').toUpperCase()===String(ticker||'').toUpperCase();});
+  var techOk=ti&&(ti.isBuyAlert||(ti.buySig||0)>=3);
+  var moatOk=moat&&moat.score>=3;
+  if(!moatOk||!techOk){var r=[];if(!moatOk)r.push('MOAT '+(moat?moat.score:0)+'/5 < 3');if(!techOk)r.push('Technical ยังไม่ถึง Pending');fa.innerHTML='<div style="font-size:11px;color:var(--dim);padding:4px 0">ฟันธงยังไม่ครบ: '+r.join(' · ')+'<\/div>';fa.style.display='';return;}
+  var old=(window._fundData||[]).find(function(x){return String(x.ticker||'').toUpperCase()===String(ticker||'').toUpperCase();});
+  var oldS=old?(Number(old.moatScore)||0):moat.score;
+  var trend=moat.score>oldS?'Recovering':moat.score<oldS?'Declining':'Stable';
+  var isW=trend==='Declining';
+  window._fpPayload={ticker:ticker,market:(ti||{}).market||'',moatScore:moat.score,moatLevel:moat.level,moatPassed:moat.passed,signal:(ti||{}).signal||'',priority:(ti||{}).priority||'',entry:(ti||{}).price||'',sl:(ti||{}).stopLoss||'',tp:(ti||{}).target2R||''};
+  fa.innerHTML='<button class="ffantong '+(isW?'warn':'ok')+'" onclick="fpSendAlert(this)">ฟันธง — '+ticker+' | MOAT '+moat.score+'/5 '+moat.level+(isW?' ⚠ Declining':'')+' | '+((ti||{}).signal||'')+'<\/button><div style="font-size:11px;color:var(--dim);margin-top:4px">Trend: '+trend+' ('+oldS+'→'+moat.score+')<\/div>';
+  fa.style.display='';
+}
+
+function fpSendAlert(btn){
+  var p=window._fpPayload;if(!p)return;
+  fetchJsonp(WEB_APP_URL+'?action=sendfantong&payload='+encodeURIComponent(JSON.stringify(p)))
+    .then(function(){if(btn)btn.textContent='ส่ง Telegram แล้ว ✓';})
+    .catch(function(err){alert('ส่งไม่สำเร็จ: '+(err.message||err));});
 }
 
 /* ===================== INIT RUNTIME ===================== */
