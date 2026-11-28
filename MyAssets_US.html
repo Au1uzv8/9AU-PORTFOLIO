@@ -72,11 +72,11 @@
   <div id="tickerStrip" class="md:hidden max-w-7xl mx-auto px-4 pb-2 flex gap-2 overflow-x-auto fn text-[11px]"></div>
   <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
     <a href="MyAssets.html"          class="nav-tab">Dashboard</a>
+    <a href="MyAssets_Analysis.html" class="nav-tab" style="color:#00ff9d;border-color:#00ff9d33">วิเคราะห์</a>
+    <a href="MyAssets_Cashflow.html" class="nav-tab">สภาพคล่อง</a>
     <a href="MyAssets_Thai.html"     class="nav-tab">หุ้นไทย</a>
     <a href="MyAssets_US.html"       class="nav-tab active">หุ้นสหรัฐ</a>
     <a href="MyAssets_Forex.html"    class="nav-tab">ตลาดค่าเงิน</a>
-    <a href="MyAssets_Cashflow.html" class="nav-tab">สภาพคล่อง</a>
-    <a href="MyAssets_Analysis.html" class="nav-tab" style="color:#00ff9d;border-color:#00ff9d33">วิเคราะห์</a>
     <a href="MyAssets_README.html"   class="nav-tab" style="color:#d97706">คู่มือใช้งาน</a>
   </div>
 </header>
@@ -105,8 +105,7 @@
       </div>
       <div class="bg-[#0d1117] p-3 rounded-xl border border-[#30363d]">
         <div class="text-[11px] text-gray-400">กำไร / ขาดทุน</div>
-        <div class="text-lg font-bold fn mt-1" id="usPnlUSD">$ 0.00</div>
-        <div class="text-xs fn" id="usPnlTHB">฿ 0.00</div>
+        <div class="text-lg font-bold fn mt-1" id="usPnlEl">$ 0.00</div>
       </div>
     </div>
   </div>
@@ -213,15 +212,18 @@
       </div>
       <div>
         <label class="block text-gray-400 mb-1">กลุ่มหุ้น</label>
+        <!-- BUY: user selects group -->
         <select id="usGroup" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none">
           <option value="Satellite (หุ้นผันผวน)">Satellite — หุ้นผันผวน</option>
           <option value="Dividend (หุ้นปันผล)">Dividend — หุ้นปันผล</option>
           <option value="Core (หุ้นเสถียร)">Core — หุ้นเสถียร</option>
         </select>
+        <!-- SELL: read-only from positions data -->
         <div id="usGroupReadOnly" class="hidden w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-gray-400 fn text-xs italic">กรอก Ticker เพื่อดึงกลุ่มหุ้น</div>
       </div>
       <div><label class="block text-gray-400 mb-1">หมายเหตุ</label>
         <input type="text" id="usNote" placeholder="รายละเอียดเพิ่มเติม" class="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-3 py-2 text-white focus:border-blue-500 focus:outline-none"></div>
+      <!-- Wallet auto-sync info (always ON) -->
       <div id="usWalletSyncBadge" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#0d1117] border border-blue-500/20 text-[11px] fn text-blue-400">
         <span class="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0"></span>
         <span id="usWalletSyncInfo">BUY → หักจากกระเป๋า USD (sell_usd)</span>
@@ -365,32 +367,23 @@ function renderUSView(){
 
   const totalMarket=pos.reduce((a,p)=>a+p.marketUSD,0);
   const totalCost=pos.reduce((a,p)=>a+p.costUSD,0);
-  const pnlUSD=totalMarket-totalCost;
-  const pnlTHB=pnlUSD*fx;
-  const pct=totalCost>0?pnlUSD/totalCost*100:0;
+  const pnl=totalMarket-totalCost;
+  const pct=totalCost>0?pnl/totalCost*100:0;
 
   document.getElementById('usCostUSD').textContent=fmtN(totalCost);
   document.getElementById('usCostTHB').textContent=fmtN(totalCost*fx);
   document.getElementById('usMarketUSD').textContent=fmtN(totalMarket);
   document.getElementById('usMarketTHB').textContent=fmtN(totalMarket*fx);
-  
-  const pnlUsdEl=document.getElementById('usPnlUSD');
-  const pnlThbEl=document.getElementById('usPnlTHB');
-  const g=pnlUSD>=0;
-  
-  pnlUsdEl.textContent=(g?'+':'')+'$' + fmtN(pnlUSD) + ' (' + (g?'+':'') + fmtN(pct) + '%)';
-  pnlUsdEl.className='text-lg font-bold fn mt-1 ' + (g?'text-emerald-400':'text-rose-400');
-  
-  pnlThbEl.textContent='฿ ' + (g?'+':'') + fmtN(pnlTHB);
-  pnlThbEl.className='text-xs fn ' + (g?'text-emerald-400':'text-rose-400');
-
+  const pEl=document.getElementById('usPnlEl');
+  pEl.textContent=(pnl>=0?'+':'')+'$'+fmtN(pnl)+' ('+(pct>=0?'+':'')+fmtN(pct)+'%)';
+  pEl.className='text-lg font-bold fn mt-1 '+(pnl>=0?'text-emerald-400':'text-rose-400');
   document.getElementById('usWLCount').textContent=wl.length;
 
   const tbody=document.getElementById('usHoldingsBody');
   if(!pos.length){tbody.innerHTML=`<tr><td colspan="9" class="py-6 text-center text-gray-500">ไม่มีหุ้น US ในพอร์ต</td></tr>`;
   }else{
     tbody.innerHTML=pos.map(p=>{
-      const isG=p.diffUSD>=0;
+      const g=p.diffUSD>=0;
       const alert=(p.isBuyAlertActive||p.isSellAlertActive)?`<span class="ml-1 px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-300 border border-blue-500/40">Alert</span>`:'';
       return `<tr class="hover:bg-[#1c2128] transition select-none cursor-pointer" ondblclick="openUSTargetModal('${p.ticker}',${p.targetBuyPrice||0},${p.targetSellPrice||0})">
         <td class="py-3 px-4 font-bold text-white">${p.ticker}${alert}</td>
@@ -400,8 +393,8 @@ function renderUSView(){
         <td class="py-3 px-3">${(()=>{const r=get52(p);return range52Cell(p.currentPrice,r.low,r.high,2);})()}</td>
         <td class="py-3 px-3 text-right font-bold text-blue-300">$${fmtN(p.costUSD)}</td>
         <td class="py-3 px-3 text-right font-bold text-white">$${fmtN(p.marketUSD)}</td>
-        <td class="py-3 px-3 text-right font-semibold ${isG?'text-emerald-400':'text-rose-400'}">${isG?'+':''}$${fmtN(p.diffUSD)}</td>
-        <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${isG?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'}">${isG?'+':''}${fmtN(p.diffPct)}%</span></td>
+        <td class="py-3 px-3 text-right font-semibold ${g?'text-emerald-400':'text-rose-400'}">${g?'+':''}$${fmtN(p.diffUSD)}</td>
+        <td class="py-3 px-4 text-right"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${g?'bg-emerald-500/20 text-emerald-300':'bg-rose-500/20 text-rose-300'}">${g?'+':''}${fmtN(p.diffPct)}%</span></td>
       </tr>`;
     }).join('');
   }
@@ -491,6 +484,7 @@ function printPDF(){
   });
 }
 
+
 /* ── Toast notification ──────────────────────────────────────── */
 function showToast(msg, type='ok') {
   const colors = {
@@ -511,6 +505,7 @@ function closeModal(id) { document.getElementById(id)?.classList.add('hidden'); 
 
 function setUSSide(side) {
   selectedUSSide = side;
+  // Switch group field: BUY = select, SELL = read-only
   const sel = document.getElementById('usGroup');
   const ro  = document.getElementById('usGroupReadOnly');
   if (side === 'BUY') {
@@ -519,10 +514,12 @@ function setUSSide(side) {
     sel?.classList.add('hidden'); ro?.classList.remove('hidden');
     onUSTickerInput(document.getElementById('usTicker')?.value || '');
   }
+  // Update wallet badge
   const badge = document.getElementById('usWalletSyncInfo');
   if (badge) badge.textContent = side === 'BUY'
     ? 'BUY → หักจากกระเป๋า USD (sell_usd)'
     : 'SELL → นำเงินเข้ากระเป๋า USD (sell_usd)';
+  // Side buttons
   document.getElementById('btnUSBUY').className  = side === 'BUY'
     ? 'flex-1 py-2 rounded-xl font-bold border border-blue-500 bg-blue-600/30 text-blue-300'
     : 'flex-1 py-2 rounded-xl font-bold border border-[#303d3d] bg-[#21262d] text-gray-400';
@@ -540,6 +537,7 @@ function openUSTradeModal() {
   document.getElementById('usPrice').value  = '';
   document.getElementById('usGroup').selectedIndex = 0;
   document.getElementById('usNote').value   = '';
+  // reset group field to BUY mode
   document.getElementById('usGroup')?.classList.remove('hidden');
   document.getElementById('usGroupReadOnly')?.classList.add('hidden');
   const badge = document.getElementById('usWalletSyncInfo');
@@ -572,6 +570,7 @@ function submitUSTrade() {
   const fx  = rtData?.fxRate || appData?.summary?.fxRate || 33.14;
   const btn = document.getElementById('btnSaveUS');
   btn.textContent = 'กำลังบันทึก...'; btn.disabled = true;
+  // Group: BUY = user-selected, SELL = from positions (read-only)
   let group;
   if (selectedUSSide === 'SELL') {
     const pos = (appData?.summary?.positions || []).find(p => p.ticker === ticker);
@@ -585,7 +584,7 @@ function submitUSTrade() {
     ticker, shares, price, fxRate: fx,
     group,
     note:   document.getElementById('usNote').value.trim(),
-    useWallet: 'sell_usd'
+    useWallet: 'sell_usd'   // always sync กระเป๋ากลาง USD
   }, res => {
     btn.textContent = 'บันทึก'; btn.disabled = false;
     if (res.ok) {

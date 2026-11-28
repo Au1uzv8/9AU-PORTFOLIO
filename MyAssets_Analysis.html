@@ -1279,6 +1279,11 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
     <a href="MyAssets.html"
        class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
               text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">Dashboard</a>
+    <span class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
+                 bg-emerald-900/30 text-emerald-400 border border-emerald-500/20 fb">วิเคราะห์</span>
+    <a href="MyAssets_Cashflow.html"
+       class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
+              text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">สภาพคล่อง</a>
     <a href="MyAssets_Thai.html"
        class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
               text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">หุ้นไทย</a>
@@ -1288,11 +1293,6 @@ body.no-motion tbody tr.row-buy-alert { animation: none !important; }
     <a href="MyAssets_Forex.html"
        class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
               text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">ตลาดค่าเงิน</a>
-    <a href="MyAssets_Cashflow.html"
-       class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
-              text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">สภาพคล่อง</a>
-    <span class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
-                 bg-emerald-900/30 text-emerald-400 border border-emerald-500/20 fb">วิเคราะห์</span>
     <a href="MyAssets_README.html"
        class="shrink-0 px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
               text-gray-400 hover:text-white hover:bg-[#21262d] transition fb">คู่มือใช้งาน</a>
@@ -2962,7 +2962,7 @@ function renderFundDetail(d) {
       '<div class="fd-metrics">' +
         '<div class="fd-metric"><div class="fd-metric-label">D/E Ratio</div><div class="fd-metric-value">' + fmt(d.deRatio,'x',2) + '</div></div>' +
         '<div class="fd-metric"><div class="fd-metric-label">Current Ratio</div><div class="fd-metric-value">' + fmt(d.currentRatio,'x',2) + '</div></div>' +
-      '</div>' +
+      </div>' +
     '</div>' +
 
     '<div class="fd-section">' +

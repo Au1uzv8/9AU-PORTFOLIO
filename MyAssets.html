@@ -22,12 +22,12 @@
     .cd{background:#161b22;border:1px solid #30363d;}
     .pulse-dot{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite;}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-    .fb-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:9999px;}
+    .fb-badge{display:inline-flex;align-items:center;gap=5px;font-size:11px;padding:2px 8px;border-radius:9999px;}
     .nav-tab{padding:8px 16px;border-radius:10px;font-size:12px;font-weight:600;transition:.15s;white-space:nowrap;border:1px solid #30363d;}
     .nav-tab.active{background:#2563eb;color:#fff;border-color:#2563eb;}
     .nav-tab:not(.active){background:#161b22;color:#64748b;}
     .nav-tab:not(.active):hover{color:#fff;border-color:#475569;}
-    .rm-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:9999px;white-space:nowrap;}
+    .rm-badge{display:inline-flex;align-items:center;gap=4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:9999px;white-space:nowrap;}
     .rm-watch{background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.35);}
     .rm-sl12{background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.4);}
     .rm-sl15{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.45);}
@@ -113,11 +113,11 @@
   <div id="tickerStrip" class="md:hidden max-w-7xl mx-auto px-4 pb-2 flex gap-2 overflow-x-auto fn text-[11px]"></div>
   <div class="max-w-7xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar">
     <a href="MyAssets.html"          class="nav-tab active">Dashboard</a>
+    <a href="MyAssets_Analysis.html" class="nav-tab" style="color:#00ff9d;border-color:#00ff9d33">วิเคราะห์</a>
+    <a href="MyAssets_Cashflow.html" class="nav-tab">สภาพคล่อง</a>
     <a href="MyAssets_Thai.html"     class="nav-tab">หุ้นไทย</a>
     <a href="MyAssets_US.html"       class="nav-tab">หุ้นสหรัฐ</a>
     <a href="MyAssets_Forex.html"    class="nav-tab">ตลาดค่าเงิน</a>
-    <a href="MyAssets_Cashflow.html" class="nav-tab">สภาพคล่อง</a>
-    <a href="MyAssets_Analysis.html" class="nav-tab" style="color:#00ff9d;border-color:#00ff9d33">วิเคราะห์</a>
     <a href="MyAssets_README.html"   class="nav-tab" style="color:#d97706">คู่มือใช้งาน</a>
   </div>
 </header>
